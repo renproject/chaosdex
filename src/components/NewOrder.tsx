@@ -1,7 +1,5 @@
 import * as React from "react";
 
-import BigNumber from "bignumber.js";
-
 import { Loading } from "@renex/react-components";
 import { connect, ConnectedReturnType } from "react-redux"; // Custom typings
 

@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { connect, ConnectedReturnType } from "react-redux"; // Custom typings
-import { Redirect, Route, RouteComponentProps, Router, withRouter } from "react-router-dom";
+import { Route, RouteComponentProps, Router, withRouter } from "react-router-dom";
 import { bindActionCreators, Dispatch } from "redux";
 
 import { _captureBackgroundException_ } from "../lib/errors";
@@ -11,11 +11,12 @@ import { clearPopup, setPopup } from "../store/actions/popup/popupActions";
 import { storeURL } from "../store/actions/trader/accountActions";
 import { ApplicationData } from "../store/types/general";
 import { Alerts } from "./Alerts";
-import { HeaderController } from "./Header";
+import { HeaderController } from "./HeaderController";
 import { Exchange } from "./pages/Exchange";
 import { PopupController } from "./popups/PopupController";
 import { _catch_ } from "./views/ErrorBoundary";
 import { FeedbackButton } from "./views/FeedbackButton";
+import { updateTokenPrices } from "../store/actions/market/marketActions";
 
 // Scroll restoration based on https://reacttraining.com/react-router/web/guides/scroll-restoration
 const ScrollToTop = withRouter(
@@ -49,6 +50,9 @@ class AppClass extends React.Component<Props, State> {
         this.state = {
             checkingReLogin: true,
         };
+
+        this.props.actions.updateTokenPrices().catch(console.error);
+        setInterval(this.props.actions.updateTokenPrices, 30 * 1000);
     }
 
     /**
@@ -96,6 +100,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         setAlert,
         setPopup,
         storeURL,
+        updateTokenPrices,
     }, dispatch)
 });
 

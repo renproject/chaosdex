@@ -1,6 +1,6 @@
 import { createStandardAction } from "typesafe-actions";
 
-import { Token, InputError } from "../../types/general";
+import { InputError, Token } from "../../types/general";
 
 /**
  * Updates the current market (token pair, e.g. ETH/REN)

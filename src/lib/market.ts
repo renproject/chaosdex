@@ -80,14 +80,6 @@ export interface MarketDetails {
     base: Token;
 }
 
-export const getMarket = (left: Token, right: Token): MarketPair | undefined => {
-    return (
-        MarketPairs.findKey((marketDetails: MarketDetails) => marketDetails.base === left && marketDetails.quote === right) ||
-        MarketPairs.findKey((marketDetails: MarketDetails) => marketDetails.base === right && marketDetails.quote === left) ||
-        undefined
-    );
-};
-
 export const MarketPairs = OrderedMap<MarketPair, MarketDetails>()
     // BTC pairs
     .set(MarketPair.ETH_BTC, { symbol: MarketPair.ETH_BTC, quote: Token.BTC, base: Token.ETH })
@@ -95,3 +87,11 @@ export const MarketPairs = OrderedMap<MarketPair, MarketDetails>()
     .set(MarketPair.DAI_BTC, { symbol: MarketPair.DAI_BTC, quote: Token.BTC, base: Token.DAI })
     .set(MarketPair.ZEC_BTC, { symbol: MarketPair.ZEC_BTC, quote: Token.BTC, base: Token.ZEC })
     ;
+
+export const getMarket = (left: Token, right: Token): MarketPair | undefined => {
+    return (
+        MarketPairs.findKey((marketDetails: MarketDetails) => marketDetails.base === left && marketDetails.quote === right) ||
+        MarketPairs.findKey((marketDetails: MarketDetails) => marketDetails.base === right && marketDetails.quote === left) ||
+        undefined
+    );
+};

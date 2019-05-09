@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { Blocky, Loading } from "@renex/react-components";
+import { Blocky } from "@renex/react-components";
 import { connect, ConnectedReturnType } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 
@@ -38,49 +38,46 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
                         "header--account--disconnected"}`}
                 >
                     <div className="header--account--type">
-                        Logged in
-                    </div>
-                    {address ?
-                        <div className="header--account--address">
-                            {address.substring(0, 8)}...{address.slice(-5)}
-                        </div> :
-                        <div className="header--account--address">Not connected</div>
-                    }
-                </div>
-            </div>
-
-            {shown ?
-                <div className="header--dropdown--spacing header--dropdown--options header--dropdown--accounts">
-                    <ul className={`header--dropdown ${!address ? "header--dropdown--login" : ""}`}>
-                        {address ? <>
-                            <li role="button" onClick={this.copyToClipboard} className="header--dropdown--option">
-                                <span data-addr={address}>
-                                    {copied ?
-                                        <span>Copied</span>
-                                        :
-                                        <span>Copy to clipboard</span>
-                                    }
-                                </span>
-                            </li>
-                            <li
-                                role="button"
-                                onClick={this.handleLogout}
-                                className="header--dropdown--option"
-                            >
-                                Log out
-                            </li>
-                        </> :
-                            <li
-                                role="button"
-                                onClick={this.handleLogin}
-                                className="header--dropdown--option header--dropdown--highlight"
-                            >
-                                Log in
-                            </li>
+                        {address ?
+                            <>{address.substring(0, 8)}...{address.slice(-5)}</> :
+                            <>Not connected</>
                         }
-                    </ul>
-                </div> : <></>
-            }
+                    </div>
+                </div>
+
+                {shown ?
+                    <div className="header--dropdown--spacing header--dropdown--options header--dropdown--accounts">
+                        <ul className={`header--dropdown ${!address ? "header--dropdown--login" : ""}`}>
+                            {address ? <>
+                                <li role="button" onClick={this.copyToClipboard} className="header--dropdown--option">
+                                    <span data-addr={address}>
+                                        {copied ?
+                                            <span>Copied</span>
+                                            :
+                                            <span>Copy to clipboard</span>
+                                        }
+                                    </span>
+                                </li>
+                                <li
+                                    role="button"
+                                    onClick={this.handleLogout}
+                                    className="header--dropdown--option"
+                                >
+                                    Log out
+                            </li>
+                            </> :
+                                <li
+                                    role="button"
+                                    onClick={this.handleLogin}
+                                    className="header--dropdown--option header--dropdown--highlight"
+                                >
+                                    Log in
+                            </li>
+                            }
+                        </ul>
+                    </div> : <></>
+                }
+            </div>
         </div>;
     }
 

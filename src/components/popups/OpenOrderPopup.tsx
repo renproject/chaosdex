@@ -59,8 +59,6 @@ class OpenOrderPopupClass extends React.Component<Props, State> {
     }
 
     private readonly renderConfirm = (): React.ReactNode => {
-        const { orderInputs, quoteCurrency } = this.props;
-
         return <>
             <div className="popup--header">
                 <h2>Confirm Trade</h2>

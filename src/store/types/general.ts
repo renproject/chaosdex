@@ -1,5 +1,3 @@
-import BigNumber from "bignumber.js";
-
 import { Currency } from "@renex/react-components";
 import { Map, OrderedMap } from "immutable";
 
