@@ -11,20 +11,14 @@ export enum Token {
     BTC = "BTC",
     ETH = "ETH",
     REN = "REN",
-    TUSD = "TUSD",
     ZEC = "ZEC"
 }
 
 export enum MarketPair {
-    BTC_DAI = "BTC/DAI",
-    ETH_DAI = "ETH/DAI",
-    REN_DAI = "REN/DAI",
-    TUSD_DAI = "TUSD/DAI",
-    ZEC_DAI = "ZEC/DAI",
-    ETH_BTC = "ETH/BTC",
+    DAI_BTC = "DAI/BTC",
     REN_BTC = "REN/BTC",
-    TUSD_BTC = "TUSD/BTC",
-    ZEC_BTC = "ZEC/BTC"
+    ETH_BTC = "ETH/BTC",
+    ZEC_BTC = "ZEC/BTC",
 }
 
 export interface MarketDetails {
@@ -38,7 +32,6 @@ export const Tokens = Map<Token, TokenDetails>()
     .set(Token.BTC, { symbol: Token.BTC, name: "Bitcoin", decimals: 8, priority: 200 })
     .set(Token.ETH, { symbol: Token.ETH, name: "Ethereum", decimals: 18, priority: 1024 })
     .set(Token.REN, { symbol: Token.REN, name: "Ren", decimals: 18, priority: 1025 })
-    .set(Token.TUSD, { symbol: Token.TUSD, name: "TrueUSD", decimals: 18, priority: 1026 })
     .set(Token.ZEC, { symbol: Token.ZEC, name: "Zcash", decimals: 8, priority: 201 })
     ;
 

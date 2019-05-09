@@ -10,7 +10,6 @@ const CoinGeckoIDs = Map<Token, string>()
     .set(Token.BTC, "bitcoin")
     .set(Token.ETH, "ethereum")
     .set(Token.REN, "republic-protocol")
-    .set(Token.TUSD, "true-usd")
     .set(Token.ZEC, "zcash");
 
 /**
@@ -90,16 +89,9 @@ export const getMarket = (left: Token, right: Token): MarketPair | undefined => 
 };
 
 export const MarketPairs = OrderedMap<MarketPair, MarketDetails>()
-    // DAI pairs
-    .set(MarketPair.BTC_DAI, { symbol: MarketPair.BTC_DAI, quote: Token.DAI, base: Token.BTC })
-    .set(MarketPair.ETH_DAI, { symbol: MarketPair.ETH_DAI, quote: Token.DAI, base: Token.ETH })
-    .set(MarketPair.REN_DAI, { symbol: MarketPair.REN_DAI, quote: Token.DAI, base: Token.REN })
-    .set(MarketPair.TUSD_DAI, { symbol: MarketPair.TUSD_DAI, quote: Token.DAI, base: Token.TUSD })
-    .set(MarketPair.ZEC_DAI, { symbol: MarketPair.ZEC_DAI, quote: Token.DAI, base: Token.ZEC })
-
     // BTC pairs
     .set(MarketPair.ETH_BTC, { symbol: MarketPair.ETH_BTC, quote: Token.BTC, base: Token.ETH })
     .set(MarketPair.REN_BTC, { symbol: MarketPair.REN_BTC, quote: Token.BTC, base: Token.REN })
-    .set(MarketPair.TUSD_BTC, { symbol: MarketPair.TUSD_BTC, quote: Token.BTC, base: Token.TUSD })
+    .set(MarketPair.DAI_BTC, { symbol: MarketPair.DAI_BTC, quote: Token.BTC, base: Token.DAI })
     .set(MarketPair.ZEC_BTC, { symbol: MarketPair.ZEC_BTC, quote: Token.BTC, base: Token.ZEC })
     ;
