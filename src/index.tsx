@@ -16,10 +16,11 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import Backend from "i18next-xhr-backend";
 import { initReactI18next } from "react-i18next";
 
-// not like to use this?
-// have a look at the Quick start guide
-// for passing in lng and translations on init
+import "./styles/index.scss";
 
+export const store = configureStore();
+
+// Initiate the i18n instance for multilingual support
 i18n.use(Backend)
   // detect user language
   // learn more: https://github.com/i18next/i18next-browser-languageDetector
@@ -37,18 +38,12 @@ i18n.use(Backend)
     }
   });
 
-import "./styles/index.scss";
-
-export const store = configureStore();
-
-onLoad("RenEx Beta");
+onLoad("ApolloEx");
 
 ReactDOM.render(
   _catch_(<Provider store={store}>
     <PersistGate loading={null} persistor={persistStore(store)}>
-      <React.Suspense fallback={<Loading />}>
-        <App />
-      </React.Suspense>
+      <App />
     </PersistGate>
   </Provider>),
   document.getElementById("root") as HTMLElement
