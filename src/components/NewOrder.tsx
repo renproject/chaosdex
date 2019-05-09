@@ -50,7 +50,7 @@ class NewOrderClass extends React.Component<Props, State> {
                             disabled={submitting || (orderInputs.inputError !== null && orderInputs.inputError.category === "input") || disabled}
                             className="button submit-swap"
                         >
-                            {submitting ? <Loading alt={true} /> : <>{t("trade")}</>}
+                            {submitting ? <Loading alt={true} /> : <>{t("new_order.trade")}</>}
                         </button> :
                         <button disabled={true} className="button submit-swap">
                             Token pair not supported

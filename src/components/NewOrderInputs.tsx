@@ -3,6 +3,7 @@ import * as React from "react";
 import BigNumber from "bignumber.js";
 
 import { CurrencyIcon, InfoLabel, Loading } from "@renex/react-components";
+import { withTranslation, WithTranslation } from "react-i18next";
 import { connect, ConnectedReturnType } from "react-redux"; // Custom typings
 import { bindActionCreators, Dispatch } from "redux";
 
@@ -78,7 +79,7 @@ class NewOrderInputsClass extends React.Component<Props, State> {
             </span>
         </div>;
 
-        const firstTitle = "Spend";
+        const firstTitle = this.props.t("new_order.spend");
         let firstValue;
         let firstSubtext;
         let firstError;
@@ -113,7 +114,7 @@ class NewOrderInputsClass extends React.Component<Props, State> {
         </TokenValueInput >;
 
         const second = <TokenValueInput
-            title={"Receive"}
+            title={this.props.t("new_order.receive")}
             value={secondValue}
             subtext={secondSubtext}
             hint={"Based on market price."}
@@ -205,7 +206,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     }, dispatch)
 });
 
-interface Props extends ReturnType<typeof mapStateToProps>, ConnectedReturnType<typeof mapDispatchToProps> {
+interface Props extends ReturnType<typeof mapStateToProps>, ConnectedReturnType<typeof mapDispatchToProps>, WithTranslation {
     marketPrice: number;
     handleChange: (inputValue: string | null) => void;
 }
@@ -217,4 +218,6 @@ interface State {
     flipped: boolean;
 }
 
-export const NewOrderInputs = connect(mapStateToProps, mapDispatchToProps)(NewOrderInputsClass);
+const TranslatedNewOrderInputs = withTranslation()(NewOrderInputsClass);
+
+export const NewOrderInputs = connect(mapStateToProps, mapDispatchToProps)(TranslatedNewOrderInputs);
