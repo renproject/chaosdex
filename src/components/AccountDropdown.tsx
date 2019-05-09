@@ -33,6 +33,7 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
             <div className="header--account header--selected header--selected" role="menuitem" onClick={this.toggle}>
                 {address && <Blocky address={address} />}
                 <div
+                    role="button"
                     className={`header--account--right ${address ?
                         "header--account--connected" :
                         "header--account--disconnected"}`}

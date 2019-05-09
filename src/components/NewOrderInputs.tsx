@@ -86,13 +86,15 @@ class NewOrderInputsClass extends React.Component<Props, State> {
         let extra;
         firstValue = orderInputs.sendVolume;
         firstSubtext = <>
-            ~<TokenBalance
+            {"~ "}
+            <CurrencyIcon currency={quoteCurrency} />
+            {" "}
+            <TokenBalance
                 token={Token.ETH}
                 convertTo={quoteCurrency}
                 tokenPrices={tokenPrices}
                 amount={orderInputs.sendVolume || "0"}
             />
-            <CurrencyIcon currency={quoteCurrency} />
         </>;
         firstError = orderInputs.inputError !== null && orderInputs.inputError.category === "input";
         firstOnChange = this.onVolumeChange;
