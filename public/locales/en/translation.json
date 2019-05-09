@@ -2,7 +2,8 @@
   "new_order": {
     "spend": "Spend",
     "receive": "Receive",
-    "trade": "Trade"
+    "trade": "Trade",
+    "based_on_market_price": "Based on market price."
   },
   "english": "English",
   "german": "Deutsche",

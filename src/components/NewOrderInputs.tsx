@@ -56,7 +56,7 @@ class NewOrderInputsClass extends React.Component<Props, State> {
     }
 
     public render(): React.ReactNode {
-        const { updating, orderInputs, quoteCurrency } = this.props;
+        const { t, updating, orderInputs, quoteCurrency } = this.props;
         const { flipped } = this.state;
 
         const market = MarketPair.DAI_BTC;
@@ -79,7 +79,7 @@ class NewOrderInputsClass extends React.Component<Props, State> {
             </span>
         </div>;
 
-        const firstTitle = this.props.t("new_order.spend");
+        const firstTitle = t("new_order.spend");
         let firstValue;
         let firstSubtext;
         let firstError;
@@ -114,10 +114,10 @@ class NewOrderInputsClass extends React.Component<Props, State> {
         </TokenValueInput >;
 
         const second = <TokenValueInput
-            title={this.props.t("new_order.receive")}
+            title={t("new_order.receive")}
             value={secondValue}
             subtext={secondSubtext}
-            hint={"Based on market price."}
+            hint={t("new_order.based_on_market_price") as string}
             error={false}
             onChange={null}
             className="order-inputs--second"
