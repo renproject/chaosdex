@@ -1,0 +1,75 @@
+$shadow: rgba(50, 94, 128, 0.2);
+$navy: rgba(0, 28, 58, 1);
+
+$fonts: 'fonts/';
+$images: 'images/';
+
+$off-white: #f8fafb;
+$mid-grey: #58585b;
+$light-grey: #cccccc;
+$dark-grey: #3f3f41;
+
+$light-green: #31CC9A;
+$green: #00a500;
+$light-red: #F16262;
+$red: #F04545;
+$orange: #db6500;
+$yellow: rgb(244, 183, 50);
+
+$navy: rgba(0, 28, 58, 1);
+
+// $blue-bright: #106dd2;
+$blue-bright: #006FE8;
+$blue-dark: #002247;
+$blue-darker: #001B3A;
+
+$shadow: rgba(50, 94, 128, 0.2);
+$border: rgba(88, 88, 91, 0.1);
+
+$cubic-bezier: cubic-bezier(0.8, 0, 0.2, 1);
+
+$themes: (light:(background: #fcfcfd,
+foreground: $mid-grey,
+logo: #212122,
+beta: $blue-bright,
+toggle: 0.4,
+),
+dark: (background: $blue-darker,
+foreground: white,
+logo: white,
+beta: white,
+toggle: 1,
+), );
+
+@mixin themify($themes: $themes) {
+    .themed-app {
+
+        @each $theme,
+        $map in $themes {
+
+            .theme-#{$theme} & {
+                $theme-map: () !global;
+
+                @each $key,
+                $subMap in $map {
+                    $value: map-get(map-get($themes, $theme), '#{$key}');
+                    $theme-map: map-merge($theme-map, ($key: $value)) !global;
+                }
+
+                @content;
+                $theme-map: null !global;
+            }
+
+        }
+    }
+}
+
+@function themed($key) {
+    @return map-get($theme-map, $key);
+}
+
+
+
+
+// Border radii:
+$column-border-radius: 12px;

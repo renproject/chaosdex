@@ -1,0 +1,94 @@
+.verify-card {
+    width: 400px;
+    height: 382px;
+
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+
+    background: rgba(255, 255, 255, 1);
+    border: 1px solid #DBE0E8;
+    box-shadow: 0px 2px 2px rgba(0, 27, 58, 0.1); // 0.05);
+    border-radius: 12px;
+
+    h2 {
+        font-weight: 500;
+        font-size: 21px;
+        color: $mid-grey;
+    }
+
+    span {
+        font-weight: 500;
+        font-size: 16px;
+
+        color: #979797;
+
+        >* {
+            margin-right: 5px;
+            margin-bottom: -2px;
+        }
+
+        margin-bottom: 25px;
+    }
+
+    .verify-card--already-verified {
+        font-weight: 500;
+        font-size: 14px;
+        line-height: 43px;
+
+        color: #006FE8;
+        background: none;
+        border: none;
+
+        opacity: 0.8;
+        margin-bottom: 10px;
+    }
+
+    .button {
+        // TODO: Remove !important
+        width: 360px !important;
+        background: linear-gradient(180.17deg, #00A8F5 -125.02%, #006FE8 98.68%) !important;
+        border-radius: 6px !important;
+    }
+}
+
+.verify-card--logo {
+    width: 200px;
+    margin-top: 50px;
+    margin-bottom: 50px;
+    height: 85px;
+    display: flex;
+    // justify-items: center;
+    align-items: center;
+}
+
+@include themify($themes) {
+
+    .kyc-cards {
+        display: flex;
+        flex-flow: column;
+        align-items: center;
+
+        >h2 {
+            font-weight: 500;
+            font-size: 21px;
+            color: themed('foreground');
+        }
+
+        position: relative;
+        left: 50%;
+        top: calc(50% - 50px);
+        transform: translateX(-50%) translateY(-50%);
+    }
+}
+
+.kyc-cards--body {
+    display: flex;
+    margin: 0 auto;
+    justify-content: center;
+    margin-top: 30px;
+
+    .verify-card+.verify-card {
+        margin-left: 20px;
+    }
+}

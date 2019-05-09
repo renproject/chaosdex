@@ -1,0 +1,219 @@
+@include themify($themes) {
+
+    .checkbox-label {
+        display: block;
+        margin-bottom: 10px;
+        min-height: 20px;
+        font-size: 12px;
+        font-weight: 400;
+        padding-top: 10px;
+        margin-left: 22px;
+
+        width: calc(100% - 22px) !important;
+        cursor: pointer;
+
+        a {
+            text-decoration: underline;
+            color: darken($blue-bright, 30%);
+        }
+
+        span {
+            // top: 5px;
+            position: relative;
+            top: -2px;
+            font-weight: 500;
+            /* font-size: 10px; */
+            /* line-height: 14px; */
+            color: #58585B;
+        }
+
+        input {
+            margin-left: -22px;
+            margin-right: 10px;
+            cursor: pointer;
+            appearance: initial;
+            width: 20px;
+            height: 20px;
+            border: none;
+            background: themed('background');
+            position: relative;
+            border: 1px solid #eee;
+            float: left;
+            outline: none;
+            background: #FFFFFF;
+            border: 1px solid #E1E1E1;
+            box-shadow: 0px 1px 2px rgba(0, 27, 58, 0.05);
+            border-radius: 2px;
+        }
+
+        input:after {
+            content: "✔";
+            color: #58585B;
+            // opacity: 0.8;
+
+            font-size: 20px;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+
+            opacity: 0;
+            transition: opacity 0.1s ease;
+        }
+
+        input:checked:after {
+            opacity: 1;
+        }
+    }
+
+
+    .input {
+        box-shadow: 0 1px 0 0 rgba(0, 0, 0, .02) inset;
+        border-radius: 2px;
+
+        &[type="text"],
+        &[type="password"] {
+            $padding: 9px;
+            height: 42px - 2 * $padding;
+
+            padding: 9px;
+            width: calc(100% - 2 * #{$padding});
+            color: #58585B;
+            border: 1px solid #ccc;
+            transition: border linear .2s,
+                box-shadow linear .2s,
+                -webkit-box-shadow linear .2s;
+            margin-bottom: 10px;
+
+            background: #FDFDFD;
+            border: 1px solid #E1E1E1;
+            box-shadow: 0px 1px 2px rgba(0, 27, 58, 0.05);
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        &:focus {
+            border-color: transparentize($blue-bright, 1 - 0.8);
+            outline: 0;
+            outline: thin dotted \9;
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075),
+                0 0 8px transparentize($blue-bright, 1 - 0.6);
+        }
+
+        &::placeholder {
+            color: #979797;
+        }
+    }
+
+    .login {
+        max-width: 400px;
+        margin: 0 auto;
+        margin-top: 200px;
+        margin-bottom: 60px;
+
+        overflow: auto;
+
+        background: #fff;
+
+        border: 1px solid #DBE0E8;
+        box-sizing: border-box;
+        box-shadow: 0px 2px 2px rgba(0, 27, 58, 0.1);
+        border-radius: 12px;
+
+        form {
+            padding: 32px 24px;
+        }
+
+        form>* {
+            width: 100%;
+        }
+
+        .signup-tabs {
+            display: flex;
+            flex: 1;
+            color: $blue-bright;
+            background-color: #fff;
+            margin-right: 1px;
+        }
+
+        .signup-tab {
+            display: flex;
+            flex: 1;
+            align-items: center;
+            justify-content: center;
+            height: 50px;
+            padding-top: 2px;
+            font-size: 16px;
+            font-weight: 400;
+            background-color: #fff;
+
+            font-weight: 500;
+            font-size: 14px;
+            line-height: normal;
+            text-align: center;
+            color: #58585B;
+
+        }
+
+        .button {
+            // background: linear-gradient(180.17deg, #00A8F5 -125.02%, #006FE8 98.68%);
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 14px;
+
+            color: #FFFFFF;
+        }
+
+        .signup-tab.active-tab {
+            margin-right: 1px;
+        }
+
+        .signup-tab:not(.active-tab) {
+            color: transparentize(#58585B, 1 - 0.6);
+
+            border-bottom: solid 1px #dae1e9;
+            border-left: solid 1px #dae1e9;
+            border-right: solid 1px #dae1e9;
+            cursor: pointer;
+
+            &:first-child {
+                border-left: none;
+            }
+
+            &:last-child {
+                border-right: none;
+            }
+        }
+
+        .signup-tab:not(.active-tab)+.signup-tab:not(.active-tab) {
+            border-left: none;
+        }
+
+        .button {
+            float: none;
+        }
+
+
+        .submit-error {
+            border: 0;
+            border-radius: 0;
+            padding: 10px 24px;
+            width: calc(100% - 2 * 10px + 2 * 10px);
+            margin: 0 -24px;
+            margin-bottom: 20px;
+            text-align: center;
+            // color: ;
+            font-size: 14px;
+            background-color: lighten($red, 30%);
+        }
+
+        .validate-username {
+            position: absolute;
+            width: 15px;
+            margin-left: 320px;
+            margin-top: -10px - 10px - 12px; // margin, padding and width of input
+            transform: translateY(-50%);
+        }
+    }
+
+}

@@ -1,0 +1,25 @@
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 284.9 95.1" width="2500" height="835">
+    <style>
+        .st0 {fill: #061027}
+        .st1 {fill: #94c5ff}
+        .st2 {fill: #1a32af}
+        .st3 {fill: #0092ff}
+        .st4 {fill: #05f}
+    </style>
+    <g id="WyreLogo">
+        <g id="WyreLogoColor">
+            <g id="Shape">
+                <path class="st1" d="M-207.5-204.4h29.3l-15.8 38.7c-2.2 5.4-7.4 8.9-13.2 8.9h-29.3l15.8-38.7c2.2-5.5 7.4-8.9 13.2-8.9"
+                    transform="translate(256 252)" />
+                <path class="st2" d="M-178.2-204.4l-17.8 22.6c-2.7 3.6-6.8 5.9-11.6 5.9h-21.3l8.1-19.7c2.2-5.3 7.4-8.8 13.2-8.8h29.4z"
+                    transform="translate(256 252)" />
+                <path class="st3" d="M-217.3-228.2h29.3l-15.8 38.7c-2.2 5.4-7.4 8.9-13.2 8.9h-29.3l15.8-38.7c2.2-5.4 7.5-8.9 13.2-8.9"
+                    transform="translate(256 252)" />
+                <path class="st2" d="M-187.9-228.2l-17.8 22.6c-2.7 3.6-6.8 5.9-11.6 5.9h-21.3l8.1-19.7c2.2-5.3 7.4-8.8 13.2-8.8h29.4z"
+                    transform="translate(256 252)" />
+                <path class="st4" d="M-227-252h29.3l-15.8 38.7c-2.2 5.4-7.4 8.9-13.2 8.9H-256l15.8-38.7c2.2-5.4 7.4-8.9 13.2-8.9"
+                    transform="translate(256 252)" />
+            </g>
+        </g>
+    </g>
+</svg>

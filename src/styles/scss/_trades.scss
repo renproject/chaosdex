@@ -1,0 +1,91 @@
+@include themify($themes) {
+
+    .trades {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .trades .heading {
+        padding: 15px 20px 0;
+    }
+
+    .trades ul {
+        font-size: 12px;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        margin-bottom: 45px;
+    }
+
+    .trades--filter {
+        border-bottom: 2px solid #DBE0E8;
+    }
+
+    .trades--filter ul {
+        margin: 0 20px;
+        padding-bottom: 5px;
+    }
+
+    .trades--filter li {
+        display: inline-block;
+        font-weight: 400;
+        cursor: pointer;
+    }
+
+    .trades--filter li+li {
+        margin-left: 20px;
+    }
+
+    .trades--filter li.active {
+        position: relative;
+    }
+
+    .trades--filter li.active:after {
+        content: "";
+        background-color: $blue-bright;
+        height: 2px;
+        width: 100%;
+        position: absolute;
+        bottom: -7px;
+        left: 0;
+    }
+
+    .trades--list {
+        @extend .hide-scrollbar;
+
+        height: 374px;
+        overflow: scroll;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .trades--list li {
+        display: flex;
+        align-items: center;
+        font-weight: 500;
+        color: $mid-grey;
+        padding: 20px;
+        cursor: pointer;
+    }
+
+    .trades--list li:hover {
+        background-color: #FAFAFD;
+    }
+
+    .trades--list li+li {
+        border-top: 1px solid #DBE0E8;
+    }
+
+    .trades--list p {
+        margin-bottom: 2px;
+    }
+
+    .trades--list span {
+        font-size: 10px;
+        color: $mid-grey;
+    }
+
+    .trades--progress {
+        width: 40px;
+        margin-right: 15px;
+    }
+}

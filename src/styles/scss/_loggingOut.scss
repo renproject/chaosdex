@@ -1,0 +1,13 @@
+@include themify($themes) {
+
+    .logging-out {
+        position: relative;
+        left: 50%;
+        top: calc(50% - 50px);
+        transform: translateX(-50%) translateY(-50%);
+    }
+
+    .logging-out--outer {
+        height: calc(100vh - 100px);
+    }
+}

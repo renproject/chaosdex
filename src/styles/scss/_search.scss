@@ -1,0 +1,23 @@
+@include themify($themes) {
+    .search-bar {
+        border-radius: 0;
+        border-bottom-left-radius: $column-border-radius;
+        border-bottom-right-radius: $column-border-radius;
+
+        border: none;
+        border-top: 1px solid #ddd;
+
+        position: absolute;
+        bottom: 0;
+
+        input {
+            background: white;
+            color: black;
+            font-size: 14px;
+            font-weight: 500;
+            border: 0;
+            height: 45px;
+            width: 100%;
+        }
+    }
+}

@@ -1,0 +1,25 @@
+@include themify($themes) {
+
+    .history .loading {
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 10px;
+    }
+
+    .history .loading:after {
+        height: 12px;
+        width: 12px;
+        border-width: 1px;
+    }
+
+    .history tr.recent {
+        background-color: rgba($orange, 0.3);
+        animation: fadeHighlight 2s ease-in-out 1.2s forwards;
+    }
+
+    .balanceAction--failed td,
+    .balanceAction--replaced td {
+        opacity: 0.6;
+    }
+
+}

@@ -1,0 +1,59 @@
+@include themify($themes) {
+
+    .market {
+        @extend .hide-scrollbar;
+
+        background-color: themed('foreground');
+        height: 40px;
+        overflow-x: scroll;
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+    }
+
+    .market--items {
+        display: inline-flex;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .market--items li {
+        line-height: 30px;
+        margin: 5px 0;
+        padding: 0 15px;
+        border-right: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .market--items li:first-child {
+        padding-left: 0;
+    }
+
+    .market--items li:last-child {
+        border-right: none;
+    }
+
+    .market--items li>*+* {
+        margin-left: 5px;
+    }
+
+    .market--items li a {
+        color: themed('background');
+        text-decoration: none;
+        transition: opacity 0.2s ease-in-out;
+        cursor: pointer;
+    }
+
+    .market--items li a:hover {
+        opacity: 0.8;
+    }
+
+    .market--items li span.positive {
+        color: $green;
+    }
+
+    .market--items li span.negative {
+        color: $red;
+    }
+
+}

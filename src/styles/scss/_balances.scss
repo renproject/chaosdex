@@ -1,0 +1,51 @@
+@include themify($themes) {
+    .balances {
+        position: relative;
+        height: 100%;
+
+        .view--table {
+            @extend .hide-scrollbar;
+        }
+
+        .heading {
+            padding: 15px 20px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        td {
+            padding: 10px;
+        }
+
+        tr span {
+            color: $mid-grey;
+        }
+
+        tr+tr {
+            border-top: 1px solid #ddd;
+        }
+
+        tr+tr:not(:last-of-type(tr)) {
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr {
+            td:first-child {
+                padding-left: 20px;
+            }
+        }
+
+        .balances--values {
+            display: flex;
+            flex-flow: column;
+
+            .balances--values--token {
+                font-weight: 500;
+                font-size: 12px;
+            }
+        }
+    }
+}

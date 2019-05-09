@@ -1,0 +1,24 @@
+@include themify($themes) {
+
+
+    .view--table td>* {
+        vertical-align: middle;
+    }
+
+    .view--table td img {
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
+    }
+
+    .view--table button {
+        background: none;
+        border: none;
+        font-weight: 900;
+    }
+
+    .view--external {
+        text-decoration: none;
+    }
+
+}
