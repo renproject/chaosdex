@@ -303,3 +303,7 @@ a {
         transition: background .2s ease;
     }
 }
+
+span, [role="button"], button {
+    user-select: none;
+}
