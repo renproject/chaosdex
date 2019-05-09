@@ -16,6 +16,7 @@ import { storeQuoteCurrency } from "../store/actions/trader/accountActions";
 import { ApplicationData } from "../store/types/general";
 
 import English from "../styles/images/rp-flag-uk.svg";
+import German from "../styles/images/rp-flag-de.svg";
 
 import { ReactComponent as Logo } from "../styles/images/logo.svg";
 
@@ -57,19 +58,19 @@ class HeaderClass extends React.Component<Props, State> {
                         // onMouseEnter={this.showDropdown}
                         // onMouseLeave={this.hideDropdown}
                         >
-                            <span>English</span><FontAwesomeIcon icon={faChevronDown} style={{ opacity: 0.6 }} />
+                            <span>{this.props.t("currentLanguageName")}</span><FontAwesomeIcon icon={faChevronDown} style={{ opacity: 0.6 }} />
                             {languageDropdown ?
                                 <div className="header--dropdown--spacing header--dropdown--options">
                                     <ul className="header--dropdown">
                                         <li role="button" onClick={() => this.changeLanguage("en")}>
                                             <img alt="" role="presentation" src={English} />
                                             {" "}
-                                            English
+                                            {this.props.t("english")}
                                             </li>
                                         <li role="button" onClick={() => this.changeLanguage("de")}>
-                                            <img alt="" role="presentation" src={English} />
+                                            <img alt="" role="presentation" src={German} />
                                             {" "}
-                                            German
+                                            {this.props.t("german")}
                                             </li>
                                     </ul>
                                 </div> : null
