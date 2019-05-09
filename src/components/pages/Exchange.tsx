@@ -67,7 +67,6 @@ class ExchangeClass extends React.Component<Props, Exchange> {
 
 const mapStateToProps = (state: ApplicationData) => ({
     orderInputs: state.inputs,
-    username: state.trader.username,
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

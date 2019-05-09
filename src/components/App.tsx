@@ -11,7 +11,7 @@ import { clearPopup, setPopup } from "../store/actions/popup/popupActions";
 import { storeURL } from "../store/actions/trader/accountActions";
 import { ApplicationData } from "../store/types/general";
 import { Alerts } from "./Alerts";
-import { Header } from "./Header";
+import { HeaderController } from "./Header";
 import { Exchange } from "./pages/Exchange";
 import { PopupController } from "./popups/PopupController";
 import { _catch_ } from "./views/ErrorBoundary";
@@ -56,16 +56,16 @@ class AppClass extends React.Component<Props, State> {
      * @dev Should have minimal computation, loops and anonymous functions.
      */
     public render(): React.ReactNode {
-        const { username, advanced, theme, advancedTheme } = this.props;
+        const { address, advanced, theme, advancedTheme } = this.props;
         return (
             <Router history={history}>
                 <main className={`app ${advanced ? advancedTheme : theme}`}>
                     <div className="themed-app">
                         <ScrollToTop />
 
-                        <div key={username || undefined}>
+                        <div key={address || undefined}>
                             <PopupController>
-                                {_catch_(<Header />)}
+                                {_catch_(<HeaderController />)}
                                 <Route path="/" exact={true} component={Exchange} />
                                 {/* <Footer /> */}
                                 {_catch_(<Alerts />)}
@@ -81,7 +81,7 @@ class AppClass extends React.Component<Props, State> {
 }
 
 const mapStateToProps = (state: ApplicationData) => ({
-    username: state.trader.username,
+    address: state.trader.address,
     agreedToTerms: state.trader.agreedToTerms,
     url: state.trader.url,
 
