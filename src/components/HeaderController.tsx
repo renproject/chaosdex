@@ -39,6 +39,15 @@ const logo = <Link className="no-underline" to="/">
  * Header is a visual component providing page branding and navigation.
  */
 class HeaderClass extends React.Component<Props, State> {
+    constructor(props: Props) {
+        super(props);
+        const { t, i18n } = props;
+        this.state = {
+            currentLanguage: i18n.language,
+            currentLanguageName: t("currentLanguageName"),
+        };
+    }
+
     public render = (): JSX.Element => {
         const { store, t } = this.props;
         const { quoteCurrency } = store;
@@ -54,8 +63,8 @@ class HeaderClass extends React.Component<Props, State> {
         const languageDropdown = <Dropdown
             key="languageDropdown"
             selected={{
-                value: "en",
-                render: t("english")
+                value: this.state.currentLanguage,
+                render: this.state.currentLanguageName,
             }}
             options={languageOptions}
             setValue={this.setLanguage}
@@ -87,7 +96,12 @@ class HeaderClass extends React.Component<Props, State> {
     }
 
     private readonly setLanguage = async (language: string): Promise<void> => {
-        await this.props.i18n.changeLanguage(language);
+        const { t, i18n } = this.props;
+        await i18n.changeLanguage(language);
+        this.setState({
+            currentLanguage: language,
+            currentLanguageName: t("currentLanguageName"),
+        });
     }
 }
 
@@ -108,6 +122,8 @@ interface Props extends ReturnType<typeof mapStateToProps>, ConnectedReturnType<
 }
 
 interface State {
+    currentLanguage: string;
+    currentLanguageName: string;
 }
 
 const TranslatedHeader = withTranslation()(HeaderClass);
