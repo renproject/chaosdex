@@ -58,7 +58,7 @@ class NewOrderInputsClass extends React.Component<Props, State> {
         const { updating, orderInputs, quoteCurrency } = this.props;
         const { flipped } = this.state;
 
-        const market = MarketPair.ETH_DAI;
+        const market = MarketPair.DAI_BTC;
         const pairDetails = MarketPairs.get(market);
 
         const btcTokenDetails = Tokens.get(Token.BTC) || UnknownToken;
