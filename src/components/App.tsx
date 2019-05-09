@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import { Loading } from "@renex/react-components";
 import { connect, ConnectedReturnType } from "react-redux"; // Custom typings
 import { Redirect, Route, RouteComponentProps, Router, withRouter } from "react-router-dom";
 import { bindActionCreators, Dispatch } from "redux";
@@ -16,6 +17,7 @@ import { Exchange } from "./pages/Exchange";
 import { PopupController } from "./popups/PopupController";
 import { _catch_ } from "./views/ErrorBoundary";
 import { FeedbackButton } from "./views/FeedbackButton";
+
 // import { Footer } from "./views/Footer";
 // import { newTermsPopup } from "./popups/TermsPopup";
 
@@ -67,7 +69,11 @@ class AppClass extends React.Component<Props, State> {
 
                         <div key={username || undefined}>
                             <PopupController>
-                                {_catch_(<Header />)}
+                                {_catch_(
+                                    <React.Suspense fallback={<Loading />}>
+                                        <Header />
+                                    </React.Suspense>
+                                )}
                                 <Route path="/" exact={true} component={Exchange} />
                                 {/* <Footer /> */}
                                 {_catch_(<Alerts />)}

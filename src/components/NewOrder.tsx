@@ -2,6 +2,8 @@ import * as React from "react";
 
 import BigNumber from "bignumber.js";
 
+import { withTranslation, WithTranslation } from "react-i18next";
+
 import { Loading } from "@renex/react-components";
 import { connect, ConnectedReturnType } from "react-redux"; // Custom typings
 
@@ -28,7 +30,7 @@ class NewOrderClass extends React.Component<Props, State> {
      * @dev Should have minimal computation, loops and anonymous functions.
      */
     public render(): React.ReactNode {
-        const { disabled, store: { orderInputs, marketPrices } } = this.props;
+        const { t, disabled, store: { orderInputs, marketPrices } } = this.props;
         const { submitting } = this.state;
 
         const market = MarketPair.BTC_DAI;
@@ -48,7 +50,7 @@ class NewOrderClass extends React.Component<Props, State> {
                             disabled={submitting || (orderInputs.inputError !== null && orderInputs.inputError.category === "input") || disabled}
                             className="button submit-swap"
                         >
-                            {submitting ? <Loading alt={true} /> : <>Trade</>}
+                            {submitting ? <Loading alt={true} /> : <>{t("trade")}</>}
                         </button> :
                         <button disabled={true} className="button submit-swap">
                             Token pair not supported
@@ -82,7 +84,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     }, dispatch)
 });
 
-interface Props extends ReturnType<typeof mapStateToProps>, ConnectedReturnType<typeof mapDispatchToProps> {
+interface Props extends ReturnType<typeof mapStateToProps>, ConnectedReturnType<typeof mapDispatchToProps>, WithTranslation {
     disabled: boolean;
 }
 
@@ -90,4 +92,6 @@ interface State {
     submitting: boolean;
 }
 
-export const NewOrder = connect(mapStateToProps, mapDispatchToProps)(NewOrderClass);
+const TranslatedNewOrder = withTranslation()(NewOrderClass);
+
+export const NewOrder = connect(mapStateToProps, mapDispatchToProps)(TranslatedNewOrder);

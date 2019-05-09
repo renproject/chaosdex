@@ -1,8 +1,12 @@
+// tslint:disable:jsx-no-lambda
+// tslint:disable:react-this-binding-issue
+
 import * as React from "react";
 
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { currencies, Currency, CurrencyIcon } from "@renex/react-components";
+import { useTranslation, WithTranslation, withTranslation } from "react-i18next";
 import { connect, ConnectedReturnType } from "react-redux"; // Custom typings
 import { Link, RouteComponentProps, withRouter } from "react-router-dom";
 import { bindActionCreators, Dispatch } from "redux";
@@ -57,10 +61,15 @@ class HeaderClass extends React.Component<Props, State> {
                             {languageDropdown ?
                                 <div className="header--dropdown--spacing header--dropdown--options">
                                     <ul className="header--dropdown">
-                                        <li role="button">
+                                        <li role="button" onClick={() => this.changeLanguage("en")}>
                                             <img alt="" role="presentation" src={English} />
                                             {" "}
                                             English
+                                            </li>
+                                        <li role="button" onClick={() => this.changeLanguage("de")}>
+                                            <img alt="" role="presentation" src={English} />
+                                            {" "}
+                                            German
                                             </li>
                                     </ul>
                                 </div> : null
@@ -154,6 +163,10 @@ class HeaderClass extends React.Component<Props, State> {
         }
     }
 
+    private readonly changeLanguage = async (lng: string) => {
+        await this.props.i18n.changeLanguage(lng);
+    }
+
     private readonly clickAway: EventListenerOrEventListenerObject = (event) => {
         // tslint:disable-next-line: no-any
         if ((this.currentDropdown && !this.currentDropdown.contains(event.target as any))) {
@@ -217,7 +230,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 });
 
 interface Props extends ReturnType<typeof mapStateToProps>, ConnectedReturnType<typeof mapDispatchToProps>,
-    RouteComponentProps {
+    RouteComponentProps, WithTranslation {
 }
 
 interface State {
@@ -227,4 +240,9 @@ interface State {
     copied: boolean;
 }
 
-export const Header = connect(mapStateToProps, mapDispatchToProps)(withRouter(HeaderClass));
+const TranslatedHeader = withTranslation()(HeaderClass);
+
+export const Header = connect(mapStateToProps, mapDispatchToProps)(withRouter(TranslatedHeader));
+
+// tslint:enable:jsx-no-lambda
+// tslint:enable:react-this-binding-issue
