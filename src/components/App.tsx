@@ -16,8 +16,6 @@ import { Exchange } from "./pages/Exchange";
 import { PopupController } from "./popups/PopupController";
 import { _catch_ } from "./views/ErrorBoundary";
 import { FeedbackButton } from "./views/FeedbackButton";
-// import { Footer } from "./views/Footer";
-// import { newTermsPopup } from "./popups/TermsPopup";
 
 // Scroll restoration based on https://reacttraining.com/react-router/web/guides/scroll-restoration
 const ScrollToTop = withRouter(
