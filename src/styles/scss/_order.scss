@@ -35,6 +35,7 @@
     }
 
     .select--market {
+        user-select: none;
         display: flex;
         margin-bottom: 30px;
 
