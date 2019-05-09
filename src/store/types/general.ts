@@ -1,5 +1,3 @@
-import BigNumber from "bignumber.js";
-
 import { Currency } from "@renex/react-components";
 import { Map, OrderedMap } from "immutable";
 
@@ -54,7 +52,6 @@ export interface ApplicationData {
     alert: AlertData;
     popup: PopupData;
 }
-
 export class OrderInputsData extends Record({
     sendToken: Token.ETH,
     receiveToken: Token.DAI,
@@ -80,7 +77,7 @@ export enum UITheme {
     Dark = "theme-dark", // dark theme's CSS class
 }
 export class TraderData extends Record({
-    username: null as string | null,
+    address: null as string | null,
 
     // UI
     advanced: false,

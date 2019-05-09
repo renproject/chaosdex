@@ -15,6 +15,7 @@ import { SelectMarketWrapper } from "./SelectMarketWrapper";
 import { TokenValueInput } from "./views/TokenValueInput";
 
 import arrow from "../styles/images/arrow.svg";
+import { TokenBalance } from "./views/TokenBalance";
 
 class NewOrderInputsClass extends React.Component<Props, State> {
 
@@ -56,19 +57,13 @@ class NewOrderInputsClass extends React.Component<Props, State> {
     }
 
     public render(): React.ReactNode {
-        const { t, updating, orderInputs, quoteCurrency } = this.props;
+        const { t, updating, orderInputs, quoteCurrency, tokenPrices } = this.props;
         const { flipped } = this.state;
 
         const market = MarketPair.DAI_BTC;
         const pairDetails = MarketPairs.get(market);
 
         const btcTokenDetails = Tokens.get(Token.BTC) || UnknownToken;
-        const amount = new BigNumber(0);
-
-        const spendToken =  btcTokenDetails;
-        const feeAmount = new BigNumber(0);
-
-        const spendAmount = new BigNumber(0);
 
         const toggle = <div className="order--tabs">
             <span
@@ -90,7 +85,15 @@ class NewOrderInputsClass extends React.Component<Props, State> {
 
         let extra;
         firstValue = orderInputs.sendVolume;
-        firstSubtext = <>~ <CurrencyIcon currency={quoteCurrency} /></>;
+        firstSubtext = <>
+            ~<TokenBalance
+                token={Token.ETH}
+                convertTo={quoteCurrency}
+                tokenPrices={tokenPrices}
+                amount={orderInputs.sendVolume || "0"}
+            />
+            <CurrencyIcon currency={quoteCurrency} />
+        </>;
         firstError = orderInputs.inputError !== null && orderInputs.inputError.category === "input";
         firstOnChange = this.onVolumeChange;
 
@@ -197,6 +200,7 @@ const mapStateToProps = (state: ApplicationData) => ({
     advanced: state.trader.advanced,
     quoteCurrency: state.trader.quoteCurrency,
     updating: state.marketPrices.updating,
+    tokenPrices: state.marketPrices.tokenPrices,
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

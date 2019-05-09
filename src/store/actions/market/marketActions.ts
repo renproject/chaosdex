@@ -1,6 +1,7 @@
 import { Dispatch } from "redux";
 import { createStandardAction } from "typesafe-actions";
 
+import { _captureBackgroundException_ } from "../../../lib/errors";
 import { getTokenPricesInCurrencies } from "../../../lib/market";
 import { MarketPair, TokenPrices } from "../../types/general";
 
@@ -17,17 +18,14 @@ export const pricesUpdating = createStandardAction("PRICES_UPDATING")<boolean>()
 
 export const storeTokenPrices = createStandardAction("STORE_TOKEN_PRICES")<{ tokenPrices: TokenPrices }>();
 
-export const updateTokenPrices = () => async (dispatch: Dispatch) => new Promise((resolve, reject) => {
+export const updateTokenPrices = () => async (dispatch: Dispatch) => {
     dispatch(pricesUpdating(true));
-    setTimeout(async () => {
-        try {
-            const tokenPrices = await getTokenPricesInCurrencies();
-            dispatch(pricesUpdating(false));
-            dispatch(storeTokenPrices({ tokenPrices }));
-        } catch (error) {
-            dispatch(pricesUpdating(false));
-            reject(error);
-        }
-        resolve();
-    }, 1000);
-});
+    try {
+        const tokenPrices = await getTokenPricesInCurrencies();
+        dispatch(pricesUpdating(false));
+        dispatch(storeTokenPrices({ tokenPrices }));
+    } catch (error) {
+        dispatch(pricesUpdating(false));
+        _captureBackgroundException_(error);
+    }
+};

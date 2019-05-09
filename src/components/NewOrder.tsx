@@ -1,13 +1,10 @@
 import * as React from "react";
 
-import BigNumber from "bignumber.js";
-
-import { withTranslation, WithTranslation } from "react-i18next";
-
 import { Loading } from "@renex/react-components";
+import { withTranslation, WithTranslation } from "react-i18next";
 import { connect, ConnectedReturnType } from "react-redux"; // Custom typings
-
 import { bindActionCreators, Dispatch } from "redux";
+
 import { _captureBackgroundException_, _captureInteractionException_ } from "../lib/errors";
 import { setAndUpdateValues } from "../store/actions/inputs/newOrderActions";
 import { ApplicationData, MarketPair, UnknownMarketPrice } from "../store/types/general";

@@ -21,7 +21,6 @@ class SelectMarketWrapperClass extends React.Component<Props, State> {
     public render(): React.ReactNode {
         const { top, thisToken, otherToken } = this.props;
         // Filter out the tokens which aren't available in SwapperD
-        const allTokens = Array.from(Tokens.keys());
         const newTokens = new Map<Token, TokenDetails>(Tokens);
         return <SelectMarket
             top={top}

@@ -2,17 +2,18 @@ import * as React from "react";
 
 import { Loading } from "@renex/react-components";
 import { connect, ConnectedReturnType } from "react-redux"; // Custom typings
-import { Redirect, Route, RouteComponentProps, Router, withRouter } from "react-router-dom";
+import { Route, RouteComponentProps, Router, withRouter } from "react-router-dom";
 import { bindActionCreators, Dispatch } from "redux";
 
 import { _captureBackgroundException_ } from "../lib/errors";
 import { history } from "../lib/history";
 import { setAlert } from "../store/actions/alert/alertActions";
+import { updateTokenPrices } from "../store/actions/market/marketActions";
 import { clearPopup, setPopup } from "../store/actions/popup/popupActions";
 import { storeURL } from "../store/actions/trader/accountActions";
 import { ApplicationData } from "../store/types/general";
 import { Alerts } from "./Alerts";
-import { Header } from "./Header";
+import { HeaderController } from "./HeaderController";
 import { Exchange } from "./pages/Exchange";
 import { PopupController } from "./popups/PopupController";
 import { _catch_ } from "./views/ErrorBoundary";
@@ -50,6 +51,9 @@ class AppClass extends React.Component<Props, State> {
         this.state = {
             checkingReLogin: true,
         };
+
+        this.props.actions.updateTokenPrices().catch(console.error);
+        setInterval(this.props.actions.updateTokenPrices, 30 * 1000);
     }
 
     /**
@@ -57,18 +61,18 @@ class AppClass extends React.Component<Props, State> {
      * @dev Should have minimal computation, loops and anonymous functions.
      */
     public render(): React.ReactNode {
-        const { username, advanced, theme, advancedTheme } = this.props;
+        const { address, advanced, theme, advancedTheme } = this.props;
         return (
             <Router history={history}>
                 <main className={`app ${advanced ? advancedTheme : theme}`}>
                     <div className="themed-app">
                         <ScrollToTop />
 
-                        <div key={username || undefined}>
+                        <div key={address || undefined}>
                             <PopupController>
                                 {_catch_(
                                     <React.Suspense fallback={<Loading />}>
-                                        <Header />
+                                        <HeaderController />
                                     </React.Suspense>
                                 )}
                                 <Route path="/" exact={true} component={Exchange} />
@@ -86,7 +90,7 @@ class AppClass extends React.Component<Props, State> {
 }
 
 const mapStateToProps = (state: ApplicationData) => ({
-    username: state.trader.username,
+    address: state.trader.address,
     agreedToTerms: state.trader.agreedToTerms,
     url: state.trader.url,
 
@@ -101,6 +105,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         setAlert,
         setPopup,
         storeURL,
+        updateTokenPrices,
     }, dispatch)
 });
 
