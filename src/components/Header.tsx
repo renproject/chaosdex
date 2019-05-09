@@ -15,8 +15,8 @@ import { history } from "../lib/history";
 import { storeQuoteCurrency } from "../store/actions/trader/accountActions";
 import { ApplicationData } from "../store/types/general";
 
-import English from "../styles/images/rp-flag-uk.svg";
 import German from "../styles/images/rp-flag-de.svg";
+import English from "../styles/images/rp-flag-uk.svg";
 
 import { ReactComponent as Logo } from "../styles/images/logo.svg";
 
