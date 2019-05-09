@@ -31,7 +31,7 @@ class NewOrderClass extends React.Component<Props, State> {
         const { disabled, store: { orderInputs, marketPrices } } = this.props;
         const { submitting } = this.state;
 
-        const market = MarketPair.BTC_DAI;
+        const market = MarketPair.DAI_BTC;
 
         const marketPrice = market ? marketPrices.get(market, UnknownMarketPrice).price : 0;
 
