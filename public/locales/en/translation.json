@@ -5,7 +5,14 @@
     "trade": "Trade",
     "based_on_market_price": "Based on market price."
   },
-  "english": "English",
-  "german": "Deutsche",
-  "currentLanguageName": "English"
+  "header" : {
+    "not_connected": "Not connected",
+    "log_in": "Log in",
+    "log_out": "Log out"
+  },
+  "language": {
+    "english": "English",
+    "german": "Deutsche",
+    "currentLanguageName": "English"
+  }
 }

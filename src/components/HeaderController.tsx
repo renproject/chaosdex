@@ -44,7 +44,7 @@ class HeaderClass extends React.Component<Props, State> {
         const { t, i18n } = props;
         this.state = {
             currentLanguage: i18n.language,
-            currentLanguageName: t("currentLanguageName"),
+            currentLanguageName: t("language.currentLanguageName"),
         };
     }
 
@@ -54,10 +54,10 @@ class HeaderClass extends React.Component<Props, State> {
 
         const languageOptions = new Map()
             .set("en",
-                <><English /> {t("english")}</>
+                <><English /> {t("language.english")}</>
             )
             .set("de",
-                <><German /> {t("german")}</>
+                <><German /> {t("language.german")}</>
             );
 
         const languageDropdown = <Dropdown
@@ -100,7 +100,7 @@ class HeaderClass extends React.Component<Props, State> {
         await i18n.changeLanguage(language);
         this.setState({
             currentLanguage: language,
-            currentLanguageName: t("currentLanguageName"),
+            currentLanguageName: t("language.currentLanguageName"),
         });
     }
 }

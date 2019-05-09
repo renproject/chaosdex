@@ -5,5 +5,12 @@
     "trade": "Handel",
     "based_on_market_price": "Basierend auf dem Marktpreis."
   },
-  "currentLanguageName": "Deutsche"
+  "header": {
+    "not_connected": "Nicht verbunden",
+    "log_in": "Einloggen",
+    "log_out": "Ausloggen"
+  },
+  "language": {
+    "currentLanguageName": "Deutsche"
+  }
 }
