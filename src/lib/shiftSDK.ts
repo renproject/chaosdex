@@ -113,10 +113,8 @@ const getCommitmentStatus = async (commitmentHash: string): Promise<ShiftDetails
     return { status: ShiftStatus.Failed };
 };
 
-const sdk: ShiftSDK = {
+export const sdk: ShiftSDK = {
     getReserveBalance,
     submitCommitment,
     getCommitmentStatus,
 };
-
-module.exports = sdk;
