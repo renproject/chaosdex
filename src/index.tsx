@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
-import { Provider } from "react-redux";
+import { Provider } from "unstated";
 import { persistStore } from "redux-persist";
 import { PersistGate } from "redux-persist/integration/react";
 
@@ -41,7 +41,7 @@ i18n.use(Backend)
 onLoad("ApolloEx");
 
 ReactDOM.render(
-  _catch_(<Provider store={store}>
+  _catch_(<Provider>
     <PersistGate loading={null} persistor={persistStore(store)}>
       <App />
     </PersistGate>

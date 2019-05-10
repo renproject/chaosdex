@@ -4,8 +4,6 @@ import BigNumber from "bignumber.js";
 
 import { CurrencyIcon, InfoLabel, Loading } from "@renex/react-components";
 import { withTranslation, WithTranslation } from "react-i18next";
-import { connect, ConnectedReturnType } from "react-redux"; // Custom typings
-import { bindActionCreators, Dispatch } from "redux";
 
 import { _captureInteractionException_ } from "../lib/errors";
 import { MarketPairs, UnknownToken } from "../lib/market";
@@ -14,50 +12,31 @@ import { ApplicationData, MarketPair, Token, Tokens } from "../store/types/gener
 import { SelectMarketWrapper } from "./SelectMarketWrapper";
 import { TokenValueInput } from "./views/TokenValueInput";
 
+import { connect, ConnectedProps } from "../state/connect";
+import { AppContainer } from "../state/containers/appContainer";
+import { OptionsContainer } from "../state/containers/optionsContainer";
 import arrow from "../styles/images/arrow.svg";
 import { TokenBalance } from "./views/TokenBalance";
 
 class NewOrderInputsClass extends React.Component<Props, State> {
+    private readonly appContainer: AppContainer;
+    private readonly optionsContainer: OptionsContainer;
 
-    public constructor(props: Props) {
+    constructor(props: Props) {
         super(props);
+
+        [this.appContainer, this.optionsContainer] = this.props.containers;
+
         this.state = {
             allOrNothing: false,
             immediateOrCancel: false,
             fillOrKill: false,
             flipped: false,
         };
-
-        this.props.actions.setAndUpdateValues(
-            props.orderInputs, "price", new BigNumber(props.marketPrice).toFixed(), { blur: true },
-        );
-    }
-
-    public async componentWillReceiveProps(nextProps: Props): Promise<void> {
-        const { marketPrice } = this.props;
-
-        // Update the market price if the market or market price has changed
-        const marketPriceChanged = marketPrice !== nextProps.marketPrice;
-        if (!nextProps.orderInputs.price || nextProps.orderInputs.price === "0" || marketPriceChanged) {
-            this.props.actions.setAndUpdateValues(
-                nextProps.orderInputs, "price", new BigNumber(nextProps.marketPrice).toFixed(), { blur: true },
-            );
-        }
-
-        // Check if we should flip the toggle button
-        const nextSend = nextProps.orderInputs.sendToken;
-        const nextReceive = nextProps.orderInputs.receiveToken;
-        const thisSend = this.props.orderInputs.sendToken;
-        const thisReceive = this.props.orderInputs.receiveToken;
-        if (nextSend === thisReceive && nextReceive === thisSend && nextSend !== nextReceive) {
-            this.setState({ flipped: !this.state.flipped });
-        } else if (nextSend !== thisSend || nextReceive !== thisReceive) {
-            this.setState({ flipped: false });
-        }
     }
 
     public render(): React.ReactNode {
-        const { t, updating, orderInputs, quoteCurrency, tokenPrices } = this.props;
+        const { t } = this.props;
         const { flipped } = this.state;
 
         const market = MarketPair.DAI_BTC;
@@ -83,6 +62,9 @@ class NewOrderInputsClass extends React.Component<Props, State> {
         let secondValue;
         let secondSubtext;
 
+        const quoteCurrency = this.optionsContainer.state.preferredCurrency;
+        const orderInputs = this.appContainer.state.order;
+
         let extra;
         firstValue = orderInputs.sendVolume;
         firstSubtext = <>
@@ -92,17 +74,20 @@ class NewOrderInputsClass extends React.Component<Props, State> {
             <TokenBalance
                 token={Token.ETH}
                 convertTo={quoteCurrency}
-                tokenPrices={tokenPrices}
+                tokenPrices={null}
                 amount={orderInputs.sendVolume || "0"}
             />
         </>;
-        firstError = orderInputs.inputError !== null && orderInputs.inputError.category === "input";
+        firstError = false; // orderInputs.inputError !== null && orderInputs.inputError.category === "input";
         firstOnChange = this.onVolumeChange;
+
+        const updating = false;
+        const price = "0";
 
         secondValue = normalizeDecimals(orderInputs.receiveVolume);
         secondSubtext = <>
             {updating ? <Loading className="loading--small" /> : null}{" "}
-            {pairDetails ? `1 ${pairDetails.base} = ${normalizeDecimals(orderInputs.price)} ${pairDetails.quote} ± 3%` : "\xa0"}
+            {pairDetails ? `1 ${pairDetails.base} = ${normalizeDecimals(price)} ${pairDetails.quote} ± 3%` : "\xa0"}
         </>;
 
         extra = this.advanced_render();
@@ -140,7 +125,7 @@ class NewOrderInputsClass extends React.Component<Props, State> {
 
     public advanced_render(): React.ReactNode {
         const { fillOrKill, allOrNothing, immediateOrCancel } = this.state;
-        const { advanced } = this.props;
+        const advanced = false;
 
         return <div className={`order--options ${!advanced ? "hidden" : ""}`}>
             <label>
@@ -177,15 +162,12 @@ class NewOrderInputsClass extends React.Component<Props, State> {
     }
 
     private readonly onVolumeChange = (newValue: string, options: { blur: boolean }) => {
-        const { orderInputs } = this.props;
-        this.props.actions.setAndUpdateValues(
-            orderInputs, "sendVolume", newValue, { blur: options.blur },
-        );
+        this.appContainer.updateSendVolume(newValue);
     }
 
     private readonly toggleSide = () => {
-        const { orderInputs } = this.props;
-        this.props.actions.swapTokens(orderInputs);
+        // const { orderInputs } = this.props;
+        // this.props.actions.swapTokens(orderInputs);
         // this.setState({ flipped: !this.state.flipped });
     }
 
@@ -197,22 +179,7 @@ class NewOrderInputsClass extends React.Component<Props, State> {
 
 // tslint:enable:jsx-no-lambda
 
-const mapStateToProps = (state: ApplicationData) => ({
-    orderInputs: state.inputs,
-    advanced: state.trader.advanced,
-    quoteCurrency: state.trader.quoteCurrency,
-    updating: state.marketPrices.updating,
-    tokenPrices: state.marketPrices.tokenPrices,
-});
-
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-    actions: bindActionCreators({
-        setAndUpdateValues,
-        swapTokens,
-    }, dispatch)
-});
-
-interface Props extends ReturnType<typeof mapStateToProps>, ConnectedReturnType<typeof mapDispatchToProps>, WithTranslation {
+interface Props extends ConnectedProps, WithTranslation {
     marketPrice: number;
     handleChange: (inputValue: string | null) => void;
 }
@@ -224,6 +191,4 @@ interface State {
     flipped: boolean;
 }
 
-const TranslatedNewOrderInputs = withTranslation()(NewOrderInputsClass);
-
-export const NewOrderInputs = connect(mapStateToProps, mapDispatchToProps)(TranslatedNewOrderInputs);
+export const NewOrderInputs = withTranslation()(connect<Props>([AppContainer, OptionsContainer])(NewOrderInputsClass));

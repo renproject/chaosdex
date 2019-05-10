@@ -2,10 +2,11 @@ import * as React from "react";
 
 import { Loading } from "@renex/react-components";
 import { withTranslation, WithTranslation } from "react-i18next";
-import { connect, ConnectedReturnType } from "react-redux"; // Custom typings
-import { bindActionCreators, Dispatch } from "redux";
 
 import { _captureBackgroundException_, _captureInteractionException_ } from "../lib/errors";
+import { connect, ConnectedProps } from "../state/connect";
+import { AppContainer } from "../state/containers/appContainer";
+import { OptionsContainer } from "../state/containers/optionsContainer";
 import { setAndUpdateValues } from "../store/actions/inputs/newOrderActions";
 import { ApplicationData, MarketPair, UnknownMarketPrice } from "../store/types/general";
 import { NewOrderInputs } from "./NewOrderInputs";
@@ -27,12 +28,12 @@ class NewOrderClass extends React.Component<Props, State> {
      * @dev Should have minimal computation, loops and anonymous functions.
      */
     public render(): React.ReactNode {
-        const { t, disabled, store: { orderInputs, marketPrices } } = this.props;
+        const { t, disabled } = this.props;
         const { submitting } = this.state;
 
         const market = MarketPair.DAI_BTC;
 
-        const marketPrice = market ? marketPrices.get(market, UnknownMarketPrice).price : 0;
+        const marketPrice = 0;
 
         return <>
             <div className="section order">
@@ -44,7 +45,7 @@ class NewOrderClass extends React.Component<Props, State> {
                     market ?
                         <button
                             onClick={this.openOrder}
-                            disabled={submitting || (orderInputs.inputError !== null && orderInputs.inputError.category === "input") || disabled}
+                            disabled={disabled}
                             className="button submit-swap"
                         >
                             {submitting ? <Loading alt={true} /> : <>{t("new_order.trade")}</>}
@@ -54,7 +55,7 @@ class NewOrderClass extends React.Component<Props, State> {
                     </button>
                 }
             </div>
-            {orderInputs.inputError ? <div className="order--error red">{orderInputs.inputError.error}</div> : null}
+            {/*<div className="order--error red">{orderInputs.inputError.error}</div>*/}
         </>;
     }
 
@@ -67,21 +68,7 @@ class NewOrderClass extends React.Component<Props, State> {
     }
 }
 
-const mapStateToProps = (state: ApplicationData) => ({
-    store: {
-        marketPrices: state.marketPrices.marketPrices,
-        orderInputs: state.inputs,
-        quoteCurrency: state.trader.quoteCurrency,
-    },
-});
-
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-    actions: bindActionCreators({
-        setAndUpdateValues,
-    }, dispatch)
-});
-
-interface Props extends ReturnType<typeof mapStateToProps>, ConnectedReturnType<typeof mapDispatchToProps>, WithTranslation {
+interface Props extends ConnectedProps, WithTranslation {
     disabled: boolean;
 }
 
@@ -89,6 +76,4 @@ interface State {
     submitting: boolean;
 }
 
-const TranslatedNewOrder = withTranslation()(NewOrderClass);
-
-export const NewOrder = connect(mapStateToProps, mapDispatchToProps)(TranslatedNewOrder);
+export const NewOrder = withTranslation()(connect<Props>([AppContainer, OptionsContainer])(NewOrderClass));

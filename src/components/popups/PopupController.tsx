@@ -1,9 +1,7 @@
 import * as React from "react";
 
-import { connect, ConnectedReturnType } from "react-redux"; // Custom typings
-import { bindActionCreators, Dispatch } from "redux";
-
-import { ApplicationData } from "../../store/types/general";
+import { connect, ConnectedProps } from "../../state/connect";
+import { AppContainer } from "../../state/containers/appContainer";
 import { _catch_ } from "../views/ErrorBoundary";
 
 /**
@@ -11,12 +9,15 @@ import { _catch_ } from "../views/ErrorBoundary";
  * foreground with the rest of the page in the background
  */
 class PopupControllerClass extends React.Component<Props> {
+    private readonly appContainer: AppContainer;
+
     constructor(props: Props) {
         super(props);
+        [this.appContainer] = this.props.containers;
     }
 
     public render(): JSX.Element | null {
-        const { popup, overlay, onCancel } = this.props.store.popup;
+        const { popup, overlay, onCancel } = this.appContainer.state.popup;
 
         return (<>
             <div className={`popup--container ${popup && overlay ? "popup--blur" : ""}`}>
@@ -32,25 +33,14 @@ class PopupControllerClass extends React.Component<Props> {
     }
 
     public onClickHandler = () => {
-        const { dismissible, onCancel } = this.props.store.popup;
+        const { dismissible, onCancel } = this.appContainer.state.popup;
         if (dismissible) {
             onCancel();
         }
     }
 }
 
-const mapStateToProps = (state: ApplicationData) => ({
-    store: {
-        popup: state.popup,
-    },
-});
-
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-    actions: bindActionCreators({
-    }, dispatch),
-});
-
-interface Props extends ReturnType<typeof mapStateToProps>, ConnectedReturnType<typeof mapDispatchToProps> {
+interface Props extends ConnectedProps {
 }
 
-export const PopupController = connect(mapStateToProps, mapDispatchToProps)(PopupControllerClass);
+export const PopupController = connect<Props>([AppContainer])(PopupControllerClass);

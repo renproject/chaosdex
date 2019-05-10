@@ -1,21 +1,27 @@
 import * as qs from "query-string";
 import * as React from "react";
 
-import { connect, ConnectedReturnType } from "react-redux"; // Custom typings
-import { RouteComponentProps, withRouter } from "react-router";
-import { bindActionCreators, Dispatch } from "redux";
+import { RouteComponentProps } from "react-router";
 
 import { Loading } from "@renex/react-components";
 import { NewOrder } from "../../components/NewOrder";
 import { _captureInteractionException_ } from "../../lib/errors";
-import { setAndUpdateValues } from "../../store/actions/inputs/newOrderActions";
-import { ApplicationData } from "../../store/types/general";
+import { connect, ConnectedProps } from "../../state/connect";
+import { AppContainer } from "../../state/containers/appContainer";
+import { Token } from "../../store/types/general";
 import { _catch_ } from "../views/ErrorBoundary";
 
 /**
  * Home is a page whose principal component allows users to open orders.
  */
 class ExchangeClass extends React.Component<Props, Exchange> {
+    private readonly appContainer: AppContainer;
+
+    constructor(props: Props) {
+        super(props);
+        [this.appContainer] = this.props.containers;
+    }
+
     public componentDidMount(): void {
         try {
             const queryParams = qs.parse(this.props.location.search);
@@ -24,24 +30,12 @@ class ExchangeClass extends React.Component<Props, Exchange> {
             const sendToken = queryParams.send;
             const receiveToken = queryParams.receive;
 
-            let orderInputs = this.props.orderInputs;
-
             if (sendToken) {
-                orderInputs = this.props.actions.setAndUpdateValues(
-                    orderInputs,
-                    "sendToken",
-                    sendToken,
-                    { blur: true },
-                );
+                this.appContainer.updateSendToken(sendToken as Token);
             }
 
             if (receiveToken) {
-                this.props.actions.setAndUpdateValues(
-                    orderInputs,
-                    "receiveToken",
-                    receiveToken,
-                    { blur: true },
-                );
+                this.appContainer.updateReceiveToken(receiveToken as Token);
             }
         } catch (error) {
             _captureInteractionException_(error, {
@@ -70,20 +64,10 @@ class ExchangeClass extends React.Component<Props, Exchange> {
     }
 }
 
-const mapStateToProps = (state: ApplicationData) => ({
-    orderInputs: state.inputs,
-});
-
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-    actions: bindActionCreators({
-        setAndUpdateValues,
-    }, dispatch)
-});
-
-interface Props extends ReturnType<typeof mapStateToProps>, ConnectedReturnType<typeof mapDispatchToProps>, RouteComponentProps {
+interface Props extends ConnectedProps, RouteComponentProps {
 }
 
 interface Exchange {
 }
 
-export const Exchange = connect(mapStateToProps, mapDispatchToProps)(withRouter(ExchangeClass));
+export const Exchange = connect<Props>([AppContainer])(ExchangeClass);
