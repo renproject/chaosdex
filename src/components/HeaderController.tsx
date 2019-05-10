@@ -2,7 +2,6 @@ import * as React from "react";
 
 import { currencies, Currency, CurrencyIcon, Dropdown, Header } from "@renex/react-components";
 import { WithTranslation, withTranslation } from "react-i18next";
-import { connect, ConnectedReturnType } from "react-redux"; // Custom typings
 import { Link, RouteComponentProps, withRouter } from "react-router-dom";
 import { bindActionCreators, Dispatch } from "redux";
 
@@ -12,6 +11,8 @@ import { ApplicationData } from "../store/types/general";
 import { ReactComponent as German } from "../styles/images/rp-flag-de.svg";
 import { ReactComponent as English } from "../styles/images/rp-flag-uk.svg";
 
+import { connect, ConnectedProps } from "../state/connect";
+import { OptionsContainer } from "../state/containers/optionsContainer";
 import { ReactComponent as Logo } from "../styles/images/logo.svg";
 import { AccountDropdown } from "./AccountDropdown";
 
@@ -39,8 +40,11 @@ const logo = <Link className="no-underline" to="/">
  * Header is a visual component providing page branding and navigation.
  */
 class HeaderClass extends React.Component<Props, State> {
+    private readonly optionsContainer: OptionsContainer;
+
     constructor(props: Props) {
         super(props);
+        [this.optionsContainer] = props.containers;
         const { t, i18n } = props;
         this.state = {
             currentLanguage: i18n.language,
@@ -49,8 +53,8 @@ class HeaderClass extends React.Component<Props, State> {
     }
 
     public render = (): JSX.Element => {
-        const { store, t } = this.props;
-        const { quoteCurrency } = store;
+        const { t } = this.props;
+        const quoteCurrency = this.optionsContainer.state.preferredCurrency;
 
         const languageOptions = new Map()
             .set("en",
@@ -91,8 +95,8 @@ class HeaderClass extends React.Component<Props, State> {
         />;
     }
 
-    private readonly setCurrency = (quoteCurrency: Currency): void => {
-        this.props.actions.storeQuoteCurrency({ quoteCurrency });
+    private readonly setCurrency = async (quoteCurrency: Currency): Promise<void> => {
+        await this.optionsContainer.setCurrency(quoteCurrency);
     }
 
     private readonly setLanguage = async (language: string): Promise<void> => {
@@ -117,8 +121,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     }, dispatch),
 });
 
-interface Props extends ReturnType<typeof mapStateToProps>, ConnectedReturnType<typeof mapDispatchToProps>,
-    RouteComponentProps, WithTranslation {
+interface Props extends ConnectedProps, RouteComponentProps, WithTranslation {
 }
 
 interface State {
@@ -126,6 +129,4 @@ interface State {
     currentLanguageName: string;
 }
 
-const TranslatedHeader = withTranslation()(HeaderClass);
-
-export const HeaderController = connect(mapStateToProps, mapDispatchToProps)(withRouter(TranslatedHeader));
+export const HeaderController = withTranslation()(withRouter(connect<Props>([OptionsContainer])(HeaderClass)));

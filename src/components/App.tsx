@@ -66,7 +66,7 @@ class AppClass extends React.Component<Props, State> {
                             <PopupController>
                                 {_catch_(
                                     <React.Suspense fallback={<Loading />}>
-                                        {/*<HeaderController />*/}
+                                        <HeaderController />
                                     </React.Suspense>
                                 )}
                                 <Route path="/" exact={true} component={Exchange} />
