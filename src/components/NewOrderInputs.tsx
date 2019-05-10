@@ -85,10 +85,13 @@ class NewOrderInputsClass extends React.Component<Props, State> {
         const price = "0";
 
         secondValue = normalizeDecimals(orderInputs.receiveVolume);
+        secondSubtext = <></>;
+        /*
         secondSubtext = <>
             {updating ? <Loading className="loading--small" /> : null}{" "}
             {pairDetails ? `1 ${pairDetails.base} = ${normalizeDecimals(price)} ${pairDetails.quote} ± 3%` : "\xa0"}
         </>;
+        */
 
         extra = this.advanced_render();
 
