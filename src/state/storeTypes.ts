@@ -16,7 +16,6 @@ export interface OrderInput {
 }
 
 export interface OptionsData {
-    language: string;
     preferredCurrency: Currency;
     theme: UITheme;
 }
