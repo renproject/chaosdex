@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import { Loading } from "@renex/react-components";
 import { connect, ConnectedReturnType } from "react-redux"; // Custom typings
 import { Route, RouteComponentProps, Router, withRouter } from "react-router-dom";
 import { bindActionCreators, Dispatch } from "redux";
@@ -7,6 +8,7 @@ import { bindActionCreators, Dispatch } from "redux";
 import { _captureBackgroundException_ } from "../lib/errors";
 import { history } from "../lib/history";
 import { setAlert } from "../store/actions/alert/alertActions";
+import { updateTokenPrices } from "../store/actions/market/marketActions";
 import { clearPopup, setPopup } from "../store/actions/popup/popupActions";
 import { storeURL } from "../store/actions/trader/accountActions";
 import { ApplicationData } from "../store/types/general";
@@ -16,7 +18,6 @@ import { Exchange } from "./pages/Exchange";
 import { PopupController } from "./popups/PopupController";
 import { _catch_ } from "./views/ErrorBoundary";
 import { FeedbackButton } from "./views/FeedbackButton";
-import { updateTokenPrices } from "../store/actions/market/marketActions";
 
 // Scroll restoration based on https://reacttraining.com/react-router/web/guides/scroll-restoration
 const ScrollToTop = withRouter(
@@ -69,7 +70,11 @@ class AppClass extends React.Component<Props, State> {
 
                         <div key={address || undefined}>
                             <PopupController>
-                                {_catch_(<HeaderController />)}
+                                {_catch_(
+                                    <React.Suspense fallback={<Loading />}>
+                                        <HeaderController />
+                                    </React.Suspense>
+                                )}
                                 <Route path="/" exact={true} component={Exchange} />
                                 {/* <Footer /> */}
                                 {_catch_(<Alerts />)}

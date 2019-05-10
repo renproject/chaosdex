@@ -5,6 +5,7 @@ import { connect, ConnectedReturnType } from "react-redux"; // Custom typings
 import { RouteComponentProps, withRouter } from "react-router";
 import { bindActionCreators, Dispatch } from "redux";
 
+import { Loading } from "@renex/react-components";
 import { NewOrder } from "../../components/NewOrder";
 import { _captureInteractionException_ } from "../../lib/errors";
 import { setAndUpdateValues } from "../../store/actions/inputs/newOrderActions";
@@ -58,7 +59,11 @@ class ExchangeClass extends React.Component<Props, Exchange> {
         return <div className="exchange">
             <div className="content container exchange-inner">
                 <div className="exchange--center">
-                    {_catch_(<NewOrder disabled={false} />)}
+                    {_catch_(
+                        <React.Suspense fallback={<Loading />}>
+                            <NewOrder disabled={false} />
+                        </React.Suspense>
+                    )}
                 </div>
             </div>
         </div>;

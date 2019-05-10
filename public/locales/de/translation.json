@@ -1,0 +1,16 @@
+{
+  "new_order": {
+    "spend": "Verbringen",
+    "receive": "Erhalten",
+    "trade": "Handel",
+    "based_on_market_price": "Basierend auf dem Marktpreis."
+  },
+  "header": {
+    "not_connected": "Nicht verbunden",
+    "log_in": "Einloggen",
+    "log_out": "Ausloggen"
+  },
+  "language": {
+    "currentLanguageName": "Deutsche"
+  }
+}

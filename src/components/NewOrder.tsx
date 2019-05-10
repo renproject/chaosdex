@@ -1,9 +1,10 @@
 import * as React from "react";
 
 import { Loading } from "@renex/react-components";
+import { withTranslation, WithTranslation } from "react-i18next";
 import { connect, ConnectedReturnType } from "react-redux"; // Custom typings
-
 import { bindActionCreators, Dispatch } from "redux";
+
 import { _captureBackgroundException_, _captureInteractionException_ } from "../lib/errors";
 import { setAndUpdateValues } from "../store/actions/inputs/newOrderActions";
 import { ApplicationData, MarketPair, UnknownMarketPrice } from "../store/types/general";
@@ -26,7 +27,7 @@ class NewOrderClass extends React.Component<Props, State> {
      * @dev Should have minimal computation, loops and anonymous functions.
      */
     public render(): React.ReactNode {
-        const { disabled, store: { orderInputs, marketPrices } } = this.props;
+        const { t, disabled, store: { orderInputs, marketPrices } } = this.props;
         const { submitting } = this.state;
 
         const market = MarketPair.DAI_BTC;
@@ -46,7 +47,7 @@ class NewOrderClass extends React.Component<Props, State> {
                             disabled={submitting || (orderInputs.inputError !== null && orderInputs.inputError.category === "input") || disabled}
                             className="button submit-swap"
                         >
-                            {submitting ? <Loading alt={true} /> : <>Trade</>}
+                            {submitting ? <Loading alt={true} /> : <>{t("new_order.trade")}</>}
                         </button> :
                         <button disabled={true} className="button submit-swap">
                             Token pair not supported
@@ -80,7 +81,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     }, dispatch)
 });
 
-interface Props extends ReturnType<typeof mapStateToProps>, ConnectedReturnType<typeof mapDispatchToProps> {
+interface Props extends ReturnType<typeof mapStateToProps>, ConnectedReturnType<typeof mapDispatchToProps>, WithTranslation {
     disabled: boolean;
 }
 
@@ -88,4 +89,6 @@ interface State {
     submitting: boolean;
 }
 
-export const NewOrder = connect(mapStateToProps, mapDispatchToProps)(NewOrderClass);
+const TranslatedNewOrder = withTranslation()(NewOrderClass);
+
+export const NewOrder = connect(mapStateToProps, mapDispatchToProps)(TranslatedNewOrder);

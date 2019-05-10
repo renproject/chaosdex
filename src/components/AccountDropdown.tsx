@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { Blocky } from "@renex/react-components";
+import { WithTranslation, withTranslation } from "react-i18next";
 import { connect, ConnectedReturnType } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 
@@ -21,10 +22,9 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
     }
 
     public render = () => {
-        const { address } = this.props.store;
-        const { copied } = this.state;
-
-        const { shown } = this.state;
+        const {t, i18n, store} = this.props;
+        const { address } = store;
+        const { copied, shown } = this.state;
 
         return <div
             className="header--group header--group--account"
@@ -41,7 +41,7 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
                     <div className="header--account--type">
                         {address ?
                             <>{address.substring(0, 8)}...{address.slice(-5)}</> :
-                            <>Not connected</>
+                            <>{t("header.not_connected")}</>
                         }
                     </div>
                 </div>
@@ -64,16 +64,16 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
                                     onClick={this.handleLogout}
                                     className="header--dropdown--option"
                                 >
-                                    Log out
-                            </li>
+                                    {t("header.log_out")}
+                                </li>
                             </> :
                                 <li
                                     role="button"
                                     onClick={this.handleLogin}
                                     className="header--dropdown--option header--dropdown--highlight"
                                 >
-                                    Log in
-                            </li>
+                                    {t("header.log_in")}
+                                </li>
                             }
                         </ul>
                     </div> : <></>
@@ -144,7 +144,9 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     }, dispatch),
 });
 
-interface Props extends ReturnType<typeof mapStateToProps>, ConnectedReturnType<typeof mapDispatchToProps> {
+interface Props extends ReturnType<typeof mapStateToProps>, ConnectedReturnType<typeof mapDispatchToProps>, WithTranslation {
 }
 
-export const AccountDropdown = connect(mapStateToProps, mapDispatchToProps)(AccountDropdownClass);
+const TranslatedAccountDropdown = withTranslation()(AccountDropdownClass);
+
+export const AccountDropdown = connect(mapStateToProps, mapDispatchToProps)(TranslatedAccountDropdown);
