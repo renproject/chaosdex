@@ -6,7 +6,7 @@ import { withTranslation, WithTranslation } from "react-i18next";
 import { _captureBackgroundException_, _captureInteractionException_ } from "../lib/errors";
 import { getMarket } from "../lib/market";
 import { connect, ConnectedProps } from "../state/connect";
-import { OrderContainer } from "../state/containers/orderContainer";
+import { OrderContainer } from "../state/containers";
 import { NewOrderInputs } from "./NewOrderInputs";
 
 /**

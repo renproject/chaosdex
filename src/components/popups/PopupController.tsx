@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { connect, ConnectedProps } from "../../state/connect";
-import { AppContainer } from "../../state/containers/appContainer";
+import { AppContainer } from "../../state/containers";
 import { _catch_ } from "../views/ErrorBoundary";
 
 /**
