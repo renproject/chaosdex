@@ -4,6 +4,7 @@ import BigNumber from "bignumber.js";
 
 import { CurrencyIcon, InfoLabel, Loading } from "@renex/react-components";
 import { withTranslation, WithTranslation } from "react-i18next";
+import { debounce } from "throttle-debounce";
 
 import { _captureInteractionException_ } from "../lib/errors";
 import { MarketPairs, UnknownToken } from "../lib/market";
@@ -28,6 +29,7 @@ class NewOrderInputsClass extends React.Component<Props, State> {
         [this.appContainer, this.orderContainer, this.optionsContainer] = this.props.containers;
 
         this.state = {
+            sendVolumeState: this.orderContainer.state.sendVolume,
             allOrNothing: false,
             immediateOrCancel: false,
             fillOrKill: false,
@@ -66,7 +68,7 @@ class NewOrderInputsClass extends React.Component<Props, State> {
         const orderInputs = this.orderContainer.state;
 
         let extra;
-        firstValue = orderInputs.sendVolume;
+        firstValue = this.state.sendVolumeState;
         firstSubtext = <>
             {"~ "}
             <CurrencyIcon currency={quoteCurrency} />
@@ -164,8 +166,20 @@ class NewOrderInputsClass extends React.Component<Props, State> {
         </div>;
     }
 
-    private readonly onVolumeChange = (newValue: string, options: { blur: boolean }) => {
-        this.orderContainer.updateSendVolume(newValue);
+    private readonly onVolumeChange = (value: string, options: { blur: boolean }) => {
+        // If the value is in scientific notation, fix it
+        if (value.toLowerCase().indexOf("e") !== -1) {
+            value = new BigNumber(value).toFixed();
+        }
+
+        this.setState({ sendVolumeState: value });
+        this.debouncedVolumeChange(value);
+    }
+
+    private debouncedVolumeChange = (value: string) => {
+        debounce(100, false, async () => {
+            await this.orderContainer.updateSendVolume(value);
+        })();
     }
 
     private readonly toggleSide = async () => {
@@ -186,6 +200,7 @@ interface Props extends ConnectedProps, WithTranslation {
 }
 
 interface State {
+    sendVolumeState: string;
     allOrNothing: boolean;
     immediateOrCancel: boolean;
     fillOrKill: boolean;
