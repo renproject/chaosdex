@@ -4,6 +4,7 @@ import { Loading } from "@renex/react-components";
 import { withTranslation, WithTranslation } from "react-i18next";
 
 import { _captureBackgroundException_, _captureInteractionException_ } from "../lib/errors";
+import { getMarket } from "../lib/market";
 import { connect, ConnectedProps } from "../state/connect";
 import { AppContainer } from "../state/containers/appContainer";
 import { OptionsContainer } from "../state/containers/optionsContainer";
@@ -15,9 +16,11 @@ import { NewOrderInputs } from "./NewOrderInputs";
  * NewOrder is a visual component for allowing users to open new orders
  */
 class NewOrderClass extends React.Component<Props, State> {
+    private readonly appContainer: AppContainer;
 
-    public constructor(props: Props) {
+    constructor(props: Props) {
         super(props);
+        [this.appContainer] = this.props.containers;
         this.state = {
             submitting: false,
         };
@@ -30,8 +33,8 @@ class NewOrderClass extends React.Component<Props, State> {
     public render(): React.ReactNode {
         const { t, disabled } = this.props;
         const { submitting } = this.state;
-
-        const market = MarketPair.DAI_BTC;
+        const orderInput = this.appContainer.state.order;
+        const market = getMarket(orderInput.sendToken, orderInput.receiveToken);
 
         const marketPrice = 0;
 
