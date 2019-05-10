@@ -3,7 +3,8 @@
     "spend": "Spend",
     "receive": "Receive",
     "trade": "Trade",
-    "based_on_market_price": "Based on market price."
+    "based_on_market_price": "Based on market price.",
+    "unsupported_token_pair": "Token pair not supported"
   },
   "header" : {
     "not_connected": "Not connected",

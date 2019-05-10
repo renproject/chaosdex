@@ -1,17 +1,13 @@
 import * as React from "react";
 
 import { Loading } from "@renex/react-components";
-import { connect, ConnectedReturnType } from "react-redux"; // Custom typings
 import { Route, RouteComponentProps, Router, withRouter } from "react-router-dom";
 import { bindActionCreators, Dispatch } from "redux";
 
 import { _captureBackgroundException_ } from "../lib/errors";
 import { history } from "../lib/history";
-import { setAlert } from "../store/actions/alert/alertActions";
-import { updateTokenPrices } from "../store/actions/market/marketActions";
-import { clearPopup, setPopup } from "../store/actions/popup/popupActions";
-import { storeURL } from "../store/actions/trader/accountActions";
-import { ApplicationData } from "../store/types/general";
+import { connect, ConnectedProps } from "../state/connect";
+import { AppContainer, OptionsContainer } from "../state/containers";
 import { Alerts } from "./Alerts";
 import { HeaderController } from "./HeaderController";
 import { Exchange } from "./pages/Exchange";
@@ -45,15 +41,17 @@ const ScrollToTop = withRouter(
  * and running background app loops
  */
 class AppClass extends React.Component<Props, State> {
+    private readonly appContainer: AppContainer;
+    private readonly optionsContainer: OptionsContainer;
 
     public constructor(props: Props, context: object) {
         super(props, context);
-        this.state = {
-            checkingReLogin: true,
-        };
+        [this.appContainer, this.optionsContainer] = this.props.containers;
+        setInterval(this.appContainer.updateTokenPrices, 30 * 1000);
+    }
 
-        this.props.actions.updateTokenPrices().catch(console.error);
-        setInterval(this.props.actions.updateTokenPrices, 30 * 1000);
+    public async componentDidMount(): Promise<void> {
+        await this.appContainer.updateTokenPrices();
     }
 
     /**
@@ -61,14 +59,13 @@ class AppClass extends React.Component<Props, State> {
      * @dev Should have minimal computation, loops and anonymous functions.
      */
     public render(): React.ReactNode {
-        const { address, advanced, theme, advancedTheme } = this.props;
         return (
             <Router history={history}>
-                <main className={`app ${advanced ? advancedTheme : theme}`}>
+                <main className={`app ${this.optionsContainer.state.theme}`}>
                     <div className="themed-app">
                         <ScrollToTop />
 
-                        <div key={address || undefined}>
+                        <div>
                             <PopupController>
                                 {_catch_(
                                     <React.Suspense fallback={<Loading />}>
@@ -77,7 +74,7 @@ class AppClass extends React.Component<Props, State> {
                                 )}
                                 <Route path="/" exact={true} component={Exchange} />
                                 {/* <Footer /> */}
-                                {_catch_(<Alerts />)}
+                                {/*_catch_(<Alerts />)*/}
                             </PopupController>
 
                             {_catch_(<FeedbackButton />)}
@@ -89,36 +86,10 @@ class AppClass extends React.Component<Props, State> {
     }
 }
 
-const mapStateToProps = (state: ApplicationData) => ({
-    address: state.trader.address,
-    agreedToTerms: state.trader.agreedToTerms,
-    url: state.trader.url,
-
-    advanced: state.trader.advanced,
-    theme: state.trader.theme,
-    advancedTheme: state.trader.advancedTheme,
-});
-
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-    actions: bindActionCreators({
-        clearPopup,
-        setAlert,
-        setPopup,
-        storeURL,
-        updateTokenPrices,
-    }, dispatch)
-});
-
-interface Props extends ReturnType<typeof mapStateToProps>, ConnectedReturnType<typeof mapDispatchToProps> {
+interface Props extends ConnectedProps {
 }
 
 interface State {
-    /**
-     * When the page is first loaded, the component checks the user
-     * can be logged in automatically. While this is happening, we show a
-     * spinner based on if checkingReLogin is true or not.
-     */
-    checkingReLogin: boolean;
 }
 
-export const App = connect(mapStateToProps, mapDispatchToProps)(AppClass);
+export const App = connect<Props>([AppContainer, OptionsContainer])(AppClass);

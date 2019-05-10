@@ -2,10 +2,6 @@ import * as React from "react";
 
 import { Blocky } from "@renex/react-components";
 import { WithTranslation, withTranslation } from "react-i18next";
-import { connect, ConnectedReturnType } from "react-redux";
-import { bindActionCreators, Dispatch } from "redux";
-
-import { ApplicationData } from "../store/types/general";
 
 const defaultState = { // Entries must be immutable
     shown: false,
@@ -22,8 +18,8 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
     }
 
     public render = () => {
-        const {t, i18n, store} = this.props;
-        const { address } = store;
+        const {t, i18n} = this.props;
+        const address: string = "";
         const { copied, shown } = this.state;
 
         return <div
@@ -83,7 +79,7 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
     }
 
     private readonly handleLogin = async (): Promise<void> => {
-        const { address } = this.props.store;
+        const address = "";
         if (!address) {
             // await this.props.actions.login({ redirect: false, showPopup: true, immediatePopup: true });
         }
@@ -133,20 +129,9 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
     }
 }
 
-const mapStateToProps = (state: ApplicationData) => ({
-    store: {
-        address: state.trader.address,
-    },
-});
-
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-    actions: bindActionCreators({
-    }, dispatch),
-});
-
-interface Props extends ReturnType<typeof mapStateToProps>, ConnectedReturnType<typeof mapDispatchToProps>, WithTranslation {
+interface Props extends WithTranslation {
 }
 
 const TranslatedAccountDropdown = withTranslation()(AccountDropdownClass);
 
-export const AccountDropdown = connect(mapStateToProps, mapDispatchToProps)(TranslatedAccountDropdown);
+export const AccountDropdown = TranslatedAccountDropdown;

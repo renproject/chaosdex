@@ -1,18 +1,25 @@
 import * as React from "react";
 
 import { SelectMarket } from "@renex/react-components";
-import { connect, ConnectedReturnType } from "react-redux"; // Custom typings
-import { bindActionCreators, Dispatch } from "redux";
 
 import { history } from "../lib/history";
 import { getMarket } from "../lib/market";
-import { setAndUpdateValues } from "../store/actions/inputs/newOrderActions";
-import { ApplicationData, Token, TokenDetails, Tokens } from "../store/types/general";
+
+import { connect, ConnectedProps } from "../state/connect";
+import { OrderContainer } from "../state/containers";
+import { Token, TokenDetails, Tokens } from "../store/types/general";
 
 /**
  * SelectMarket allows the user to select a market from two token dropdowns
  */
 class SelectMarketWrapperClass extends React.Component<Props, State> {
+
+    private readonly orderContainer: OrderContainer;
+
+    constructor(props: Props) {
+        super(props);
+        [this.orderContainer] = this.props.containers;
+    }
 
     /**
      * The main render function.
@@ -34,33 +41,23 @@ class SelectMarketWrapperClass extends React.Component<Props, State> {
 
     // tslint:disable-next-line:no-any
     private readonly handleChange = (token: Token): void => {
-        const { orderInputs, top } = this.props;
+        const { top } = this.props;
+        const orderInputs = this.orderContainer.state;
 
         if (top) {
             history.replace(`/?send=${token}&receive=${orderInputs.receiveToken}`);
         } else {
             history.replace(`/?send=${orderInputs.sendToken}&receive=${token}`);
         }
-        this.props.actions.setAndUpdateValues(
-            orderInputs,
-            top ? "sendToken" : "receiveToken",
-            token,
-            { blur: true },
-        );
+        if (top) {
+            this.orderContainer.updateSendToken(token);
+        } else {
+            this.orderContainer.updateReceiveToken(token);
+        }
     }
 }
 
-const mapStateToProps = (state: ApplicationData) => ({
-    orderInputs: state.inputs,
-});
-
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-    actions: bindActionCreators({
-        setAndUpdateValues,
-    }, dispatch)
-});
-
-interface Props extends ReturnType<typeof mapStateToProps>, ConnectedReturnType<typeof mapDispatchToProps> {
+interface Props extends ConnectedProps {
     top: boolean;
     thisToken: Token;
     otherToken: Token;
@@ -69,4 +66,4 @@ interface Props extends ReturnType<typeof mapStateToProps>, ConnectedReturnType<
 interface State {
 }
 
-export const SelectMarketWrapper = connect(mapStateToProps, mapDispatchToProps)(SelectMarketWrapperClass);
+export const SelectMarketWrapper = connect<Props>([OrderContainer])(SelectMarketWrapperClass);
