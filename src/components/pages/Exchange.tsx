@@ -7,7 +7,7 @@ import { Loading } from "@renex/react-components";
 import { NewOrder } from "../../components/NewOrder";
 import { _captureInteractionException_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
-import { OrderContainer } from "../../state/containers";
+import { AppContainer } from "../../state/containers";
 import { Token } from "../../store/types/general";
 import { _catch_ } from "../views/ErrorBoundary";
 
@@ -15,11 +15,11 @@ import { _catch_ } from "../views/ErrorBoundary";
  * Home is a page whose principal component allows users to open orders.
  */
 class ExchangeClass extends React.Component<Props, Exchange> {
-    private readonly orderContainer: OrderContainer;
+    private readonly appContainer: AppContainer;
 
     constructor(props: Props) {
         super(props);
-        [this.orderContainer] = this.props.containers;
+        [this.appContainer] = this.props.containers;
     }
 
     public componentDidMount(): void {
@@ -31,11 +31,11 @@ class ExchangeClass extends React.Component<Props, Exchange> {
             const receiveToken = queryParams.receive;
 
             if (sendToken) {
-                this.orderContainer.updateSendToken(sendToken as Token);
+                this.appContainer.updateSendToken(sendToken as Token);
             }
 
             if (receiveToken) {
-                this.orderContainer.updateReceiveToken(receiveToken as Token);
+                this.appContainer.updateReceiveToken(receiveToken as Token);
             }
         } catch (error) {
             _captureInteractionException_(error, {
@@ -70,4 +70,4 @@ interface Props extends ConnectedProps, RouteComponentProps {
 interface Exchange {
 }
 
-export const Exchange = connect<Props>([OrderContainer])(ExchangeClass);
+export const Exchange = connect<Props>([AppContainer])(ExchangeClass);

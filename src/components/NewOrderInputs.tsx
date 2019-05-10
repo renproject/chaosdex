@@ -14,22 +14,21 @@ import { SelectMarketWrapper } from "./SelectMarketWrapper";
 import { TokenValueInput } from "./views/TokenValueInput";
 
 import { connect, ConnectedProps } from "../state/connect";
-import { AppContainer, OptionsContainer, OrderContainer } from "../state/containers";
+import { AppContainer, OptionsContainer } from "../state/containers";
 import arrow from "../styles/images/arrow.svg";
 import { TokenBalance } from "./views/TokenBalance";
 
 class NewOrderInputsClass extends React.Component<Props, State> {
     private readonly appContainer: AppContainer;
-    private readonly orderContainer: OrderContainer;
     private readonly optionsContainer: OptionsContainer;
 
     constructor(props: Props) {
         super(props);
 
-        [this.appContainer, this.orderContainer, this.optionsContainer] = this.props.containers;
+        [this.appContainer, this.optionsContainer] = this.props.containers;
 
         this.state = {
-            sendVolumeState: this.orderContainer.state.sendVolume,
+            sendVolumeState: this.appContainer.state.order.sendVolume,
             allOrNothing: false,
             immediateOrCancel: false,
             fillOrKill: false,
@@ -65,7 +64,7 @@ class NewOrderInputsClass extends React.Component<Props, State> {
         let secondSubtext;
 
         const quoteCurrency = this.optionsContainer.state.preferredCurrency;
-        const orderInputs = this.orderContainer.state;
+        const orderInputs = this.appContainer.state.order;
 
         let extra;
         firstValue = this.state.sendVolumeState;
@@ -178,12 +177,12 @@ class NewOrderInputsClass extends React.Component<Props, State> {
 
     private debouncedVolumeChange = (value: string) => {
         debounce(100, false, async () => {
-            await this.orderContainer.updateSendVolume(value);
+            await this.appContainer.updateSendVolume(value);
         })();
     }
 
     private readonly toggleSide = async () => {
-        await this.orderContainer.flipSendReceive();
+        await this.appContainer.flipSendReceive();
     }
 
     private readonly handleMoreOptions = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -207,4 +206,4 @@ interface State {
     flipped: boolean;
 }
 
-export const NewOrderInputs = withTranslation()(connect<Props>([AppContainer, OrderContainer, OptionsContainer])(NewOrderInputsClass));
+export const NewOrderInputs = withTranslation()(connect<Props>([AppContainer, OptionsContainer])(NewOrderInputsClass));

@@ -1,10 +1,14 @@
 import { Currency } from "@renex/react-components";
+import { Map } from "immutable";
 
-import { Token, TokenPrices, UITheme } from "../store/types/general";
+import { ReserveBalances } from "../lib/shiftSDK";
+import { MarketPair, Token, TokenPrices, UITheme } from "../store/types/general";
 
 export interface ApplicationData {
     tokenPrices: TokenPrices;
+    balanceReserves: Map<MarketPair, ReserveBalances>;
     popup: PopupData;
+    order: OrderData;
 }
 
 export interface OrderData {

@@ -2,11 +2,10 @@ import * as React from "react";
 
 import { SelectMarket } from "@renex/react-components";
 
-import { history } from "../lib/history";
 import { getMarket } from "../lib/market";
 
 import { connect, ConnectedProps } from "../state/connect";
-import { OrderContainer } from "../state/containers";
+import { AppContainer } from "../state/containers";
 import { Token, TokenDetails, Tokens } from "../store/types/general";
 
 /**
@@ -14,11 +13,11 @@ import { Token, TokenDetails, Tokens } from "../store/types/general";
  */
 class SelectMarketWrapperClass extends React.Component<Props, State> {
 
-    private readonly orderContainer: OrderContainer;
+    private readonly appContainer: AppContainer;
 
     constructor(props: Props) {
         super(props);
-        [this.orderContainer] = this.props.containers;
+        [this.appContainer] = this.props.containers;
     }
 
     /**
@@ -43,9 +42,9 @@ class SelectMarketWrapperClass extends React.Component<Props, State> {
     private readonly handleChange = (token: Token): void => {
         const { top } = this.props;
         if (top) {
-            this.orderContainer.updateSendToken(token);
+            this.appContainer.updateSendToken(token);
         } else {
-            this.orderContainer.updateReceiveToken(token);
+            this.appContainer.updateReceiveToken(token);
         }
     }
 }
@@ -59,4 +58,4 @@ interface Props extends ConnectedProps {
 interface State {
 }
 
-export const SelectMarketWrapper = connect<Props>([OrderContainer])(SelectMarketWrapperClass);
+export const SelectMarketWrapper = connect<Props>([AppContainer])(SelectMarketWrapperClass);
