@@ -168,10 +168,8 @@ class NewOrderInputsClass extends React.Component<Props, State> {
         this.orderContainer.updateSendVolume(newValue);
     }
 
-    private readonly toggleSide = () => {
-        // const { orderInputs } = this.props;
-        // this.props.actions.swapTokens(orderInputs);
-        // this.setState({ flipped: !this.state.flipped });
+    private readonly toggleSide = async () => {
+        await this.orderContainer.flipSendReceive();
     }
 
     private readonly handleMoreOptions = (e: React.ChangeEvent<HTMLInputElement>): void => {

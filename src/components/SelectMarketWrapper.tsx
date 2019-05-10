@@ -42,13 +42,6 @@ class SelectMarketWrapperClass extends React.Component<Props, State> {
     // tslint:disable-next-line:no-any
     private readonly handleChange = (token: Token): void => {
         const { top } = this.props;
-        const orderInputs = this.orderContainer.state;
-
-        if (top) {
-            history.replace(`/?send=${token}&receive=${orderInputs.receiveToken}`);
-        } else {
-            history.replace(`/?send=${orderInputs.sendToken}&receive=${token}`);
-        }
         if (top) {
             this.orderContainer.updateSendToken(token);
         } else {
