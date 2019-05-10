@@ -6,7 +6,7 @@ import { history } from "../lib/history";
 import { getMarket } from "../lib/market";
 
 import { connect, ConnectedProps } from "../state/connect";
-import { AppContainer } from "../state/containers/appContainer";
+import { OrderContainer } from "../state/containers";
 import { Token, TokenDetails, Tokens } from "../store/types/general";
 
 /**
@@ -14,11 +14,11 @@ import { Token, TokenDetails, Tokens } from "../store/types/general";
  */
 class SelectMarketWrapperClass extends React.Component<Props, State> {
 
-    private readonly appContainer: AppContainer;
+    private readonly orderContainer: OrderContainer;
 
     constructor(props: Props) {
         super(props);
-        [this.appContainer] = this.props.containers;
+        [this.orderContainer] = this.props.containers;
     }
 
     /**
@@ -42,7 +42,7 @@ class SelectMarketWrapperClass extends React.Component<Props, State> {
     // tslint:disable-next-line:no-any
     private readonly handleChange = (token: Token): void => {
         const { top } = this.props;
-        const orderInputs = this.appContainer.state.order;
+        const orderInputs = this.orderContainer.state;
 
         if (top) {
             history.replace(`/?send=${token}&receive=${orderInputs.receiveToken}`);
@@ -50,9 +50,9 @@ class SelectMarketWrapperClass extends React.Component<Props, State> {
             history.replace(`/?send=${orderInputs.sendToken}&receive=${token}`);
         }
         if (top) {
-            this.appContainer.updateSendToken(token);
+            this.orderContainer.updateSendToken(token);
         } else {
-            this.appContainer.updateReceiveToken(token);
+            this.orderContainer.updateReceiveToken(token);
         }
     }
 }
@@ -66,4 +66,4 @@ interface Props extends ConnectedProps {
 interface State {
 }
 
-export const SelectMarketWrapper = connect<Props>([AppContainer])(SelectMarketWrapperClass);
+export const SelectMarketWrapper = connect<Props>([OrderContainer])(SelectMarketWrapperClass);

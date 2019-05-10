@@ -6,21 +6,18 @@ import { withTranslation, WithTranslation } from "react-i18next";
 import { _captureBackgroundException_, _captureInteractionException_ } from "../lib/errors";
 import { getMarket } from "../lib/market";
 import { connect, ConnectedProps } from "../state/connect";
-import { AppContainer } from "../state/containers/appContainer";
-import { OptionsContainer } from "../state/containers/optionsContainer";
-import { setAndUpdateValues } from "../store/actions/inputs/newOrderActions";
-import { ApplicationData, MarketPair, UnknownMarketPrice } from "../store/types/general";
+import { OrderContainer } from "../state/containers/orderContainer";
 import { NewOrderInputs } from "./NewOrderInputs";
 
 /**
  * NewOrder is a visual component for allowing users to open new orders
  */
 class NewOrderClass extends React.Component<Props, State> {
-    private readonly appContainer: AppContainer;
+    private readonly orderContainer: OrderContainer;
 
     constructor(props: Props) {
         super(props);
-        [this.appContainer] = this.props.containers;
+        [this.orderContainer] = this.props.containers;
         this.state = {
             submitting: false,
         };
@@ -33,7 +30,7 @@ class NewOrderClass extends React.Component<Props, State> {
     public render(): React.ReactNode {
         const { t, disabled } = this.props;
         const { submitting } = this.state;
-        const orderInput = this.appContainer.state.order;
+        const orderInput = this.orderContainer.state;
         const market = getMarket(orderInput.sendToken, orderInput.receiveToken);
 
         const marketPrice = 0;
@@ -79,4 +76,4 @@ interface State {
     submitting: boolean;
 }
 
-export const NewOrder = withTranslation()(connect<Props>([AppContainer, OptionsContainer])(NewOrderClass));
+export const NewOrder = withTranslation()(connect<Props>([OrderContainer])(NewOrderClass));
