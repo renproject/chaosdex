@@ -4,11 +4,8 @@ import * as React from "react";
 import { Console } from "@renex/react-components";
 
 import { List } from "immutable";
-import { connect, ConnectedReturnType } from "react-redux"; // Custom typings
-import { bindActionCreators, Dispatch } from "redux";
 
-import { PopupID, setDismissible } from "../../store/actions/popup/popupActions";
-import { ApplicationData } from "../../store/types/general";
+import { PopupID } from "../../store/actions/popup/popupActions";
 
 /**
  * OpenOrderPopup is a popup component that prompts the user to approve opening
@@ -103,7 +100,7 @@ class OpenOrderPopupClass extends React.Component<Props, State> {
 
         this.setState({ error: null, confirmed: true });
 
-        this.props.actions.setDismissible(false);
+        // this.props.actions.setDismissible(false);
 
         const simpleConsole = { log: this.log, error: this.error };
 
@@ -135,19 +132,11 @@ class OpenOrderPopupClass extends React.Component<Props, State> {
     }
 }
 
-const mapStateToProps = (state: ApplicationData) => ({
-    quoteCurrency: state.trader.quoteCurrency,
-});
-
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-    actions: bindActionCreators({
-        setDismissible,
-    }, dispatch)
-});
-
-interface Props extends ReturnType<typeof mapStateToProps>, ConnectedReturnType<typeof mapDispatchToProps> {
+interface Props {
     orderInputs: any;
     call: any;
+    quoteCurrency?: any;
+    actions?: any;
     closePopup(): void;
 }
 
@@ -159,7 +148,7 @@ interface State {
     step: number;
 }
 
-const OpenOrderPopup = connect(mapStateToProps, mapDispatchToProps)(OpenOrderPopupClass);
+const OpenOrderPopup = OpenOrderPopupClass;
 
 export const newOpenOrderPopup = (uuid: PopupID, orderInputs: any, call: any, onCancelAction: () => void) => ({
     uuid,

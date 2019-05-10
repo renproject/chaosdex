@@ -8,8 +8,8 @@ import { debounce } from "throttle-debounce";
 
 import { _captureInteractionException_ } from "../lib/errors";
 import { MarketPairs, UnknownToken } from "../lib/market";
-import { normalizeDecimals, setAndUpdateValues, swapTokens } from "../store/actions/inputs/newOrderActions";
-import { ApplicationData, MarketPair, Token, Tokens } from "../store/types/general";
+import { normalizeDecimals } from "../store/actions/inputs/newOrderActions";
+import { MarketPair, Token, Tokens } from "../store/types/general";
 import { SelectMarketWrapper } from "./SelectMarketWrapper";
 import { TokenValueInput } from "./views/TokenValueInput";
 

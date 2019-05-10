@@ -1,23 +1,12 @@
 import BigNumber from "bignumber.js";
 
-import { Dispatch } from "redux";
 import { _captureInteractionException_ } from "../../../lib/errors";
-import { history } from "../../../lib/history";
-import { OrderInputsData } from "../../types/general";
-import {
-    setAllOrNothing,
-    setError,
-    setImmediateOrCancel,
-    setPrice,
-    setReceiveToken,
-    setReceiveVolume,
-    setSendToken,
-    setSendVolume,
-} from "./inputsActions";
 
 export const normalizeDecimals = (inputIn: string | null): string | null => {
     return inputIn === null ? inputIn : new BigNumber(inputIn).decimalPlaces(8).toFixed();
 };
+
+/*
 
 const calculateNewState = (
     previousState: OrderInputsData,
@@ -71,3 +60,5 @@ export const swapTokens = (valuesIn: OrderInputsData) => (dispatch: Dispatch) =>
 
     history.replace(`/?send=${values.sendToken}&receive=${values.receiveToken}`);
 };
+
+*/
