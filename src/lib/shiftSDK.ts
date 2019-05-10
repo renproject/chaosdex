@@ -1,7 +1,9 @@
 import BigNumber from "bignumber.js";
 import Web3 from "web3";
 
+import { kovan as kovanAddresses } from "@renex/contracts";
 import { AbiItem } from "web3-utils";
+
 import { MarketPair, Token } from "../store/types/general";
 import { EXCHANGE, INFURA_URL } from "./environmentVariables";
 
@@ -9,7 +11,6 @@ import { ERC20DetailedWeb3 } from "./contracts/erc20";
 import * as ERC20ABI from "./contracts/erc20_abi.json";
 import { RenExWeb3 } from "./contracts/ren_ex";
 import * as RenExABI from "./contracts/ren_ex_abi.json";
-
 
 interface Commitment {
     srcToken: string;
@@ -40,13 +41,15 @@ type ShiftDetails = {
     status: ShiftStatus.Failed;
 };
 
+export type ReserveBalances = Map<Token, BigNumber>;
+
 /**
  * The ShiftSDK defines how to interact with the rest of this file
  *
  * @interface ShiftSDK
  */
 interface ShiftSDK {
-    getReserveBalance(marketPairs: MarketPair[]): Promise<Array<Map<Token, BigNumber>>>;
+    getReserveBalance(marketPairs: MarketPair[]): Promise<ReserveBalances[]>;
     submitCommitment(commitment: Commitment): Promise<ShiftDetails>;
     getCommitmentStatus(commitmentHash: string): Promise<ShiftDetails>;
 }
@@ -64,19 +67,27 @@ const getERC20 = (tokenAddress: string, web3?: Web3): ERC20DetailedWeb3 =>
  * @param srcToken The source token being spent
  * @param dstToken The destination token being received
  */
-const getReserveBalance = async (marketPairs: MarketPair[]): Promise<Array<Map<Token, BigNumber>>> => {
+const getReserveBalance = async (marketPairs: MarketPair[]): Promise<ReserveBalances[]> => {
     const web3 = getWeb3();
     const exchange = getExchange(web3);
+
+    const balance = async (token: Token, address: string): Promise<BigNumber> => {
+        if (token === Token.ETH) {
+            return new BigNumber((await web3.eth.getBalance(address)).toString());
+        }
+        const tokenAddress = kovanAddresses.addresses.tokens[token].address;
+        const tokenInstance = getERC20(tokenAddress, web3);
+        return new BigNumber((await tokenInstance.methods.balanceOf(address).call()).toString());
+    };
+
     return Promise.all(
         marketPairs.map(async (_marketPair) => {
             const [left, right] = _marketPair.split("/") as [Token, Token];
-            const leftAddress = left;
-            const rightAddress = right;
+            const leftAddress = kovanAddresses.addresses.tokens[left].address;
+            const rightAddress = kovanAddresses.addresses.tokens[right].address;
             const reserve = await exchange.methods.reserve(leftAddress, rightAddress).call();
-            const leftToken = getERC20(leftAddress, web3);
-            const leftBalance = new BigNumber((await leftToken.methods.balanceOf(reserve).call()).toString());
-            const rightToken = getERC20(rightAddress, web3);
-            const rightBalance = new BigNumber((await rightToken.methods.balanceOf(reserve).call()).toString());
+            const leftBalance = await balance(left, reserve);
+            const rightBalance = await balance(right, reserve);
             return new Map([[left, leftBalance], [right, rightBalance]]);
         })
     );
