@@ -1049,10 +1049,10 @@
   resolved "https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
-"@renex/contracts@0.1.6":
-  version "0.1.6"
-  resolved "https://registry.yarnpkg.com/@renex/contracts/-/contracts-0.1.6.tgz#e7179d4c18e647a9ea8ef1cd8024d254de7a16d0"
-  integrity sha512-+Bp3Ezo6HJeFQwJujp4IhS+8I8NIon14yGDJmzHoh7GGoty9QTBfligKgz6ZT8/YbpnFJuTo2xJ+CKPnDhJ62Q==
+"@renex/contracts@0.1.7":
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/@renex/contracts/-/contracts-0.1.7.tgz#240f381e29b40c152930cd66f75109182b54c860"
+  integrity sha512-TXRd0V/xc4xNS2fjU5mylcWkRkDNELfFceszg9tsJjVF20ztdCFk/WDhnMbxkRMVeOU7T5FF982UeO/CL/hDKg==
 
 "@renex/fonts@^1.0.1":
   version "1.0.1"
