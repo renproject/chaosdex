@@ -108,19 +108,6 @@ class HeaderClass extends React.Component<Props, State> {
         });
     }
 }
-
-const mapStateToProps = (state: ApplicationData) => ({
-    store: {
-        quoteCurrency: state.trader.quoteCurrency,
-    },
-});
-
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-    actions: bindActionCreators({
-        storeQuoteCurrency,
-    }, dispatch),
-});
-
 interface Props extends ConnectedProps, RouteComponentProps, WithTranslation {
 }
 
