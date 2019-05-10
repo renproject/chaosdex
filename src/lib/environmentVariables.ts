@@ -24,3 +24,5 @@ export const MAINNET_INFURA_URL = `${MAINNET_INFURA}${mainnetInfix}${INFURA_KEY}
 export const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "";
 
 export const environment = ((process.env.NODE_ENV === "development") ? "local" : NETWORK) || "unknown";
+
+export const EXCHANGE = NETWORK === "kovan" ? "0x0dF3510a4128c0cA11518465f670dB970E9302B7" : "";
