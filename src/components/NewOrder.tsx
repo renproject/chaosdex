@@ -54,7 +54,7 @@ class NewOrderClass extends React.Component<Props, State> {
                             {submitting ? <Loading alt={true} /> : <>{t("new_order.trade")}</>}
                         </button> :
                         <button disabled={true} className="button submit-swap">
-                            Token pair not supported
+                            {t("new_order.unsupported_token_pair")}
                     </button>
                 }
             </div>

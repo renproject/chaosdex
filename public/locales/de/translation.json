@@ -3,7 +3,8 @@
     "spend": "Verbringen",
     "receive": "Erhalten",
     "trade": "Handel",
-    "based_on_market_price": "Basierend auf dem Marktpreis."
+    "based_on_market_price": "Basierend auf dem Marktpreis.",
+    "unsupported_token_pair": "Token-Paar wird nicht unterstützt"
   },
   "header": {
     "not_connected": "Nicht verbunden",
