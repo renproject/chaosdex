@@ -51,6 +51,10 @@ class AppClass extends React.Component<Props, State> {
         setInterval(this.appContainer.updateTokenPrices, 30 * 1000);
     }
 
+    public async componentDidMount(): Promise<void> {
+        await this.appContainer.updateTokenPrices();
+    }
+
     /**
      * The main render function.
      * @dev Should have minimal computation, loops and anonymous functions.

@@ -72,9 +72,9 @@ class NewOrderInputsClass extends React.Component<Props, State> {
             <CurrencyIcon currency={quoteCurrency} />
             {" "}
             <TokenBalance
-                token={Token.ETH}
+                token={orderInputs.sendToken}
                 convertTo={quoteCurrency}
-                tokenPrices={null}
+                tokenPrices={this.appContainer.state.tokenPrices}
                 amount={orderInputs.sendVolume || "0"}
             />
         </>;
