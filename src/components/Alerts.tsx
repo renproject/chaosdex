@@ -1,8 +1,5 @@
 import * as React from "react";
 
-import { connect, ConnectedReturnType } from "react-redux"; // Custom typings
-import { bindActionCreators, Dispatch } from "redux";
-
 import { clearAlert } from "../store/actions/alert/alertActions";
 import { ApplicationData } from "../store/types/general";
 
@@ -70,20 +67,14 @@ class AlertsClass extends React.Component<Props, AlertsState> {
     }
 }
 
-const mapStateToProps = (state: ApplicationData) => ({
-    alert: state.alert.alert
-});
-
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-    actions: bindActionCreators({
-        clearAlert,
-    }, dispatch)
-});
-
-interface Props extends ReturnType<typeof mapStateToProps>, ConnectedReturnType<typeof mapDispatchToProps> {
+interface Props {
+    // tslint:disable-next-line:no-any
+    actions: any;
+    // tslint:disable-next-line:no-any
+    alert: any;
 }
 
 interface AlertsState {
 }
 
-export const Alerts = connect(mapStateToProps, mapDispatchToProps)(AlertsClass);
+export const Alerts = AlertsClass;

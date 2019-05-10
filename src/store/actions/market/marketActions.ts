@@ -1,4 +1,3 @@
-import { Dispatch } from "redux";
 import { createStandardAction } from "typesafe-actions";
 
 import { _captureBackgroundException_ } from "../../../lib/errors";
@@ -18,6 +17,7 @@ export const pricesUpdating = createStandardAction("PRICES_UPDATING")<boolean>()
 
 export const storeTokenPrices = createStandardAction("STORE_TOKEN_PRICES")<{ tokenPrices: TokenPrices }>();
 
+/*
 export const updateTokenPrices = () => async (dispatch: Dispatch) => {
     dispatch(pricesUpdating(true));
     try {
@@ -29,3 +29,4 @@ export const updateTokenPrices = () => async (dispatch: Dispatch) => {
         _captureBackgroundException_(error);
     }
 };
+*/

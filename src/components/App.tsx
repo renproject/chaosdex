@@ -2,13 +2,11 @@ import * as React from "react";
 
 import { Loading } from "@renex/react-components";
 import { Route, RouteComponentProps, Router, withRouter } from "react-router-dom";
-import { bindActionCreators, Dispatch } from "redux";
 
 import { _captureBackgroundException_ } from "../lib/errors";
 import { history } from "../lib/history";
 import { connect, ConnectedProps } from "../state/connect";
 import { AppContainer, OptionsContainer } from "../state/containers";
-import { Alerts } from "./Alerts";
 import { HeaderController } from "./HeaderController";
 import { Exchange } from "./pages/Exchange";
 import { PopupController } from "./popups/PopupController";

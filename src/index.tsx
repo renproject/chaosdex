@@ -2,14 +2,10 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 
 import { Provider } from "unstated";
-import { persistStore } from "redux-persist";
-import { PersistGate } from "redux-persist/integration/react";
 
-import { Loading } from "@renex/react-components";
 import { App } from "./components/App";
 import { _catch_ } from "./components/views/ErrorBoundary";
 import { onLoad } from "./lib/onLoad";
-import { configureStore } from "./store/configureStore";
 
 import i18n from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
@@ -17,8 +13,6 @@ import Backend from "i18next-xhr-backend";
 import { initReactI18next } from "react-i18next";
 
 import "./styles/index.scss";
-
-export const store = configureStore();
 
 // Initiate the i18n instance for multilingual support
 i18n.use(Backend)
@@ -42,9 +36,7 @@ onLoad("ApolloEx");
 
 ReactDOM.render(
   _catch_(<Provider>
-    <PersistGate loading={null} persistor={persistStore(store)}>
-      <App />
-    </PersistGate>
+    <App />
   </Provider>),
   document.getElementById("root") as HTMLElement
 );
