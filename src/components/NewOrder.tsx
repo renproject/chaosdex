@@ -4,20 +4,20 @@ import { Loading } from "@renex/react-components";
 import { withTranslation, WithTranslation } from "react-i18next";
 
 import { _captureBackgroundException_, _captureInteractionException_ } from "../lib/errors";
+import { getMarket } from "../lib/market";
 import { connect, ConnectedProps } from "../state/connect";
-import { AppContainer } from "../state/containers/appContainer";
-import { OptionsContainer } from "../state/containers/optionsContainer";
-import { setAndUpdateValues } from "../store/actions/inputs/newOrderActions";
-import { ApplicationData, MarketPair, UnknownMarketPrice } from "../store/types/general";
+import { OrderContainer } from "../state/containers";
 import { NewOrderInputs } from "./NewOrderInputs";
 
 /**
  * NewOrder is a visual component for allowing users to open new orders
  */
 class NewOrderClass extends React.Component<Props, State> {
+    private readonly orderContainer: OrderContainer;
 
-    public constructor(props: Props) {
+    constructor(props: Props) {
         super(props);
+        [this.orderContainer] = this.props.containers;
         this.state = {
             submitting: false,
         };
@@ -30,8 +30,8 @@ class NewOrderClass extends React.Component<Props, State> {
     public render(): React.ReactNode {
         const { t, disabled } = this.props;
         const { submitting } = this.state;
-
-        const market = MarketPair.DAI_BTC;
+        const orderInput = this.orderContainer.state;
+        const market = getMarket(orderInput.sendToken, orderInput.receiveToken);
 
         const marketPrice = 0;
 
@@ -51,7 +51,7 @@ class NewOrderClass extends React.Component<Props, State> {
                             {submitting ? <Loading alt={true} /> : <>{t("new_order.trade")}</>}
                         </button> :
                         <button disabled={true} className="button submit-swap">
-                            Token pair not supported
+                            {t("new_order.unsupported_token_pair")}
                     </button>
                 }
             </div>
@@ -76,4 +76,4 @@ interface State {
     submitting: boolean;
 }
 
-export const NewOrder = withTranslation()(connect<Props>([AppContainer, OptionsContainer])(NewOrderClass));
+export const NewOrder = withTranslation()(connect<Props>([OrderContainer])(NewOrderClass));

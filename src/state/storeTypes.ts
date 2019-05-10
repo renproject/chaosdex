@@ -3,12 +3,11 @@ import { Currency } from "@renex/react-components";
 import { Token, TokenPrices, UITheme } from "../store/types/general";
 
 export interface ApplicationData {
-    order: OrderInput;
     tokenPrices: TokenPrices;
     popup: PopupData;
 }
 
-export interface OrderInput {
+export interface OrderData {
     sendToken: Token;
     receiveToken: Token;
     sendVolume: string;

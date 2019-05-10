@@ -12,7 +12,7 @@ import { ReactComponent as German } from "../styles/images/rp-flag-de.svg";
 import { ReactComponent as English } from "../styles/images/rp-flag-uk.svg";
 
 import { connect, ConnectedProps } from "../state/connect";
-import { OptionsContainer } from "../state/containers/optionsContainer";
+import { OptionsContainer } from "../state/containers";
 import { ReactComponent as Logo } from "../styles/images/logo.svg";
 import { AccountDropdown } from "./AccountDropdown";
 
