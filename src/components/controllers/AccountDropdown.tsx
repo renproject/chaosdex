@@ -8,7 +8,6 @@ const defaultState = { // Entries must be immutable
     copied: false,
 };
 
-// tslint:disable: react-unused-props-and-state
 class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
     private ref: HTMLDivElement | null = null;
 
@@ -107,10 +106,8 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
         this.ref = ref;
     }
 
-    // tslint:disable-next-line: no-any
-    private readonly clickAway = (event: any) => {
-        // tslint:disable-next-line: no-any
-        if ((this.ref && !this.ref.contains(event.target))) {
+    private readonly clickAway = (event: MouseEvent) => {
+        if ((this.ref && !this.ref.contains(event.target as Node | null))) {
             this.setState({ shown: false });
         }
         document.removeEventListener("mousedown", this.clickAway);
@@ -132,6 +129,4 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
 interface Props extends WithTranslation {
 }
 
-const TranslatedAccountDropdown = withTranslation()(AccountDropdownClass);
-
-export const AccountDropdown = TranslatedAccountDropdown;
+export const AccountDropdown = withTranslation()(AccountDropdownClass);

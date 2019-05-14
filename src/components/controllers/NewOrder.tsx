@@ -3,23 +3,25 @@ import * as React from "react";
 import { Loading } from "@renex/react-components";
 import { withTranslation, WithTranslation } from "react-i18next";
 
-import { getMarket } from "../lib/market";
-import { connect, ConnectedProps } from "../state/connect";
-import { AppContainer } from "../state/containers";
+import { getMarket } from "../../lib/market";
+import { connect, ConnectedProps } from "../../state/connect";
+import { AppContainer } from "../../state/containers";
 import { NewOrderInputs } from "./NewOrderInputs";
+
+const defaultState = { // Entries must be immutable
+    submitting: false,
+};
 
 /**
  * NewOrder is a visual component for allowing users to open new orders
  */
-class NewOrderClass extends React.Component<Props, State> {
+class NewOrderClass extends React.Component<Props, typeof defaultState> {
     private readonly appContainer: AppContainer;
 
     constructor(props: Props) {
         super(props);
         [this.appContainer] = this.props.containers;
-        this.state = {
-            submitting: false,
-        };
+        this.state = defaultState;
     }
 
     /**
@@ -67,12 +69,8 @@ class NewOrderClass extends React.Component<Props, State> {
     }
 }
 
-interface Props extends ConnectedProps, WithTranslation {
+interface Props extends ConnectedProps<[AppContainer]>, WithTranslation {
     disabled: boolean;
-}
-
-interface State {
-    submitting: boolean;
 }
 
 export const NewOrder = withTranslation()(connect<Props>([AppContainer])(NewOrderClass));

@@ -3,14 +3,14 @@ import * as React from "react";
 import { FeedbackButton, Loading } from "@renex/react-components";
 import { Route, RouteComponentProps, Router, withRouter } from "react-router-dom";
 
-import { _captureBackgroundException_ } from "../lib/errors";
-import { history } from "../lib/history";
-import { connect, ConnectedProps } from "../state/connect";
-import { AppContainer, OptionsContainer } from "../state/containers";
+import { _captureBackgroundException_ } from "../../lib/errors";
+import { history } from "../../lib/history";
+import { connect, ConnectedProps } from "../../state/connect";
+import { AppContainer, OptionsContainer } from "../../state/containers";
+import { Exchange } from "../pages/Exchange";
+import { PopupController } from "../popups/PopupController";
+import { _catch_ } from "../views/ErrorBoundary";
 import { HeaderController } from "./HeaderController";
-import { Exchange } from "./pages/Exchange";
-import { PopupController } from "./popups/PopupController";
-import { _catch_ } from "./views/ErrorBoundary";
 
 // Scroll restoration based on https://reacttraining.com/react-router/web/guides/scroll-restoration
 const ScrollToTop = withRouter(
@@ -37,7 +37,7 @@ const ScrollToTop = withRouter(
  * App is the main visual component responsible for displaying different routes
  * and running background app loops
  */
-class AppClass extends React.Component<Props, State> {
+class AppClass extends React.Component<Props> {
     private readonly appContainer: AppContainer;
     private readonly optionsContainer: OptionsContainer;
 
@@ -83,10 +83,7 @@ class AppClass extends React.Component<Props, State> {
     }
 }
 
-interface Props extends ConnectedProps {
-}
-
-interface State {
+interface Props extends ConnectedProps<[AppContainer, OptionsContainer]> {
 }
 
 export const App = connect<Props>([AppContainer, OptionsContainer])(AppClass);

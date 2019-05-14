@@ -4,11 +4,11 @@ import * as React from "react";
 import { RouteComponentProps } from "react-router";
 
 import { Loading } from "@renex/react-components";
-import { NewOrder } from "../../components/NewOrder";
 import { _captureInteractionException_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer } from "../../state/containers";
 import { Token } from "../../state/generalTypes";
+import { NewOrder } from "../controllers/NewOrder";
 import { _catch_ } from "../views/ErrorBoundary";
 
 /**
@@ -64,7 +64,7 @@ class ExchangeClass extends React.Component<Props, Exchange> {
     }
 }
 
-interface Props extends ConnectedProps, RouteComponentProps {
+interface Props extends ConnectedProps<[AppContainer]>, RouteComponentProps {
 }
 
 interface Exchange {

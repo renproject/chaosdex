@@ -28,7 +28,6 @@ export const getTokenPricesInCurrencies = async (): Promise<TokenPrices> => {
     for (const tokenAndDetails of CoinGeckoIDs.toSeq().toArray()) {
         const [token, coinGeckoID] = tokenAndDetails;
 
-        // tslint:disable-next-line:max-line-length
         const data = await fetchDetails(coinGeckoID);
         const price = Map<Currency, number>(data.market_data.current_price);
 

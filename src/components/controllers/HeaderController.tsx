@@ -4,13 +4,13 @@ import { currencies, Currency, CurrencyIcon, Dropdown, Header } from "@renex/rea
 import { WithTranslation, withTranslation } from "react-i18next";
 import { Link, RouteComponentProps, withRouter } from "react-router-dom";
 
-import { ReactComponent as German } from "../styles/images/rp-flag-de.svg";
-import { ReactComponent as English } from "../styles/images/rp-flag-uk.svg";
-
-import { connect, ConnectedProps } from "../state/connect";
-import { OptionsContainer } from "../state/containers";
-import { ReactComponent as Logo } from "../styles/images/logo.svg";
+import { connect, ConnectedProps } from "../../state/connect";
+import { OptionsContainer } from "../../state/containers";
 import { AccountDropdown } from "./AccountDropdown";
+
+import { ReactComponent as Logo } from "../../styles/images/logo.svg";
+import { ReactComponent as German } from "../../styles/images/rp-flag-de.svg";
+import { ReactComponent as English } from "../../styles/images/rp-flag-uk.svg";
 
 const getCurrencyOptions = () => {
     const options = new Map<string, React.ReactNode>();
@@ -104,7 +104,7 @@ class HeaderClass extends React.Component<Props, State> {
         });
     }
 }
-interface Props extends ConnectedProps, RouteComponentProps, WithTranslation {
+interface Props extends ConnectedProps<[OptionsContainer]>, RouteComponentProps, WithTranslation {
 }
 
 interface State {

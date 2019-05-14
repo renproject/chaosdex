@@ -1,4 +1,3 @@
-// tslint:disable:no-any
 import * as React from "react";
 
 import { Console } from "@renex/react-components";
@@ -132,10 +131,12 @@ class OpenOrderPopupClass extends React.Component<Props, State> {
 }
 
 interface Props {
+    // tslint:disable: no-any
     orderInputs: any;
     call: any;
     quoteCurrency?: any;
     actions?: any;
+    // tslint:enable: no-any
     closePopup(): void;
 }
 
@@ -149,6 +150,7 @@ interface State {
 
 const OpenOrderPopup = OpenOrderPopupClass;
 
+// tslint:disable-next-line: no-any
 export const newOpenOrderPopup = (uuid: PopupID, orderInputs: any, call: any, onCancelAction: () => void) => ({
     uuid,
     popup: <OpenOrderPopup call={call} closePopup={onCancelAction} orderInputs={orderInputs} />,

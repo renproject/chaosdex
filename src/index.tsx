@@ -8,7 +8,7 @@ import Backend from "i18next-xhr-backend";
 import { initReactI18next } from "react-i18next";
 import { Provider } from "unstated";
 
-import { App } from "./components/App";
+import { App } from "./components/controllers/App";
 import { _catch_ } from "./components/views/ErrorBoundary";
 import { _captureInteractionException_ } from "./lib/errors";
 import { onLoad } from "./lib/onLoad";

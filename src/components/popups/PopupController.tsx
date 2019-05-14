@@ -40,7 +40,7 @@ class PopupControllerClass extends React.Component<Props> {
     }
 }
 
-interface Props extends ConnectedProps {
+interface Props extends ConnectedProps<[AppContainer]> {
 }
 
 export const PopupController = connect<Props>([AppContainer])(PopupControllerClass);
