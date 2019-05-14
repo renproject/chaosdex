@@ -12,44 +12,40 @@ import { NewOrder } from "../controllers/NewOrder";
 import { _catch_ } from "../views/ErrorBoundary";
 
 /**
- * Home is a page whose principal component allows users to open orders.
+ * Exchange is the main token-swapping page.
  */
-class ExchangeClass extends React.Component<Props, Exchange> {
-    private readonly appContainer: AppContainer;
+export const Exchange = connect<RouteComponentProps & ConnectedProps<[AppContainer]>>([AppContainer])(
+    ({ containers: [appContainer], location }) => {
 
-    constructor(props: Props) {
-        super(props);
-        [this.appContainer] = this.props.containers;
-    }
+        // useEffect replaces `componentDidMount` and `componentDidUpdate`.
+        // To limit it to running once, we use the initialized hook.
+        const [initialized, setInitialized] = React.useState(false);
+        React.useEffect(() => {
+            if (!initialized) {
 
-    public componentDidMount(): void {
-        try {
-            const queryParams = qs.parse(this.props.location.search);
-
-            // Set market pair based on URL
-            const sendToken = queryParams.send;
-            const receiveToken = queryParams.receive;
-
-            if (sendToken) {
-                this.appContainer.updateSendToken(sendToken as Token).catch(_captureInteractionException_);
+                /*
+                 * Set the URL based on the URL
+                 * e.g. `URL?send=ETH&receive=DAI` will set the tokens to ETH
+                 * and DAI.
+                 */
+                try {
+                    const queryParams = qs.parse(location.search);
+                    if (queryParams.send) {
+                        appContainer.updateSendToken(queryParams.send as Token).catch(_captureInteractionException_);
+                    }
+                    if (queryParams.receive) {
+                        appContainer.updateReceiveToken(queryParams.receive as Token).catch(_captureInteractionException_);
+                    }
+                } catch (error) {
+                    _captureInteractionException_(error, {
+                        description: "Error in Exchange.effect",
+                        shownToUser: "No",
+                    });
+                }
+                setInitialized(true);
             }
+        }, [initialized, location.search, appContainer]);
 
-            if (receiveToken) {
-                this.appContainer.updateReceiveToken(receiveToken as Token).catch(_captureInteractionException_);
-            }
-        } catch (error) {
-            _captureInteractionException_(error, {
-                description: "Error in Exchange.componentDidMount",
-                shownToUser: "No",
-            });
-        }
-    }
-
-    /**
-     * The main render function.
-     * @dev Should have minimal computation, loops and anonymous functions.
-     */
-    public render = (): React.ReactNode => {
         return <div className="exchange">
             <div className="content container exchange-inner">
                 <div className="exchange--center">
@@ -62,12 +58,4 @@ class ExchangeClass extends React.Component<Props, Exchange> {
             </div>
         </div>;
     }
-}
-
-interface Props extends ConnectedProps<[AppContainer]>, RouteComponentProps {
-}
-
-interface Exchange {
-}
-
-export const Exchange = connect<Props>([AppContainer])(ExchangeClass);
+);

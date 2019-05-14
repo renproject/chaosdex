@@ -46,5 +46,5 @@ export const onLoad = (title: string) => {
     }
 
     // tslint:disable-next-line: no-console
-    console.log(`${title} version hash: ${SOURCE_VERSION}`);
+    console.debug(`${title} version hash: ${SOURCE_VERSION}`);
 };

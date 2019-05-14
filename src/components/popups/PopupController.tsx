@@ -19,7 +19,7 @@ class PopupControllerClass extends React.Component<Props> {
     public render(): JSX.Element | null {
         const { popup, overlay, onCancel } = this.appContainer.state.popup;
 
-        return (<>
+        return <>
             <div className={`popup--container ${popup && overlay ? "popup--blur" : ""}`}>
                 {this.props.children}
             </div>
@@ -28,8 +28,7 @@ class PopupControllerClass extends React.Component<Props> {
                 {overlay ?
                     <div role="none" className="overlay" onClick={this.onClickHandler} /> : null}
             </div> : null}
-        </>
-        );
+        </>;
     }
 
     public onClickHandler = () => {

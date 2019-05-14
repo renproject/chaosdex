@@ -6,11 +6,13 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import Backend from "i18next-xhr-backend";
 
 import { initReactI18next } from "react-i18next";
+import { Router } from "react-router";
 import { Provider } from "unstated";
 
 import { App } from "./components/controllers/App";
 import { _catch_ } from "./components/views/ErrorBoundary";
 import { _captureInteractionException_ } from "./lib/errors";
+import { history } from "./lib/history";
 import { onLoad } from "./lib/onLoad";
 
 import "./styles/index.scss";
@@ -37,8 +39,8 @@ i18n.use(Backend)
 onLoad("DEX Demo");
 
 ReactDOM.render(
-  _catch_(<Provider>
+  _catch_(<Provider><Router history={history}>
     <App />
-  </Provider>),
+  </Router></Provider>),
   document.getElementById("root") as HTMLElement
 );

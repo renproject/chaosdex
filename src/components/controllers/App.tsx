@@ -1,10 +1,9 @@
 import * as React from "react";
 
 import { FeedbackButton, Loading } from "@renex/react-components";
-import { Route, RouteComponentProps, Router, withRouter } from "react-router-dom";
+import { Route, RouteComponentProps, withRouter } from "react-router-dom";
 
 import { _captureBackgroundException_ } from "../../lib/errors";
-import { history } from "../../lib/history";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer, OptionsContainer } from "../../state/containers";
 import { Exchange } from "../pages/Exchange";
@@ -37,53 +36,36 @@ const ScrollToTop = withRouter(
  * App is the main visual component responsible for displaying different routes
  * and running background app loops
  */
-class AppClass extends React.Component<Props> {
-    private readonly appContainer: AppContainer;
-    private readonly optionsContainer: OptionsContainer;
+type Props = ConnectedProps<[AppContainer, OptionsContainer]>;
+export const App = connect<Props>([AppContainer, OptionsContainer])(
+    ({ containers: [appContainer, optionsContainer] }) => {
 
-    public constructor(props: Props, context: object) {
-        super(props, context);
-        [this.appContainer, this.optionsContainer] = this.props.containers;
-        setInterval(() => this.appContainer.updateTokenPrices().catch(_captureBackgroundException_), 30 * 1000);
-        setInterval(() => this.appContainer.updateBalanceReserves().catch(_captureBackgroundException_), 30 * 1000);
+        // useEffect replaces `componentDidMount` and `componentDidUpdate`.
+        // To limit it to running once, we use the initialized hook.
+        const [initialized, setInitialized] = React.useState(false);
+        React.useEffect(() => {
+            if (!initialized) {
+                setInterval(() => appContainer.updateTokenPrices().catch(_captureBackgroundException_), 30 * 1000);
+                setInterval(() => appContainer.updateBalanceReserves().catch(_captureBackgroundException_), 30 * 1000);
+                appContainer.updateTokenPrices().catch(_captureBackgroundException_);
+                appContainer.updateBalanceReserves().catch(_captureBackgroundException_);
+                setInitialized(true);
+            }
+        }, [initialized, appContainer]);
+
+        return <main className={`app ${optionsContainer.state.theme}`}>
+            <ScrollToTop />
+
+            <PopupController>
+                {_catch_(
+                    <React.Suspense fallback={<Loading />}>
+                        <HeaderController />
+                    </React.Suspense>
+                )}
+                <Route path="/" exact={true} component={Exchange} />
+            </PopupController>
+
+            {_catch_(<FeedbackButton url="https://docs.google.com/forms/d/e/1FAIpQLScDqffrmK-CtAOvL9dM0SUJq8_No6lTMmjnfH8s7a4bIbrJvA/viewform" />)}
+        </main>;
     }
-
-    public async componentDidMount(): Promise<void> {
-        await this.appContainer.updateTokenPrices();
-        await this.appContainer.updateBalanceReserves();
-    }
-
-    /**
-     * The main render function.
-     * @dev Should have minimal computation, loops and anonymous functions.
-     */
-    public render(): React.ReactNode {
-        return (
-            <Router history={history}>
-                <main className={`app ${this.optionsContainer.state.theme}`}>
-                    <div className="themed-app">
-                        <ScrollToTop />
-
-                        <div>
-                            <PopupController>
-                                {_catch_(
-                                    <React.Suspense fallback={<Loading />}>
-                                        <HeaderController />
-                                    </React.Suspense>
-                                )}
-                                <Route path="/" exact={true} component={Exchange} />
-                            </PopupController>
-
-                            {_catch_(<FeedbackButton url="https://docs.google.com/forms/d/e/1FAIpQLScDqffrmK-CtAOvL9dM0SUJq8_No6lTMmjnfH8s7a4bIbrJvA/viewform" />)}
-                        </div>
-                    </div>
-                </main>
-            </Router>
-        );
-    }
-}
-
-interface Props extends ConnectedProps<[AppContainer, OptionsContainer]> {
-}
-
-export const App = connect<Props>([AppContainer, OptionsContainer])(AppClass);
+);

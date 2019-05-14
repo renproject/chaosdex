@@ -10,7 +10,7 @@
     "@fortawesome/react-fontawesome": "^0.1.4",
     "@renex/contracts": "0.1.7",
     "@renex/fonts": "^1.0.1",
-    "@renex/react-components": "^1.0.19",
+    "@renex/react-components": "1.0.20",
     "@sentry/browser": "^5.2.1",
     "@sentry/core": "^5.2.0",
     "any-promise": "^1.3.0",

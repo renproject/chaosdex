@@ -7,6 +7,8 @@ import { getMarket } from "../../lib/market";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer } from "../../state/containers";
 import { NewOrderInputs } from "./NewOrderInputs";
+import { confirmTradeDetails } from "../popups/ConfirmTradeDetails";
+import { askForAddress } from "../popups/AskForAddress";
 
 const defaultState = { // Entries must be immutable
     submitting: false,
@@ -61,11 +63,27 @@ class NewOrderClass extends React.Component<Props, typeof defaultState> {
     }
 
     private readonly openOrder = async () => {
-        console.log("openOrder: unimplemented");
+        try {
+            await confirmTradeDetails(this.appContainer);
+            const receiveAddress = await askForAddress(
+                this.appContainer,
+                this.appContainer.state.order.receiveToken,
+                `Enter the ${this.appContainer.state.order.receiveToken} public address you want to receive your tokens to.`,
+            );
+            const refundAddress = await askForAddress(
+                this.appContainer,
+                this.appContainer.state.order.sendToken,
+                `Enter your ${this.appContainer.state.order.receiveToken} refund address in case the trade doesn't go through.`,
+            );
+            console.debug(`receiveAddress: ${receiveAddress},   refundAddress: ${refundAddress}`);
+        } catch (error) {
+            return;
+        }
+
     }
 
     private readonly handleChange = async (value: string | null) => {
-        console.log("handelChange: unimplemented");
+        console.debug("handelChange: unimplemented");
     }
 }
 

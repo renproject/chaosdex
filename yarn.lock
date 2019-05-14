@@ -1018,14 +1018,14 @@
   resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-common-types/-/fontawesome-common-types-0.2.18.tgz#c0d8f073a5116b2de0a2c8a7aba66093a6956ce7"
   integrity sha512-834DrzO2Ne3upCW+mJJPC/E6BsFcj+2Z1HmPIhbpbj8UaKmXWum4NClqLpUiMetugRlHuG4jbIHNdv2/lc3c1Q==
 
-"@fortawesome/fontawesome-svg-core@^1.2.17", "@fortawesome/fontawesome-svg-core@^1.2.18":
+"@fortawesome/fontawesome-svg-core@^1.2.18":
   version "1.2.18"
   resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-svg-core/-/fontawesome-svg-core-1.2.18.tgz#c26cbded461895ebe260f0dea771ca29d8cb3517"
   integrity sha512-1vyLWVQqxQ8q8bA2zgZcljk3RkeELlDJ757ymLk+ebK019AFgEFH5kTnR5OMN1SFsTwW1OHlFQO3VufdeCg/Gg==
   dependencies:
     "@fortawesome/fontawesome-common-types" "^0.2.18"
 
-"@fortawesome/free-brands-svg-icons@^5.8.1", "@fortawesome/free-brands-svg-icons@^5.8.2":
+"@fortawesome/free-brands-svg-icons@^5.8.2":
   version "5.8.2"
   resolved "https://registry.yarnpkg.com/@fortawesome/free-brands-svg-icons/-/free-brands-svg-icons-5.8.2.tgz#e68a509c986d5d197cc5bd9ae8d966eff513468d"
   integrity sha512-nhEWctDOP6f+Ka10LXAFoF+6mtWidC2iQgTBGRGgydmhBtcIEwyxWVx5wQHa86A1zAMi5TnipDAYQs2qn7DD6A==
@@ -1249,13 +1249,13 @@
   resolved "https://registry.yarnpkg.com/@renex/fonts/-/fonts-1.0.1.tgz#7967434b343d5cd31c575b633997677f33f6856c"
   integrity sha512-MXYgG1HVzILdXIzLC17ln33o6MU8p+wDjPmbKgvKpQGJNaT1eflhj078f+ha/VQ2IMs8B5PNZU1X9mDL4enMgQ==
 
-"@renex/react-components@^1.0.19":
-  version "1.0.19"
-  resolved "https://registry.yarnpkg.com/@renex/react-components/-/react-components-1.0.19.tgz#dfdf7d6aef21f409e51dbc7ac8ef1950261b0e75"
-  integrity sha512-cBZCd7GGGyZqxKqcU0QXSmZY04SHnAqvpy+M8ijrGxQHlW+BugrH4qH/IwXSY5UcwVPIZYiSpH2xcBpS9StZ7g==
+"@renex/react-components@1.0.20":
+  version "1.0.20"
+  resolved "https://registry.yarnpkg.com/@renex/react-components/-/react-components-1.0.20.tgz#e66afa9178e42599576067298906800a3c8a45a7"
+  integrity sha512-H/4/cnCZoVljB/U6YTUoB08/khOgnQ9sni7AFdTSEO62373e1jVWg9/LNW+1GRMLnfOQimSvZyj0Z+RVi0DsRA==
   dependencies:
-    "@fortawesome/fontawesome-svg-core" "^1.2.17"
-    "@fortawesome/free-brands-svg-icons" "^5.8.1"
+    "@fortawesome/fontawesome-svg-core" "^1.2.18"
+    "@fortawesome/free-brands-svg-icons" "^5.8.2"
     "@fortawesome/react-fontawesome" "^0.1.4"
     "@renex/fonts" "^1.0.1"
     emotion "^10.0.9"
@@ -1264,7 +1264,7 @@
     react-element-to-jsx-string "^14.0.2"
     react-router "^5.0.0"
     react-router-dom "^5.0.0"
-    react-select "^2.4.2"
+    react-select "^2.4.3"
 
 "@sentry/browser@^5.2.1":
   version "5.2.1"
@@ -9681,7 +9681,7 @@ react-scripts@^3.0.1:
   optionalDependencies:
     fsevents "2.0.6"
 
-react-select@^2.4.2, react-select@^2.4.3:
+react-select@^2.4.3:
   version "2.4.3"
   resolved "https://registry.yarnpkg.com/react-select/-/react-select-2.4.3.tgz#62efdf76d7e33e9bde22d907a0cc8abd0aeab656"
   integrity sha512-cmxNaiHpviRYkojeW9rGEUJ4jpX7QTmPe2wcscwA4d1lStzw/cJtr4ft5H2O/YhfpkrcwaLghu3XmEYdXhBo8Q==

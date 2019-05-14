@@ -49,21 +49,10 @@ class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
             </span>
         </div>;
 
-        const firstTitle = t("new_order.spend");
-        let firstValue;
-        let firstSubtext;
-        let firstError;
-        let firstOnChange;
-
-        let secondValue;
-        let secondSubtext;
-
         const quoteCurrency = this.optionsContainer.state.preferredCurrency;
         const orderInputs = this.appContainer.state.order;
 
-        let extra;
-        firstValue = this.state.sendVolumeState;
-        firstSubtext = <>
+        const firstSubtext = <>
             {"~ "}
             <CurrencyIcon currency={quoteCurrency} />
             {" "}
@@ -74,35 +63,22 @@ class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
                 amount={orderInputs.sendVolume || "0"}
             />
         </>;
-        firstError = false; // orderInputs.inputError !== null && orderInputs.inputError.category === "input";
-        firstOnChange = this.onVolumeChange;
-
-        secondValue = normalizeDecimals(orderInputs.receiveVolume);
-        secondSubtext = <></>;
-        /*
-        secondSubtext = <>
-            {updating ? <Loading className="loading--small" /> : null}{" "}
-            {pairDetails ? `1 ${pairDetails.base} = ${normalizeDecimals(price)} ${pairDetails.quote} ± 3%` : "\xa0"}
-        </>;
-        */
-
-        extra = this.advanced_render();
 
         const first = <TokenValueInput
-            title={firstTitle}
-            value={firstValue}
+            title={t("new_order.spend")}
+            value={this.state.sendVolumeState}
             subtext={firstSubtext}
             hint={null}
-            error={firstError}
-            onChange={firstOnChange}
+            error={false}
+            onChange={this.onVolumeChange}
         >
             <SelectMarketWrapper top={true} thisToken={orderInputs.sendToken} otherToken={orderInputs.receiveToken} />
         </TokenValueInput >;
 
         const second = <TokenValueInput
             title={t("new_order.receive")}
-            value={secondValue}
-            subtext={secondSubtext}
+            value={normalizeDecimals(orderInputs.receiveVolume)}
+            subtext={<></>}
             hint={t<string>("new_order.based_on_market_price")}
             error={false}
             onChange={null}
@@ -115,7 +91,7 @@ class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
             <div className="order--wrapper">
                 {first}{toggle}{second}
             </div>
-            {extra}
+            {this.advanced_render()}
         </>;
     }
 
