@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { Loading } from "@renex/react-components";
+import { FeedbackButton, Loading } from "@renex/react-components";
 import { Route, RouteComponentProps, Router, withRouter } from "react-router-dom";
 
 import { _captureBackgroundException_ } from "../lib/errors";
@@ -11,7 +11,6 @@ import { HeaderController } from "./HeaderController";
 import { Exchange } from "./pages/Exchange";
 import { PopupController } from "./popups/PopupController";
 import { _catch_ } from "./views/ErrorBoundary";
-import { FeedbackButton } from "./views/FeedbackButton";
 
 // Scroll restoration based on https://reacttraining.com/react-router/web/guides/scroll-restoration
 const ScrollToTop = withRouter(
@@ -75,7 +74,7 @@ class AppClass extends React.Component<Props, State> {
                                 <Route path="/" exact={true} component={Exchange} />
                             </PopupController>
 
-                            {_catch_(<FeedbackButton />)}
+                            {_catch_(<FeedbackButton url="https://docs.google.com/forms/d/e/1FAIpQLScDqffrmK-CtAOvL9dM0SUJq8_No6lTMmjnfH8s7a4bIbrJvA/viewform" />)}
                         </div>
                     </div>
                 </main>

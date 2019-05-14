@@ -1,378 +1,173 @@
-@include themify($themes) {
+.overlay {
+    display: block;
+    background-color: rgba(41, 45, 61, .9);
+    position: fixed;
+    // top: 120px;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+}
 
+.popup--container {
+    background: $background;
 
-    .overlay {
-        display: block;
-        background-color: rgba(41, 45, 61, .9);
-        position: fixed;
-        // top: 120px;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 20;
-    }
+    min-height: 100vh;
+    transition: background .2s ease;
+}
 
-    // .popup::before {
-    //     content: "";
-    //     height: 10px;
-    //     top: -10px;
+.popup {
+    max-width: 94vw;
+    color: $mid-grey;
+    background-color: white;
+    border-radius: 12px;
+    overflow: hidden;
 
-    //     width: 100%;
-    //     content: "";
-    //     background-color: $blue-bright;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
 
-    //     position: absolute;
-    //     left: 0;
-    //     border-top-left-radius: 4px;
-    //     border-top-right-radius: 4px;
-    // }
+    text-align: center;
+    padding: 30px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 25;
+}
 
-    .popup {
-        max-width: 94vw;
-        // color: themed('foreground');
-        // background-color: themed('background');
-        color: $mid-grey;
-        background-color: white;
-        border-radius: 12px;
-        overflow: hidden;
+.popup--header {
+    background: linear-gradient(180.08deg, #00A8F5 -138.44%, #006FE8 99.35%);
+    padding: 10px;
+    width: calc(100% - 20px);
+}
 
-        box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
+.popup--header h2 {
+    color: white;
+    margin: 0;
+    font-weight: 500;
+    font-size: 15px;
+    text-align: center;
+}
 
-        text-align: center;
-        padding: 30px;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 25;
-    }
-
-    .popup-with-header {
-        padding: 0;
-        min-width: 350px;
-    }
-
-    .popup--body {
-        padding: 30px;
-    }
-
-    .popup--header {
-        background: linear-gradient(180.08deg, #00A8F5 -138.44%, #006FE8 99.35%);
-        padding: 10px;
-        width: calc(100% - 20px);
-    }
-
-    .popup--header h2 {
-        color: white;
-        margin: 0;
-        font-weight: 500;
-        font-size: 15px;
-        text-align: center;
-    }
-
-    .popup {
-        .popup--header--x {
-            position: absolute;
-            right: ((40px - 12px) / 2);
-            top: ((40px - 12px) / 2);
-            height: 12px;
-            width: 12px;
-            margin-top: 0;
-            background: url($images + 'exit.svg');
-            background-size: 100%;
-            cursor: pointer;
-        }
-    }
-
-    .popup h2,
-    .popup p {
-        margin: 0;
-    }
-
-    .popup h2+* {
-        margin-top: 10px;
-    }
-
-    .popup.open,
-    .popup.kyc {
-        min-width: 300px;
-    }
-
-    .popup.accounts h2 {
-        text-align: center;
-    }
-
-    .popup.accounts .account--button {
-        padding: 20px;
-        width: 500px;
-        height: 40px;
-        box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.06);
-        margin-bottom: 10px;
-    }
-
-    .popup.accounts .account--left {
-        width: 40px;
-        height: 40px;
-        padding: 0;
-        margin: 0;
-        margin-top: -20px;
-        margin-left: -20px;
-        float: left;
-    }
-
-    .popup.accounts .account--right {
-        margin-top: -9px;
-        padding-left: 20px;
-        font-size: 15px;
-        float: left;
-    }
-
-    .popup.atom button {
-        width: 100%;
-        margin-top: 10px;
-    }
-
-    .popup .sign--data {
-        margin-top: 30px;
-        margin-bottom: 30px;
-    }
-
-    .popup .sign--datum {
-        background-color: $off-white;
-        border: 1px solid $light-grey;
-        padding: 10px;
-        color: #333;
-    }
-
-    .popup .sign--datum+.sign--datum {
-        border-left: none;
-    }
-
-    .popup .sign--button {
-        margin-top: 15px;
-    }
-
-    .popup.open {
-
-        // Open Order
-        .open--tokens {
-            display: flex;
-            justify-content: center;
-        }
-
-        .open--tokens div {
-            position: relative;
-        }
-
-        .open--tokens p {
-            position: absolute;
-            left: 50%;
-            bottom: -15px;
-            transform: translateX(-50%);
-            white-space: nowrap;
-        }
-
-        .open--details {
-            margin: 25px 0 15px;
-        }
-
-        .open--details span {
-            font-weight: 500;
-        }
-
-        .button:first-of-type {
-            margin-left: 20px;
-        }
-
-        .button:last-of-type {
-            margin-right: 20px;
-        }
-
-        .open--confirm {
-            @extend .button;
-            background: linear-gradient(180.19deg, #00A8F5 -125.02%, #006FE8 98.68%);
-            border-radius: 6px;
-            margin-bottom: -10px;
-            height: 40px;
-        }
-
-        .open--cancel {
-            @extend .button--white;
-            color: $light-red;
-            border-radius: 6px;
-            margin-bottom: -10px;
-            height: 40px;
-        }
-    }
-
-    $noWeb3Width: 450px;
-    $noWeb3Padding: 30px;
-
-    .no-web3 {
-        width: $noWeb3Width;
-        padding: $noWeb3Padding;
-    }
-
-    .no-web3 h2 {
-        font-size: 24px;
-        font-weight: 500;
-        margin: 20px 0;
-    }
-
-    .no-web3 button {
-        margin-top: 20px;
-        min-width: ($noWeb3Width - $noWeb3Padding * 2) / 2;
-        font-size: 18px;
-        height: 40px;
-    }
-
-    .no-web3--logo {
-        width: 170px;
-        height: 170px;
-        margin: 0;
-    }
-
-    .popup--description {
-        font-size: 16px;
-        margin: 20px 0;
-    }
-
-    p.popup--error {
-        margin: 15px auto;
-        border: 1px solid $red;
-        padding: 10px;
-        width: 300px;
-        font-weight: 500;
-    }
-
-    .popup--blur {
-        pointer-events: none;
-        // filter: blur(2px);
-    }
-
-    .popup--container {
+.popup {
+    .popup--header--x {
         position: absolute;
-        top: 0;
-        width: 100%;
+        right: ((40px - 12px) / 2);
+        top: ((40px - 12px) / 2);
+        height: 12px;
+        width: 12px;
+        margin-top: 0;
+        background: url($images + 'exit.svg');
+        background-size: 100%;
+        cursor: pointer;
+    }
+}
+
+.popup h2,
+.popup p {
+    margin: 0;
+}
+
+.popup h2+* {
+    margin-top: 10px;
+}
+
+.popup.open,
+.popup.kyc {
+    min-width: 300px;
+}
+
+.popup.accounts h2 {
+    text-align: center;
+}
+
+.popup.accounts .account--right {
+    margin-top: -9px;
+    padding-left: 20px;
+    font-size: 15px;
+    float: left;
+}
+
+.popup.atom button {
+    width: 100%;
+    margin-top: 10px;
+}
+
+.popup.open {
+
+    // Open Order
+    .open--tokens {
+        display: flex;
+        justify-content: center;
     }
 
-
-
-    // Multi Step
-
-    .multi-step {
-        padding: 0;
-        width: 450px;
-
-        >* {
-            padding: 30px;
-        }
-    }
-
-    .multi-step--list {
-        list-style: none;
-        width: 200px;
-        margin: 0 auto;
-        padding: 0;
-    }
-
-    .multi-step--list li {
+    .open--tokens div {
         position: relative;
     }
 
-    .multi-step--list li+li {
-        margin-top: 5px;
+    .open--tokens p {
+        position: absolute;
+        left: 50%;
+        bottom: -15px;
+        transform: translateX(-50%);
+        white-space: nowrap;
     }
 
-    .multi-step--list span.active {
+    .open--details {
+        margin: 25px 0 15px;
+    }
+
+    .open--details span {
         font-weight: 500;
     }
 
-    .multi-step h2 {
-        font-weight: 500;
-        font-size: 24px;
-
-        color: $dark-grey;
+    .button:first-of-type {
+        margin-left: 20px;
     }
 
-    .multi-step--top {
-        padding: 30px 20px;
-
-        >img {
-            margin-bottom: 30px;
-            margin-top: 20px;
-        }
+    .button:last-of-type {
+        margin-right: 20px;
     }
 
-
-    .multi-step--buttons {
-        background: #F5F5F5;
-        padding: 30px 0;
-
-        // TODO: Why isn't there already a border radius?
-        border-bottom-left-radius: 2px;
-        border-bottom-right-radius: 2px;
-
-        button {
-            border-radius: 2px;
-            font-size: 18px;
-            font-weight: 500;
-
-            height: 42px;
-            width: 200px;
-        }
+    .open--confirm {
+        @extend .button;
+        background: linear-gradient(180.19deg, #00A8F5 -125.02%, #006FE8 98.68%);
+        border-radius: 6px;
+        margin-bottom: -10px;
+        height: 40px;
     }
 
-    .popup .multi-step--buttons+p {
-        margin-top: 15px;
+    .open--cancel {
+        @extend .button;
+        color: $light-red;
+        border-radius: 6px;
+        margin-bottom: -10px;
+        height: 40px;
     }
+}
 
-    .popup .multi-step--ignore {
-        cursor: pointer;
+.popup--blur {
+    pointer-events: none;
+    // filter: blur(2px);
+}
+
+.popup--container {
+    position: absolute;
+    top: 0;
+    width: 100%;
+}
+
+.popup--buttons {
+    display: flex;
+    height: 50px;
+    margin-bottom: 10px;
+
+    button {
+        border-radius: 0;
     }
+}
 
-    .popup .multi-step--with-ignore {
-        margin-bottom: 20px;
-    }
-
-    .popup--buttons {
-        display: flex;
-        height: 50px;
-        margin-bottom: 10px;
-
-        button {
-            border-radius: 0;
-        }
-    }
-
-    .download--popup {
-        ul {
-            list-style-type: none;
-            display: flex;
-            padding: 0;
-            justify-content: center;
-        }
-
-        li+li {
-            margin-left: 20px;
-        }
-
-        li>a {
-            display: flex;
-            flex-flow: column;
-            align-items: center;
-        }
-
-        .os-icon {
-            font-size: 40px;
-            margin-bottom: 20px;
-        }
-
-        .linux-instructions {
-            border: 1px solid #ccc;
-            padding: 20px;
-        }
-    }
-
+.swap--popup {
+    padding: 0;
+    width: 350px;
 }

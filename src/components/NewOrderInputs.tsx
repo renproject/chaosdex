@@ -2,7 +2,7 @@ import * as React from "react";
 
 import BigNumber from "bignumber.js";
 
-import { CurrencyIcon, InfoLabel } from "@renex/react-components";
+import { CurrencyIcon, InfoLabel, TokenValueInput } from "@renex/react-components";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { debounce } from "throttle-debounce";
 
@@ -11,7 +11,6 @@ import { connect, ConnectedProps } from "../state/connect";
 import { AppContainer, OptionsContainer } from "../state/containers";
 import { SelectMarketWrapper } from "./SelectMarketWrapper";
 import { TokenBalance } from "./views/TokenBalance";
-import { TokenValueInput } from "./views/TokenValueInput";
 
 import arrow from "../styles/images/arrow.svg";
 
@@ -113,7 +112,7 @@ class NewOrderInputsClass extends React.Component<Props, State> {
         </TokenValueInput>;
 
         return <>
-            <div className="order--wrapper order--wrapper--tabbed">
+            <div className="order--wrapper">
                 {first}{toggle}{second}
             </div>
             {extra}
@@ -165,17 +164,17 @@ class NewOrderInputsClass extends React.Component<Props, State> {
         }
 
         this.setState({ sendVolumeState: value });
+        // tslint:disable-next-line: no-floating-promises
         this.debouncedVolumeChange(value);
     }
 
     /**
      * Waits 100ms to update the send volume in case the user is still typing
      */
-    private readonly debouncedVolumeChange = (value: string) => {
+    private readonly debouncedVolumeChange = async (value: string) =>
         debounce(100, false, async () =>
-            this.appContainer.updateSendVolume(value)
-        )().catch(_captureInteractionException_);
-    }
+            this.appContainer.updateSendVolume(value).catch(_captureInteractionException_)
+        )()
 
     private readonly toggleSide = async () => {
         await this.appContainer.flipSendReceive();

@@ -1,41 +1,37 @@
-@include themify($themes) {
+.exchange {
+    $padding-top: 100px;
+    min-height: calc(100vh - 100px - #{$padding-top});
 
-    .exchange {
-        $padding-top: 100px;
-        min-height: calc(100vh - 100px - #{$padding-top});
-
-        >div {
-            margin-top: 100px;
-        }
-
-        @media(max-width: $max-md) {
-            padding: 0 20px;
-        }
+    >div {
+        margin-top: 100px;
     }
 
-    .exchange-inner {
-        display: flex;
-        align-items: center;
-        width: 100%;
+    @media(max-width: $max-md) {
+        padding: 0 20px;
+    }
+}
 
-        @media(max-width: $max-md) {
-            flex-flow: column;
+.exchange-inner {
+    display: flex;
+    align-items: center;
+    width: 100%;
 
-            >* {
-                width: 100%;
-                margin-bottom: 30px;
-            }
+    @media(max-width: $max-md) {
+        flex-flow: column;
+
+        >* {
+            width: 100%;
+            margin-bottom: 30px;
         }
     }
+}
 
 
-    .exchange--center {
-        flex-grow: 1;
+.exchange--center {
+    flex-grow: 1;
 
-        @media(max-width: $max-md) {
-            order: -1;
-            padding: 0 20px;
-        }
+    @media(max-width: $max-md) {
+        order: -1;
+        padding: 0 20px;
     }
-
 }
