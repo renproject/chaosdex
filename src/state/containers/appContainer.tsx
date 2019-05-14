@@ -2,9 +2,9 @@ import { Currency } from "@renex/react-components";
 import { Map } from "immutable";
 import { Container } from "unstated";
 
-import { getTokenPricesInCurrencies, getMarket } from "../../lib/market";
-import { MarketPair, Token } from "../../store/types/general";
-import { ApplicationData } from "../storeTypes";
+import { getMarket, getTokenPricesInCurrencies } from "../../lib/market";
+import { MarketPair, Token } from "../generalTypes";
+import { ApplicationData, PopupData } from "../storeTypes";
 
 import { ReserveBalances, sdk } from "../../lib/shiftSDK";
 
@@ -31,6 +31,41 @@ const initialState: ApplicationData = {
 export class AppContainer extends Container<ApplicationData> {
     public state = initialState;
 
+    // Popup methods ///////////////////////////////////////////////////////////
+
+    public setPopup = async (popupData: Partial<PopupData>) => {
+        if (document.documentElement) {
+            document.documentElement.classList.add("noscroll");
+        }
+        await this.setState({
+            popup: {
+                popup: popupData.popup || null,
+                dismissible: popupData.dismissible !== false, // On by default
+                overlay: popupData.overlay === true, // Off by default
+                onCancel: popupData.onCancel || (() => null),
+            }
+        });
+    }
+    public setDismissible = async (dismissible: boolean) => {
+        await this.setState({ popup: { ...this.state.popup, dismissible } });
+    }
+
+    public clearPopup = async () => {
+        if (document.documentElement) {
+            document.documentElement.classList.remove("noscroll");
+        }
+        await this.setState({
+            popup: {
+                popup: null,
+                overlay: false,
+                dismissible: true,
+                onCancel: (() => null) as () => void,
+            }
+        });
+    }
+
+    // Token prices ////////////////////////////////////////////////////////////
+
     public updateTokenPrices = async (): Promise<void> => {
         const tokenPrices = await getTokenPricesInCurrencies();
         await this.setState({ tokenPrices });
@@ -43,8 +78,10 @@ export class AppContainer extends Container<ApplicationData> {
         marketPairs.forEach((value, index) => {
             balanceReserves = balanceReserves.set(value, res[index]);
         });
-        await this.setState({ balanceReserves} );
+        await this.setState({ balanceReserves });
     }
+
+    // Swap inputs /////////////////////////////////////////////////////////////
 
     public updateSendToken = async (sendToken: Token): Promise<void> => {
         await this.setState({ order: { ...this.state.order, sendToken } });
@@ -70,19 +107,18 @@ export class AppContainer extends Container<ApplicationData> {
         await this.updateReceiveValue();
     }
 
-    private updateReceiveValue = async (): Promise<void> => {
+    private readonly updateReceiveValue = async (): Promise<void> => {
         const { order: { sendToken, receiveToken, sendVolume } } = this.state;
         const market = getMarket(sendToken, receiveToken);
         if (market) {
             const reserves = this.state.balanceReserves.get(market);
 
             const receiveVolume = await estimatePrice(sendToken, receiveToken, sendVolume, reserves);
-            console.log(`rcv: ${receiveVolume.toFixed()}`);
             await this.setState({ order: { ...this.state.order, receiveVolume: receiveVolume.toFixed() } });
         }
     }
 
-    private updateHistory = async (): Promise<void> => {
+    private readonly updateHistory = async (): Promise<void> => {
         const { order: { sendToken, receiveToken } } = this.state;
         history.replace(`/?send=${sendToken}&receive=${receiveToken}`);
     }

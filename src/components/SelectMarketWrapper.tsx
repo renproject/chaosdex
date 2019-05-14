@@ -4,9 +4,10 @@ import { SelectMarket } from "@renex/react-components";
 
 import { getMarket } from "../lib/market";
 
+import { _captureInteractionException_ } from "../lib/errors";
 import { connect, ConnectedProps } from "../state/connect";
 import { AppContainer } from "../state/containers";
-import { Token, TokenDetails, Tokens } from "../store/types/general";
+import { Token, TokenDetails, Tokens } from "../state/generalTypes";
 
 /**
  * SelectMarket allows the user to select a market from two token dropdowns
@@ -26,7 +27,6 @@ class SelectMarketWrapperClass extends React.Component<Props, State> {
      */
     public render(): React.ReactNode {
         const { top, thisToken, otherToken } = this.props;
-        // Filter out the tokens which aren't available in SwapperD
         const newTokens = new Map<Token, TokenDetails>(Tokens);
         return <SelectMarket
             top={top}
@@ -42,9 +42,9 @@ class SelectMarketWrapperClass extends React.Component<Props, State> {
     private readonly handleChange = (token: Token): void => {
         const { top } = this.props;
         if (top) {
-            this.appContainer.updateSendToken(token);
+            this.appContainer.updateSendToken(token).catch(_captureInteractionException_);
         } else {
-            this.appContainer.updateReceiveToken(token);
+            this.appContainer.updateReceiveToken(token).catch(_captureInteractionException_);
         }
     }
 }

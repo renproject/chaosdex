@@ -45,8 +45,8 @@ class AppClass extends React.Component<Props, State> {
     public constructor(props: Props, context: object) {
         super(props, context);
         [this.appContainer, this.optionsContainer] = this.props.containers;
-        setInterval(this.appContainer.updateTokenPrices, 30 * 1000);
-        setInterval(this.appContainer.updateBalanceReserves, 30 * 1000);
+        setInterval(() => this.appContainer.updateTokenPrices().catch(_captureBackgroundException_), 30 * 1000);
+        setInterval(() => this.appContainer.updateBalanceReserves().catch(_captureBackgroundException_), 30 * 1000);
     }
 
     public async componentDidMount(): Promise<void> {
@@ -73,8 +73,6 @@ class AppClass extends React.Component<Props, State> {
                                     </React.Suspense>
                                 )}
                                 <Route path="/" exact={true} component={Exchange} />
-                                {/* <Footer /> */}
-                                {/*_catch_(<Alerts />)*/}
                             </PopupController>
 
                             {_catch_(<FeedbackButton />)}

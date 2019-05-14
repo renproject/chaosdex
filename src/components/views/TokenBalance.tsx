@@ -4,7 +4,7 @@ import { Map } from "immutable";
 
 import { Currency } from "@renex/react-components";
 import { BigNumber } from "bignumber.js";
-import { Token } from "../../store/types/general";
+import { Token } from "../../state/generalTypes";
 
 export class TokenBalance extends React.Component<Props, State> {
     public render = (): JSX.Element => {

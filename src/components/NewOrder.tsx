@@ -3,7 +3,6 @@ import * as React from "react";
 import { Loading } from "@renex/react-components";
 import { withTranslation, WithTranslation } from "react-i18next";
 
-import { _captureBackgroundException_, _captureInteractionException_ } from "../lib/errors";
 import { getMarket } from "../lib/market";
 import { connect, ConnectedProps } from "../state/connect";
 import { AppContainer } from "../state/containers";
@@ -52,7 +51,7 @@ class NewOrderClass extends React.Component<Props, State> {
                         </button> :
                         <button disabled={true} className="button submit-swap">
                             {t("new_order.unsupported_token_pair")}
-                    </button>
+                        </button>
                 }
             </div>
             {/*<div className="order--error red">{orderInputs.inputError.error}</div>*/}

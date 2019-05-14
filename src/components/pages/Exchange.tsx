@@ -8,7 +8,7 @@ import { NewOrder } from "../../components/NewOrder";
 import { _captureInteractionException_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer } from "../../state/containers";
-import { Token } from "../../store/types/general";
+import { Token } from "../../state/generalTypes";
 import { _catch_ } from "../views/ErrorBoundary";
 
 /**
@@ -31,11 +31,11 @@ class ExchangeClass extends React.Component<Props, Exchange> {
             const receiveToken = queryParams.receive;
 
             if (sendToken) {
-                this.appContainer.updateSendToken(sendToken as Token);
+                this.appContainer.updateSendToken(sendToken as Token).catch(_captureInteractionException_);
             }
 
             if (receiveToken) {
-                this.appContainer.updateReceiveToken(receiveToken as Token);
+                this.appContainer.updateReceiveToken(receiveToken as Token).catch(_captureInteractionException_);
             }
         } catch (error) {
             _captureInteractionException_(error, {

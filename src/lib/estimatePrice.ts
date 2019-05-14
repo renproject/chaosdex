@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 
-import { Token } from "../store/types/general";
+import { Token } from "../state/generalTypes";
 
 import { ReserveBalances } from "./shiftSDK";
 

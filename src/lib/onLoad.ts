@@ -1,6 +1,5 @@
 import * as Sentry from "@sentry/browser";
 
-import { _catch_ } from "../components/views/ErrorBoundary";
 import { environment, NETWORK, SENTRY_DSN, SOURCE_VERSION } from "./environmentVariables";
 import { pageLoadedAt } from "./errors";
 

@@ -18,7 +18,7 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
     }
 
     public render = () => {
-        const {t, i18n} = this.props;
+        const { t } = this.props;
         const address: string = "";
         const { copied, shown } = this.state;
 

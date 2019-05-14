@@ -2,21 +2,22 @@ import * as React from "react";
 
 import BigNumber from "bignumber.js";
 
-import { CurrencyIcon, InfoLabel, Loading } from "@renex/react-components";
+import { CurrencyIcon, InfoLabel } from "@renex/react-components";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { debounce } from "throttle-debounce";
 
 import { _captureInteractionException_ } from "../lib/errors";
-import { MarketPairs, UnknownToken } from "../lib/market";
-import { normalizeDecimals } from "../store/actions/inputs/newOrderActions";
-import { MarketPair, Token, Tokens } from "../store/types/general";
-import { SelectMarketWrapper } from "./SelectMarketWrapper";
-import { TokenValueInput } from "./views/TokenValueInput";
-
 import { connect, ConnectedProps } from "../state/connect";
 import { AppContainer, OptionsContainer } from "../state/containers";
-import arrow from "../styles/images/arrow.svg";
+import { SelectMarketWrapper } from "./SelectMarketWrapper";
 import { TokenBalance } from "./views/TokenBalance";
+import { TokenValueInput } from "./views/TokenValueInput";
+
+import arrow from "../styles/images/arrow.svg";
+
+export const normalizeDecimals = (inputIn: string | null): string | null => {
+    return inputIn === null ? inputIn : new BigNumber(inputIn).decimalPlaces(8).toFixed();
+};
 
 class NewOrderInputsClass extends React.Component<Props, State> {
     private readonly appContainer: AppContainer;
@@ -39,11 +40,6 @@ class NewOrderInputsClass extends React.Component<Props, State> {
     public render(): React.ReactNode {
         const { t } = this.props;
         const { flipped } = this.state;
-
-        const market = MarketPair.DAI_BTC;
-        const pairDetails = MarketPairs.get(market);
-
-        const btcTokenDetails = Tokens.get(Token.BTC) || UnknownToken;
 
         const toggle = <div className="order--tabs">
             <span
@@ -82,9 +78,6 @@ class NewOrderInputsClass extends React.Component<Props, State> {
         firstError = false; // orderInputs.inputError !== null && orderInputs.inputError.category === "input";
         firstOnChange = this.onVolumeChange;
 
-        const updating = false;
-        const price = "0";
-
         secondValue = normalizeDecimals(orderInputs.receiveVolume);
         secondSubtext = <></>;
         /*
@@ -111,7 +104,7 @@ class NewOrderInputsClass extends React.Component<Props, State> {
             title={t("new_order.receive")}
             value={secondValue}
             subtext={secondSubtext}
-            hint={t("new_order.based_on_market_price") as string}
+            hint={t<string>("new_order.based_on_market_price")}
             error={false}
             onChange={null}
             className="order-inputs--second"
@@ -175,10 +168,13 @@ class NewOrderInputsClass extends React.Component<Props, State> {
         this.debouncedVolumeChange(value);
     }
 
-    private debouncedVolumeChange = (value: string) => {
-        debounce(100, false, async () => {
-            await this.appContainer.updateSendVolume(value);
-        })();
+    /**
+     * Waits 100ms to update the send volume in case the user is still typing
+     */
+    private readonly debouncedVolumeChange = (value: string) => {
+        debounce(100, false, async () =>
+            this.appContainer.updateSendVolume(value)
+        )().catch(_captureInteractionException_);
     }
 
     private readonly toggleSide = async () => {

@@ -11,16 +11,6 @@
         @media(max-width: $max-md) {
             padding: 0 20px;
         }
-
-        @media(min-width: $min-lg) {
-            .column {
-                width: 306px;
-            }
-
-            .column--overlay {
-                width: 306px;
-            }
-        }
     }
 
     .exchange-inner {

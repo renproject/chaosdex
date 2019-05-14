@@ -2,16 +2,12 @@
 @import 'scss/grid';
 @import 'scss/animations';
 
-@import 'scss/alert';
 @import 'scss/balances';
 @import 'scss/button';
-@import 'scss/column';
 @import 'scss/console';
 @import 'scss/exchange';
 @import 'scss/feedbackButton';
-@import 'scss/footer';
 @import 'scss/header';
-@import 'scss/heading';
 @import 'scss/history';
 @import 'scss/loading';
 @import 'scss/loggingOut';
@@ -304,6 +300,8 @@ a {
     }
 }
 
-span, [role="button"], button {
+span,
+[role="button"],
+button {
     user-select: none;
 }

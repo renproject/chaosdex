@@ -2,10 +2,9 @@
 import * as React from "react";
 
 import { Console } from "@renex/react-components";
-
 import { List } from "immutable";
 
-import { PopupID } from "../../store/actions/popup/popupActions";
+import { PopupID } from "../../state/generalTypes";
 
 /**
  * OpenOrderPopup is a popup component that prompts the user to approve opening

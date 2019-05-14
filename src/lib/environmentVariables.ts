@@ -1,5 +1,3 @@
-export const KYBER_KEY = process.env.REACT_APP_KYBER_KEY;
-export const WYRE_KEY = process.env.REACT_APP_WYRE_KEY;
 export const INFURA_KEY = process.env.REACT_APP_INFURA_KEY;
 export const SENTRY_DSN = process.env.REACT_APP_SENTRY_DSN;
 
@@ -11,7 +9,6 @@ export const ETH_NETWORK = process.env.REACT_APP_ETH_NETWORK;
 export const ETH_NETWORK_LABEL = process.env.REACT_APP_ETH_NETWORK_LABEL;
 export const ETH_NETWORK_ID = parseInt(process.env.REACT_APP_ETH_NETWORK_ID || "1", 10);
 
-export const LATEST_SWAPPERD_VERSION = process.env.REACT_APP_LATEST_SWAPPERD_VERSION;
 export const SOURCE_VERSION = process.env.REACT_APP_SOURCE_VERSION;
 
 const MAINNET_INFURA = "https://mainnet.infura.io/v3/";

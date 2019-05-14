@@ -4,12 +4,13 @@ import Web3 from "web3";
 import { kovan as kovanAddresses } from "@renex/contracts";
 import { AbiItem } from "web3-utils";
 
-import { MarketPair, Token } from "../store/types/general";
-import { EXCHANGE, INFURA_URL } from "./environmentVariables";
+import { MarketPair, Token } from "../state/generalTypes";
+import { INFURA_URL } from "./environmentVariables";
 
 import { ERC20DetailedWeb3 } from "./contracts/erc20";
-const ERC20ABI = require("./contracts/erc20_abi.json");
 import { RenExWeb3 } from "./contracts/ren_ex";
+
+const ERC20ABI = require("./contracts/erc20_abi.json");
 const RenExABI = require("./contracts/ren_ex_abi.json");
 
 interface Commitment {
