@@ -46,10 +46,12 @@ class AppClass extends React.Component<Props, State> {
         super(props, context);
         [this.appContainer, this.optionsContainer] = this.props.containers;
         setInterval(this.appContainer.updateTokenPrices, 30 * 1000);
+        setInterval(this.appContainer.updateBalanceReserves, 30 * 1000);
     }
 
     public async componentDidMount(): Promise<void> {
         await this.appContainer.updateTokenPrices();
+        await this.appContainer.updateBalanceReserves();
     }
 
     /**
