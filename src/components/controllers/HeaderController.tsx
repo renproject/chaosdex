@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { currencies, CurrencyIcon, Dropdown, Header } from "@renex/react-components";
-import { WithTranslation, withTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { Link, RouteComponentProps, withRouter } from "react-router-dom";
 
 import { connect, ConnectedProps } from "../../state/connect";
@@ -30,14 +30,16 @@ const logo = <Link className="no-underline" to="/">
     <h1>DEX Demo</h1>
 </Link>;
 
-type Props = ConnectedProps<[OptionsContainer]> & RouteComponentProps & WithTranslation;
+type Props = ConnectedProps<[OptionsContainer]> & RouteComponentProps;
 
 /**
  * HeaderController is a visual component providing page branding and navigation.
  */
-export const HeaderController = withTranslation()(withRouter(connect<Props>([OptionsContainer])(
+export const HeaderController = (withRouter(connect<Props>([OptionsContainer])(
 
-    ({ i18n, t, containers: [optionsContainer] }) => {
+    ({ containers: [optionsContainer] }) => {
+
+        const { t, i18n } = useTranslation();
 
         const [currentLanguage, setCurrentLanguage] = React.useState(i18n.language);
         const [currentLanguageName, setCurrentLanguageName] = React.useState(t("language.currentLanguageName"));

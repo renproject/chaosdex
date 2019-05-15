@@ -37,7 +37,9 @@ const ScrollToTop = withRouter(
  */
 type Props = ConnectedProps<[AppContainer, OptionsContainer]>;
 export const App = connect<Props>([AppContainer, OptionsContainer])(
-    ({ containers: [appContainer, optionsContainer] }) => {
+    (props) => {
+
+        const { containers: [appContainer, optionsContainer] } = props;
 
         // useEffect replaces `componentDidMount` and `componentDidUpdate`.
         // To limit it to running once, we use the initialized hook.

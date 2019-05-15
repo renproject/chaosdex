@@ -164,7 +164,6 @@ class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
 
 interface Props extends ConnectedProps<[AppContainer, OptionsContainer]>, WithTranslation {
     marketPrice: number;
-    handleChange: (inputValue: string | null) => void;
 }
 
 export const NewOrderInputs = withTranslation()(connect<Props>([AppContainer, OptionsContainer])(NewOrderInputsClass));

@@ -1,14 +1,16 @@
 import * as React from "react";
 
 import { _captureInteractionException_ } from "../../lib/errors";
-import { OrderData } from "../../state/containers/appContainer";
+import { Token } from "../../state/generalTypes";
 import { Popup } from "./Popup";
 
-export const ConfirmTradeDetails: React.StatelessComponent<{
-    orderInputs: OrderData;
+export const WaitingForDeposits: React.StatelessComponent<{
+    token: Token;
+    depositAddress: string;
+    depositFound: boolean;
     done(): void;
     cancel(): void;
-}> = ({ orderInputs, done, cancel }) => {
+}> = ({ token, depositAddress, depositFound, done, cancel }) => {
     return <Popup cancel={cancel}>
         <div className="swap swap--popup open">
             <div className="popup--header">
@@ -16,7 +18,6 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
                 <div role="button" className="popup--header--x" onClick={cancel} />
             </div>
             <div className="popup--body">
-                Trade {orderInputs.sendVolume} {orderInputs.sendToken} for {orderInputs.receiveVolume} {orderInputs.receiveToken}
                 <div className="popup--buttons">
                     <button className="open--confirm" onClick={done}><span>Confirm</span></button>
                 </div>
