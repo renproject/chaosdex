@@ -7,7 +7,6 @@ import { _captureBackgroundException_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer, OptionsContainer } from "../../state/containers";
 import { Exchange } from "../pages/Exchange";
-import { PopupController } from "../popups/PopupController";
 import { _catch_ } from "../views/ErrorBoundary";
 import { HeaderController } from "./HeaderController";
 
@@ -56,15 +55,12 @@ export const App = connect<Props>([AppContainer, OptionsContainer])(
         return <main className={`app ${optionsContainer.state.theme}`}>
             <ScrollToTop />
 
-            <PopupController>
-                {_catch_(
-                    <React.Suspense fallback={<Loading />}>
-                        <HeaderController />
-                    </React.Suspense>
-                )}
-                <Route path="/" exact={true} component={Exchange} />
-            </PopupController>
-
+            {_catch_(
+                <React.Suspense fallback={<Loading />}>
+                    <HeaderController />
+                </React.Suspense>
+            )}
+            <Route path="/" exact={true} component={Exchange} />
             {_catch_(<FeedbackButton url="https://docs.google.com/forms/d/e/1FAIpQLScDqffrmK-CtAOvL9dM0SUJq8_No6lTMmjnfH8s7a4bIbrJvA/viewform" />)}
         </main>;
     }

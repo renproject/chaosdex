@@ -4,65 +4,27 @@ import { Container } from "unstated";
 
 import { getMarket, getTokenPricesInCurrencies } from "../../lib/market";
 import { MarketPair, Token } from "../generalTypes";
-import { ApplicationData, PopupData } from "../storeTypes";
 
 import { ReserveBalances, sdk } from "../../lib/shiftSDK";
 
 import { estimatePrice } from "../../lib/estimatePrice";
 import { history } from "../../lib/history";
 
-const initialState: ApplicationData = {
+const initialState = {
     tokenPrices: Map<Token, Map<Currency, number>>(),
     balanceReserves: Map<MarketPair, ReserveBalances>(),
-    popup: {
-        dismissible: true,
-        onCancel: () => null,
-        popup: null,
-        overlay: false,
-    },
     order: {
         sendToken: Token.BTC,
-        receiveToken: Token.ZEC,
+        receiveToken: Token.DAI,
         sendVolume: "0",
         receiveVolume: "0",
     }
 };
 
-export class AppContainer extends Container<ApplicationData> {
+export type OrderData = typeof initialState.order;
+
+export class AppContainer extends Container<typeof initialState> {
     public state = initialState;
-
-    // Popup methods ///////////////////////////////////////////////////////////
-
-    public setPopup = async (popupData: Partial<PopupData>) => {
-        if (document.documentElement) {
-            document.documentElement.classList.add("noscroll");
-        }
-        await this.setState({
-            popup: {
-                popup: popupData.popup || null,
-                dismissible: popupData.dismissible !== false, // On by default
-                overlay: popupData.overlay === true, // Off by default
-                onCancel: popupData.onCancel || (() => null),
-            }
-        });
-    }
-    public setDismissible = async (dismissible: boolean) => {
-        await this.setState({ popup: { ...this.state.popup, dismissible } });
-    }
-
-    public clearPopup = async () => {
-        if (document.documentElement) {
-            document.documentElement.classList.remove("noscroll");
-        }
-        await this.setState({
-            popup: {
-                popup: null,
-                overlay: false,
-                dismissible: true,
-                onCancel: (() => null) as () => void,
-            }
-        });
-    }
 
     // Token prices ////////////////////////////////////////////////////////////
 

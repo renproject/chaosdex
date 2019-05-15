@@ -6,12 +6,13 @@ import { withTranslation, WithTranslation } from "react-i18next";
 import { getMarket } from "../../lib/market";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer } from "../../state/containers";
+import { AskForAddress } from "../popups/AskForAddress";
+// import { ConfirmTradeDetails } from "../popups/ConfirmTradeDetails";
 import { NewOrderInputs } from "./NewOrderInputs";
-import { confirmTradeDetails } from "../popups/ConfirmTradeDetails";
-import { askForAddress } from "../popups/AskForAddress";
 
 const defaultState = { // Entries must be immutable
     submitting: false,
+    receiveAddress: null as string | null,
 };
 
 /**
@@ -32,7 +33,7 @@ class NewOrderClass extends React.Component<Props, typeof defaultState> {
      */
     public render(): React.ReactNode {
         const { t, disabled } = this.props;
-        const { submitting } = this.state;
+        const { submitting, receiveAddress } = this.state;
         const orderInput = this.appContainer.state.order;
         const market = getMarket(orderInput.sendToken, orderInput.receiveToken);
 
@@ -59,28 +60,44 @@ class NewOrderClass extends React.Component<Props, typeof defaultState> {
                 }
             </div>
             {/*<div className="order--error red">{orderInputs.inputError.error}</div>*/}
+            {submitting ? <>
+                {receiveAddress === null ? <AskForAddress
+                    token={this.appContainer.state.order.receiveToken}
+                    message={`Enter the ${this.appContainer.state.order.receiveToken} public address you want to receive your tokens to.`}
+                    onAddress={this.onAddress}
+                    cancel={this.cancel}
+                /> : <></>}
+            </>
+                : <></>
+            }
         </>;
     }
 
-    private readonly openOrder = async () => {
-        try {
-            await confirmTradeDetails(this.appContainer);
-            const receiveAddress = await askForAddress(
-                this.appContainer,
-                this.appContainer.state.order.receiveToken,
-                `Enter the ${this.appContainer.state.order.receiveToken} public address you want to receive your tokens to.`,
-            );
-            const refundAddress = await askForAddress(
-                this.appContainer,
-                this.appContainer.state.order.sendToken,
-                `Enter your ${this.appContainer.state.order.receiveToken} refund address in case the trade doesn't go through.`,
-            );
-            console.debug(`receiveAddress: ${receiveAddress},   refundAddress: ${refundAddress}`);
-        } catch (error) {
-            return;
-        }
-
+    private readonly onAddress = (receiveAddress: string) => {
+        this.setState({ receiveAddress });
     }
+
+    private readonly cancel = () => {
+        this.setState({ submitting: false, receiveAddress: null });
+    }
+
+    private readonly openOrder = async () => {
+        this.setState({ submitting: true });
+    }
+    //     try {
+    //         await confirmTradeDetails(this.appContainer);
+
+    //         const refundAddress = await askForAddress(
+    //             this.appContainer,
+    //             this.appContainer.state.order.sendToken,
+    //             `Enter your ${this.appContainer.state.order.receiveToken} refund address in case the trade doesn't go through.`,
+    //         );
+    //         console.debug(`receiveAddress: ${receiveAddress},   refundAddress: ${refundAddress}`);
+    //     } catch (error) {
+    //         return;
+    //     }
+
+    // }
 
     private readonly handleChange = async (value: string | null) => {
         console.debug("handelChange: unimplemented");

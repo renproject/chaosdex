@@ -1,14 +1,13 @@
 import * as React from "react";
 
 import { _captureInteractionException_ } from "../../lib/errors";
-import { AppContainer } from "../../state/containers";
-import { OrderData, PopupData } from "../../state/storeTypes";
+import { OrderData } from "../../state/containers/appContainer";
 
 /**
  * ConfirmTradeDetails is a popup component that prompts the user to approve
  * opening an order
  */
-const ConfirmTradeDetails: React.StatelessComponent<{
+export const ConfirmTradeDetails: React.StatelessComponent<{
     orderInputs: OrderData;
     onDone(): void;
     onCancel(): void;
@@ -24,24 +23,3 @@ const ConfirmTradeDetails: React.StatelessComponent<{
         </div>
     </div>;
 };
-
-export const confirmTradeDetails = async (appContainer: AppContainer) => new Promise((resolve, reject) => {
-    const onCancel = () => {
-        appContainer.clearPopup().catch(_captureInteractionException_);
-        reject();
-    };
-
-    const onDone = () => {
-        appContainer.clearPopup().catch(_captureInteractionException_);
-        resolve();
-    }
-
-    const popup: PopupData = {
-        popup: <ConfirmTradeDetails onDone={onDone} onCancel={onCancel} orderInputs={appContainer.state.order} />,
-        dismissible: true,
-        overlay: true,
-        onCancel,
-    };
-
-    appContainer.setPopup(popup).catch(_captureInteractionException_);
-});
