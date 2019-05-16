@@ -81,7 +81,7 @@ const getReserveBalance = async (marketPairs: MarketPair[]): Promise<ReserveBala
         return rawBalance.dividedBy(new BigNumber(10).exponentiatedBy(decimals));
     };
 
-    return await Promise.all(
+    return /*await*/ Promise.all(
         marketPairs.map(async (_marketPair) => {
             const [left, right] = _marketPair.split("/") as [Token, Token];
             const leftAddress = kovanAddresses.addresses.tokens[left].address;

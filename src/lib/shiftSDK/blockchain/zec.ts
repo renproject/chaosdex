@@ -1,8 +1,8 @@
 import { Networks, Opcode, Script } from "bitcore-lib-zcash";
 import { decode as decode58 } from "bs58";
 
+import { testnetMasterPKH } from "../darknode/masterKey";
 import { createAddress } from "./common";
-import { testnetMasterPKH } from "./masterKey";
 import { getUTXOs } from "./mercury";
 
 export const createZECAddress = createAddress(Networks, Opcode, Script);

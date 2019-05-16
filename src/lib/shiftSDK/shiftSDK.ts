@@ -2,9 +2,9 @@ import Web3 from "web3";
 import { Contract } from "web3-eth-contract";
 import { keccak256 } from "web3-utils";
 
-import { createBTCTestnetAddress } from "./blockchain/btc";
+import { BitcoinUTXO, createBTCTestnetAddress, getBTCTestnetUTXOs } from "./blockchain/btc";
 import { intToBuffer, strip0x } from "./blockchain/common";
-import { createZECTestnetAddress } from "./blockchain/zec";
+import { createZECTestnetAddress, getZECTestnetUTXOs, ZcashUTXO } from "./blockchain/zec";
 
 export type Commitment = number | string | Buffer | Array<string | number | Buffer>;
 const commitmentToBuffer = (commitment: Commitment): Buffer => {
@@ -22,6 +22,8 @@ const commitmentToBuffer = (commitment: Commitment): Buffer => {
 };
 const hashCommitment = (commitment: Commitment) =>
     keccak256(commitmentToBuffer(commitment).toString("hex"));
+
+export type UTXO = { chain: Chain.Bitcoin, utxo: BitcoinUTXO } | { chain: Chain.ZCash, utxo: ZcashUTXO };
 
 export enum Chain {
     Bitcoin = "bitcoin",
@@ -53,14 +55,21 @@ export class SDK {
     }
 
     // Retrieves unspent deposits at the provided address
-    public retrieveDeposits = async (chain: Chain, address: string): Promise<string[]> => {
-        console.debug(this.web3);
-        return [];
+    public retrieveDeposits = async (chain: Chain, depositAddress: string, limit = 10, confirmations = 0): Promise<UTXO[]> => {
+        switch (chain) {
+            case Chain.Bitcoin:
+                return (await getBTCTestnetUTXOs(depositAddress, limit, confirmations)).map(utxo => ({ chain: Chain.Bitcoin, utxo }));
+            case Chain.ZCash:
+                return (await getZECTestnetUTXOs(depositAddress, limit, confirmations)).map(utxo => ({ chain: Chain.ZCash, utxo }));
+            default:
+                throw new Error(`Unable to retrieve deposits for chain ${chain}`);
+        }
     }
 
     // Submits the commitment and transaction to the darknodes, and then submits
     // the signature to the adapter address
     public shift = async (chain: Chain, transactionHash: string, commitment: Commitment): Promise<void> => {
+        console.debug(this.web3);
         return;
     }
 
