@@ -1,12 +1,12 @@
-import { Record } from "@renex/react-components";
 import { List, Map } from "immutable";
 
+import { strip0x } from "../blockchain/common";
 // tslint:disable: no-unused-variable
 import { Chain, UTXO } from "../shiftSDK";
 import { Lightnode } from "./darknode";
 import {
-    EventType, HealthResponse, ReceiveMessageRequest, ReceiveMessageResponse,
-    RenVMReceiveMessageResponse, SendMessageRequest, SendMessageResponse,
+    HealthResponse, ReceiveMessageRequest, ReceiveMessageResponse, RenVMReceiveMessageResponse,
+    SendMessageRequest, SendMessageResponse,
 } from "./types";
 
 // tslint:enable: no-unused-variable
@@ -14,16 +14,6 @@ import {
 export const lightnodes = [
     "https://lightnode.herokuapp.com",
 ];
-
-export class Mint extends Record({
-    id: "",
-    isXCSEvent: true,
-    type: EventType.Mint,
-    utxos: List<UTXO>(),
-    mintTransaction: undefined as string | undefined,
-    messageID: "",
-    messageIDs: List<string>(),
-}) { }
 
 const promiseAll = async <a>(list: List<Promise<a>>, defaultValue: a): Promise<List<a>> => {
     let newList = List<a>();
@@ -53,32 +43,6 @@ export class DarknodeGroup {
         }
         this.bootstraps = this.bootstraps.concat(multiAddresses);
     }
-
-    // public bootstrap = async (): Promise<this> => {
-    //     let success = false;
-    //     let lastError;
-    //     for (const multiAddress of this.bootstraps.toArray()) {
-    //         try {
-    //             const result: Lightnode | undefined = this.darknodes.get(multiAddressToID(multiAddress).id);
-    //             if (!result) {
-    //                 throw new Error("No darknode provided");
-    //             }
-    //             const peers = await result.getPeers();
-    //             if (peers.result) {
-    //                 this.addLightnodes(peers.result.peers.map(NewMultiAddress));
-    //                 success = true;
-    //             } else if (peers.error) {
-    //                 throw peers.error;
-    //             }
-    //         } catch (error) {
-    //             lastError = error;
-    //         }
-    //     }
-    //     if (!success) {
-    //         throw lastError;
-    //     }
-    //     return this;
-    // }
 
     public getHealth = async (): Promise<List<HealthResponse | null>> => {
         return promiseAll<HealthResponse | null>(
@@ -112,32 +76,34 @@ export class DarknodeGroup {
     }
 }
 
-export class WarpGateGroup extends DarknodeGroup {
+export class ShifterGroup extends DarknodeGroup {
     constructor(multiAddresses: string[] | string) {
         super(multiAddresses);
         // this.getHealth();
     }
 
-    public submitDeposits = async (address: string, utxo: UTXO): Promise<List<{ messageID: string, lightnode: string }>> => {
+    public submitDeposits = async (chain: Chain, address: string, commitmentHash: string): Promise<List<{ messageID: string, lightnode: string }>> => {
         // TODO: If one fails, still return the other.
 
-        const method = utxo.chain === Chain.Bitcoin ? "MintZBTC"
-            : utxo.chain === Chain.ZCash ? "MintZZEC" : undefined;
+        const method = chain === Chain.Bitcoin ? "MintZBTC"
+            : chain === Chain.ZCash ? "MintZZEC" : undefined;
 
         if (!method) {
-            throw new Error(`Minting ${utxo.chain} not supported`);
+            throw new Error(`Minting ${chain} not supported`);
         }
 
         const results = await this.sendMessage({
             nonce: window.crypto.getRandomValues(new Uint32Array(1))[0],
-            to: "WarpGate",
+            to: "Shifter",
             signature: "",
             payload: {
-                method,
+                method: `ShiftIn${chain}`,
                 args: [
                     {
                         value: address.slice(0, 2) === "0x" ? address.slice(2) : address,
-                    }
+                    },
+                    { name: "uid", type: "public", value: address },
+                    { name: "commitment", type: "public", value: strip0x(commitmentHash) },
                 ],
             },
         });
@@ -154,11 +120,11 @@ export class WarpGateGroup extends DarknodeGroup {
         })).toList();
     }
 
-    public checkForResponse = async (mintEvent: Mint): Promise<string> => {
+    public checkForResponse = async (messageID: string): Promise<string> => {
         for (const node of this.darknodes.valueSeq().toArray()) {
             if (node) {
                 try {
-                    const signature = await node.receiveMessage({ messageID: mintEvent.messageID }) as RenVMReceiveMessageResponse;
+                    const signature = await node.receiveMessage({ messageID }) as RenVMReceiveMessageResponse;
                     // Error:
                     // { "jsonrpc": "2.0", "version": "0.1", "error": { "code": -32603, "message": "result not available", "data": null }, "id": null }
                     // Success:

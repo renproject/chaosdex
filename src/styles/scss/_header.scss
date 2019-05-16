@@ -5,6 +5,13 @@
     * {
         z-index: 15;
     }
+
+    .blocky--outer,
+    .blocky {
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+    }
 }
 
 .header .container {
@@ -139,7 +146,7 @@
 }
 
 .header--account--connected .header--account--type::before {
-    background-color: #3CBC98;
+    width: 0;
 }
 
 .header--dropdown--options {

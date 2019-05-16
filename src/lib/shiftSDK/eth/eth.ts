@@ -1,16 +1,18 @@
-import Web3 from "web3";
-
 import { Record } from "@renex/react-components";
 import { List } from "immutable";
+import Web3 from "web3";
 import { Contract } from "web3-eth-contract/types";
 import { AbiItem } from "web3-utils";
-
-import { DarknodeID, NewDarknodeID } from "../../types/types";
 
 import BridgedTokenABI from "./BridgedTokenABI.json";
 import DarknodeRegistryABI from "./DarknodeRegistryABI.json";
 
 const NULL = "0x0000000000000000000000000000000000000000";
+
+export interface DarknodeID { id: string; }
+export const NewDarknodeID = (id: string) => ({ id });
+
+export interface MultiAddress { multiAddress: string; }
 
 export const zBTCAddress = "0x2a8368d2a983a0aeae8da0ebc5b7c03a0ea66b37";
 export const zZECAddress = "0xd67256552f93b39ac30083b4b679718a061feae6";

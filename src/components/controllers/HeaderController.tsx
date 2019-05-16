@@ -6,11 +6,10 @@ import { Link, RouteComponentProps, withRouter } from "react-router-dom";
 
 import { connect, ConnectedProps } from "../../state/connect";
 import { OptionsContainer } from "../../state/containers";
-import { AccountDropdown } from "./AccountDropdown";
-
 import { ReactComponent as Logo } from "../../styles/images/logo.svg";
 import { ReactComponent as German } from "../../styles/images/rp-flag-de.svg";
 import { ReactComponent as English } from "../../styles/images/rp-flag-uk.svg";
+import { AccountDropdown } from "./AccountDropdown";
 
 const currencyOptions = (() => {
     const options = new Map<string, React.ReactNode>();

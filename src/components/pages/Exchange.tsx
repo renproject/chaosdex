@@ -1,9 +1,9 @@
 import * as qs from "query-string";
 import * as React from "react";
 
+import { Loading } from "@renex/react-components";
 import { RouteComponentProps } from "react-router";
 
-import { Loading } from "@renex/react-components";
 import { _captureInteractionException_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer } from "../../state/containers";
@@ -51,7 +51,7 @@ export const Exchange = connect<RouteComponentProps & ConnectedProps<[AppContain
                 <div className="exchange--center">
                     {_catch_(
                         <React.Suspense fallback={<Loading />}>
-                            <NewOrder disabled={false} />
+                            <NewOrder />
                         </React.Suspense>
                     )}
                 </div>

@@ -5,6 +5,7 @@ import { keccak256 } from "web3-utils";
 import { BitcoinUTXO, createBTCTestnetAddress, getBTCTestnetUTXOs } from "./blockchain/btc";
 import { intToBuffer, strip0x } from "./blockchain/common";
 import { createZECTestnetAddress, getZECTestnetUTXOs, ZcashUTXO } from "./blockchain/zec";
+import { lightnodes, ShifterGroup } from "./darknode/darknodeGroup";
 
 export type Commitment = number | string | Buffer | Array<string | number | Buffer>;
 const commitmentToBuffer = (commitment: Commitment): Buffer => {
@@ -26,19 +27,21 @@ const hashCommitment = (commitment: Commitment) =>
 export type UTXO = { chain: Chain.Bitcoin, utxo: BitcoinUTXO } | { chain: Chain.ZCash, utxo: ZcashUTXO };
 
 export enum Chain {
-    Bitcoin = "bitcoin",
-    Ethereum = "ethereum",
-    ZCash = "zcash",
+    Bitcoin = "btc",
+    Ethereum = "eth",
+    ZCash = "zec",
 }
 
 export class SDK {
     private readonly web3: Web3;
     private readonly adapter: Contract;
+    private readonly darknodeGroup: ShifterGroup;
 
     // Takes the address of the adapter smart contract
     constructor(web3: Web3, adapterAddress: string) {
         this.web3 = web3;
         this.adapter = new web3.eth.Contract([], adapterAddress);
+        this.darknodeGroup = new ShifterGroup(lightnodes);
     }
 
     // Takes a commitment as bytes or an array of primitive types and returns
@@ -68,13 +71,17 @@ export class SDK {
 
     // Submits the commitment and transaction to the darknodes, and then submits
     // the signature to the adapter address
-    public shift = async (chain: Chain, transactionHash: string, commitment: Commitment): Promise<void> => {
-        console.debug(this.web3);
+    public shift = async (chain: Chain, transaction: UTXO, commitment: Commitment): Promise<void> => {
+        const address = this.generateAddress(chain, commitment);
+        const commitmentHash = hashCommitment(commitment);
+        const responses = await this.darknodeGroup.submitDeposits(chain, address, commitmentHash);
+        console.log(responses);
         return;
     }
 
     // Retrieves the current progress of the shift
     public shiftStatus = async (commitmentHash: string): Promise<string> => {
+        console.log(this.web3);
         return "";
     }
 }

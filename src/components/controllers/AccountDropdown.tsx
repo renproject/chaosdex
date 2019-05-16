@@ -3,6 +3,9 @@ import * as React from "react";
 import { Blocky } from "@renex/react-components";
 import { WithTranslation, withTranslation } from "react-i18next";
 
+import { connect, ConnectedProps } from "../../state/connect";
+import { AppContainer } from "../../state/containers";
+
 const defaultState = { // Entries must be immutable
     shown: false,
     copied: false,
@@ -17,8 +20,8 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
     }
 
     public render = () => {
-        const { t } = this.props;
-        const address: string = "";
+        const { t, containers: [appContainer] } = this.props;
+        const { address } = appContainer.state;
         const { copied, shown } = this.state;
 
         return <div
@@ -78,14 +81,12 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
     }
 
     private readonly handleLogin = async (): Promise<void> => {
-        const address = "";
-        if (!address) {
-            // await this.props.actions.login({ redirect: false, showPopup: true, immediatePopup: true });
-        }
+        const { containers: [appContainer] } = this.props;
+        await appContainer.connect();
     }
 
     private readonly handleLogout = async (): Promise<void> => {
-        // await this.props.actions.logout({ reload: false });
+        location.reload(); // eslint-disable-line no-restricted-globals
     }
 
     private readonly copyToClipboard = (e: React.MouseEvent<HTMLElement>): void => {
@@ -126,7 +127,7 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
     }
 }
 
-interface Props extends WithTranslation {
+interface Props extends WithTranslation, ConnectedProps<[AppContainer]> {
 }
 
-export const AccountDropdown = withTranslation()(AccountDropdownClass);
+export const AccountDropdown = withTranslation()(connect<Props>([AppContainer])(AccountDropdownClass));

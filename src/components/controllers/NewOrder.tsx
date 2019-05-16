@@ -17,11 +17,8 @@ const defaultState = { // Entries must be immutable
  * NewOrder is a visual component for allowing users to open new orders
  */
 class NewOrderClass extends React.Component<Props, typeof defaultState> {
-    private readonly appContainer: AppContainer;
-
     constructor(props: Props) {
         super(props);
-        [this.appContainer] = this.props.containers;
         this.state = defaultState;
     }
 
@@ -30,12 +27,14 @@ class NewOrderClass extends React.Component<Props, typeof defaultState> {
      * @dev Should have minimal computation, loops and anonymous functions.
      */
     public render(): React.ReactNode {
-        const { t, disabled } = this.props;
+        const { t, containers: [appContainer] } = this.props;
         const { submitting } = this.state;
-        const orderInput = this.appContainer.state.order;
+        const orderInput = appContainer.state.order;
         const market = getMarket(orderInput.sendToken, orderInput.receiveToken);
 
         const marketPrice = 0;
+
+        const disabled = appContainer.state.address === null;
 
         return <>
             <div className="section order">
@@ -49,7 +48,9 @@ class NewOrderClass extends React.Component<Props, typeof defaultState> {
                             disabled={disabled}
                             className="button submit-swap"
                         >
-                            {submitting ? <Loading alt={true} /> : <>{t("new_order.trade")}</>}
+                            {submitting ? <Loading alt={true} /> :
+                                disabled ? t("new_order.connect_to_trade") : t("new_order.trade")
+                            }
                         </button> :
                         <button disabled={true} className="button submit-swap">
                             {t("new_order.unsupported_token_pair")}
@@ -71,7 +72,6 @@ class NewOrderClass extends React.Component<Props, typeof defaultState> {
 }
 
 interface Props extends ConnectedProps<[AppContainer]>, WithTranslation {
-    disabled: boolean;
 }
 
 export const NewOrder = withTranslation()(connect<Props>([AppContainer])(NewOrderClass));

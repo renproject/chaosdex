@@ -2,15 +2,17 @@ import { Currency } from "@renex/react-components";
 import { Map } from "immutable";
 import { Container } from "unstated";
 
-import { ReserveBalances, sdk } from "../../lib/dexSDK";
+import { DexSDK, ReserveBalances } from "../../lib/dexSDK";
 import { estimatePrice } from "../../lib/estimatePrice";
 import { history } from "../../lib/history";
 import { getMarket, getTokenPricesInCurrencies } from "../../lib/market";
 import { MarketPair, Token } from "../generalTypes";
 
 const initialState = {
+    address: null as string | null,
     tokenPrices: Map<Token, Map<Currency, number>>(),
     balanceReserves: Map<MarketPair, ReserveBalances>(),
+    dexSDK: new DexSDK(),
     order: {
         sendToken: Token.BTC,
         receiveToken: Token.DAI,
@@ -24,6 +26,14 @@ export type OrderData = typeof initialState.order;
 export class AppContainer extends Container<typeof initialState> {
     public state = initialState;
 
+    public connect = async (): Promise<void> => {
+        const { dexSDK } = this.state;
+        await dexSDK.connect();
+
+        const addresses = await dexSDK.web3.eth.getAccounts();
+        await this.setState({ address: addresses.length > 0 ? addresses[0] : null });
+    }
+
     // Token prices ////////////////////////////////////////////////////////////
 
     public updateTokenPrices = async (): Promise<void> => {
@@ -32,13 +42,14 @@ export class AppContainer extends Container<typeof initialState> {
     }
 
     public updateBalanceReserves = async (): Promise<void> => {
-        let { balanceReserves } = this.state;
+        const { balanceReserves, dexSDK } = this.state;
+        let newBalanceReserves = balanceReserves;
         const marketPairs = [MarketPair.DAI_BTC, MarketPair.ETH_BTC, MarketPair.REN_BTC, MarketPair.ZEC_BTC];
-        const res = await sdk.getReserveBalance(marketPairs); // Promise<Array<Map<Token, BigNumber>>> => {
+        const res = await dexSDK.getReserveBalance(marketPairs); // Promise<Array<Map<Token, BigNumber>>> => {
         marketPairs.forEach((value, index) => {
-            balanceReserves = balanceReserves.set(value, res[index]);
+            newBalanceReserves = newBalanceReserves.set(value, res[index]);
         });
-        await this.setState({ balanceReserves });
+        await this.setState({ balanceReserves: newBalanceReserves });
     }
 
     // Swap inputs /////////////////////////////////////////////////////////////
