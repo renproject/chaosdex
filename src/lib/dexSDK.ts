@@ -1,14 +1,12 @@
+import { kovan as kovanAddresses } from "@renex/contracts";
 import BigNumber from "bignumber.js";
 import Web3 from "web3";
-
-import { kovan as kovanAddresses } from "@renex/contracts";
 import { AbiItem } from "web3-utils";
 
 import { MarketPair, Token } from "../state/generalTypes";
-import { INFURA_URL } from "./environmentVariables";
-
 import { ERC20DetailedWeb3 } from "./contracts/erc20";
 import { RenExWeb3 } from "./contracts/ren_ex";
+import { INFURA_URL } from "./environmentVariables";
 
 const ERC20ABI = require("./contracts/erc20_abi.json");
 const RenExABI = require("./contracts/ren_ex_abi.json");
@@ -49,7 +47,7 @@ export type ReserveBalances = Map<Token, BigNumber>;
  *
  * @interface ShiftSDK
  */
-interface ShiftSDK {
+interface DexSDK {
     getReserveBalance(marketPairs: MarketPair[]): Promise<ReserveBalances[]>;
     submitCommitment(commitment: Commitment): Promise<ShiftDetails>;
     getCommitmentStatus(commitmentHash: string): Promise<ShiftDetails>;
@@ -116,7 +114,7 @@ const getCommitmentStatus = async (commitmentHash: string): Promise<ShiftDetails
     return { status: ShiftStatus.Failed };
 };
 
-export const sdk: ShiftSDK = {
+export const sdk: DexSDK = {
     getReserveBalance,
     submitCommitment,
     getCommitmentStatus,

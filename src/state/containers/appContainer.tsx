@@ -2,13 +2,11 @@ import { Currency } from "@renex/react-components";
 import { Map } from "immutable";
 import { Container } from "unstated";
 
-import { getMarket, getTokenPricesInCurrencies } from "../../lib/market";
-import { MarketPair, Token } from "../generalTypes";
-
-import { ReserveBalances, sdk } from "../../lib/shiftSDK";
-
+import { ReserveBalances, sdk } from "../../lib/dexSDK";
 import { estimatePrice } from "../../lib/estimatePrice";
 import { history } from "../../lib/history";
+import { getMarket, getTokenPricesInCurrencies } from "../../lib/market";
+import { MarketPair, Token } from "../generalTypes";
 
 const initialState = {
     tokenPrices: Map<Token, Map<Currency, number>>(),

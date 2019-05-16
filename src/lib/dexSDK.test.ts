@@ -1,6 +1,5 @@
-
 import { MarketPair, Token } from "../state/generalTypes";
-import { sdk } from "./shiftSDK";
+import { sdk } from "./dexSDK";
 
 test.only("getReserveBalance", async () => {
     const btcBalance = (await sdk.getReserveBalance([MarketPair.DAI_BTC]))[0].get(Token.BTC);

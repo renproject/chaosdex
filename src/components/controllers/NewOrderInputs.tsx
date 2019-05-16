@@ -1,18 +1,16 @@
 import * as React from "react";
 
-import BigNumber from "bignumber.js";
-
 import { CurrencyIcon, InfoLabel, TokenValueInput } from "@renex/react-components";
+import BigNumber from "bignumber.js";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { debounce } from "throttle-debounce";
 
 import { _captureInteractionException_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer, OptionsContainer } from "../../state/containers";
+import arrow from "../../styles/images/arrow.svg";
 import { TokenBalance } from "../views/TokenBalance";
 import { SelectMarketWrapper } from "./SelectMarketWrapper";
-
-import arrow from "../../styles/images/arrow.svg";
 
 export const normalizeDecimals = (inputIn: string | null): string | null => {
     return inputIn === null ? inputIn : new BigNumber(inputIn).decimalPlaces(8).toFixed();
