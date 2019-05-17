@@ -30,7 +30,7 @@ class NewOrderClass extends React.Component<Props, typeof defaultState> {
         const { t, containers: [appContainer] } = this.props;
         const { submitting } = this.state;
         const orderInput = appContainer.state.order;
-        const market = getMarket(orderInput.sendToken, orderInput.receiveToken);
+        const market = getMarket(orderInput.srcToken, orderInput.dstToken);
 
         const marketPrice = 0;
 

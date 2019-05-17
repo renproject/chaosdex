@@ -11,7 +11,7 @@ import { Provider } from "unstated";
 
 import { App } from "./components/controllers/App";
 import { _catch_ } from "./components/views/ErrorBoundary";
-import { _captureInteractionException_ } from "./lib/errors";
+import { _catchInteractionErr_ } from "./lib/errors";
 import { history } from "./lib/history";
 import { onLoad } from "./lib/onLoad";
 
@@ -34,7 +34,7 @@ i18n.use(Backend)
       escapeValue: false, // not needed for react as it escapes by default
     }
   })
-  .catch(_captureInteractionException_);
+  .catch(_catchInteractionErr_);
 
 onLoad("DEX Demo");
 

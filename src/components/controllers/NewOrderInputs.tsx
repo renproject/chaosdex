@@ -5,7 +5,7 @@ import BigNumber from "bignumber.js";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { debounce } from "throttle-debounce";
 
-import { _captureInteractionException_ } from "../../lib/errors";
+import { _catchInteractionErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer, OptionsContainer } from "../../state/containers";
 import arrow from "../../styles/images/arrow.svg";
@@ -55,7 +55,7 @@ class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
             <CurrencyIcon currency={quoteCurrency} />
             {" "}
             <TokenBalance
-                token={orderInputs.sendToken}
+                token={orderInputs.srcToken}
                 convertTo={quoteCurrency}
                 tokenPrices={this.appContainer.state.tokenPrices}
                 amount={orderInputs.sendVolume || "0"}
@@ -70,7 +70,7 @@ class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
             error={false}
             onChange={this.onVolumeChange}
         >
-            <SelectMarketWrapper top={true} thisToken={orderInputs.sendToken} otherToken={orderInputs.receiveToken} />
+            <SelectMarketWrapper top={true} thisToken={orderInputs.srcToken} otherToken={orderInputs.dstToken} />
         </TokenValueInput >;
 
         const second = <TokenValueInput
@@ -82,7 +82,7 @@ class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
             onChange={null}
             className="order-inputs--second"
         >
-            <SelectMarketWrapper top={false} thisToken={orderInputs.receiveToken} otherToken={orderInputs.sendToken} />
+            <SelectMarketWrapper top={false} thisToken={orderInputs.dstToken} otherToken={orderInputs.srcToken} />
         </TokenValueInput>;
 
         return <>
@@ -147,7 +147,7 @@ class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
      */
     private readonly debouncedVolumeChange = async (value: string) =>
         debounce(100, false, async () =>
-            this.appContainer.updateSendVolume(value).catch(_captureInteractionException_)
+            this.appContainer.updateSendVolume(value).catch(_catchInteractionErr_)
         )()
 
     private readonly toggleSide = async () => {

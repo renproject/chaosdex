@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { _captureInteractionException_ } from "../../lib/errors";
+import { _catchInteractionErr_ } from "../../lib/errors";
 
 export const Popup: React.StatelessComponent<{
     noOverlay?: boolean;

@@ -2,9 +2,8 @@ import * as React from "react";
 
 import { SelectMarket } from "@renex/react-components";
 
+import { _catchInteractionErr_ } from "../../lib/errors";
 import { getMarket } from "../../lib/market";
-
-import { _captureInteractionException_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer } from "../../state/containers";
 import { Token, TokenDetails, Tokens } from "../../state/generalTypes";
@@ -15,9 +14,9 @@ import { Token, TokenDetails, Tokens } from "../../state/generalTypes";
 const SelectMarketWrapperClass: React.StatelessComponent<Props> = ({ containers: [appContainer], top, thisToken, otherToken }) => {
     const handleChange = (token: Token): void => {
         if (top) {
-            appContainer.updateSendToken(token).catch(_captureInteractionException_);
+            appContainer.updateSrcToken(token).catch(_catchInteractionErr_);
         } else {
-            appContainer.updateReceiveToken(token).catch(_captureInteractionException_);
+            appContainer.updateDstToken(token).catch(_catchInteractionErr_);
         }
     };
 

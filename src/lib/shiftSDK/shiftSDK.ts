@@ -1,9 +1,7 @@
 import Web3 from "web3";
 import { Contract } from "web3-eth-contract";
-import { keccak256 } from "web3-utils";
 
 import { BitcoinUTXO, createBTCTestnetAddress, getBTCTestnetUTXOs } from "./blockchain/btc";
-import { intToBuffer, strip0x } from "./blockchain/common";
 import { createZECTestnetAddress, getZECTestnetUTXOs, ZcashUTXO } from "./blockchain/zec";
 import { lightnodes, ShifterGroup } from "./darknode/darknodeGroup";
 
@@ -40,6 +38,7 @@ export class ShiftSDK {
     // Takes the address of the adapter smart contract
     constructor(web3: Web3, adapterAddress: string) {
         this.web3 = web3;
+        console.log(this.web3);
         this.adapter = new web3.eth.Contract([], adapterAddress);
         this.darknodeGroup = new ShifterGroup(lightnodes);
     }
@@ -49,6 +48,7 @@ export class ShiftSDK {
     public generateAddress = (chain: Chain, commitmentHash: string): string => {
         switch (chain) {
             case Chain.Bitcoin:
+                console.log(`${this.adapter.address}, ${commitmentHash}`);
                 return createBTCTestnetAddress(this.adapter.address, commitmentHash);
             case Chain.ZCash:
                 return createZECTestnetAddress(this.adapter.address, commitmentHash);
@@ -71,16 +71,18 @@ export class ShiftSDK {
 
     // Submits the commitment and transaction to the darknodes, and then submits
     // the signature to the adapter address
-    public shift = async (chain: Chain, transaction: UTXO, commitmentHash: string): Promise<void> => {
-        const address = this.generateAddress(chain, commitmentHash);
-        const responses = await this.darknodeGroup.submitDeposits(chain, address, commitmentHash);
-        console.log(responses);
-        return;
+    public shift = async (chain: Chain, transaction: UTXO, commitmentHash: string): Promise<string> => {
+        // const address = this.generateAddress(chain, commitmentHash);
+        const responses = await this.darknodeGroup.submitDeposits(chain, this.adapter.address, commitmentHash);
+        const first = responses.first(undefined);
+        if (first === undefined) {
+            throw new Error(`No response from lightnodes`);
+        }
+        return first.messageID;
     }
 
     // Retrieves the current progress of the shift
-    public shiftStatus = async (commitmentHash: string): Promise<string> => {
-        console.log(this.web3);
-        return "";
+    public shiftStatus = async (messageID: string): Promise<string> => {
+        return /*await*/ this.darknodeGroup.checkForResponse(messageID);
     }
 }

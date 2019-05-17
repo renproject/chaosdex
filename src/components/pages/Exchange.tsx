@@ -4,7 +4,7 @@ import * as React from "react";
 import { Loading } from "@renex/react-components";
 import { RouteComponentProps } from "react-router";
 
-import { _captureInteractionException_ } from "../../lib/errors";
+import { _catchInteractionErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer } from "../../state/containers";
 import { Token } from "../../state/generalTypes";
@@ -31,13 +31,13 @@ export const Exchange = connect<RouteComponentProps & ConnectedProps<[AppContain
                 try {
                     const queryParams = qs.parse(location.search);
                     if (queryParams.send) {
-                        appContainer.updateSendToken(queryParams.send as Token).catch(_captureInteractionException_);
+                        appContainer.updateSrcToken(queryParams.send as Token).catch(_catchInteractionErr_);
                     }
                     if (queryParams.receive) {
-                        appContainer.updateReceiveToken(queryParams.receive as Token).catch(_captureInteractionException_);
+                        appContainer.updateDstToken(queryParams.receive as Token).catch(_catchInteractionErr_);
                     }
                 } catch (error) {
-                    _captureInteractionException_(error, {
+                    _catchInteractionErr_(error, {
                         description: "Error in Exchange.effect",
                         shownToUser: "No",
                     });

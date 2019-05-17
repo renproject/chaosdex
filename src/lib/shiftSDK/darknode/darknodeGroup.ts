@@ -97,12 +97,9 @@ export class ShifterGroup extends DarknodeGroup {
             to: "Shifter",
             signature: "",
             payload: {
-                method: `ShiftIn${chain}`,
+                method: `ShiftIn${chain.toUpperCase()}`,
                 args: [
-                    {
-                        value: address.slice(0, 2) === "0x" ? address.slice(2) : address,
-                    },
-                    { name: "uid", type: "public", value: address },
+                    { name: "uid", type: "public", value: strip0x(address) },
                     { name: "commitment", type: "public", value: strip0x(commitmentHash) },
                 ],
             },

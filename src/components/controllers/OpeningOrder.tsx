@@ -2,6 +2,7 @@ import * as React from "react";
 
 import { withTranslation, WithTranslation } from "react-i18next";
 
+import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer } from "../../state/containers";
 import { AskForAddress } from "../popups/AskForAddress";
@@ -10,9 +11,6 @@ import { Popup } from "../popups/Popup";
 
 const defaultState = { // Entries must be immutable
     confirmedTrade: false,
-    receiveAddress: null as string | null,
-    refundAddress: null as string | null,
-    depositAddress: null as string | null,
 };
 
 /**
@@ -20,11 +18,21 @@ const defaultState = { // Entries must be immutable
  */
 class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     private readonly appContainer: AppContainer;
+    private _depositTimer: NodeJS.Timeout | undefined;
+    private _responseTimer: NodeJS.Timeout | undefined;
+    private _mounted: boolean;
 
     constructor(props: Props) {
         super(props);
         [this.appContainer] = this.props.containers;
         this.state = defaultState;
+        this._mounted = true;
+        this.updateDeposits().catch(_catchBackgroundErr_);
+        this.updateResponse().catch(_catchBackgroundErr_);
+    }
+
+    public componentWillUnmount = () => {
+        this._mounted = false;
     }
 
     /**
@@ -32,8 +40,11 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
      * @dev Should have minimal computation, loops and anonymous functions.
      */
     public render(): React.ReactNode {
-        const { confirmedTrade, receiveAddress, refundAddress, depositAddress } = this.state;
-        const orderInput = this.appContainer.state.order;
+        const { confirmedTrade } = this.state;
+        const {
+            order: orderInput, toAddress, refundAddress, depositAddress, utxos,
+            messageID, messageResponse, transactionHash,
+        } = this.appContainer.state;
 
         let submitPopup = <></>;
         if (!confirmedTrade) {
@@ -42,51 +53,106 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
                 done={this.onConfirmedTrade}
                 cancel={this.cancel}
             />;
-        } else if (receiveAddress === null) {
+        } else if (toAddress === null) {
             submitPopup = <AskForAddress
-                key={orderInput.receiveToken}
-                token={orderInput.receiveToken}
-                message={`Enter the ${orderInput.receiveToken} public address you want to receive your tokens to.`}
-                onAddress={this.onReceiveAddress}
+                key={orderInput.dstToken}
+                token={orderInput.dstToken}
+                message={`Enter the ${orderInput.dstToken} public address you want to receive your tokens to.`}
+                onAddress={this.ontoAddress}
                 cancel={this.cancel}
             />;
         } else if (refundAddress === null) {
             submitPopup = <AskForAddress
-                key={orderInput.sendToken}
-                token={orderInput.sendToken}
-                message={`Enter your ${orderInput.sendToken} refund address in case the trade doesn't go through.`}
+                key={orderInput.srcToken}
+                token={orderInput.srcToken}
+                message={`Enter your ${orderInput.srcToken} refund address in case the trade doesn't go through.`}
                 onAddress={this.onRefundAddress}
                 cancel={this.cancel}
             />;
         } else if (depositAddress === null) {
-            submitPopup = <Popup>Generating address...</Popup>;
+            submitPopup = <Popup><div className="popup--body">Generating address...</div></Popup>;
+        } else if (!utxos || utxos.length === 0) {
+            submitPopup = <Popup><div className="popup--body">
+                Please deposit to {depositAddress}
+                <button onClick={this.submitDeposit}>Submit swap</button>
+            </div></Popup>;
+        } else if (!messageID) {
+            submitPopup = <Popup><div className="popup--body">
+                Deposit found! {utxos[0].utxo.txHash}
+                <button onClick={this.submitDeposit}>Submit swap</button>
+            </div></Popup>;
+        } else if (!messageResponse) {
+            submitPopup = <Popup><div className="popup--body">
+                Submitting to darknodes...
+            </div></Popup>;
+        } else if (!transactionHash) {
+            submitPopup = <Popup><div className="popup--body">
+                Response from darknodes! {messageResponse}
+                <button onClick={this.submitSwap}>Submit swap</button>
+            </div></Popup>;
         } else {
-            submitPopup = <Popup>Please deposit to {depositAddress}</Popup>;
+            submitPopup = <Popup><div className="popup--body">
+                Submitted! {transactionHash}
+            </div></Popup>;
         }
 
         return submitPopup;
+    }
+
+    private readonly updateDeposits = async () => {
+        if (!this._mounted) { console.log("Not mounted!"); return; }
+        let timeout = 500; // Half a second
+        if (this.appContainer.state.depositAddress) {
+            try {
+                await this.appContainer.updateDeposits();
+                timeout = 5000; // 5 seconds
+            } catch (error) {
+                _catchBackgroundErr_(error);
+            }
+        }
+        if (this._depositTimer) { clearTimeout(this._depositTimer); }
+        this._depositTimer = setTimeout(this.updateDeposits, timeout);
+    }
+
+    private readonly updateResponse = async () => {
+        if (!this._mounted) { console.log("Not mounted!"); return; }
+        let timeout = 500; // Half a second
+        if (this.appContainer.state.messageID) {
+            try {
+                await this.appContainer.updateMessageStatus();
+                timeout = 5000; // 5 seconds
+            } catch (error) {
+                _catchBackgroundErr_(error);
+            }
+        }
+        if (this._responseTimer) { clearTimeout(this._responseTimer); }
+        this._responseTimer = setTimeout(this.updateResponse, timeout);
+    }
+
+    private readonly submitDeposit = async () => {
+        this.appContainer.submitDeposit().catch(_catchInteractionErr_);
+    }
+
+    private readonly submitSwap = async () => {
+        this.appContainer.submitSwap().catch(_catchInteractionErr_);
     }
 
     private readonly onConfirmedTrade = () => {
         this.setState({ confirmedTrade: true });
     }
 
-    private readonly onReceiveAddress = (receiveAddress: string) => {
-        this.setState({ receiveAddress });
+    private readonly ontoAddress = (toAddress: string) => {
+        this.appContainer.updateToAddress(toAddress).catch(_catchInteractionErr_);
     }
 
-    private readonly onRefundAddress = (refundAddress: string) => {
-        this.setState({ refundAddress });
-        this.generatedDepositAddress();
-    }
-
-    private readonly generatedDepositAddress = () => {
-        // this.appContainer.state.dexSDK.generateAddress()
-        this.setState({ depositAddress: "0x1234" });
+    private readonly onRefundAddress = async (refundAddress: string) => {
+        await this.appContainer.updateRefundAddress(refundAddress).catch(_catchInteractionErr_);
+        await this.appContainer.updateCommitment().catch(_catchInteractionErr_);
     }
 
     private readonly cancel = () => {
-        this.setState({ receiveAddress: null, refundAddress: null, depositAddress: null, confirmedTrade: false, });
+        this.setState({ confirmedTrade: false, });
+        this.appContainer.cancelTrade().catch(_catchInteractionErr_);
         this.props.cancel();
     }
 }

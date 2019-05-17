@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { _captureInteractionException_ } from "../../lib/errors";
+import { _catchInteractionErr_ } from "../../lib/errors";
 import { OrderData } from "../../state/containers/appContainer";
 import { Popup } from "./Popup";
 
@@ -16,7 +16,7 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
                 <div role="button" className="popup--header--x" onClick={cancel} />
             </div>
             <div className="popup--body">
-                Trade {orderInputs.sendVolume} {orderInputs.sendToken} for {orderInputs.receiveVolume} {orderInputs.receiveToken}
+                Trade {orderInputs.sendVolume} {orderInputs.srcToken} for {orderInputs.receiveVolume} {orderInputs.dstToken}
                 <div className="popup--buttons">
                     <button className="open--confirm" onClick={done}><span>Confirm</span></button>
                 </div>

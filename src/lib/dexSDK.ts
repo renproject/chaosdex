@@ -6,45 +6,56 @@ import { AbiItem } from "web3-utils";
 import { MarketPair, Token, Tokens } from "../state/generalTypes";
 import { ERC20DetailedWeb3 } from "./contracts/erc20";
 import { RenExWeb3 } from "./contracts/ren_ex";
+import { RenExAdapterWeb3 } from "./contracts/ren_ex_adapter";
 import { getReadonlyWeb3, getWeb3 } from "./getWeb3";
 import { Chain, ShiftSDK, UTXO } from "./shiftSDK/shiftSDK";
 
 const ERC20ABI = require("./contracts/erc20_abi.json");
 const RenExABI = require("./contracts/ren_ex_abi.json");
+const RenExAdapterABI = require("./contracts/ren_ex_adapter_abi.json");
 
-interface Commitment {
+export interface Commitment {
     srcToken: string;
     dstToken: string;
     minDestinationAmount: BigNumber;
+    srcAmount: BigNumber;
     toAddress: string;
     refundBlockNumber: number;
     refundAddress: string;
 }
 
-enum ShiftStatus {
-    WaitingForDeposit,
-    SubmittingToContract,
-    Complete,
-    Failed,
-}
+// enum ShiftStatus {
+//     WaitingForDeposit,
+//     SubmittingToContract,
+//     Complete,
+//     Failed,
+// }
 
-type ShiftDetails = {
-    status: ShiftStatus.WaitingForDeposit;
-    commitmentHash: string;
-    depositAddress: string;
-} | {
-    status: ShiftStatus.SubmittingToContract;
-    transactionHash: string;
-} | {
-    status: ShiftStatus.Complete;
-} | {
-    status: ShiftStatus.Failed;
-};
+// type ShiftDetails = {
+//     status: ShiftStatus.WaitingForDeposit;
+//     commitmentHash: string;
+//     depositAddress: string;
+// } | {
+//     status: ShiftStatus.SubmittingToContract;
+//     transactionHash: string;
+// } | {
+//     status: ShiftStatus.Complete;
+// } | {
+//     status: ShiftStatus.Failed;
+// };
 
 export type ReserveBalances = Map<Token, BigNumber>;
 
 const RENEX_ADDRESS = "0x0dF3510a4128c0cA11518465f670dB970E9302B7";
 const RENEX_ADAPTER_ADDRESS = "0x8cFbF788757e767392e707ACA1Ec18cE26e570fc";
+
+const tokenToChain = (token: Token): Chain => {
+    const tokenDetails = Tokens.get(token, undefined);
+    if (!tokenDetails) {
+        throw new Error(`Unable to retrieve details of token ${token}`);
+    }
+    return tokenDetails.chain;
+};
 
 /// Initialize Web3 and contracts
 
@@ -52,6 +63,8 @@ const getExchange = (web3: Web3): RenExWeb3 =>
     new (web3.eth.Contract)(RenExABI as AbiItem[], RENEX_ADDRESS);
 const getERC20 = (web3: Web3, tokenAddress: string): ERC20DetailedWeb3 =>
     new (web3.eth.Contract)(ERC20ABI as AbiItem[], tokenAddress);
+const getAdapter = (web3: Web3): RenExAdapterWeb3 =>
+    new (web3.eth.Contract)(RenExAdapterABI as AbiItem[], RENEX_ADAPTER_ADDRESS);
 
 /**
  * The ShiftSDK defines how to interact with the rest of this file
@@ -106,30 +119,70 @@ export class DexSDK {
         );
     }
 
-    public hashCommitment = (commitment: Commitment): string => {
-        return "";
+    public hashCommitment = async (commitment: Commitment): Promise<string> => {
+
+        console.log(
+            [
+                commitment.srcToken,
+                commitment.dstToken,
+                commitment.minDestinationAmount.toNumber(),
+                commitment.toAddress,
+                commitment.refundBlockNumber,
+                commitment.refundAddress,
+            ]
+        );
+
+        const hash = await getAdapter(this.web3).methods.commitment(
+            commitment.srcToken,
+            commitment.dstToken,
+            commitment.minDestinationAmount.toNumber(),
+            commitment.toAddress,
+            commitment.refundBlockNumber,
+            commitment.refundAddress,
+        ).call();
+
+        console.log(hash);
+        return hash;
     }
 
     // Takes a commitment as bytes or an array of primitive types and returns
     // the deposit address
-    public generateAddress = (token: Token, commitment: Commitment): string => {
-        const tokenDetails = Tokens.get(token, undefined)
-        if (!tokenDetails) {
-            throw new Error(`Unable to retrieve details of token ${token}`);
-        }
-        return this.shiftSDK.generateAddress(tokenDetails.chain, this.hashCommitment(commitment));
+    public generateAddress = async (token: Token, commitment: Commitment): Promise<string> => {
+        const commitmentHash = await this.hashCommitment(commitment);
+        console.log(`commitmentHash: ${commitmentHash}`);
+        return this.shiftSDK.generateAddress(tokenToChain(token), commitmentHash);
     }
 
     // Retrieves unspent deposits at the provided address
-    public retrieveDeposits = async (chain: Chain, depositAddress: string, limit = 10, confirmations = 0): Promise<UTXO[]> => {
-        return this.shiftSDK.retrieveDeposits(chain, depositAddress, limit, confirmations);
+    public retrieveDeposits = async (token: Token, depositAddress: string, limit = 10, confirmations = 0): Promise<UTXO[]> => {
+        return this.shiftSDK.retrieveDeposits(tokenToChain(token), depositAddress, limit, confirmations);
     }
 
     // Submits the commitment and transaction to the darknodes, and then submits
     // the signature to the adapter address
-    public shift = async (chain: Chain, transaction: UTXO, commitment: Commitment): Promise<void> => {
-        return this.shiftSDK.shift(chain, transaction, this.hashCommitment(commitment));
+    public submitDeposit = async (token: Token, transaction: UTXO, commitment: Commitment): Promise<string> => {
+        return this.shiftSDK.shift(tokenToChain(token), transaction, await this.hashCommitment(commitment));
     }
+
+    public submitSwap = async (commitment: Commitment, signature: string): Promise<string> => new Promise<string>(async (resolve, reject) => {
+        const accounts = await this.web3.eth.getAccounts();
+        if (accounts.length === 0) {
+            throw new Error(`No accounts found`);
+        }
+        getAdapter(this.web3).methods.trade(
+            commitment.srcToken,
+            commitment.dstToken,
+            commitment.minDestinationAmount.toString(),
+            commitment.toAddress,
+            commitment.refundBlockNumber,
+            commitment.refundAddress,
+            0,
+            await this.hashCommitment(commitment),
+            signature
+        ).send({ from: accounts[0] })
+            .on("transactionHash", resolve)
+            .catch(reject);
+    })
 
     // Retrieves the current progress of the shift
     public shiftStatus = async (commitmentHash: string): Promise<string> => {

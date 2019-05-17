@@ -3,7 +3,7 @@ import * as React from "react";
 import { FeedbackButton, Loading } from "@renex/react-components";
 import { Route, RouteComponentProps, withRouter } from "react-router-dom";
 
-import { _captureBackgroundException_ } from "../../lib/errors";
+import { _catchBackgroundErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer, OptionsContainer } from "../../state/containers";
 import { Exchange } from "../pages/Exchange";
@@ -46,10 +46,10 @@ export const App = connect<Props>([AppContainer, OptionsContainer])(
         const [initialized, setInitialized] = React.useState(false);
         React.useEffect(() => {
             if (!initialized) {
-                setInterval(() => appContainer.updateTokenPrices().catch(_captureBackgroundException_), 30 * 1000);
-                setInterval(() => appContainer.updateBalanceReserves().catch(_captureBackgroundException_), 30 * 1000);
-                appContainer.updateTokenPrices().catch(_captureBackgroundException_);
-                appContainer.updateBalanceReserves().catch(_captureBackgroundException_);
+                setInterval(() => appContainer.updateTokenPrices().catch(_catchBackgroundErr_), 30 * 1000);
+                setInterval(() => appContainer.updateBalanceReserves().catch(_catchBackgroundErr_), 30 * 1000);
+                appContainer.updateTokenPrices().catch(_catchBackgroundErr_);
+                appContainer.updateBalanceReserves().catch(_catchBackgroundErr_);
                 setInitialized(true);
             }
         }, [initialized, appContainer]);
