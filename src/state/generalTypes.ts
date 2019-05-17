@@ -1,6 +1,8 @@
 import { Currency } from "@renex/react-components";
 import { Map } from "immutable";
 
+import { Chain } from "../lib/shiftSDK/shiftSDK";
+
 export enum Token {
     DAI = "DAI",
     BTC = "BTC",
@@ -17,11 +19,11 @@ export enum MarketPair {
 }
 
 export const Tokens = Map<Token, TokenDetails>()
-    .set(Token.DAI, { symbol: Token.DAI, name: "Dai", decimals: 18, priority: 100 })
-    .set(Token.BTC, { symbol: Token.BTC, name: "Bitcoin", decimals: 8, priority: 200 })
-    .set(Token.ETH, { symbol: Token.ETH, name: "Ethereum", decimals: 18, priority: 1024 })
-    .set(Token.REN, { symbol: Token.REN, name: "Ren", decimals: 18, priority: 1025 })
-    .set(Token.ZEC, { symbol: Token.ZEC, name: "Zcash", decimals: 8, priority: 201 })
+    .set(Token.DAI, { symbol: Token.DAI, name: "Dai", decimals: 18, priority: 100, chain: Chain.Ethereum })
+    .set(Token.BTC, { symbol: Token.BTC, name: "Bitcoin", decimals: 8, priority: 200, chain: Chain.Bitcoin })
+    .set(Token.ETH, { symbol: Token.ETH, name: "Ethereum", decimals: 18, priority: 1024, chain: Chain.Ethereum })
+    .set(Token.REN, { symbol: Token.REN, name: "Ren", decimals: 18, priority: 1025, chain: Chain.Ethereum })
+    .set(Token.ZEC, { symbol: Token.ZEC, name: "Zcash", decimals: 8, priority: 201, chain: Chain.ZCash })
     ;
 
 export interface TokenDetails {
@@ -29,6 +31,7 @@ export interface TokenDetails {
     symbol: Token;
     decimals: number;
     priority: number;
+    chain: Chain;
 }
 
 export enum UITheme {

@@ -10,7 +10,7 @@ export const AskForAddress: React.StatelessComponent<{
     onAddress(address: string): void;
     cancel(): void;
 }> = ({ token, message, onAddress, cancel }) => {
-    const [address, updateAddress] = React.useState("");
+    const [address, updateAddress] = React.useState(token === Token.BTC ? "mywUoqpsPeW2uUMabkQHY73HLGmUpbvXzu" : "0x797522Fb74d42bB9fbF6b76dEa24D01A538d5D66");
 
     const submit = () => {
         onAddress(address);

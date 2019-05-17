@@ -44,6 +44,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
             />;
         } else if (receiveAddress === null) {
             submitPopup = <AskForAddress
+                key={orderInput.receiveToken}
                 token={orderInput.receiveToken}
                 message={`Enter the ${orderInput.receiveToken} public address you want to receive your tokens to.`}
                 onAddress={this.onReceiveAddress}
@@ -51,6 +52,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
             />;
         } else if (refundAddress === null) {
             submitPopup = <AskForAddress
+                key={orderInput.sendToken}
                 token={orderInput.sendToken}
                 message={`Enter your ${orderInput.sendToken} refund address in case the trade doesn't go through.`}
                 onAddress={this.onRefundAddress}
@@ -59,7 +61,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
         } else if (depositAddress === null) {
             submitPopup = <Popup>Generating address...</Popup>;
         } else {
-            submitPopup = <Popup>Something went wrong!</Popup>;
+            submitPopup = <Popup>Please deposit to {depositAddress}</Popup>;
         }
 
         return submitPopup;
@@ -79,6 +81,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     }
 
     private readonly generatedDepositAddress = () => {
+        // this.appContainer.state.dexSDK.generateAddress()
         this.setState({ depositAddress: "0x1234" });
     }
 
