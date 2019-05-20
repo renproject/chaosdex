@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import { Loading } from "@renex/react-components";
 import { withTranslation, WithTranslation } from "react-i18next";
 
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
@@ -11,6 +12,7 @@ import { Popup } from "../popups/Popup";
 
 const defaultState = { // Entries must be immutable
     confirmedTrade: false,
+    submitting: false,
 };
 
 /**
@@ -40,7 +42,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
      * @dev Should have minimal computation, loops and anonymous functions.
      */
     public render(): React.ReactNode {
-        const { confirmedTrade } = this.state;
+        const { confirmedTrade, submitting } = this.state;
         const {
             order: orderInput, toAddress, refundAddress, depositAddress, utxos,
             messageID, messageResponse, transactionHash,
@@ -70,16 +72,15 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
                 cancel={this.cancel}
             />;
         } else if (depositAddress === null) {
-            submitPopup = <Popup><div className="popup--body">Generating address...</div></Popup>;
+            submitPopup = <Popup><div className="popup--body">Generating address... <Loading /></div></Popup>;
         } else if (!utxos || utxos.length === 0) {
             submitPopup = <Popup><div className="popup--body">
-                Please deposit to {depositAddress}
-                <button onClick={this.submitDeposit}>Submit swap</button>
+                Please deposit to <b>{depositAddress}</b>
             </div></Popup>;
         } else if (!messageID) {
             submitPopup = <Popup><div className="popup--body">
                 Deposit found! {utxos[0].utxo.txHash}
-                <button onClick={this.submitDeposit}>Submit swap</button>
+                <button onClick={this.submitDeposit} disabled={submitting}>{submitting ? <Loading /> : <>Submit deposit</>}</button>
             </div></Popup>;
         } else if (!messageResponse) {
             submitPopup = <Popup><div className="popup--body">
@@ -130,6 +131,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     }
 
     private readonly submitDeposit = async () => {
+        this.setState({ submitting: true });
         this.appContainer.submitDeposit().catch(_catchInteractionErr_);
     }
 

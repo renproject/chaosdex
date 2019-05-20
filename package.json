@@ -2,6 +2,7 @@
   "name": "dex-demo",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://republicprotocol.github.io/dex-demo/",
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.18",
     "@fortawesome/free-brands-svg-icons": "^5.8.2",
@@ -57,6 +58,7 @@
     "@types/react-select": "^2.0.18",
     "@types/throttle-debounce": "^1.1.1",
     "@types/underscore": "^1.8.18",
+    "gh-pages": "^2.0.1",
     "ncu": "^0.2.1",
     "node-sass": "^4.12.0",
     "npm-check-updates": "^3.1.9",
@@ -79,7 +81,9 @@
     "start": ". ./.env || true; react-scripts start",
     "build": "REACT_APP_SOURCE_VERSION=$SOURCE_VERSION react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "$npm_execpath run build",
+    "deploy": "gh-pages -d build"
   },
   "browserslist": [
     ">0.2%",
