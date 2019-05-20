@@ -2,7 +2,7 @@
   "name": "dex-demo",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://republicprotocol.github.io/dex-demo/",
+  "homepage": "https://testnet.ren.exchange/",
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.18",
     "@fortawesome/free-brands-svg-icons": "^5.8.2",
