@@ -58,7 +58,7 @@ export const App = connect<Props>([AppContainer, OptionsContainer])(
             <ScrollToTop />
 
             {_catch_(
-                <React.Suspense fallback={<Loading />}>
+                <React.Suspense fallback={null/*<Loading />*/}>
                     <HeaderController />
                 </React.Suspense>
             )}

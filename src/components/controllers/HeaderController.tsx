@@ -35,9 +35,7 @@ type Props = ConnectedProps<[OptionsContainer]> & RouteComponentProps;
  * HeaderController is a visual component providing page branding and navigation.
  */
 export const HeaderController = (withRouter(connect<Props>([OptionsContainer])(
-
     ({ containers: [optionsContainer] }) => {
-
         const { t, i18n } = useTranslation();
 
         const [currentLanguage, setCurrentLanguage] = React.useState(i18n.language);

@@ -14,7 +14,7 @@ export const WaitingForDeposits: React.StatelessComponent<{
     return <Popup cancel={cancel}>
         <div className="swap swap--popup open">
             <div className="popup--header">
-                <h2>Confirm Trade</h2>
+                <h2>Waiting for deposits...</h2>
                 <div role="button" className="popup--header--x" onClick={cancel} />
             </div>
             <div className="popup--body">

@@ -2,7 +2,7 @@ import { List, Map } from "immutable";
 
 import { strip0x } from "../blockchain/common";
 // tslint:disable: no-unused-variable
-import { Chain, UTXO } from "../shiftSDK";
+import { Chain } from "../shiftSDK";
 import { Lightnode } from "./darknode";
 import {
     HealthResponse, ReceiveMessageRequest, ReceiveMessageResponse, RenVMReceiveMessageResponse,
@@ -11,9 +11,30 @@ import {
 
 // tslint:enable: no-unused-variable
 
+export const NewMultiAddress = (multiAddress: string) => multiAddress;
+
 export const lightnodes = [
+    // Lightnode
     "https://lightnode.herokuapp.com",
+
+    // Local node
+    // NewMultiAddress("/ip4/0.0.0.0/tcp/18515/ren/8MJw8s6TVKmQH3kdM5kJUYqPmh3JmF"),
+
+    // DevNet nodes
+    // NewMultiAddress("/ip4/18.234.163.143/tcp/18515/8MJpA1rXYMPTeJoYjsFBHJcuYBe7zP"),
+    // NewMultiAddress("/ip4/34.213.51.170/tcp/18515/8MH9zGoDLJKiXrhqWLXTzHp1idfxte"),
+    // NewMultiAddress("/ip4/34.205.143.11/tcp/18515/8MGJGnGLdYF6x5YuhkAmgfj6kknJBb"),
+    // NewMultiAddress("/ip4/99.79.61.64/tcp/18515/8MJppC57CkHzDQVAAPTotQGGyzqJ2r"),
+    // NewMultiAddress("/ip4/35.154.42.26/tcp/18515/8MHdUqYXcEhisZipM3hXPsFxHfM3VH"),
+    // NewMultiAddress("/ip4/34.220.215.156/tcp/18515/8MJd7zB9GXsvpm2cSECFP4Bof5G3i8"),
+    // NewMultiAddress("/ip4/18.196.15.243/tcp/18515/8MJN1hHhdcJwzDoj35zRLL3zE3yk45"),
+    // NewMultiAddress("/ip4/18.231.179.161/tcp/18515/8MKYusXyZAGVRn76vTmnK9FWmmPbJj"),
 ];
+
+// export const multiAddressToID = (multiAddress: MultiAddress): DarknodeID => {
+//     const split = multiAddress.multiAddress.split("/");
+//     return { id: split[split.length - 1] };
+// };
 
 const promiseAll = async <a>(list: List<Promise<a>>, defaultValue: a): Promise<List<a>> => {
     let newList = List<a>();

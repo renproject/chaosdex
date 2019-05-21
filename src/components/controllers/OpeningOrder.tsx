@@ -5,7 +5,7 @@ import { withTranslation, WithTranslation } from "react-i18next";
 
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
-import { AppContainer } from "../../state/containers";
+import { AppContainer, OptionsContainer } from "../../state/containers";
 import { AskForAddress } from "../popups/AskForAddress";
 import { ConfirmTradeDetails } from "../popups/ConfirmTradeDetails";
 import { Popup } from "../popups/Popup";
@@ -20,13 +20,14 @@ const defaultState = { // Entries must be immutable
  */
 class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     private readonly appContainer: AppContainer;
+    private readonly optionsContainer: OptionsContainer;
     private _depositTimer: NodeJS.Timeout | undefined;
     private _responseTimer: NodeJS.Timeout | undefined;
     private _mounted: boolean;
 
     constructor(props: Props) {
         super(props);
-        [this.appContainer] = this.props.containers;
+        [this.appContainer, this.optionsContainer] = this.props.containers;
         this.state = defaultState;
         this._mounted = true;
         this.updateDeposits().catch(_catchBackgroundErr_);
@@ -54,6 +55,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
                 orderInputs={orderInput}
                 done={this.onConfirmedTrade}
                 cancel={this.cancel}
+                quoteCurrency={this.optionsContainer.state.preferredCurrency}
             />;
         } else if (toAddress === null) {
             submitPopup = <AskForAddress
@@ -101,7 +103,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     }
 
     private readonly updateDeposits = async () => {
-        if (!this._mounted) { console.log("Not mounted!"); return; }
+        if (!this._mounted) { return; }
         let timeout = 500; // Half a second
         if (this.appContainer.state.depositAddress) {
             try {
@@ -116,12 +118,12 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     }
 
     private readonly updateResponse = async () => {
-        if (!this._mounted) { console.log("Not mounted!"); return; }
-        let timeout = 500; // Half a second
+        if (!this._mounted) { return; }
+        let timeout = 10000; // Half a second
         if (this.appContainer.state.messageID) {
             try {
                 await this.appContainer.updateMessageStatus();
-                timeout = 5000; // 5 seconds
+                timeout = 10000; // 5 seconds
             } catch (error) {
                 _catchBackgroundErr_(error);
             }
@@ -159,9 +161,9 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     }
 }
 
-interface Props extends ConnectedProps<[AppContainer]>, WithTranslation {
+interface Props extends ConnectedProps<[AppContainer, OptionsContainer]>, WithTranslation {
     cancel: () => void;
     done: () => void;
 }
 
-export const OpeningOrder = withTranslation()(connect<Props>([AppContainer])(OpeningOrderClass));
+export const OpeningOrder = withTranslation()(connect<Props>([AppContainer, OptionsContainer])(OpeningOrderClass));

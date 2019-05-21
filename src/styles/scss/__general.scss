@@ -251,3 +251,8 @@ button {
     right: 55px;
     bottom: 35px;
 }
+
+.disabled {
+    opacity: 0.5;
+    cursor: default;
+}

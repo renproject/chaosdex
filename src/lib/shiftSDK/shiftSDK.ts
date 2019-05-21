@@ -38,7 +38,6 @@ export class ShiftSDK {
     // Takes the address of the adapter smart contract
     constructor(web3: Web3, adapterAddress: string) {
         this.web3 = web3;
-        console.log(this.web3);
         this.adapter = new web3.eth.Contract([], adapterAddress);
         this.darknodeGroup = new ShifterGroup(lightnodes);
     }

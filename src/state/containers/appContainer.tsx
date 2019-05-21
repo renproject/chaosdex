@@ -20,7 +20,7 @@ const initialState = {
     order: {
         srcToken: Token.BTC,
         dstToken: Token.DAI,
-        sendVolume: "0",
+        sendVolume: "0.00010000",
         receiveVolume: "0",
     },
     toAddress: null as string | null,
@@ -105,7 +105,8 @@ export class AppContainer extends Container<typeof initialState> {
         if (!toAddress || !refundAddress || !srcTokenDetails) {
             throw new Error(`Required info is undefined (${toAddress}, ${refundAddress}, ${srcTokenDetails})`);
         }
-        const blockNumber = await dexSDK.web3.eth.getBlockNumber();
+        // FIXME!!!
+        const blockNumber = 11152976; // await dexSDK.web3.eth.getBlockNumber();
         const commitment: Commitment = {
             srcToken: tokenAddresses(order.srcToken, "testnet"),
             dstToken: tokenAddresses(order.dstToken, "testnet"),

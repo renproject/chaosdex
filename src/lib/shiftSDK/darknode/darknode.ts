@@ -1,15 +1,8 @@
 import axios, { AxiosResponse } from "axios";
 
 import {
-    AddressesRequest,
-    AddressesResponse,
-    EpochResponse,
-    HealthResponse,
-    NumPeersResponse,
-    PeersResponse,
-    ReceiveMessageRequest,
-    ReceiveMessageResponse,
-    SendMessageRequest,
+    AddressesRequest, AddressesResponse, EpochResponse, HealthResponse, NumPeersResponse,
+    PeersResponse, ReceiveMessageRequest, ReceiveMessageResponse, SendMessageRequest,
     SendMessageResponse,
 } from "./types";
 
@@ -17,18 +10,18 @@ export class Lightnode {
     public readonly lightnodeURL: string;
 
     constructor(lightnode: string) {
-        this.lightnodeURL = lightnode;
-        // if (multiAddress.multiAddress.charAt(0) === "/") {
-        //     try {
-        //         const [_, _ip4, ip, _tcp, port, _ren, _id] = multiAddress.multiAddress.split("/");
-        //         const fixedPort = port === "18514" ? "18515" : port;
-        //         // tslint:disable-next-line: no-http-string
-        //         this.url = `http://${ip}:${fixedPort}`;
-        //     } catch (error) {
-        //         throw new Error(`Malformatted multiAddress: ${multiAddress}`);
-        //     }
-        // } else {
-        // }
+        if (lightnode.charAt(0) === "/") {
+            try {
+                const [_, _ip4, ip, _tcp, port, _ren, _id] = lightnode.split("/");
+                const fixedPort = port === "18514" ? "18514" : port;
+                // tslint:disable-next-line: no-http-string
+                this.lightnodeURL = `http://${ip}:${fixedPort}`;
+            } catch (error) {
+                throw new Error(`Malformatted address: ${lightnode}`);
+            }
+        } else {
+            this.lightnodeURL = lightnode;
+        }
     }
 
     public async getHealth(): Promise<HealthResponse> {

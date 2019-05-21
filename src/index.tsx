@@ -4,7 +4,6 @@ import * as ReactDOM from "react-dom";
 import i18n from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import Backend from "i18next-xhr-backend";
-
 import { initReactI18next } from "react-i18next";
 import { Router } from "react-router";
 import { Provider } from "unstated";
@@ -14,7 +13,6 @@ import { _catch_ } from "./components/views/ErrorBoundary";
 import { _catchInteractionErr_ } from "./lib/errors";
 import { history } from "./lib/history";
 import { onLoad } from "./lib/onLoad";
-
 import "./styles/index.scss";
 
 // Initiate the i18n instance for multilingual support

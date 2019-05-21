@@ -44,9 +44,8 @@ class NewOrderClass extends React.Component<Props, typeof defaultState> {
                 {
                     market ?
                         <button
-                            onClick={this.openOrder}
-                            disabled={disabled}
-                            className="button submit-swap"
+                            onClick={disabled ? appContainer.connect : this.openOrder}
+                            className={`button submit-swap ${disabled ? "disabled" : ""}`}
                         >
                             {submitting ? <Loading alt={true} /> :
                                 disabled ? t("new_order.connect_to_trade") : t("new_order.trade")
