@@ -9,6 +9,7 @@ import { AppContainer, OptionsContainer } from "../../state/containers";
 import { AskForAddress } from "../popups/AskForAddress";
 import { ConfirmTradeDetails } from "../popups/ConfirmTradeDetails";
 import { Popup } from "../popups/Popup";
+import { ShowDepositAddress } from "../popups/ShowDepositAddress";
 
 const defaultState = { // Entries must be immutable
     confirmedTrade: false,
@@ -60,7 +61,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
             />;
         } else if (toAddress === null) {
             submitPopup = <AskForAddress
-                key={orderInput.dstToken}
+                key={orderInput.dstToken} // Since AskForAddress is used twice
                 token={orderInput.dstToken}
                 message={`Enter the ${orderInput.dstToken} public address you want to receive your tokens to.`}
                 onAddress={this.ontoAddress}
@@ -68,18 +69,18 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
             />;
         } else if (refundAddress === null) {
             submitPopup = <AskForAddress
-                key={orderInput.srcToken}
+                key={orderInput.srcToken} // Since AskForAddress is used twice
                 token={orderInput.srcToken}
                 message={`Enter your ${orderInput.srcToken} refund address in case the trade doesn't go through.`}
                 onAddress={this.onRefundAddress}
                 cancel={this.cancel}
             />;
-        } else if (depositAddress === null) {
-            submitPopup = <Popup><div className="popup--body">Generating address... <Loading /></div></Popup>;
         } else if (!utxos || utxos.length === 0) {
-            submitPopup = <Popup><div className="popup--body">
-                Please deposit to <b>{depositAddress}</b>
-            </div></Popup>;
+            submitPopup = <ShowDepositAddress
+                token={orderInput.dstToken}
+                depositAddress={depositAddress}
+                cancel={this.cancel}
+            />;
         } else if (!messageID) {
             submitPopup = <Popup><div className="popup--body">
                 Deposit found! {utxos[0].utxo.txHash}

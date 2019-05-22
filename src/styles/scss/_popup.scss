@@ -75,15 +75,6 @@
     }
 }
 
-.popup h2,
-.popup p {
-    margin: 0;
-}
-
-.popup h2+* {
-    margin-top: 10px;
-}
-
 .popup.open,
 .popup.kyc {
     min-width: 300px;
