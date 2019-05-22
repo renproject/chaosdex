@@ -20,7 +20,7 @@ const initialState = {
     order: {
         srcToken: Token.BTC,
         dstToken: Token.DAI,
-        sendVolume: "0.00010000",
+        sendVolume: "0.0001",
         receiveVolume: "0",
     },
     toAddress: null as string | null,
@@ -64,6 +64,7 @@ export class AppContainer extends Container<typeof initialState> {
             newBalanceReserves = newBalanceReserves.set(value, res[index]);
         });
         await this.setState({ balanceReserves: newBalanceReserves });
+        await this.updateReceiveValue();
     }
 
     // Swap inputs /////////////////////////////////////////////////////////////
@@ -116,9 +117,7 @@ export class AppContainer extends Container<typeof initialState> {
             refundBlockNumber: blockNumber + 100,
             refundAddress: btcAddressToHex(refundAddress),
         };
-        console.log(`Generating address`);
         const depositAddress = await dexSDK.generateAddress(order.srcToken, commitment);
-        console.log(`Address is ${depositAddress}`);
         const depositAddressToken = order.srcToken;
         await this.setState({ commitment, depositAddress, depositAddressToken });
     }

@@ -23,11 +23,9 @@ export const AskForAddress: React.StatelessComponent<{
 
     return <Popup cancel={cancel}>
         <div className="swap swap--popup open">
-            <div className="popup--header">
+            <div className="popup--body">
                 <h2>Receive {token}</h2>
                 <div role="button" className="popup--header--x" onClick={cancel} />
-            </div>
-            <div className="popup--body">
                 {message}
                 <input
                     type="text"
@@ -37,7 +35,7 @@ export const AskForAddress: React.StatelessComponent<{
                     autoFocus={true}
                 />
                 <div className="popup--buttons">
-                    <button className="open--confirm" onClick={submit}><span>Confirm</span></button>
+                    <button className="button open--confirm" onClick={submit}><span>Confirm</span></button>
                 </div>
             </div>
         </div>

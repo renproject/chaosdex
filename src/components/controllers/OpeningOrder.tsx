@@ -56,6 +56,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
                 done={this.onConfirmedTrade}
                 cancel={this.cancel}
                 quoteCurrency={this.optionsContainer.state.preferredCurrency}
+                tokenPrices={this.appContainer.state.tokenPrices}
             />;
         } else if (toAddress === null) {
             submitPopup = <AskForAddress
