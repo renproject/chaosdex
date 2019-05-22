@@ -165,10 +165,14 @@ export class DexSDK {
     }
 
     public submitSwap = async (commitment: Commitment, signature: string): Promise<string> => new Promise<string>(async (resolve, reject) => {
+        console.log("Line: 0");
         const accounts = await this.web3.eth.getAccounts();
+        console.log("Line: 1");
         if (accounts.length === 0) {
+            console.log("Line: 2");
             throw new Error(`No accounts found`);
         }
+        console.log("Line: 4");
         getAdapter(this.web3).methods.trade(
             commitment.srcToken,
             commitment.dstToken,
@@ -178,10 +182,11 @@ export class DexSDK {
             commitment.refundAddress,
             0,
             await this.hashCommitment(commitment),
-            signature
+            signature,
         ).send({ from: accounts[0] })
             .on("transactionHash", resolve)
             .catch(reject);
+        console.log("Line: 5");
     })
 
     // Retrieves the current progress of the shift

@@ -31,13 +31,13 @@ export enum Chain {
 }
 
 export class ShiftSDK {
-    private readonly web3: Web3;
+    // private readonly web3: Web3;
     private readonly adapter: Contract;
     private readonly darknodeGroup: ShifterGroup;
 
     // Takes the address of the adapter smart contract
     constructor(web3: Web3, adapterAddress: string) {
-        this.web3 = web3;
+        // this.web3 = web3;
         this.adapter = new web3.eth.Contract([], adapterAddress);
         this.darknodeGroup = new ShifterGroup(lightnodes);
     }

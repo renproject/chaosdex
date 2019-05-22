@@ -71,7 +71,7 @@ export const ShowDepositAddress: React.StatelessComponent<{
                             </div>
                         </CopyToClipboard>
                         {showSpinner ? <div className="spinner">
-                            <Loading />{" "}<span>Scanning for {token.toUpperCase()} deposit</span>
+                            <Loading />{" "}<span>Scanning for {token.toUpperCase()} deposits</span>
                         </div> : null
                         }
                     </> :
