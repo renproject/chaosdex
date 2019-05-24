@@ -19,7 +19,7 @@ const defaultState = { // Entries must be immutable
 const OrderHistoryEntry = (props: { order: HistoryEvent }) => {
     return (
         <div className="swap--history--entry">
-            <div>
+            <div className="token--amounts">
                 <TokenIcon className="token-icon" token={props.order.dstToken} />
                 <span>Received {props.order.dstAmount.toFixed()} {props.order.dstToken}</span>
             </div>
