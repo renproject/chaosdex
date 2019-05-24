@@ -8,6 +8,11 @@ export const SubmitToEthereum: React.StatelessComponent<{
     token: Token,
     submit: () => Promise<void>,
 }> = ({ token, submit }) => {
+    const [ submitting, setSubmitting] = React.useState(false);
+    const onSubmit = () => {
+        setSubmitting(true);
+        submit().catch(_catchInteractionErr_);
+    };
     return <Popup>
         <div className="address-input">
             <div className="popup--body">
@@ -18,7 +23,7 @@ export const SubmitToEthereum: React.StatelessComponent<{
                     <br />
                 </div>
                 <div className="popup--buttons">
-                    <button className="button open--confirm" onClick={submit}>Submit</button>
+                    <button className="button open--confirm" disabled={submitting} onClick={onSubmit}>Submit</button>
                 </div>
             </div>
         </div>

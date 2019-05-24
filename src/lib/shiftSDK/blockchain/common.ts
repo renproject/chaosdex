@@ -17,7 +17,7 @@ export const createAddress =
         ({ mainnet, masterPKH }: { mainnet: boolean, masterPKH: Buffer }) =>
             (mintToAddress: string, commitmentHash: string) =>
                 new script()
-                    // .add(hashPayload(mintToAddress, commitmentHash))
+                    .add(hashPayload(mintToAddress, commitmentHash))
                     .add(mintToAddress)
                     .add(opcode.OP_DROP)
                     .add(opcode.OP_DUP)

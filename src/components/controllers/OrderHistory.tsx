@@ -1,15 +1,13 @@
 import * as React from "react";
 
 import i18next from "i18next";
-
 import { TokenIcon } from "@renex/react-components";
 import { withTranslation, WithTranslation } from "react-i18next";
 
+import { naturalTime } from "../../lib/conversion";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer } from "../../state/containers";
 import { HistoryEvent } from "../../state/containers/appContainer";
-
-import { naturalTime } from "../../lib/conversion";
 
 const OrderHistoryEntry = (props: { order: HistoryEvent, t: i18next.TFunction }) => {
     return (
@@ -33,6 +31,9 @@ class OrderHistoryClass extends React.Component<Props, {}> {
      */
     public render(): React.ReactNode {
         const { t, containers: [appContainer] } = this.props;
+        if (appContainer.state.swapHistory.size === 0) {
+            return <></>;
+        }
         return <>
             <div className="section history">
                 <div className="history--banner">

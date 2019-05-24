@@ -39,6 +39,7 @@ const initialState = {
         sendVolume: "0.0001",
         receiveVolume: "0",
     },
+    submitting: false,
     toAddress: null as string | null,
     refundAddress: null as string | null,
     commitment: null as Commitment | null,
@@ -48,26 +49,7 @@ const initialState = {
     messageID: null as string | null,
     // tslint:disable-next-line: no-any
     signature: null as Signature | null,
-    transactionHash: null as string | null,
-    swapHistory: List<HistoryEvent>().push({
-        commitment: {
-            srcToken: "0x2a8368d2a983a0aeae8da0ebc5b7c03a0ea66b37",
-            dstToken: "0xc4375b7de8af5a38a93548eb8453a498222c4ff2",
-            minDestinationAmount: new BigNumber("6000000000000000000000"),
-            srcAmount: new BigNumber("100000000"),
-            toAddress: "0x797522Fb74d42bB9fbF6b76dEa24D01A538d5D66",
-            refundBlockNumber: 11111762,
-            refundAddress: "0x6fca15b7fa057863ee881130006817f12de46c3ad8ebe2d9de"
-        },
-        srcToken: Token.BTC,
-        dstToken: Token.DAI,
-        srcAmount: new BigNumber(1),
-        dstAmount: new BigNumber(6345.1234),
-        promiEvent: undefined,
-        transactionHash: undefined,
-        swapError: undefined,
-        time: Date.now() / 1000, // Convert from milliseconds to seconds
-    }),
+    swapHistory: List<HistoryEvent>(),
 };
 
 export type OrderData = typeof initialState.order;
@@ -152,6 +134,12 @@ export class AppContainer extends Container<typeof initialState> {
             toAddress,
             refundBlockNumber: blockNumber + 100,
             refundAddress: btcAddressToHex(refundAddress),
+            originals: {
+                srcToken: order.srcToken,
+                dstToken: order.dstToken,
+                dstAmount: new BigNumber(order.receiveVolume),
+                srcAmount: new BigNumber(order.sendVolume),
+            }
         };
         console.log(`Commitment: ${JSON.stringify(commitment)}`);
         const depositAddress = await dexSDK.generateAddress(order.srcToken, commitment);
@@ -201,15 +189,20 @@ export class AppContainer extends Container<typeof initialState> {
             swapError = error;
         }
 
-        // const historyItem: HistoryEvent = {
-        //     promiEvent,
-        //     transactionHash,
-        //     commitment,
-        //     swapError,
-        //     time: Date.now() / 1000,
-        // };
+        const historyItem: HistoryEvent = {
+            promiEvent,
+            transactionHash,
+            commitment,
+            swapError,
+            time: Date.now() / 1000,
+            srcToken: commitment.originals.srcToken,
+            dstToken: commitment.originals.dstToken,
+            srcAmount: commitment.originals.srcAmount,
+            dstAmount: commitment.originals.dstAmount,
+        };
 
-        // await this.setState({ swapHistory: swapHistory.push(historyItem) });
+        await this.setState({ swapHistory: swapHistory.push(historyItem) });
+        await this.cancelTrade();
     }
 
     public updateMessageStatus = async () => {
@@ -219,15 +212,23 @@ export class AppContainer extends Container<typeof initialState> {
         }
         try {
             const messageResponse = await dexSDK.shiftStatus(messageID);
-            console.log(`messageResponse: ${messageResponse}`);
+            console.log(`messageResponse:`);
+            console.log(messageResponse);
             await this.setState({ signature: messageResponse });
         } catch (error) {
             console.error(error);
         }
     }
 
+    public setSubmitting = async (submitting: boolean) => {
+        await this.setState({
+            submitting,
+        });
+    }
+
     public cancelTrade = async () => {
         await this.setState({
+            submitting: false,
             toAddress: null,
             refundAddress: null,
             commitment: null,

@@ -47,7 +47,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
         const { confirmedTrade } = this.state;
         const {
             order: orderInput, toAddress, refundAddress, depositAddress, utxos,
-            messageID, signature: messageResponse, transactionHash,
+            messageID, signature: messageResponse,
         } = this.appContainer.state;
 
         let submitPopup = <></>;
@@ -83,12 +83,8 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
             />;
         } else if (!messageResponse) {
             submitPopup = <DepositReceived submitDeposit={this.submitDeposit} messageID={messageID} />;
-        } else if (!transactionHash) {
-            submitPopup = <SubmitToEthereum token={orderInput.dstToken} submit={this.submitSwap} />;
         } else {
-            submitPopup = <Popup><div className="popup--body">
-                Submitted! {transactionHash}
-            </div></Popup>;
+            submitPopup = <SubmitToEthereum token={orderInput.dstToken} submit={this.submitSwap} />;
         }
         return submitPopup;
     }

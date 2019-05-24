@@ -24,6 +24,13 @@ export interface Commitment {
     toAddress: string;
     refundBlockNumber: number;
     refundAddress: string;
+
+    originals: {
+        srcToken: Token;
+        dstToken: Token;
+        dstAmount: BigNumber;
+        srcAmount: BigNumber;
+    };
 }
 
 // enum ShiftStatus {
@@ -167,7 +174,24 @@ export class DexSDK {
     }
 
     public submitSwap = (address: string, commitment: Commitment, signature: Signature): PromiEvent<Transaction> => { // Promise<string> => new Promise<string>(async (resolve, reject) => {
-        const signatureBytes = `0x${signature.r}${signature.s}${parseInt(signature.v, 10) + 27}`;
+        console.log(signature);
+        if (signature.v === "") {
+            signature.v = "0";
+        }
+        const v = ((parseInt(signature.v, 10) + 27) || 27).toString(16);
+        const signatureBytes = `0x${signature.r}${signature.s}${v}`;
+
+        console.log([
+            commitment.srcToken, // _src: string
+            commitment.dstToken, // _dst: string
+            commitment.minDestinationAmount.toNumber(), // _minDstAmt: BigNumber
+            commitment.toAddress, // _to: string
+            commitment.refundBlockNumber, // _refundBN: BigNumber
+            commitment.refundAddress, // _refundAddress: string
+            `0x${signature.amount}`, // _amount: BigNumber
+            `0x${signature.txHash}`, // _hash: string
+            `${signatureBytes}`, // _sig: string
+        ])
 
         return getAdapter(this.web3).methods.trade(
             commitment.srcToken, // _src: string
@@ -175,10 +199,10 @@ export class DexSDK {
             commitment.minDestinationAmount.toNumber(), // _minDstAmt: BigNumber
             commitment.toAddress, // _to: string
             commitment.refundBlockNumber, // _refundBN: BigNumber
-            commitment.toAddress, // commitment.refundAddress, // _refundAddress: string
+            commitment.refundAddress, // _refundAddress: string
             `0x${signature.amount}`, // _amount: BigNumber
-            signature.txHash, // _hash: string
-            signatureBytes, // _sig: string
+            `0x${signature.txHash}`, // _hash: string
+            `${signatureBytes}`, // _sig: string
         ).send({ from: address });
         //     .on("transactionHash", (...x: any[]) => { console.log(x); resolve(...x); })
         //     .catch((...x: any[]) => { console.error(x); reject(...x); });

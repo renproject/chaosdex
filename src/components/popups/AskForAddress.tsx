@@ -14,7 +14,8 @@ export const AskForAddress: React.StatelessComponent<{
 }> = ({ token, message, onAddress, cancel }) => {
     // Defaults for demo
     console.log(token);
-    const [address, updateAddress] = React.useState(token === Token.BTC ? "mywUoqpsPeW2uUMabkQHY73HLGmUpbvXzu" : "0x797522Fb74d42bB9fbF6b76dEa24D01A538d5D66");
+    // const [address, updateAddress] = React.useState(token === Token.BTC ? "mywUoqpsPeW2uUMabkQHY73HLGmUpbvXzu" : "0x797522Fb74d42bB9fbF6b76dEa24D01A538d5D66");
+    const [address, updateAddress] = React.useState("");
 
     const submit = () => {
         onAddress(address);
