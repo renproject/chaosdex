@@ -23,7 +23,7 @@ const OrderHistoryEntry = (props: { order: HistoryEvent }) => {
                 <TokenIcon className="token-icon" token={props.order.dstToken} />
                 <span>Received {props.order.dstAmount.toFixed()} {props.order.dstToken}</span>
             </div>
-            <span>{naturalTime(props.order.time, { message: "Just now", suffix: "ago", countDown: false })}</span>
+            <span>{naturalTime(props.order.time, { message: "Just now", suffix: "ago", countDown: false, abbreviate: true })}</span>
         </div>
     );
 };
