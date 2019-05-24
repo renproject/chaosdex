@@ -1,5 +1,7 @@
 import * as React from "react";
 
+import i18next from "i18next";
+
 import { TokenIcon } from "@renex/react-components";
 import { withTranslation, WithTranslation } from "react-i18next";
 
@@ -9,12 +11,12 @@ import { HistoryEvent } from "../../state/containers/appContainer";
 
 import { naturalTime } from "../../lib/conversion";
 
-const OrderHistoryEntry = (props: { order: HistoryEvent }) => {
+const OrderHistoryEntry = (props: { order: HistoryEvent, t: i18next.TFunction }) => {
     return (
         <div className="swap--history--entry">
             <div className="token--info">
                 <TokenIcon className="token-icon" token={props.order.dstToken} />
-                <span className="received--text">Received</span><span className="token--amount">{props.order.dstAmount.toFixed()} {props.order.dstToken}</span>
+                <span className="received--text">{props.t("history.received")}</span><span className="token--amount">{props.order.dstAmount.toFixed()} {props.order.dstToken}</span>
             </div>
             <span className="swap--time">{naturalTime(props.order.time, { message: "Just now", suffix: "ago", countDown: false, abbreviate: true })}</span>
         </div>
@@ -30,15 +32,16 @@ class OrderHistoryClass extends React.Component<Props, {}> {
      * @dev Should have minimal computation, loops and anonymous functions.
      */
     public render(): React.ReactNode {
-        const { containers: [appContainer] } = this.props;
+        const { t, containers: [appContainer] } = this.props;
         return <>
             <div className="section history">
                 <div className="history--banner">
-                    <span>History</span>
+                    <span>{t("history.history")}</span>
                 </div>
                 <div className="history--list">
                     {appContainer.state.swapHistory.map(h => {
                         return <OrderHistoryEntry
+                            t={t}
                             key={`${h.commitment.refundBlockNumber}--${h.time}`}
                             order={h}
                         />;
