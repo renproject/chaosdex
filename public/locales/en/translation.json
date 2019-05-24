@@ -7,6 +7,10 @@
     "unsupported_token_pair": "Token pair not supported",
     "connect_to_trade": "Connect to trade"
   },
+  "history": {
+    "history": "History",
+    "received": "Received"
+  },
   "header": {
     "not_connected": "Not connected",
     "log_in": "Log in",

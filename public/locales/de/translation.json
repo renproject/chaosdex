@@ -8,6 +8,10 @@
     "unsupported_token_pair": "Token-Paar wird nicht unterstützt",
     "connect_to_trade": "[EN] Connect to trade"
   },
+  "history": {
+    "history": "Geschichte",
+    "received": "Empfangen"
+  },
   "header": {
     "not_connected": "Nicht verbunden",
     "log_in": "Einloggen",

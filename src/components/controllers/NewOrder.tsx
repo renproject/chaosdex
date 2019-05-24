@@ -41,6 +41,7 @@ class NewOrderClass extends React.Component<Props, typeof defaultState> {
                 <NewOrderInputs
                     marketPrice={marketPrice}
                 />
+                <div className="submit-swap-buttons">
                 {
                     market ?
                         <button
@@ -55,6 +56,7 @@ class NewOrderClass extends React.Component<Props, typeof defaultState> {
                             {t("new_order.unsupported_token_pair")}
                         </button>
                 }
+                </div>
             </div>
             {/*<div className="order--error red">{orderInputs.inputError.error}</div>*/}
             {submitting ? <OpeningOrder cancel={this.cancel} done={this.cancel} /> : <></>}
