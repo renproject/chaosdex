@@ -20,6 +20,7 @@ export interface HistoryEvent {
     transactionHash: string | undefined;
     commitment: Commitment;
     swapError: Error | undefined;
+    time: number; // Seconds since Unix epoch
 }
 
 const initialState = {
@@ -57,6 +58,7 @@ const initialState = {
         promiEvent: undefined as any,
         transactionHash: undefined,
         swapError: undefined,
+        time: Date.now() / 1000, // Convert from milliseconds to seconds
     }),
 };
 
@@ -196,6 +198,7 @@ export class AppContainer extends Container<typeof initialState> {
             transactionHash,
             commitment,
             swapError,
+            time: Date.now() / 1000,
         };
 
         await this.setState({ swapHistory: swapHistory.push(historyItem) });
