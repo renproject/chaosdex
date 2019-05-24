@@ -1,0 +1,20 @@
+.history .history--banner {
+    border-bottom: 2px solid #DBE0E8;
+    padding-left: 20px;
+
+    span {
+       color: #006FE8; 
+       font-size: 12;
+       font-weight: 500;
+       border-bottom: 2px solid #006FE8;
+    }
+}
+
+
+.history .swap--history--entry {
+    display: flex;
+    justify-content: space-between;
+    border-radius: 22px;
+    border: 1px solid #DBE0E8;
+    box-shadow: 0 1px 2px 0 rgba(0,27,58,0.05);
+}
