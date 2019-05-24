@@ -21,9 +21,25 @@
     border: 1px solid #DBE0E8;
     box-shadow: 0 1px 2px 0 rgba(0,27,58,0.05);
 
+    font-size: 12;
+    font-weight: 500;
 
-    .token--amounts {
+    .token--info {
         display: flex;
         align-items: center;
+    }
+
+    .received--text {
+        color: #9FA0A5;
+        margin-left: 10px;
+        margin-right: 7px;
+    }
+
+    .token--amount {
+        color: #58585B;
+    }
+
+    .swap--time {
+        color: #979797;
     }
 }
