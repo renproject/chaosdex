@@ -43,7 +43,21 @@ const initialState = {
     // tslint:disable-next-line: no-any
     signature: null as Signature | null,
     transactionHash: null as string | null,
-    swapHistory: List<HistoryEvent>(),
+    swapHistory: List<HistoryEvent>().push({
+        commitment: {
+            srcToken: "0x2a8368d2a983a0aeae8da0ebc5b7c03a0ea66b37",
+            dstToken: "0xc4375b7de8af5a38a93548eb8453a498222c4ff2",
+            minDestinationAmount: new BigNumber("0"),
+            srcAmount: new BigNumber("10000"),
+            toAddress: "0x797522Fb74d42bB9fbF6b76dEa24D01A538d5D66",
+            refundBlockNumber: 11111762,
+            refundAddress: "0x6fca15b7fa057863ee881130006817f12de46c3ad8ebe2d9de"
+        },
+        // tslint:disable-next-line: no-any
+        promiEvent: undefined as any,
+        transactionHash: undefined,
+        swapError: undefined,
+    }),
 };
 
 export type OrderData = typeof initialState.order;
@@ -67,7 +81,8 @@ export class AppContainer extends Container<typeof initialState> {
     }
 
     public updateBalanceReserves = async (): Promise<void> => {
-        const { balanceReserves, dexSDK } = this.state;
+        const { balanceReserves,
+            dexSDK } = this.state;
         let newBalanceReserves = balanceReserves;
         const marketPairs = [MarketPair.DAI_BTC, MarketPair.ETH_BTC, MarketPair.REN_BTC, MarketPair.ZEC_BTC];
         const res = await dexSDK.getReserveBalance(marketPairs); // Promise<Array<Map<Token, BigNumber>>> => {
@@ -128,6 +143,7 @@ export class AppContainer extends Container<typeof initialState> {
             refundBlockNumber: blockNumber + 100,
             refundAddress: btcAddressToHex(refundAddress),
         };
+        console.log(`Commitment: ${JSON.stringify(commitment)}`);
         const depositAddress = await dexSDK.generateAddress(order.srcToken, commitment);
         const depositAddressToken = order.srcToken;
         await this.setState({ commitment, depositAddress, depositAddressToken });

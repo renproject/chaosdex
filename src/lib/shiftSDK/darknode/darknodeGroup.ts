@@ -6,7 +6,7 @@ import { Chain } from "../shiftSDK";
 import { Lightnode } from "./darknode";
 import {
     HealthResponse, JSONRPCResponse, ReceiveMessageRequest, ReceiveMessageResponse,
-    RenVMReceiveMessageResponse, SendMessageRequest, SendMessageResponse,
+    SendMessageRequest, SendMessageResponse,
 } from "./types";
 
 // tslint:enable: no-unused-variable
