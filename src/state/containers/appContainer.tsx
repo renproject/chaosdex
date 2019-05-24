@@ -201,15 +201,15 @@ export class AppContainer extends Container<typeof initialState> {
             swapError = error;
         }
 
-        const historyItem: HistoryEvent = {
-            promiEvent,
-            transactionHash,
-            commitment,
-            swapError,
-            time: Date.now() / 1000,
-        };
+        // const historyItem: HistoryEvent = {
+        //     promiEvent,
+        //     transactionHash,
+        //     commitment,
+        //     swapError,
+        //     time: Date.now() / 1000,
+        // };
 
-        await this.setState({ swapHistory: swapHistory.push(historyItem) });
+        // await this.setState({ swapHistory: swapHistory.push(historyItem) });
     }
 
     public updateMessageStatus = async () => {
