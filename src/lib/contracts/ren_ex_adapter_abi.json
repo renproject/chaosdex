@@ -30,7 +30,7 @@
         "name": "_refundAddress",
         "type": "bytes"
     }, {
-        "name": "_amount",
+        "name": "_amount2",
         "type": "uint256"
     }, {
         "name": "_hash",
@@ -147,17 +147,6 @@
     "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
-}, {
-    "inputs": [{
-        "name": "_renex",
-        "type": "address"
-    }, {
-        "name": "_renshift",
-        "type": "address"
-    }],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "constructor"
 }, {
     "payable": true,
     "stateMutability": "payable",

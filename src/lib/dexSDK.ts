@@ -1,13 +1,15 @@
 import { kovan as kovanAddresses } from "@renex/contracts";
 import BigNumber from "bignumber.js";
 import Web3 from "web3";
+import { PromiEvent } from "web3-core";
 import { AbiItem } from "web3-utils";
 
 import { MarketPair, Token, Tokens } from "../state/generalTypes";
 import { ERC20DetailedWeb3 } from "./contracts/erc20";
 import { RenExWeb3 } from "./contracts/ren_ex";
-import { RenExAdapterWeb3 } from "./contracts/ren_ex_adapter";
+import { RenExAdapterWeb3, Transaction } from "./contracts/ren_ex_adapter";
 import { getReadonlyWeb3, getWeb3 } from "./getWeb3";
+import { Signature } from "./shiftSDK/darknode/darknodeGroup";
 import { Chain, ShiftSDK, UTXO } from "./shiftSDK/shiftSDK";
 
 const ERC20ABI = require("./contracts/erc20_abi.json");
@@ -164,33 +166,42 @@ export class DexSDK {
         return this.shiftSDK.shift(tokenToChain(token), transaction, await this.hashCommitment(commitment));
     }
 
-    public submitSwap = async (commitment: Commitment, signature: string): Promise<string> => new Promise<string>(async (resolve, reject) => {
-        console.log("Line: 0");
-        const accounts = await this.web3.eth.getAccounts();
-        console.log("Line: 1");
-        if (accounts.length === 0) {
-            console.log("Line: 2");
-            throw new Error(`No accounts found`);
-        }
-        console.log("Line: 4");
-        getAdapter(this.web3).methods.trade(
-            commitment.srcToken,
-            commitment.dstToken,
-            commitment.minDestinationAmount.toString(),
-            commitment.toAddress,
-            commitment.refundBlockNumber,
-            commitment.refundAddress,
-            0,
-            await this.hashCommitment(commitment),
-            signature,
-        ).send({ from: accounts[0] })
-            .on("transactionHash", resolve)
-            .catch(reject);
-        console.log("Line: 5");
-    })
+    public submitSwap = (address: string, commitment: Commitment, signature: Signature): PromiEvent<Transaction> => { // Promise<string> => new Promise<string>(async (resolve, reject) => {
+        const signatureBytes = `0x${signature.r}${signature.s}${parseInt(signature.v, 10) + 27}`;
+
+        return getAdapter(this.web3).methods.trade(
+            commitment.srcToken, // _src: string
+            commitment.dstToken, // _dst: string
+            commitment.minDestinationAmount.toNumber(), // _minDstAmt: BigNumber
+            commitment.toAddress, // _to: string
+            commitment.refundBlockNumber, // _refundBN: BigNumber
+            commitment.toAddress, // commitment.refundAddress, // _refundAddress: string
+            `0x${signature.amount}`, // _amount: BigNumber
+            signature.txHash, // _hash: string
+            signatureBytes, // _sig: string
+        ).send({ from: address });
+        //     .on("transactionHash", (...x: any[]) => { console.log(x); resolve(...x); })
+        //     .catch((...x: any[]) => { console.error(x); reject(...x); });
+        // console.log("Line: 5");
+
+        // getAdapter(this.web3).methods.trade(
+        //     commitment.srcToken,
+        //     commitment.dstToken,
+        //     commitment.minDestinationAmount.toString(),
+        //     commitment.toAddress,
+        //     commitment.refundBlockNumber,
+        //     commitment.refundAddress,
+        //     0,
+        //     await this.hashCommitment(commitment),
+        //     signature,
+        // ).send({ from: accounts[0] })
+        //     .on("transactionHash", resolve)
+        //     .catch(reject);
+        // console.log("Line: 5");
+    }
 
     // Retrieves the current progress of the shift
-    public shiftStatus = async (commitmentHash: string): Promise<string> => {
+    public shiftStatus = async (commitmentHash: string): Promise<Signature> => {
         return this.shiftSDK.shiftStatus(commitmentHash);
     }
 }

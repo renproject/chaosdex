@@ -47,7 +47,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
         const { confirmedTrade } = this.state;
         const {
             order: orderInput, toAddress, refundAddress, depositAddress, utxos,
-            messageID, messageResponse, transactionHash,
+            messageID, signature: messageResponse, transactionHash,
         } = this.appContainer.state;
 
         let submitPopup = <></>;
@@ -77,7 +77,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
             />;
         } else if (!utxos || utxos.length === 0) {
             submitPopup = <ShowDepositAddress
-                token={orderInput.dstToken}
+                token={orderInput.srcToken}
                 depositAddress={depositAddress}
                 cancel={this.cancel}
             />;
@@ -118,6 +118,8 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
             } catch (error) {
                 _catchBackgroundErr_(error);
             }
+        } else {
+            console.log(`No messageID!`);
         }
         if (this._responseTimer) { clearTimeout(this._responseTimer); }
         this._responseTimer = setTimeout(this.updateResponse, timeout);

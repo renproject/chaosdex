@@ -1,16 +1,26 @@
 import { Currency } from "@renex/react-components";
 import BigNumber from "bignumber.js";
-import { Map } from "immutable";
+import { List, Map } from "immutable";
 import { Container } from "unstated";
+import { PromiEvent } from "web3-core";
 
 import { tokenAddresses } from "../../lib/contractAddresses";
+import { Transaction } from "../../lib/contracts/ren_ex_adapter";
 import { Commitment, DexSDK, ReserveBalances } from "../../lib/dexSDK";
 import { estimatePrice } from "../../lib/estimatePrice";
 import { history } from "../../lib/history";
 import { getMarket, getTokenPricesInCurrencies } from "../../lib/market";
 import { btcAddressToHex } from "../../lib/shiftSDK/blockchain/btc";
+import { Signature } from "../../lib/shiftSDK/darknode/darknodeGroup";
 import { Chain, UTXO } from "../../lib/shiftSDK/shiftSDK";
 import { MarketPair, Token, Tokens } from "../generalTypes";
+
+export interface HistoryEvent {
+    promiEvent: PromiEvent<Transaction>;
+    transactionHash: string | undefined;
+    commitment: Commitment;
+    swapError: Error | undefined;
+}
 
 const initialState = {
     address: null as string | null,
@@ -31,8 +41,9 @@ const initialState = {
     utxos: null as UTXO[] | null,
     messageID: null as string | null,
     // tslint:disable-next-line: no-any
-    messageResponse: null as string | null,
+    signature: null as Signature | null,
     transactionHash: null as string | null,
+    swapHistory: List<HistoryEvent>(),
 };
 
 export type OrderData = typeof initialState.order;
@@ -107,7 +118,7 @@ export class AppContainer extends Container<typeof initialState> {
             throw new Error(`Required info is undefined (${toAddress}, ${refundAddress}, ${srcTokenDetails})`);
         }
         // FIXME!!!
-        const blockNumber = 11152976; // await dexSDK.web3.eth.getBlockNumber();
+        const blockNumber = await dexSDK.web3.eth.getBlockNumber(); // 11152976;
         const commitment: Commitment = {
             srcToken: tokenAddresses(order.srcToken, "testnet"),
             dstToken: tokenAddresses(order.dstToken, "testnet"),
@@ -149,12 +160,29 @@ export class AppContainer extends Container<typeof initialState> {
     }
 
     public submitSwap = async () => {
-        const { dexSDK, commitment, messageResponse } = this.state;
-        if (!commitment || !messageResponse) {
+        const { swapHistory, address, dexSDK, commitment, signature } = this.state;
+        if (!address || !commitment || !signature) {
             return;
         }
-        const transactionHash = await dexSDK.submitSwap(commitment, messageResponse);
-        await this.setState({ transactionHash });
+
+        const promiEvent = dexSDK.submitSwap(address, commitment, signature);
+
+        let transactionHash: string | undefined;
+        let swapError: Error | undefined;
+        try {
+            transactionHash = await new Promise((resolve, reject) => promiEvent.on("transactionHash", resolve));
+        } catch (error) {
+            swapError = error;
+        }
+
+        const historyItem: HistoryEvent = {
+            promiEvent,
+            transactionHash,
+            commitment,
+            swapError,
+        };
+
+        await this.setState({ swapHistory: swapHistory.push(historyItem) });
     }
 
     public updateMessageStatus = async () => {
@@ -162,8 +190,13 @@ export class AppContainer extends Container<typeof initialState> {
         if (!messageID) {
             return;
         }
-        const messageResponse = await dexSDK.shiftStatus(messageID);
-        await this.setState({ messageResponse });
+        try {
+            const messageResponse = await dexSDK.shiftStatus(messageID);
+            console.log(`messageResponse: ${messageResponse}`);
+            await this.setState({ signature: messageResponse });
+        } catch (error) {
+            console.error(error);
+        }
     }
 
     public cancelTrade = async () => {

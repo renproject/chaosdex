@@ -3,7 +3,7 @@ import { Contract } from "web3-eth-contract";
 
 import { BitcoinUTXO, createBTCTestnetAddress, getBTCTestnetUTXOs } from "./blockchain/btc";
 import { createZECTestnetAddress, getZECTestnetUTXOs, ZcashUTXO } from "./blockchain/zec";
-import { lightnodes, ShifterGroup } from "./darknode/darknodeGroup";
+import { lightnodes, ShifterGroup, Signature } from "./darknode/darknodeGroup";
 
 // export type Commitment = number | string | Buffer | Array<string | number | Buffer>;
 // const commitmentToBuffer = (commitment: Commitment): Buffer => {
@@ -48,7 +48,9 @@ export class ShiftSDK {
         switch (chain) {
             case Chain.Bitcoin:
                 console.log(`${this.adapter.address}, ${commitmentHash}`);
-                return createBTCTestnetAddress(this.adapter.address, commitmentHash);
+                const address = createBTCTestnetAddress(this.adapter.address, commitmentHash);
+                console.log(`Generating address with: this.adapter.address: ${this.adapter.address}, commitmentHash: ${commitmentHash} => address: ${address}`);
+                return address;
             case Chain.ZCash:
                 return createZECTestnetAddress(this.adapter.address, commitmentHash);
             default:
@@ -81,7 +83,7 @@ export class ShiftSDK {
     }
 
     // Retrieves the current progress of the shift
-    public shiftStatus = async (messageID: string): Promise<string> => {
+    public shiftStatus = async (messageID: string): Promise<Signature> => {
         return /*await*/ this.darknodeGroup.checkForResponse(messageID);
     }
 }

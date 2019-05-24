@@ -86,6 +86,7 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
                                     {orderInputs.dstToken}
                                     {" @ "}
                                     <CurrencyIcon currency={quoteCurrency} />
+                                    {/* tslint:disable-next-line: no-non-null-assertion no-unnecessary-type-assertion */}
                                     {tokenPrices.get(orderInputs.dstToken) ? tokenPrices.get(orderInputs.dstToken)!.get(quoteCurrency) : null}
                                     {quoteCurrency.toUpperCase()}
                                 </span>
