@@ -16,11 +16,16 @@ import { Chain, UTXO } from "../../lib/shiftSDK/shiftSDK";
 import { MarketPair, Token, Tokens } from "../generalTypes";
 
 export interface HistoryEvent {
-    promiEvent: PromiEvent<Transaction>;
-    transactionHash: string | undefined;
     commitment: Commitment;
-    swapError: Error | undefined;
+    srcToken: Token;
+    dstToken: Token;
+    srcAmount: BigNumber; // Normal units
+    dstAmount: BigNumber; // Normal units
     time: number; // Seconds since Unix epoch
+
+    promiEvent?: PromiEvent<Transaction>;
+    transactionHash?: string;
+    swapError?: Error;
 }
 
 const initialState = {
@@ -48,14 +53,17 @@ const initialState = {
         commitment: {
             srcToken: "0x2a8368d2a983a0aeae8da0ebc5b7c03a0ea66b37",
             dstToken: "0xc4375b7de8af5a38a93548eb8453a498222c4ff2",
-            minDestinationAmount: new BigNumber("0"),
-            srcAmount: new BigNumber("10000"),
+            minDestinationAmount: new BigNumber("6000000000000000000000"),
+            srcAmount: new BigNumber("100000000"),
             toAddress: "0x797522Fb74d42bB9fbF6b76dEa24D01A538d5D66",
             refundBlockNumber: 11111762,
             refundAddress: "0x6fca15b7fa057863ee881130006817f12de46c3ad8ebe2d9de"
         },
-        // tslint:disable-next-line: no-any
-        promiEvent: undefined as any,
+        srcToken: Token.BTC,
+        dstToken: Token.DAI,
+        srcAmount: new BigNumber(1),
+        dstAmount: new BigNumber(6345.1234),
+        promiEvent: undefined,
         transactionHash: undefined,
         swapError: undefined,
         time: Date.now() / 1000, // Convert from milliseconds to seconds
