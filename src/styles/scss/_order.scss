@@ -13,16 +13,11 @@
 }
 
 .section.order {
-    padding: 30px 0;
-    display: flex;
-    flex-flow: column;
-    align-items: center;
+    display: block;
 
-    @media(max-width: $max-md) {
-        border-radius: 16px;
-        padding: 30px;
+    .submit-swap-buttons {
+        text-align: center;
     }
-
     .submit-swap {
         width: 216px;
     }
@@ -34,14 +29,7 @@
 
 .order--wrapper {
     border-radius: 12px;
-    box-shadow: 0px 1px 2px rgba(0, 26, 58, 0.1); // 0.05);
-
-    width: calc(100% - 4px);
-
-    @media(min-width: $min-lg) {
-        width: 450px;
-        margin: 0 auto;
-    }
+    box-shadow: 0px 1px 2px rgba(0, 26, 58, 0.1);
 
     margin: 0 auto;
     position: relative;
