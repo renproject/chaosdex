@@ -11,7 +11,7 @@
     "@fortawesome/react-fontawesome": "^0.1.4",
     "@renex/contracts": "0.1.7",
     "@renex/fonts": "^1.0.1",
-    "@renex/react-components": "1.0.20",
+    "@renex/react-components": "https://github.com/renproject/react-components",
     "@sentry/browser": "^5.3.0",
     "@sentry/core": "^5.3.0",
     "@types/lodash": "^4.14.130",

@@ -1249,10 +1249,9 @@
   resolved "https://registry.yarnpkg.com/@renex/fonts/-/fonts-1.0.1.tgz#7967434b343d5cd31c575b633997677f33f6856c"
   integrity sha512-MXYgG1HVzILdXIzLC17ln33o6MU8p+wDjPmbKgvKpQGJNaT1eflhj078f+ha/VQ2IMs8B5PNZU1X9mDL4enMgQ==
 
-"@renex/react-components@1.0.20":
+"@renex/react-components@https://github.com/renproject/react-components":
   version "1.0.20"
-  resolved "https://registry.yarnpkg.com/@renex/react-components/-/react-components-1.0.20.tgz#e66afa9178e42599576067298906800a3c8a45a7"
-  integrity sha512-H/4/cnCZoVljB/U6YTUoB08/khOgnQ9sni7AFdTSEO62373e1jVWg9/LNW+1GRMLnfOQimSvZyj0Z+RVi0DsRA==
+  resolved "https://github.com/renproject/react-components#a44f94c0d6f843b1e0b5d91e71ef68825cf0283b"
   dependencies:
     "@fortawesome/fontawesome-svg-core" "^1.2.18"
     "@fortawesome/free-brands-svg-icons" "^5.8.2"
