@@ -4,11 +4,6 @@
   "private": true,
   "homepage": "https://testnet.ren.exchange/",
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^1.2.18",
-    "@fortawesome/free-brands-svg-icons": "^5.8.2",
-    "@fortawesome/free-regular-svg-icons": "^5.8.2",
-    "@fortawesome/free-solid-svg-icons": "^5.8.2",
-    "@fortawesome/react-fontawesome": "^0.1.4",
     "@renex/contracts": "0.1.7",
     "@renex/fonts": "^1.0.1",
     "@renex/react-components": "https://github.com/renproject/react-components",
