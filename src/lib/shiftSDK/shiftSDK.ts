@@ -47,10 +47,7 @@ export class ShiftSDK {
     public generateAddress = (chain: Chain, commitmentHash: string): string => {
         switch (chain) {
             case Chain.Bitcoin:
-                console.log(`${this.adapter.address}, ${commitmentHash}`);
-                const address = createBTCTestnetAddress(this.adapter.address, commitmentHash);
-                console.log(`Generating address with: this.adapter.address: ${this.adapter.address}, commitmentHash: ${commitmentHash} => address: ${address}`);
-                return address;
+                return createBTCTestnetAddress(this.adapter.address, commitmentHash);
             case Chain.ZCash:
                 return createZECTestnetAddress(this.adapter.address, commitmentHash);
             default:

@@ -129,19 +129,7 @@ export class DexSDK {
     }
 
     public hashCommitment = async (commitment: Commitment): Promise<string> => {
-
-        console.log(
-            [
-                commitment.srcToken,
-                commitment.dstToken,
-                commitment.minDestinationAmount.toNumber(),
-                commitment.toAddress,
-                commitment.refundBlockNumber,
-                commitment.refundAddress,
-            ]
-        );
-
-        const hash = await getAdapter(this.web3).methods.commitment(
+        return /*await*/ getAdapter(this.web3).methods.commitment(
             commitment.srcToken,
             commitment.dstToken,
             commitment.minDestinationAmount.toNumber(),
@@ -149,16 +137,12 @@ export class DexSDK {
             commitment.refundBlockNumber,
             commitment.refundAddress,
         ).call();
-
-        console.log(hash);
-        return hash;
     }
 
     // Takes a commitment as bytes or an array of primitive types and returns
     // the deposit address
     public generateAddress = async (token: Token, commitment: Commitment): Promise<string> => {
         const commitmentHash = await this.hashCommitment(commitment);
-        console.log(`commitmentHash: ${commitmentHash}`);
         return this.shiftSDK.generateAddress(tokenToChain(token), commitmentHash);
     }
 
@@ -174,14 +158,13 @@ export class DexSDK {
     }
 
     public submitSwap = (address: string, commitment: Commitment, signature: Signature): PromiEvent<Transaction> => { // Promise<string> => new Promise<string>(async (resolve, reject) => {
-        console.log(signature);
         if (signature.v === "") {
             signature.v = "0";
         }
         const v = ((parseInt(signature.v, 10) + 27) || 27).toString(16);
         const signatureBytes = `0x${signature.r}${signature.s}${v}`;
 
-        console.log([
+        const params: [string, string, number, string, number, string, string, string, string] = [
             commitment.srcToken, // _src: string
             commitment.dstToken, // _dst: string
             commitment.minDestinationAmount.toNumber(), // _minDstAmt: BigNumber
@@ -191,37 +174,18 @@ export class DexSDK {
             `0x${signature.amount}`, // _amount: BigNumber
             `0x${signature.txHash}`, // _hash: string
             `${signatureBytes}`, // _sig: string
-        ])
+        ];
+
+        console.groupCollapsed("Swap details");
+        console.log(`Commitment`);
+        console.table(commitment);
+        console.log(`Call parameters`);
+        console.table(params);
+        console.groupEnd();
 
         return getAdapter(this.web3).methods.trade(
-            commitment.srcToken, // _src: string
-            commitment.dstToken, // _dst: string
-            commitment.minDestinationAmount.toNumber(), // _minDstAmt: BigNumber
-            commitment.toAddress, // _to: string
-            commitment.refundBlockNumber, // _refundBN: BigNumber
-            commitment.refundAddress, // _refundAddress: string
-            `0x${signature.amount}`, // _amount: BigNumber
-            `0x${signature.txHash}`, // _hash: string
-            `${signatureBytes}`, // _sig: string
+            ...params,
         ).send({ from: address });
-        //     .on("transactionHash", (...x: any[]) => { console.log(x); resolve(...x); })
-        //     .catch((...x: any[]) => { console.error(x); reject(...x); });
-        // console.log("Line: 5");
-
-        // getAdapter(this.web3).methods.trade(
-        //     commitment.srcToken,
-        //     commitment.dstToken,
-        //     commitment.minDestinationAmount.toString(),
-        //     commitment.toAddress,
-        //     commitment.refundBlockNumber,
-        //     commitment.refundAddress,
-        //     0,
-        //     await this.hashCommitment(commitment),
-        //     signature,
-        // ).send({ from: accounts[0] })
-        //     .on("transactionHash", resolve)
-        //     .catch(reject);
-        // console.log("Line: 5");
     }
 
     // Retrieves the current progress of the shift

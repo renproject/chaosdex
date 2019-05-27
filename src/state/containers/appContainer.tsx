@@ -124,15 +124,14 @@ export class AppContainer extends Container<typeof initialState> {
         if (!toAddress || !refundAddress || !srcTokenDetails) {
             throw new Error(`Required info is undefined (${toAddress}, ${refundAddress}, ${srcTokenDetails})`);
         }
-        // FIXME!!!
-        const blockNumber = await dexSDK.web3.eth.getBlockNumber(); // 11152976;
+        const blockNumber = await dexSDK.web3.eth.getBlockNumber();
         const commitment: Commitment = {
             srcToken: tokenAddresses(order.srcToken, "testnet"),
             dstToken: tokenAddresses(order.dstToken, "testnet"),
             minDestinationAmount: new BigNumber(0),
             srcAmount: new BigNumber(order.sendVolume).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals)),
             toAddress,
-            refundBlockNumber: blockNumber + 100,
+            refundBlockNumber: blockNumber + 360, // 360 blocks (assuming 0.1bps, equals 1 hour)
             refundAddress: btcAddressToHex(refundAddress),
             originals: {
                 srcToken: order.srcToken,
@@ -141,7 +140,6 @@ export class AppContainer extends Container<typeof initialState> {
                 srcAmount: new BigNumber(order.sendVolume),
             }
         };
-        console.log(`Commitment: ${JSON.stringify(commitment)}`);
         const depositAddress = await dexSDK.generateAddress(order.srcToken, commitment);
         const depositAddressToken = order.srcToken;
         await this.setState({ commitment, depositAddress, depositAddressToken });
@@ -212,8 +210,6 @@ export class AppContainer extends Container<typeof initialState> {
         }
         try {
             const messageResponse = await dexSDK.shiftStatus(messageID);
-            console.log(`messageResponse:`);
-            console.log(messageResponse);
             await this.setState({ signature: messageResponse });
         } catch (error) {
             console.error(error);

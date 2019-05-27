@@ -30,7 +30,6 @@ export const getBTCTestnetUTXOs = getUTXOs<BitcoinUTXO>(testnetMercury);
 //     return (await getUTXOs<RawUTXO>(testnetMercury)(address, limit, confirmations)).map(raw => new BitcoinUTXO(raw));
 // };
 
-console.log(`testnetMasterPKH: ${testnetMasterPKH}`);
 export const createBTCTestnetAddress = createBTCAddress({ mainnet: false, masterPKH: testnetMasterPKH });
 
 export const btcAddressToHex = (address: string) => `0x${decode58(address).toString("hex")}`;

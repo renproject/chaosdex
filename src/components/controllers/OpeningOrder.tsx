@@ -114,8 +114,6 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
             } catch (error) {
                 _catchBackgroundErr_(error);
             }
-        } else {
-            console.log(`No messageID!`);
         }
         if (this._responseTimer) { clearTimeout(this._responseTimer); }
         this._responseTimer = setTimeout(this.updateResponse, timeout);

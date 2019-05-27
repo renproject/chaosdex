@@ -14,7 +14,14 @@
   "header": {
     "not_connected": "Not connected",
     "log_in": "Log in",
-    "log_out": "Log out"
+    "log_out": "Log out",
+    "copied": "Copied",
+    "copy_to_clipboard": "Copy to clipboard"
+  },
+  "popup": {
+    "receive": "Receive",
+    "confirm": "Confirm",
+    "confirm_trade": "Confirm Trade"
   },
   "language": {
     "english": "English",

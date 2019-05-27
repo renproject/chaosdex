@@ -18,7 +18,7 @@ export const createAddress =
             (mintToAddress: string, commitmentHash: string) =>
                 new script()
                     .add(hashPayload(mintToAddress, commitmentHash))
-                    .add(mintToAddress)
+                    // .add(mintToAddress) // Is this meant to be here?
                     .add(opcode.OP_DROP)
                     .add(opcode.OP_DUP)
                     .add(opcode.OP_HASH160)

@@ -51,9 +51,9 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
                                 <li role="button" onClick={this.copyToClipboard} className="header--dropdown--option">
                                     <span data-addr={address}>
                                         {copied ?
-                                            <span>Copied</span>
+                                            <span>{t("header.copied")}</span>
                                             :
-                                            <span>Copy to clipboard</span>
+                                            <span>{t("header.copy_to_clipboard")}</span>
                                         }
                                     </span>
                                 </li>
