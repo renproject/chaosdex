@@ -1,7 +1,0 @@
-@include themify($themes) {
-
-    .console {
-        background-color: themed('background');
-        color: themed('foreground');
-    }
-}

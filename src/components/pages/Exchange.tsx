@@ -1,73 +1,61 @@
 import * as qs from "query-string";
 import * as React from "react";
 
+import { Loading } from "@renex/react-components";
 import { RouteComponentProps } from "react-router";
 
-import { Loading } from "@renex/react-components";
-import { NewOrder } from "../../components/NewOrder";
-import { _captureInteractionException_ } from "../../lib/errors";
+import { _catchInteractionErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
-import { OrderContainer } from "../../state/containers";
-import { Token } from "../../store/types/general";
+import { AppContainer } from "../../state/containers";
+import { Token } from "../../state/generalTypes";
+import { NewOrder } from "../controllers/NewOrder";
 import { _catch_ } from "../views/ErrorBoundary";
 
 /**
- * Home is a page whose principal component allows users to open orders.
+ * Exchange is the main token-swapping page.
  */
-class ExchangeClass extends React.Component<Props, Exchange> {
-    private readonly orderContainer: OrderContainer;
+export const Exchange = connect<RouteComponentProps & ConnectedProps<[AppContainer]>>([AppContainer])(
+    ({ containers: [appContainer], location }) => {
 
-    constructor(props: Props) {
-        super(props);
-        [this.orderContainer] = this.props.containers;
-    }
+        // useEffect replaces `componentDidMount` and `componentDidUpdate`.
+        // To limit it to running once, we use the initialized hook.
+        const [initialized, setInitialized] = React.useState(false);
+        React.useEffect(() => {
+            if (!initialized) {
 
-    public componentDidMount(): void {
-        try {
-            const queryParams = qs.parse(this.props.location.search);
-
-            // Set market pair based on URL
-            const sendToken = queryParams.send;
-            const receiveToken = queryParams.receive;
-
-            if (sendToken) {
-                this.orderContainer.updateSendToken(sendToken as Token);
+                /*
+                 * Set the URL based on the URL
+                 * e.g. `URL?send=ETH&receive=DAI` will set the tokens to ETH
+                 * and DAI.
+                 */
+                try {
+                    const queryParams = qs.parse(location.search);
+                    if (queryParams.send) {
+                        appContainer.updateSrcToken(queryParams.send as Token).catch(_catchInteractionErr_);
+                    }
+                    if (queryParams.receive) {
+                        appContainer.updateDstToken(queryParams.receive as Token).catch(_catchInteractionErr_);
+                    }
+                } catch (error) {
+                    _catchInteractionErr_(error, {
+                        description: "Error in Exchange.effect",
+                        shownToUser: "No",
+                    });
+                }
+                setInitialized(true);
             }
+        }, [initialized, location.search, appContainer]);
 
-            if (receiveToken) {
-                this.orderContainer.updateReceiveToken(receiveToken as Token);
-            }
-        } catch (error) {
-            _captureInteractionException_(error, {
-                description: "Error in Exchange.componentDidMount",
-                shownToUser: "No",
-            });
-        }
-    }
-
-    /**
-     * The main render function.
-     * @dev Should have minimal computation, loops and anonymous functions.
-     */
-    public render = (): React.ReactNode => {
         return <div className="exchange">
             <div className="content container exchange-inner">
                 <div className="exchange--center">
                     {_catch_(
                         <React.Suspense fallback={<Loading />}>
-                            <NewOrder disabled={false} />
+                            <NewOrder />
                         </React.Suspense>
                     )}
                 </div>
             </div>
         </div>;
     }
-}
-
-interface Props extends ConnectedProps, RouteComponentProps {
-}
-
-interface Exchange {
-}
-
-export const Exchange = connect<Props>([OrderContainer])(ExchangeClass);
+);

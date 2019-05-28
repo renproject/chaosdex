@@ -1,6 +1,5 @@
 import * as Sentry from "@sentry/browser";
 
-import { _catch_ } from "../components/views/ErrorBoundary";
 import { environment, NETWORK, SENTRY_DSN, SOURCE_VERSION } from "./environmentVariables";
 import { pageLoadedAt } from "./errors";
 
@@ -47,5 +46,5 @@ export const onLoad = (title: string) => {
     }
 
     // tslint:disable-next-line: no-console
-    console.log(`${title} version hash: ${SOURCE_VERSION}`);
+    console.debug(`${title} version hash: ${SOURCE_VERSION}`);
 };

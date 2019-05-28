@@ -1,10 +1,12 @@
 {
+  "TODO": "Replace lines tagged with [EN]",
   "new_order": {
     "spend": "Verbringen",
     "receive": "Erhalten",
     "trade": "Handel",
     "based_on_market_price": "Basierend auf dem Marktpreis.",
-    "unsupported_token_pair": "Token-Paar wird nicht unterstützt"
+    "unsupported_token_pair": "Token-Paar wird nicht unterstützt",
+    "connect_to_trade": "[EN] Connect to trade"
   },
   "header": {
     "not_connected": "Nicht verbunden",

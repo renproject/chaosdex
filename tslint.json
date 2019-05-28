@@ -44,7 +44,7 @@
         "prefer-array-literal": false,
         "match-default-export-name": false,
         "function-name": false,
-        "no-return-await": false,
+        // "no-return-await": false,
         // "ter-indent": false,
 
         // Warnings

@@ -2,21 +2,20 @@ import { Container } from "unstated";
 
 import { Currency } from "@renex/react-components";
 
-import { UITheme } from "../../store/types/general";
-import { OptionsData } from "../storeTypes";
+import { UITheme } from "../generalTypes";
 
-const initialState: OptionsData = {
+const initialState = {
     preferredCurrency: Currency.USD,
     theme: UITheme.Light,
 };
 
-export class OptionsContainer extends Container<OptionsData> {
+export class OptionsContainer extends Container<typeof initialState> {
     public state = initialState;
 
-    constructor() {
-        super();
-        // TODO: fetch preferred currency
-    }
+    // constructor() {
+    //     super();
+    //     // TODO: fetch preferred currency
+    // }
 
     public setCurrency = async (preferredCurrency: Currency) => {
         await this.setState({ preferredCurrency });

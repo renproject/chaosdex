@@ -1,23 +1,26 @@
 // tslint:disable:no-any
-
 import * as React from "react";
 
-import { Subscribe } from "unstated";
+import { Container, Subscribe } from "unstated";
 
-export interface ConnectedProps {
-    containers: any[];
+export interface AnyConnectedProps {
+    containers: Array<Container<any>>;
+}
+export interface ConnectedProps<Containers extends any[]> {
+    containers: Containers;
 }
 
 type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
+type GetContainers<Props> = Props extends ConnectedProps<infer Containers> ?
+    Containers : never;
+type GetContainerClasses<Props> = Props extends ConnectedProps<Array<infer ContainerInstance>> ?
+    Array<new (...params: any[]) => ContainerInstance> : never;
+
 // Somewhat typesafe version of https://github.com/goncy/unstated-connect
-// tslint:disable-next-line:only-arrow-functions
-export function connect<X extends ConnectedProps>(_containers: any[]) {
-    return (Component: React.ComponentClass<X>) => (props: Omit<X, "containers">) => (
+export const connect = <Props extends AnyConnectedProps>(_containers: GetContainerClasses<Props>) =>
+    (Component: React.ComponentClass<Props & ConnectedProps<GetContainers<Props>>> | React.StatelessComponent<Props & ConnectedProps<GetContainers<Props>>>) => (props: Omit<Props, "containers">) => (
         <Subscribe to={_containers}>
-            {(...containers) => <Component {...({ ...props, containers } as unknown as X)} />}
+            {(...containers) => <Component {...({ ...props, containers } as unknown as Props & ConnectedProps<GetContainers<Props>>)} />}
         </Subscribe>
     );
-}
-
-// tslint:enable:no-any

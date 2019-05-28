@@ -4,9 +4,10 @@
     "receive": "Receive",
     "trade": "Trade",
     "based_on_market_price": "Based on market price.",
-    "unsupported_token_pair": "Token pair not supported"
+    "unsupported_token_pair": "Token pair not supported",
+    "connect_to_trade": "Connect to trade"
   },
-  "header" : {
+  "header": {
     "not_connected": "Not connected",
     "log_in": "Log in",
     "log_out": "Log out"

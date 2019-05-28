@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/browser";
 import * as React from "react";
 
-import { _captureComponentException_ } from "../../lib/errors";
+import { _catchComponentErr_ } from "../../lib/errors";
 
 class ErrorBoundary extends React.Component<Props, State> {
     constructor(props: Props) {
@@ -14,7 +14,7 @@ class ErrorBoundary extends React.Component<Props, State> {
             error,
             errorInfo,
         });
-        _captureComponentException_(error, errorInfo);
+        _catchComponentErr_(error, errorInfo);
     }
 
     /**
@@ -24,21 +24,19 @@ class ErrorBoundary extends React.Component<Props, State> {
     public render(): React.ReactNode {
         if (this.state.errorInfo) {
             // Error path
-            return (
-                <div className={this.props.popup ? "popup" : ""}>
-                    <h2>Something went wrong.</h2>
-                    <details style={{ whiteSpace: "pre-wrap" }}>
-                        {this.state.error && this.state.error.toString()}
-                        <br />
-                        {this.state.errorInfo.componentStack}
-                    </details>
-                    {this.props.popup ? <div className="popup--buttons">
-                        <button onClick={this.reportFeedback}>Report feedback</button>
-                        <button onClick={this.props.onCancel}>Close</button>
-                    </div> : null
-                    }
-                </div>
-            );
+            return <div className={this.props.popup ? "popup" : ""}>
+                <h2>Something went wrong.</h2>
+                <details style={{ whiteSpace: "pre-wrap" }}>
+                    {this.state.error && this.state.error.toString()}
+                    <br />
+                    {this.state.errorInfo.componentStack}
+                </details>
+                {this.props.popup ? <div className="popup--buttons">
+                    <button onClick={this.reportFeedback}>Report feedback</button>
+                    <button onClick={this.props.onCancel}>Close</button>
+                </div> : null
+                }
+            </div>;
         }
         // Normally, just render children
         return this.props.children;
