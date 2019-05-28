@@ -42,6 +42,15 @@
     >div+div+div {
         border-radius: 0 0 12px 12px;
     }
+
+    .order--tabs {
+        position: absolute;
+        top: 105px;
+
+        span {
+            border: none;
+        }
+    }
 }
 
 .order--wrapper p {

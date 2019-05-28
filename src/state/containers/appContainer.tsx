@@ -49,7 +49,6 @@ const initialState = {
     messageID: null as string | null,
     // tslint:disable-next-line: no-any
     signature: null as Signature | null,
-    swapHistory: List<HistoryEvent>(),
 };
 
 export type OrderData = typeof initialState.order;
@@ -171,10 +170,10 @@ export class AppContainer extends Container<typeof initialState> {
         await this.setState({ messageID });
     }
 
-    public submitSwap = async () => {
-        const { swapHistory, address, dexSDK, commitment, signature } = this.state;
+    public submitSwap = async (): Promise<HistoryEvent | null> => {
+        const { address, dexSDK, commitment, signature } = this.state;
         if (!address || !commitment || !signature) {
-            return;
+            return null;
         }
 
         const promiEvent = dexSDK.submitSwap(address, commitment, signature);
@@ -199,8 +198,9 @@ export class AppContainer extends Container<typeof initialState> {
             dstAmount: commitment.originals.dstAmount,
         };
 
-        await this.setState({ swapHistory: swapHistory.push(historyItem) });
-        await this.cancelTrade();
+        // await this.setState({ swapHistory: swapHistory.push(historyItem) });
+        await this.resetTrade();
+        return historyItem;
     }
 
     public updateMessageStatus = async () => {
@@ -222,7 +222,7 @@ export class AppContainer extends Container<typeof initialState> {
         });
     }
 
-    public cancelTrade = async () => {
+    public resetTrade = async () => {
         await this.setState({
             submitting: false,
             toAddress: null,

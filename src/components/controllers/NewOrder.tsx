@@ -6,6 +6,7 @@ import { withTranslation, WithTranslation } from "react-i18next";
 import { getMarket } from "../../lib/market";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer } from "../../state/containers";
+import { HistoryEvent } from "../../state/containers/appContainer";
 import { NewOrderInputs } from "./NewOrderInputs";
 import { OpeningOrder } from "./OpeningOrder";
 
@@ -50,7 +51,7 @@ class NewOrderClass extends React.Component<Props> {
                 </div>
             </div>
             {/*<div className="order--error red">{orderInputs.inputError.error}</div>*/}
-            {appContainer.state.submitting ? <OpeningOrder cancel={this.cancel} done={this.cancel} /> : <></>}
+            {appContainer.state.submitting ? <OpeningOrder cancel={this.cancel} done={this.cancel} swapSubmitted={this.props.swapSubmitted} /> : <></>}
         </>;
     }
 
@@ -64,6 +65,7 @@ class NewOrderClass extends React.Component<Props> {
 }
 
 interface Props extends ConnectedProps<[AppContainer]>, WithTranslation {
+    swapSubmitted: (h: HistoryEvent) => void;
 }
 
 export const NewOrder = withTranslation()(connect<Props>([AppContainer])(NewOrderClass));
