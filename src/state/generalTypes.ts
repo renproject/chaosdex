@@ -44,3 +44,13 @@ export type TokenPrices = Map<Token, Map<Currency, number>>;
 
 // tslint:disable-next-line: ban-types
 export type PopupID = Symbol;
+
+export interface StoredHistoryEvent {
+    srcToken: Token;
+    dstToken: Token;
+    srcAmount: string; // Normal units
+    dstAmount: string; // Normal units
+    time: number; // Seconds since Unix epoch
+    transactionHash?: string;
+    refundBlockNumber: number;
+}

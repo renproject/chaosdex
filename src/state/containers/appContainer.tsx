@@ -171,10 +171,10 @@ export class AppContainer extends Container<typeof initialState> {
         await this.setState({ messageID });
     }
 
-    public submitSwap = async () => {
+    public submitSwap = async (): Promise<HistoryEvent | null> => {
         const { swapHistory, address, dexSDK, commitment, signature } = this.state;
         if (!address || !commitment || !signature) {
-            return;
+            return null;
         }
 
         const promiEvent = dexSDK.submitSwap(address, commitment, signature);
@@ -199,8 +199,9 @@ export class AppContainer extends Container<typeof initialState> {
             dstAmount: commitment.originals.dstAmount,
         };
 
-        await this.setState({ swapHistory: swapHistory.push(historyItem) });
-        await this.cancelTrade();
+        // await this.setState({ swapHistory: swapHistory.push(historyItem) });
+        await this.resetTrade();
+        return historyItem;
     }
 
     public updateMessageStatus = async () => {
@@ -222,7 +223,7 @@ export class AppContainer extends Container<typeof initialState> {
         });
     }
 
-    public cancelTrade = async () => {
+    public resetTrade = async () => {
         await this.setState({
             submitting: false,
             toAddress: null,
