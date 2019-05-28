@@ -12,6 +12,7 @@ import { DepositReceived } from "../popups/DepositReceived";
 import { Popup } from "../popups/Popup";
 import { ShowDepositAddress } from "../popups/ShowDepositAddress";
 import { SubmitToEthereum } from "../popups/SubmitToEthereum";
+import { Token } from "../../state/generalTypes";
 
 const defaultState = { // Entries must be immutable
     confirmedTrade: false,
@@ -76,6 +77,8 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
                 onAddress={this.onRefundAddress}
                 cancel={this.cancel}
             />;
+        } else if ([Token.DAI, Token.REN].includes(orderInput.srcToken)) {
+            submitPopup = <><button onClick={this.shiftERC20}>Do the thing</button></>;
         } else if (!utxos || utxos.length === 0) {
             submitPopup = <ShowDepositAddress
                 token={orderInput.srcToken}
@@ -149,6 +152,10 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
         this.setState({ confirmedTrade: false, });
         this.appContainer.resetTrade().catch(_catchInteractionErr_);
         this.props.cancel();
+    }
+
+    private readonly shiftERC20 = () => {
+        this.appContainer.shiftERC20();
     }
 }
 

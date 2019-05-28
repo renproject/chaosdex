@@ -124,14 +124,22 @@ export class AppContainer extends Container<typeof initialState> {
             throw new Error(`Required info is undefined (${toAddress}, ${refundAddress}, ${srcTokenDetails})`);
         }
         const blockNumber = await dexSDK.web3.eth.getBlockNumber();
+        let hexRefundAddress = refundAddress;
+        if (order.srcToken === Token.BTC) {
+            hexRefundAddress = btcAddressToHex(refundAddress);
+        }
+        let hexToAddress = toAddress;
+        if (order.dstToken === Token.BTC) {
+            hexToAddress = btcAddressToHex(toAddress);
+        }
         const commitment: Commitment = {
             srcToken: tokenAddresses(order.srcToken, "testnet"),
             dstToken: tokenAddresses(order.dstToken, "testnet"),
             minDestinationAmount: new BigNumber(0),
             srcAmount: new BigNumber(order.sendVolume).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals)),
-            toAddress,
+            toAddress: hexToAddress,
             refundBlockNumber: blockNumber + 360, // 360 blocks (assuming 0.1bps, equals 1 hour)
-            refundAddress: btcAddressToHex(refundAddress),
+            refundAddress: hexRefundAddress,
             originals: {
                 srcToken: order.srcToken,
                 dstToken: order.dstToken,
@@ -139,9 +147,13 @@ export class AppContainer extends Container<typeof initialState> {
                 srcAmount: new BigNumber(order.sendVolume),
             }
         };
-        const depositAddress = await dexSDK.generateAddress(order.srcToken, commitment);
-        const depositAddressToken = order.srcToken;
-        await this.setState({ commitment, depositAddress, depositAddressToken });
+        if ([Token.ETH, Token.DAI, Token.REN].includes(order.srcToken)) {
+            await this.setState({ commitment });
+        } else {
+            const depositAddress = await dexSDK.generateAddress(order.srcToken, commitment);
+            const depositAddressToken = order.srcToken;
+            await this.setState({ commitment, depositAddress, depositAddressToken });
+        }
     }
 
     public updateDeposits = async () => {
@@ -232,6 +244,14 @@ export class AppContainer extends Container<typeof initialState> {
             depositAddressToken: null,
             utxos: null,
         });
+    }
+
+    public shiftERC20 = async () => {
+        const { address, dexSDK, commitment } = this.state;
+        if (!address || !commitment) {
+            return;
+        }
+        await dexSDK.shiftERC20(address, commitment);
     }
 
     private readonly updateReceiveValue = async (): Promise<void> => {

@@ -188,6 +188,45 @@ export class DexSDK {
         ).send({ from: address });
     }
 
+    public shiftERC20 = async (address: string, commitment: Commitment): Promise<void> => {
+        const tokenAddress = commitment.srcToken;
+        const tokenInstance = getERC20(this.web3, tokenAddress);
+        // console.log(`Approving contract for use of: ${commitment.srcAmount.toString()}`);
+        const promiEvent = tokenInstance.methods.approve(
+            getAdapter(this.web3).address,
+            commitment.srcAmount.times(2).toString()
+        ).send({ from: address });
+        let transactionHash: string | undefined;
+        transactionHash = await new Promise((resolve, reject) => promiEvent.on("transactionHash", resolve));
+        console.log(transactionHash);
+
+        const allowance = await tokenInstance.methods.allowance(address, getAdapter(this.web3).address).call();
+        console.log(`allowance is: ${allowance.toString()}`);
+
+        const params: [string, string, number, string, number, string, string, string, string] = [
+            commitment.srcToken, // _src: string
+            commitment.dstToken, // _dst: string
+            commitment.minDestinationAmount.toNumber(), // _minDstAmt: BigNumber
+            commitment.toAddress, // _to: string
+            commitment.refundBlockNumber, // _refundBN: BigNumber
+            commitment.refundAddress, // _refundAddress: string
+            commitment.srcAmount.toString(), // _amount: BigNumber
+            "0x0000000000000000000000000000000000000000000000000000000000000000", // _hash: string
+            "0x0000000000000000000000000000000000000000000000000000000000000000", // _sig: string
+        ];
+
+        console.groupCollapsed("Swap details");
+        console.log(`Commitment`);
+        console.table(commitment);
+        console.log(`Call parameters`);
+        console.table(params);
+        console.groupEnd();
+
+        await getAdapter(this.web3).methods.trade(
+            ...params,
+        ).send({ from: address });
+    }
+
     // Retrieves the current progress of the shift
     public shiftStatus = async (commitmentHash: string): Promise<Signature> => {
         return this.shiftSDK.shiftStatus(commitmentHash);
