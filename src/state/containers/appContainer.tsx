@@ -49,7 +49,6 @@ const initialState = {
     messageID: null as string | null,
     // tslint:disable-next-line: no-any
     signature: null as Signature | null,
-    swapHistory: List<HistoryEvent>(),
 };
 
 export type OrderData = typeof initialState.order;
@@ -172,7 +171,7 @@ export class AppContainer extends Container<typeof initialState> {
     }
 
     public submitSwap = async (): Promise<HistoryEvent | null> => {
-        const { swapHistory, address, dexSDK, commitment, signature } = this.state;
+        const { address, dexSDK, commitment, signature } = this.state;
         if (!address || !commitment || !signature) {
             return null;
         }
