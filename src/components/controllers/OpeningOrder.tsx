@@ -127,10 +127,8 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     private readonly submitSwap = async () => {
         const historyItem = await this.appContainer.submitSwap().catch(_catchInteractionErr_);
         if (!historyItem || !this.props.swapSubmitted) {
-            console.log("an error occurred when submitting swap");
             return;
         }
-        console.log(historyItem);
         this.props.swapSubmitted(historyItem);
     }
 
