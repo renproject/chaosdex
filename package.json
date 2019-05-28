@@ -38,6 +38,7 @@
     "throttle-debounce": "^2.1.0",
     "typesafe-actions": "^4.4.0",
     "unstated": "^2.1.1",
+    "use-persisted-state": "^0.3.0",
     "web3": "^1.0.0-beta.50"
   },
   "devDependencies": {
