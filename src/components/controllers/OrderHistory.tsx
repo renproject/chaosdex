@@ -1,23 +1,26 @@
 import * as React from "react";
 
 import i18next from "i18next";
+
 import { TokenIcon } from "@renex/react-components";
 import { withTranslation, WithTranslation } from "react-i18next";
 
 import { naturalTime } from "../../lib/conversion";
+import { ETHERSCAN } from "../../lib/environmentVariables";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer } from "../../state/containers";
 import { HistoryEvent } from "../../state/containers/appContainer";
 
 const OrderHistoryEntry = (props: { order: HistoryEvent, t: i18next.TFunction }) => {
+    const etherscanUrl = props.order.transactionHash ? `${ETHERSCAN}/tx/${props.order.transactionHash}` : undefined;
     return (
-        <div className="swap--history--entry">
+        <a className="swap--history--entry" target="_blank" rel="noopener noreferrer" href={etherscanUrl} >
             <div className="token--info">
                 <TokenIcon className="token-icon" token={props.order.dstToken} />
                 <span className="received--text">{props.t("history.received")}</span><span className="token--amount">{props.order.dstAmount.toFixed()} {props.order.dstToken}</span>
             </div>
             <span className="swap--time">{naturalTime(props.order.time, { message: "Just now", suffix: "ago", countDown: false, abbreviate: true })}</span>
-        </div>
+        </a>
     );
 };
 
