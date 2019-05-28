@@ -26,10 +26,10 @@ export const tokenAddresses = (token: Token, ethNetwork: string): string => {
                 case Token.ETH:
                     return "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
                 case Token.BTC:
-                    return "0x2a8368d2a983a0aeae8da0ebc5b7c03a0ea66b37";
+                    return "0xFd44199b94EA4398aEa3dD5E1014e550D4cC5b9B";
                 case Token.ZEC:
                     return "0xd67256552f93b39ac30083b4b679718a061feae6";
-                    return "0x7d6D31326b12B6CBd7f054231D47CbcD16082b71";
+                // return "0x7d6D31326b12B6CBd7f054231D47CbcD16082b71";
                 case Token.REN:
                     return "0x2cd647668494c1b15743ab283a0f980d90a87394";
             }

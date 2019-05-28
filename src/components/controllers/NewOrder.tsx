@@ -9,18 +9,10 @@ import { AppContainer } from "../../state/containers";
 import { NewOrderInputs } from "./NewOrderInputs";
 import { OpeningOrder } from "./OpeningOrder";
 
-const defaultState = { // Entries must be immutable
-    submitting: false,
-};
-
 /**
  * NewOrder is a visual component for allowing users to open new orders
  */
-class NewOrderClass extends React.Component<Props, typeof defaultState> {
-    constructor(props: Props) {
-        super(props);
-        this.state = defaultState;
-    }
+class NewOrderClass extends React.Component<Props> {
 
     /**
      * The main render function.
@@ -28,7 +20,6 @@ class NewOrderClass extends React.Component<Props, typeof defaultState> {
      */
     public render(): React.ReactNode {
         const { t, containers: [appContainer] } = this.props;
-        const { submitting } = this.state;
         const orderInput = appContainer.state.order;
         const market = getMarket(orderInput.srcToken, orderInput.dstToken);
 
@@ -41,32 +32,34 @@ class NewOrderClass extends React.Component<Props, typeof defaultState> {
                 <NewOrderInputs
                     marketPrice={marketPrice}
                 />
-                {
-                    market ?
-                        <button
-                            onClick={disabled ? appContainer.connect : this.openOrder}
-                            className={`button submit-swap ${disabled ? "disabled" : ""}`}
-                        >
-                            {submitting ? <Loading alt={true} /> :
-                                disabled ? t("new_order.connect_to_trade") : t("new_order.trade")
-                            }
-                        </button> :
-                        <button disabled={true} className="button submit-swap">
-                            {t("new_order.unsupported_token_pair")}
-                        </button>
-                }
+                <div className="submit-swap-buttons">
+                    {
+                        market ?
+                            <button
+                                onClick={disabled ? appContainer.connect : this.openOrder}
+                                className={`button submit-swap ${disabled ? "disabled" : ""}`}
+                            >
+                                {appContainer.state.submitting ? <Loading alt={true} /> :
+                                    disabled ? t("new_order.connect_to_trade") : t("new_order.trade")
+                                }
+                            </button> :
+                            <button disabled={true} className="button submit-swap">
+                                {t("new_order.unsupported_token_pair")}
+                            </button>
+                    }
+                </div>
             </div>
             {/*<div className="order--error red">{orderInputs.inputError.error}</div>*/}
-            {submitting ? <OpeningOrder cancel={this.cancel} done={this.cancel} /> : <></>}
+            {appContainer.state.submitting ? <OpeningOrder cancel={this.cancel} done={this.cancel} /> : <></>}
         </>;
     }
 
     private readonly cancel = () => {
-        this.setState({ submitting: false });
+        this.props.containers[0].setSubmitting(false);
     }
 
     private readonly openOrder = async () => {
-        this.setState({ submitting: true });
+        this.props.containers[0].setSubmitting(true);
     }
 }
 

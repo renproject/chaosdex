@@ -9,6 +9,11 @@
     @media(max-width: $max-md) {
         padding: 0 20px;
     }
+
+    @media(min-width: $min-lg) {
+        width: 450px;
+        margin: 0 auto;
+    }
 }
 
 .exchange-inner {

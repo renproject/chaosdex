@@ -85,49 +85,8 @@ class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
             <SelectMarketWrapper top={false} thisToken={orderInputs.dstToken} otherToken={orderInputs.srcToken} />
         </TokenValueInput>;
 
-        return <>
-            <div className="order--wrapper">
-                {first}{toggle}{second}
-            </div>
-            {this.advanced_render()}
-        </>;
-    }
-
-    public advanced_render(): React.ReactNode {
-        const { fillOrKill, allOrNothing, immediateOrCancel } = this.state;
-        const advanced = false;
-
-        return <div className={`order--options ${!advanced ? "hidden" : ""}`}>
-            <label>
-                <input
-                    name="allOrNothing"
-                    type="checkbox"
-                    disabled={fillOrKill}
-                    checked={allOrNothing || fillOrKill}
-                    onChange={this.handleMoreOptions}
-                />
-                All or Nothing <InfoLabel>No partial fills of order will be accepted.</InfoLabel>
-            </label>
-            <label>
-                <input
-                    name="immediateOrCancel"
-                    type="checkbox"
-                    disabled={fillOrKill}
-                    checked={immediateOrCancel || fillOrKill}
-                    onChange={this.handleMoreOptions}
-                />
-                Immediate or Cancel <InfoLabel>If no immediate order match is in the current orderbook (full or partial), then order is cancelled.</InfoLabel>
-            </label>
-            <label>
-                <input
-                    name="fillOrKill"
-                    type="checkbox"
-                    disabled={allOrNothing && immediateOrCancel}
-                    checked={fillOrKill || (allOrNothing && immediateOrCancel)}
-                    onChange={this.handleMoreOptions}
-                />
-                Fill or Kill <InfoLabel>If the entire order cannot be executed against the current orderbook, cancel the order.</InfoLabel>
-            </label>
+        return <div className="order--wrapper">
+            {first}{toggle}{second}
         </div>;
     }
 

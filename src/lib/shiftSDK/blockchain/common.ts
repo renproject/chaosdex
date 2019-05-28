@@ -9,7 +9,7 @@ export const intToBuffer = (int: number) => {
 
 export const strip0x = (hex: string) => hex.substring(0, 2) === "0x" ? hex.slice(2) : hex;
 
-const hashPayload = (mintToAddress: string, commitmentHash: string) =>
+export const hashPayload = (mintToAddress: string, commitmentHash: string) =>
     Buffer.from(strip0x(keccak256(`0x${strip0x(mintToAddress)}${strip0x(commitmentHash)}`)), "hex");
 
 export const createAddress =
@@ -18,6 +18,7 @@ export const createAddress =
             (mintToAddress: string, commitmentHash: string) =>
                 new script()
                     .add(hashPayload(mintToAddress, commitmentHash))
+                    // .add(mintToAddress) // Is this meant to be here?
                     .add(opcode.OP_DROP)
                     .add(opcode.OP_DUP)
                     .add(opcode.OP_HASH160)

@@ -1,10 +1,9 @@
 import * as React from "react";
 
-import { Map } from "immutable";
-
 import { Currency } from "@renex/react-components";
 import { BigNumber } from "bignumber.js";
-import { Token } from "../../state/generalTypes";
+
+import { Token, TokenPrices } from "../../state/generalTypes";
 
 export const TokenBalance: React.StatelessComponent<Props> = (props) => {
     const { token, convertTo, tokenPrices, digits, toReadable, decimals } = props;
@@ -65,5 +64,5 @@ interface Props {
     toReadable?: boolean;
     decimals?: number;
 
-    tokenPrices?: Map<Token, Map<Currency, number>> | null;
+    tokenPrices?: TokenPrices;
 }

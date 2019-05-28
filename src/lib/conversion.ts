@@ -11,7 +11,16 @@ import BigNumber from "bignumber.js";
  * @param expiry the time to countdown to as a unix timestamp in seconds
  * @returns a JSX span element with the time remaining and a unit
  */
-export const naturalTime = (expiry: number, options: { message: string; suffix?: string; countDown: boolean; showingSeconds?: boolean }): string => {
+export const naturalTime = (
+    expiry: number,
+    options: {
+        message: string;
+        suffix?: string;
+        countDown: boolean;
+        showingSeconds?: boolean;
+        abbreviate?: boolean;
+    }
+): string => {
     let diff;
     if (!options.countDown) {
         diff = moment.duration(moment().diff(moment.unix(expiry)));
@@ -35,9 +44,15 @@ export const naturalTime = (expiry: number, options: { message: string; suffix?:
         return `${hours} ${hours === 1 ? "hour" : "hours"}${suffix}`;
     } else if (minutes >= 1) {
         minutes = Math.round(minutes);
+        if (options.abbreviate) {
+            return `${minutes} ${minutes === 1 ? "min" : "mins"}${suffix}`;
+        }
         return `${minutes} ${minutes === 1 ? "minute" : "minutes"}${suffix}`;
     } else if (options.showingSeconds && seconds >= 1) {
         seconds = Math.floor(seconds);
+        if (options.abbreviate) {
+            return `${seconds} ${seconds === 1 ? "sec" : "secs"}${suffix}`;
+        }
         return `${seconds} ${seconds === 1 ? "second" : "seconds"}${suffix}`;
     } else {
         return `${options.message}`;

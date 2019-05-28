@@ -1,6 +1,5 @@
 import * as React from "react";
 
-import { Loading } from "@renex/react-components";
 import { withTranslation, WithTranslation } from "react-i18next";
 
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
@@ -8,11 +7,13 @@ import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer, OptionsContainer } from "../../state/containers";
 import { AskForAddress } from "../popups/AskForAddress";
 import { ConfirmTradeDetails } from "../popups/ConfirmTradeDetails";
+import { DepositReceived } from "../popups/DepositReceived";
 import { Popup } from "../popups/Popup";
+import { ShowDepositAddress } from "../popups/ShowDepositAddress";
+import { SubmitToEthereum } from "../popups/SubmitToEthereum";
 
 const defaultState = { // Entries must be immutable
     confirmedTrade: false,
-    submitting: false,
 };
 
 /**
@@ -43,10 +44,10 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
      * @dev Should have minimal computation, loops and anonymous functions.
      */
     public render(): React.ReactNode {
-        const { confirmedTrade, submitting } = this.state;
+        const { confirmedTrade } = this.state;
         const {
             order: orderInput, toAddress, refundAddress, depositAddress, utxos,
-            messageID, messageResponse, transactionHash,
+            messageID, signature: messageResponse,
         } = this.appContainer.state;
 
         let submitPopup = <></>;
@@ -56,10 +57,11 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
                 done={this.onConfirmedTrade}
                 cancel={this.cancel}
                 quoteCurrency={this.optionsContainer.state.preferredCurrency}
+                tokenPrices={this.appContainer.state.tokenPrices}
             />;
         } else if (toAddress === null) {
             submitPopup = <AskForAddress
-                key={orderInput.dstToken}
+                key={orderInput.dstToken} // Since AskForAddress is used twice
                 token={orderInput.dstToken}
                 message={`Enter the ${orderInput.dstToken} public address you want to receive your tokens to.`}
                 onAddress={this.ontoAddress}
@@ -67,38 +69,23 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
             />;
         } else if (refundAddress === null) {
             submitPopup = <AskForAddress
-                key={orderInput.srcToken}
+                key={orderInput.srcToken} // Since AskForAddress is used twice
                 token={orderInput.srcToken}
                 message={`Enter your ${orderInput.srcToken} refund address in case the trade doesn't go through.`}
                 onAddress={this.onRefundAddress}
                 cancel={this.cancel}
             />;
-        } else if (depositAddress === null) {
-            submitPopup = <Popup><div className="popup--body">Generating address... <Loading /></div></Popup>;
         } else if (!utxos || utxos.length === 0) {
-            submitPopup = <Popup><div className="popup--body">
-                Please deposit to <b>{depositAddress}</b>
-            </div></Popup>;
-        } else if (!messageID) {
-            submitPopup = <Popup><div className="popup--body">
-                Deposit found! {utxos[0].utxo.txHash}
-                <button onClick={this.submitDeposit} disabled={submitting}>{submitting ? <Loading /> : <>Submit deposit</>}</button>
-            </div></Popup>;
+            submitPopup = <ShowDepositAddress
+                token={orderInput.srcToken}
+                depositAddress={depositAddress}
+                cancel={this.cancel}
+            />;
         } else if (!messageResponse) {
-            submitPopup = <Popup><div className="popup--body">
-                Submitting to darknodes...
-            </div></Popup>;
-        } else if (!transactionHash) {
-            submitPopup = <Popup><div className="popup--body">
-                Response from darknodes! {messageResponse}
-                <button onClick={this.submitSwap}>Submit swap</button>
-            </div></Popup>;
+            submitPopup = <DepositReceived submitDeposit={this.submitDeposit} messageID={messageID} />;
         } else {
-            submitPopup = <Popup><div className="popup--body">
-                Submitted! {transactionHash}
-            </div></Popup>;
+            submitPopup = <SubmitToEthereum token={orderInput.dstToken} submit={this.submitSwap} />;
         }
-
         return submitPopup;
     }
 
@@ -133,7 +120,6 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     }
 
     private readonly submitDeposit = async () => {
-        this.setState({ submitting: true });
         this.appContainer.submitDeposit().catch(_catchInteractionErr_);
     }
 

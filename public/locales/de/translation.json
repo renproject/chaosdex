@@ -1,17 +1,27 @@
 {
-  "TODO": "Replace lines tagged with [EN]",
   "new_order": {
     "spend": "Verbringen",
     "receive": "Erhalten",
     "trade": "Handel",
     "based_on_market_price": "Basierend auf dem Marktpreis.",
     "unsupported_token_pair": "Token-Paar wird nicht unterstützt",
-    "connect_to_trade": "[EN] Connect to trade"
+    "connect_to_trade": "Verbinden, um zu handeln"
+  },
+  "history": {
+    "history": "Geschichte",
+    "received": "Empfangen"
   },
   "header": {
     "not_connected": "Nicht verbunden",
     "log_in": "Einloggen",
-    "log_out": "Ausloggen"
+    "log_out": "Ausloggen",
+    "copied": "[EN] Copied",
+    "copy_to_clipboard": "[EN] Copy to clipboard"
+  },
+  "popup": {
+    "receive": "[EN] Receive",
+    "confirm": "[EN] Confirm",
+    "confirm_trade": "[EN] Confirm Trade"
   },
   "language": {
     "currentLanguageName": "Deutsche"

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { FeedbackButton, Loading } from "@renex/react-components";
+import { FeedbackButton } from "@renex/react-components";
 import { Route, RouteComponentProps, withRouter } from "react-router-dom";
 
 import { _catchBackgroundErr_ } from "../../lib/errors";

@@ -5,7 +5,7 @@ import { strip0x } from "../blockchain/common";
 import { Chain } from "../shiftSDK";
 import { Lightnode } from "./darknode";
 import {
-    HealthResponse, ReceiveMessageRequest, ReceiveMessageResponse, RenVMReceiveMessageResponse,
+    HealthResponse, JSONRPCResponse, ReceiveMessageRequest, ReceiveMessageResponse,
     SendMessageRequest, SendMessageResponse,
 } from "./types";
 
@@ -21,20 +21,58 @@ export const lightnodes = [
     // NewMultiAddress("/ip4/0.0.0.0/tcp/18515/ren/8MJw8s6TVKmQH3kdM5kJUYqPmh3JmF"),
 
     // DevNet nodes
-    // NewMultiAddress("/ip4/18.234.163.143/tcp/18515/8MJpA1rXYMPTeJoYjsFBHJcuYBe7zP"),
-    // NewMultiAddress("/ip4/34.213.51.170/tcp/18515/8MH9zGoDLJKiXrhqWLXTzHp1idfxte"),
-    // NewMultiAddress("/ip4/34.205.143.11/tcp/18515/8MGJGnGLdYF6x5YuhkAmgfj6kknJBb"),
-    // NewMultiAddress("/ip4/99.79.61.64/tcp/18515/8MJppC57CkHzDQVAAPTotQGGyzqJ2r"),
-    // NewMultiAddress("/ip4/35.154.42.26/tcp/18515/8MHdUqYXcEhisZipM3hXPsFxHfM3VH"),
-    // NewMultiAddress("/ip4/34.220.215.156/tcp/18515/8MJd7zB9GXsvpm2cSECFP4Bof5G3i8"),
-    // NewMultiAddress("/ip4/18.196.15.243/tcp/18515/8MJN1hHhdcJwzDoj35zRLL3zE3yk45"),
-    // NewMultiAddress("/ip4/18.231.179.161/tcp/18515/8MKYusXyZAGVRn76vTmnK9FWmmPbJj"),
+    // NewMultiAddress("/ip4/54.221.29.240/tcp/18515/8MJF6WEFR5SM7g652Uj52LH5GAfgGE"),
+    // NewMultiAddress("/ip4/34.213.51.170/tcp/18515/8MJFpCbi2jkVMLu4LdLywCPKuLdYFu"),
+    // NewMultiAddress("/ip4/34.205.143.11/tcp/18515/8MHAgaq5NcujBZy1SayoG1DtbjF8pH"),
+    // NewMultiAddress("/ip4/99.79.61.64/tcp/18515/8MJyd8wXBvC8xoinLxECskbUgMVrBy"),
+    // NewMultiAddress("/ip4/35.154.42.26/tcp/18515/8MJRT4E1yS1HN2JwZt9DRFkwCGuzcV"),
+    // NewMultiAddress("/ip4/34.220.215.156/tcp/18515/8MJ5yefA76JSeu4c7mSP5UBevuXr3N"),
+    // NewMultiAddress("/ip4/18.196.15.243/tcp/18515/8MHgw9WH3KAqwRv8GHHpBsdBai9Nw9"),
+    // NewMultiAddress("/ip4/18.231.179.161/tcp/18515/8MKJXQrye3EG5PEEwVebkaRXBUCn9g"),
 ];
 
 // export const multiAddressToID = (multiAddress: MultiAddress): DarknodeID => {
 //     const split = multiAddress.multiAddress.split("/");
 //     return { id: split[split.length - 1] };
 // };
+
+export interface Signature {
+    amount: string;
+    txHash: string;
+    r: string;
+    s: string;
+    v: string;
+}
+
+export type ShifterResponse = JSONRPCResponse<{
+    values: [
+        {
+            "type": "public",
+            "name": "amount",
+            "value": string, // "8d8126"
+        },
+        {
+            "type": "public",
+            "name": "txHash",
+            "value": string, // "18343428f9b057102c4a6da8d8011514a5ea8be2f44af636bcd26a8ae4e2b719"
+        },
+        {
+            "type": "public",
+            "name": "r",
+            "value": string, // "c762164060c7bbffbd0a76335d02ca8e69f792b13d8eb865a09690cc30aaf55e"
+        },
+        {
+            "type": "public",
+            "name": "s",
+            "value": string, // "b3785c63afb91bb58e98a89552fdf3cb6034e5f349ab1f37f67d9e314fd4f506"
+        },
+        {
+            "type": "public",
+            "name": "v",
+            "value": string, // "01"
+        }
+    ],
+}>;
 
 const promiseAll = async <a>(list: List<Promise<a>>, defaultValue: a): Promise<List<a>> => {
     let newList = List<a>();
@@ -138,19 +176,25 @@ export class ShifterGroup extends DarknodeGroup {
         })).toList();
     }
 
-    public checkForResponse = async (messageID: string): Promise<string> => {
+    public checkForResponse = async (messageID: string): Promise<Signature> => {
         for (const node of this.darknodes.valueSeq().toArray()) {
             if (node) {
                 try {
-                    const signature = await node.receiveMessage({ messageID }) as RenVMReceiveMessageResponse;
+                    const response = await node.receiveMessage({ messageID }) as ShifterResponse;
                     // Error:
                     // { "jsonrpc": "2.0", "version": "0.1", "error": { "code": -32603, "message": "result not available", "data": null }, "id": null }
                     // Success:
                     // (TODO)
-                    if (signature.result) {
-                        return signature.result.result[0].value;
-                    } else if (signature.error) {
-                        throw signature.error;
+                    if (response.result && response.result.values) {
+                        return {
+                            amount: response.result.values[0].value,
+                            txHash: response.result.values[1].value,
+                            r: response.result.values[2].value,
+                            s: response.result.values[3].value,
+                            v: response.result.values[4].value,
+                        };
+                    } else if (response.error) {
+                        throw response.error;
                     }
                 } catch (error) {
                     console.error(error);

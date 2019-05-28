@@ -1,16 +1,32 @@
 import { Currency } from "@renex/react-components";
 import BigNumber from "bignumber.js";
-import { Map } from "immutable";
+import { List, Map } from "immutable";
 import { Container } from "unstated";
+import { PromiEvent } from "web3-core";
 
 import { tokenAddresses } from "../../lib/contractAddresses";
+import { Transaction } from "../../lib/contracts/ren_ex_adapter";
 import { Commitment, DexSDK, ReserveBalances } from "../../lib/dexSDK";
 import { estimatePrice } from "../../lib/estimatePrice";
 import { history } from "../../lib/history";
 import { getMarket, getTokenPricesInCurrencies } from "../../lib/market";
 import { btcAddressToHex } from "../../lib/shiftSDK/blockchain/btc";
+import { Signature } from "../../lib/shiftSDK/darknode/darknodeGroup";
 import { Chain, UTXO } from "../../lib/shiftSDK/shiftSDK";
 import { MarketPair, Token, Tokens } from "../generalTypes";
+
+export interface HistoryEvent {
+    commitment: Commitment;
+    srcToken: Token;
+    dstToken: Token;
+    srcAmount: BigNumber; // Normal units
+    dstAmount: BigNumber; // Normal units
+    time: number; // Seconds since Unix epoch
+
+    promiEvent?: PromiEvent<Transaction>;
+    transactionHash?: string;
+    swapError?: Error;
+}
 
 const initialState = {
     address: null as string | null,
@@ -20,9 +36,10 @@ const initialState = {
     order: {
         srcToken: Token.BTC,
         dstToken: Token.DAI,
-        sendVolume: "0.00010000",
+        sendVolume: "0.0001",
         receiveVolume: "0",
     },
+    submitting: false,
     toAddress: null as string | null,
     refundAddress: null as string | null,
     commitment: null as Commitment | null,
@@ -31,8 +48,8 @@ const initialState = {
     utxos: null as UTXO[] | null,
     messageID: null as string | null,
     // tslint:disable-next-line: no-any
-    messageResponse: null as string | null,
-    transactionHash: null as string | null,
+    signature: null as Signature | null,
+    swapHistory: List<HistoryEvent>(),
 };
 
 export type OrderData = typeof initialState.order;
@@ -56,7 +73,8 @@ export class AppContainer extends Container<typeof initialState> {
     }
 
     public updateBalanceReserves = async (): Promise<void> => {
-        const { balanceReserves, dexSDK } = this.state;
+        const { balanceReserves,
+            dexSDK } = this.state;
         let newBalanceReserves = balanceReserves;
         const marketPairs = [MarketPair.DAI_BTC, MarketPair.ETH_BTC, MarketPair.REN_BTC, MarketPair.ZEC_BTC];
         const res = await dexSDK.getReserveBalance(marketPairs); // Promise<Array<Map<Token, BigNumber>>> => {
@@ -64,6 +82,7 @@ export class AppContainer extends Container<typeof initialState> {
             newBalanceReserves = newBalanceReserves.set(value, res[index]);
         });
         await this.setState({ balanceReserves: newBalanceReserves });
+        await this.updateReceiveValue();
     }
 
     // Swap inputs /////////////////////////////////////////////////////////////
@@ -105,20 +124,23 @@ export class AppContainer extends Container<typeof initialState> {
         if (!toAddress || !refundAddress || !srcTokenDetails) {
             throw new Error(`Required info is undefined (${toAddress}, ${refundAddress}, ${srcTokenDetails})`);
         }
-        // FIXME!!!
-        const blockNumber = 11152976; // await dexSDK.web3.eth.getBlockNumber();
+        const blockNumber = await dexSDK.web3.eth.getBlockNumber();
         const commitment: Commitment = {
             srcToken: tokenAddresses(order.srcToken, "testnet"),
             dstToken: tokenAddresses(order.dstToken, "testnet"),
             minDestinationAmount: new BigNumber(0),
             srcAmount: new BigNumber(order.sendVolume).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals)),
             toAddress,
-            refundBlockNumber: blockNumber + 100,
+            refundBlockNumber: blockNumber + 360, // 360 blocks (assuming 0.1bps, equals 1 hour)
             refundAddress: btcAddressToHex(refundAddress),
+            originals: {
+                srcToken: order.srcToken,
+                dstToken: order.dstToken,
+                dstAmount: new BigNumber(order.receiveVolume),
+                srcAmount: new BigNumber(order.sendVolume),
+            }
         };
-        console.log(`Generating address`);
         const depositAddress = await dexSDK.generateAddress(order.srcToken, commitment);
-        console.log(`Address is ${depositAddress}`);
         const depositAddressToken = order.srcToken;
         await this.setState({ commitment, depositAddress, depositAddressToken });
     }
@@ -150,12 +172,35 @@ export class AppContainer extends Container<typeof initialState> {
     }
 
     public submitSwap = async () => {
-        const { dexSDK, commitment, messageResponse } = this.state;
-        if (!commitment || !messageResponse) {
+        const { swapHistory, address, dexSDK, commitment, signature } = this.state;
+        if (!address || !commitment || !signature) {
             return;
         }
-        const transactionHash = await dexSDK.submitSwap(commitment, messageResponse);
-        await this.setState({ transactionHash });
+
+        const promiEvent = dexSDK.submitSwap(address, commitment, signature);
+
+        let transactionHash: string | undefined;
+        let swapError: Error | undefined;
+        try {
+            transactionHash = await new Promise((resolve, reject) => promiEvent.on("transactionHash", resolve));
+        } catch (error) {
+            swapError = error;
+        }
+
+        const historyItem: HistoryEvent = {
+            promiEvent,
+            transactionHash,
+            commitment,
+            swapError,
+            time: Date.now() / 1000,
+            srcToken: commitment.originals.srcToken,
+            dstToken: commitment.originals.dstToken,
+            srcAmount: commitment.originals.srcAmount,
+            dstAmount: commitment.originals.dstAmount,
+        };
+
+        await this.setState({ swapHistory: swapHistory.push(historyItem) });
+        await this.cancelTrade();
     }
 
     public updateMessageStatus = async () => {
@@ -163,12 +208,23 @@ export class AppContainer extends Container<typeof initialState> {
         if (!messageID) {
             return;
         }
-        const messageResponse = await dexSDK.shiftStatus(messageID);
-        await this.setState({ messageResponse });
+        try {
+            const messageResponse = await dexSDK.shiftStatus(messageID);
+            await this.setState({ signature: messageResponse });
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    public setSubmitting = async (submitting: boolean) => {
+        await this.setState({
+            submitting,
+        });
     }
 
     public cancelTrade = async () => {
         await this.setState({
+            submitting: false,
             toAddress: null,
             refundAddress: null,
             commitment: null,

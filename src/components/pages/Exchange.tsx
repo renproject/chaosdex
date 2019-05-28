@@ -9,6 +9,7 @@ import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer } from "../../state/containers";
 import { Token } from "../../state/generalTypes";
 import { NewOrder } from "../controllers/NewOrder";
+import { OrderHistory } from "../controllers/OrderHistory";
 import { _catch_ } from "../views/ErrorBoundary";
 
 /**
@@ -52,6 +53,7 @@ export const Exchange = connect<RouteComponentProps & ConnectedProps<[AppContain
                     {_catch_(
                         <React.Suspense fallback={<Loading />}>
                             <NewOrder />
+                            <OrderHistory />
                         </React.Suspense>
                     )}
                 </div>
