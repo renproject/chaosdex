@@ -27,7 +27,7 @@ export interface HistoryEvent {
 const initialOrder: OrderInputs = {
     srcToken: Token.BTC,
     dstToken: Token.DAI,
-    srcAmount: "0.0001",
+    srcAmount: "0.01",
     dstAmount: "0",
 };
 
