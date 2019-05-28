@@ -15,13 +15,13 @@
     "not_connected": "Nicht verbunden",
     "log_in": "Einloggen",
     "log_out": "Ausloggen",
-    "copied": "[EN] Copied",
-    "copy_to_clipboard": "[EN] Copy to clipboard"
+    "copied": "Kopiert",
+    "copy_to_clipboard": "In die Zwischenablage kopieren"
   },
   "popup": {
-    "receive": "[EN] Receive",
-    "confirm": "[EN] Confirm",
-    "confirm_trade": "[EN] Confirm Trade"
+    "receive": "Erhalten",
+    "confirm": "Bestätigen",
+    "confirm_trade": "Bestätigen Sie den Handel"
   },
   "language": {
     "currentLanguageName": "Deutsche"

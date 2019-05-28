@@ -46,14 +46,18 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     public render(): React.ReactNode {
         const { confirmedTrade } = this.state;
         const {
-            order: orderInput, toAddress, refundAddress, depositAddress, utxos,
-            messageID, signature: messageResponse,
+            orderInputs: orderInput, toAddress, refundAddress, depositAddress, utxos,
+            messageID, signature: messageResponse, confirmedOrderInputs
         } = this.appContainer.state;
+
+        if (!confirmedOrderInputs) {
+            return <></>;
+        }
 
         let submitPopup = <></>;
         if (!confirmedTrade) {
             submitPopup = <ConfirmTradeDetails
-                orderInputs={orderInput}
+                orderInputs={confirmedOrderInputs}
                 done={this.onConfirmedTrade}
                 cancel={this.cancel}
                 quoteCurrency={this.optionsContainer.state.preferredCurrency}
@@ -61,24 +65,25 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
             />;
         } else if (toAddress === null) {
             submitPopup = <AskForAddress
-                key={orderInput.dstToken} // Since AskForAddress is used twice
-                token={orderInput.dstToken}
-                message={`Enter the ${orderInput.dstToken} public address you want to receive your tokens to.`}
+                key={confirmedOrderInputs.dstToken} // Since AskForAddress is used twice
+                token={confirmedOrderInputs.dstToken}
+                message={`Enter the ${confirmedOrderInputs.dstToken} public address you want to receive your tokens to.`}
                 onAddress={this.ontoAddress}
                 cancel={this.cancel}
             />;
         } else if (refundAddress === null) {
             submitPopup = <AskForAddress
-                key={orderInput.srcToken} // Since AskForAddress is used twice
-                token={orderInput.srcToken}
-                message={`Enter your ${orderInput.srcToken} refund address in case the trade doesn't go through.`}
+                key={confirmedOrderInputs.srcToken} // Since AskForAddress is used twice
+                token={confirmedOrderInputs.srcToken}
+                message={`Enter your ${confirmedOrderInputs.srcToken} refund address in case the trade doesn't go through.`}
                 onAddress={this.onRefundAddress}
                 cancel={this.cancel}
             />;
-        } else if (!utxos || utxos.length === 0) {
+        } else if ((!utxos || utxos.length === 0)) {
             submitPopup = <ShowDepositAddress
                 token={orderInput.srcToken}
                 depositAddress={depositAddress}
+                amount={confirmedOrderInputs.srcAmount}
                 cancel={this.cancel}
             />;
         } else if (!messageResponse) {

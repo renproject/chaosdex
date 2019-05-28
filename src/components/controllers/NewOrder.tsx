@@ -3,6 +3,7 @@ import * as React from "react";
 import { Loading } from "@renex/react-components";
 import { withTranslation, WithTranslation } from "react-i18next";
 
+import { _catchBackgroundErr_ } from "../../lib/errors";
 import { getMarket } from "../../lib/market";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer } from "../../state/containers";
@@ -20,7 +21,7 @@ class NewOrderClass extends React.Component<Props> {
      */
     public render(): React.ReactNode {
         const { t, containers: [appContainer] } = this.props;
-        const orderInput = appContainer.state.order;
+        const orderInput = appContainer.state.orderInputs;
         const market = getMarket(orderInput.srcToken, orderInput.dstToken);
 
         const marketPrice = 0;
@@ -55,11 +56,11 @@ class NewOrderClass extends React.Component<Props> {
     }
 
     private readonly cancel = () => {
-        this.props.containers[0].setSubmitting(false);
+        this.props.containers[0].setSubmitting(false).catch(_catchBackgroundErr_);
     }
 
     private readonly openOrder = async () => {
-        this.props.containers[0].setSubmitting(true);
+        this.props.containers[0].setSubmitting(true).catch(_catchBackgroundErr_);
     }
 }
 

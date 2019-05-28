@@ -16,9 +16,19 @@ export const NewMultiAddress = (multiAddress: string) => multiAddress;
 export const lightnodes = [
     // Lightnode
     "https://lightnode.herokuapp.com",
+    // "https://lightnode-testnet.herokuapp.com",
 
     // Local node
-    // NewMultiAddress("/ip4/0.0.0.0/tcp/18515/ren/8MJw8s6TVKmQH3kdM5kJUYqPmh3JmF"),
+    // NewMultiAddress("/ip4/0.0.0.0/tcp/18515/ren/8MJF6WEFR5SM7g652Uj52LH5GAfgGE"),
+
+    // NewMultiAddress("/ip4/13.56.169.110/tcp/18515/8MJwRoUfhU2bRmuJUWPRoDuQPYK1Rj"),
+    // NewMultiAddress("/ip4/13.52.161.137/tcp/18515/8MGUXixUxCK1s8Fpko5pUfPFC3V2KK"),
+    // NewMultiAddress("/ip4/13.57.71.179/tcp/18515/8MJzChiEMBffzvSvxi2qWrB6zQeNaF"),
+    // NewMultiAddress("/ip4/52.9.86.59/tcp/18515/8MJxbKycNEm8epPfwyWbBMeuQrsvjb"),
+    // NewMultiAddress("/ip4/52.89.211.7/tcp/18515/8MHuJF93QbHtkRip46p4WMi6FcppXR"),
+    // NewMultiAddress("/ip4/52.37.221.167/tcp/18515/8MKWQvkAwTdjwJnZqgPbcgUfZn5bwV"),
+    // NewMultiAddress("/ip4/52.43.239.115/tcp/18515/8MHk4gGMYKDvaGjBpup5wSpZZ5Kc2j"),
+    // NewMultiAddress("/ip4/52.42.160.15/tcp/18515/8MGPBAL3kx7HYfvbzx5K7VCNn8PYvC"),
 
     // DevNet nodes
     // NewMultiAddress("/ip4/54.221.29.240/tcp/18515/8MJF6WEFR5SM7g652Uj52LH5GAfgGE"),

@@ -9,14 +9,14 @@ import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer } from "../../state/containers";
 import { HistoryEvent } from "../../state/containers/appContainer";
 
-const OrderHistoryEntry = (props: { order: HistoryEvent, t: i18next.TFunction }) => {
+const OrderHistoryEntry = ({ order, t }: { order: HistoryEvent, t: i18next.TFunction }) => {
     return (
         <div className="swap--history--entry">
             <div className="token--info">
-                <TokenIcon className="token-icon" token={props.order.dstToken} />
-                <span className="received--text">{props.t("history.received")}</span><span className="token--amount">{props.order.dstAmount.toFixed()} {props.order.dstToken}</span>
+                <TokenIcon className="token-icon" token={order.commitment.orderInputs.dstToken} />
+                <span className="received--text">{t("history.received")}</span><span className="token--amount">{order.commitment.orderInputs.dstAmount} {order.commitment.orderInputs.dstToken}</span>
             </div>
-            <span className="swap--time">{naturalTime(props.order.time, { message: "Just now", suffix: "ago", countDown: false, abbreviate: true })}</span>
+            <span className="swap--time">{naturalTime(order.time, { message: "Just now", suffix: "ago", countDown: false, abbreviate: true })}</span>
         </div>
     );
 };
