@@ -6,13 +6,13 @@ import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer, OptionsContainer } from "../../state/containers";
 import { HistoryEvent } from "../../state/containers/appContainer";
+import { Token } from "../../state/generalTypes";
 import { AskForAddress } from "../popups/AskForAddress";
 import { ConfirmTradeDetails } from "../popups/ConfirmTradeDetails";
 import { DepositReceived } from "../popups/DepositReceived";
 import { Popup } from "../popups/Popup";
 import { ShowDepositAddress } from "../popups/ShowDepositAddress";
 import { SubmitToEthereum } from "../popups/SubmitToEthereum";
-import { Token } from "../../state/generalTypes";
 
 const defaultState = { // Entries must be immutable
     confirmedTrade: false,

@@ -31,6 +31,7 @@ export interface HistoryEvent {
 const initialState = {
     address: null as string | null,
     tokenPrices: Map<Token, Map<Currency, number>>(),
+    accountBalances: Map<Token, BigNumber>(),
     balanceReserves: Map<MarketPair, ReserveBalances>(),
     dexSDK: new DexSDK(),
     order: {
@@ -88,6 +89,7 @@ export class AppContainer extends Container<typeof initialState> {
 
     public updateSrcToken = async (srcToken: Token): Promise<void> => {
         await this.setState({ order: { ...this.state.order, srcToken } });
+        await this.updateAccountBalances(srcToken);
         await this.updateHistory();
         await this.updateReceiveValue();
     }
@@ -268,5 +270,17 @@ export class AppContainer extends Container<typeof initialState> {
     private readonly updateHistory = async (): Promise<void> => {
         const { order: { srcToken, dstToken } } = this.state;
         history.replace(`/?send=${srcToken}&receive=${dstToken}`);
+    }
+
+    private readonly updateAccountBalances = async (token: Token): Promise<void> => {
+        const { dexSDK, address, accountBalances } = this.state;
+        if (!address) {
+            return;
+        }
+        if (![Token.ETH, Token.DAI, Token.REN].includes(token)) {
+            return;
+        }
+        const balance = await dexSDK.fetchEthereumTokenBalance(token, address);
+        await this.setState({ accountBalances: accountBalances.set(token, balance) });
     }
 }

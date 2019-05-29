@@ -11,6 +11,7 @@ import { RenExAdapterWeb3, Transaction } from "./contracts/ren_ex_adapter";
 import { getReadonlyWeb3, getWeb3 } from "./getWeb3";
 import { Signature } from "./shiftSDK/darknode/darknodeGroup";
 import { Chain, ShiftSDK, UTXO } from "./shiftSDK/shiftSDK";
+import { tokenAddresses } from "./contractAddresses";
 
 const ERC20ABI = require("./contracts/erc20_abi.json");
 const RenExABI = require("./contracts/ren_ex_abi.json");
@@ -186,6 +187,20 @@ export class DexSDK {
         return getAdapter(this.web3).methods.trade(
             ...params,
         ).send({ from: address });
+    }
+
+    public fetchEthereumTokenBalance = async (token: Token, address: string): Promise<BigNumber> => {
+        let balance: string;
+        if (token === Token.ETH) {
+            balance = await this.web3.eth.getBalance(address);
+        } else if ([Token.REN, Token.DAI].includes(token)) {
+            const tokenAddress = tokenAddresses(token, process.env.REACT_APP_NETWORK || "");
+            const tokenInstance = getERC20(this.web3, tokenAddress);
+            balance = (await tokenInstance.methods.balanceOf(address).call()).toString();
+        } else {
+            throw new Error(`Invalid Ethereum token: ${token}`);
+        }
+        return new BigNumber(balance);
     }
 
     public shiftERC20 = async (address: string, commitment: Commitment): Promise<void> => {
