@@ -203,22 +203,28 @@ export class DexSDK {
         return new BigNumber(balance);
     }
 
-    public shiftERC20 = async (address: string, commitment: Commitment): Promise<void> => {
-        const tokenAddress = commitment.srcToken;
+    public setTokenAllowance = async (amount: BigNumber, token: Token, address: string): Promise<BigNumber> => {
+        const tokenAddress = tokenAddresses(token, process.env.REACT_APP_NETWORK || "");
         const tokenInstance = getERC20(this.web3, tokenAddress);
 
         const allowance = await tokenInstance.methods.allowance(address, getAdapter(this.web3).address).call();
-        if (new BigNumber(allowance.toString()).lt(commitment.srcAmount)) {
-            // We don't have enough allowance so approve more
-            const promiEvent = tokenInstance.methods.approve(
-                getAdapter(this.web3).address,
-                commitment.srcAmount.toString()
-            ).send({ from: address });
-            let transactionHash: string | undefined;
-            transactionHash = await new Promise((resolve, reject) => promiEvent.on("transactionHash", resolve));
-            console.log(`Approving ${commitment.srcAmount.toString()} ${commitment.originals.srcToken} Tx hash: ${transactionHash}`);
+        const allowanceBN = new BigNumber(allowance.toString());
+        if (allowanceBN.gte(amount)) {
+            return allowanceBN;
         }
 
+        // We don't have enough allowance so approve more
+        const promiEvent = tokenInstance.methods.approve(
+            getAdapter(this.web3).address,
+            amount.toString()
+        ).send({ from: address });
+        let transactionHash: string | undefined;
+        transactionHash = await new Promise((resolve, reject) => promiEvent.on("transactionHash", resolve));
+        console.log(`Approving ${amount.toString()} ${token} Tx hash: ${transactionHash}`);
+        return amount;
+    }
+
+    public shiftERC20 = (address: string, commitment: Commitment): PromiEvent<Transaction> => {
         const params: [string, string, number, string, number, string, string, string, string] = [
             commitment.srcToken, // _src: string
             commitment.dstToken, // _dst: string
@@ -238,7 +244,7 @@ export class DexSDK {
         console.table(params);
         console.groupEnd();
 
-        await getAdapter(this.web3).methods.trade(
+        return getAdapter(this.web3).methods.trade(
             ...params,
         ).send({ from: address });
     }

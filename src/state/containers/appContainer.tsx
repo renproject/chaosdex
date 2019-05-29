@@ -257,7 +257,31 @@ export class AppContainer extends Container<typeof initialState> {
         if (!address || !commitment) {
             return;
         }
-        await dexSDK.shiftERC20(address, commitment);
+        const promiEvent = dexSDK.shiftERC20(address, commitment);
+
+        let transactionHash: string | undefined;
+        let swapError: Error | undefined;
+        try {
+            transactionHash = await new Promise((resolve, reject) => promiEvent.on("transactionHash", resolve));
+        } catch (error) {
+            swapError = error;
+        }
+
+        const historyItem: HistoryEvent = {
+            promiEvent,
+            transactionHash,
+            commitment,
+            swapError,
+            time: Date.now() / 1000,
+            srcToken: commitment.originals.srcToken,
+            dstToken: commitment.originals.dstToken,
+            srcAmount: commitment.originals.srcAmount,
+            dstAmount: commitment.originals.dstAmount,
+        };
+
+        // await this.setState({ swapHistory: swapHistory.push(historyItem) });
+        await this.resetTrade();
+        return historyItem;
     }
 
     public sufficientBalance = (): boolean => {
@@ -290,6 +314,17 @@ export class AppContainer extends Container<typeof initialState> {
         });
 
         await this.setState({ accountBalances });
+    }
+
+    public setAllowance = async (): Promise<boolean> => {
+        const { order: { srcToken, sendVolume }, dexSDK, address } = this.state;
+        const srcTokenDetails = Tokens.get(srcToken);
+        if (!address || !srcTokenDetails) {
+            return false;
+        }
+        const srcAmount = new BigNumber(sendVolume).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals));
+        const allowance = await dexSDK.setTokenAllowance(srcAmount, srcToken, address);
+        return allowance.gte(srcAmount);
     }
 
     private readonly updateReceiveValue = async (): Promise<void> => {

@@ -13,9 +13,11 @@ import { DepositReceived } from "../popups/DepositReceived";
 import { Popup } from "../popups/Popup";
 import { ShowDepositAddress } from "../popups/ShowDepositAddress";
 import { SubmitToEthereum } from "../popups/SubmitToEthereum";
+import { TokenAllowance } from "../popups/TokenAllowance";
 
 const defaultState = { // Entries must be immutable
     confirmedTrade: false,
+    sufficientAllowance: false,
 };
 
 /**
@@ -46,7 +48,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
      * @dev Should have minimal computation, loops and anonymous functions.
      */
     public render(): React.ReactNode {
-        const { confirmedTrade } = this.state;
+        const { sufficientAllowance, confirmedTrade } = this.state;
         const {
             order: orderInput, toAddress, refundAddress, depositAddress, utxos,
             messageID, signature: messageResponse,
@@ -78,19 +80,30 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
                 cancel={this.cancel}
             />;
         } else if ([Token.DAI, Token.REN].includes(orderInput.srcToken)) {
-            submitPopup = <><button onClick={this.shiftERC20}>Do the thing</button></>;
-        } else if (!utxos || utxos.length === 0) {
-            submitPopup = <ShowDepositAddress
-                token={orderInput.srcToken}
-                depositAddress={depositAddress}
-                cancel={this.cancel}
-            />;
-        } else if (!messageResponse) {
-            submitPopup = <DepositReceived submitDeposit={this.submitDeposit} messageID={messageID} />;
+            if (!sufficientAllowance) {
+                submitPopup = <TokenAllowance token={orderInput.srcToken} amount={orderInput.sendVolume} submit={this.setAllowance} />;
+            } else {
+                submitPopup = <SubmitToEthereum token={orderInput.dstToken} submit={this.shiftERC20} />;
+            }
         } else {
-            submitPopup = <SubmitToEthereum token={orderInput.dstToken} submit={this.submitSwap} />;
+            if (!utxos || utxos.length === 0) {
+                submitPopup = <ShowDepositAddress
+                    token={orderInput.srcToken}
+                    depositAddress={depositAddress}
+                    cancel={this.cancel}
+                />;
+            } else if (!messageResponse) {
+                submitPopup = <DepositReceived submitDeposit={this.submitDeposit} messageID={messageID} />;
+            } else {
+                submitPopup = <SubmitToEthereum token={orderInput.dstToken} submit={this.submitSwap} />;
+            }
         }
         return submitPopup;
+    }
+
+    private readonly setAllowance = async () => {
+        const sufficientAllowance = await this.appContainer.setAllowance();
+        this.setState({ sufficientAllowance });
     }
 
     private readonly updateDeposits = async () => {
@@ -154,8 +167,12 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
         this.props.cancel();
     }
 
-    private readonly shiftERC20 = () => {
-        this.appContainer.shiftERC20();
+    private readonly shiftERC20 = async () => {
+        const historyItem = await this.appContainer.shiftERC20().catch(_catchInteractionErr_);
+        if (!historyItem || !this.props.swapSubmitted) {
+            return;
+        }
+        this.props.swapSubmitted(historyItem);
     }
 }
 
