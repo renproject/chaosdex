@@ -1245,10 +1245,10 @@
   resolved "https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
-"@renex/contracts@0.1.8":
-  version "0.1.8"
-  resolved "https://registry.yarnpkg.com/@renex/contracts/-/contracts-0.1.8.tgz#81b9aee48c6feb9389a7417702a74bef10f6c842"
-  integrity sha512-A9xYgvzhfCRqosLMCXUayPGJRCpJvv6vEHAjym9MHNZ7BOSbdqOcA/GDiJk8CasnaE/3F5Ccjjd66u58APZP6w==
+"@renex/contracts@0.1.9":
+  version "0.1.9"
+  resolved "https://registry.yarnpkg.com/@renex/contracts/-/contracts-0.1.9.tgz#ee82f83067c14b42ab0b71a994bcf31de2d9055d"
+  integrity sha512-vvbXoBHwSLxmY4hSC56wcYSjRM+84wXM8LNCwTIx9qZjooQO4YR27e+bi7fu77NT38rS2RJ8PCn4F8w54dTvcw==
 
 "@renex/fonts@^1.0.1":
   version "1.0.1"
