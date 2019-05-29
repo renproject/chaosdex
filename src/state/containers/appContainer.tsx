@@ -1,10 +1,10 @@
+import { kovan as kovanAddresses } from "@renex/contracts";
 import { Currency } from "@renex/react-components";
 import BigNumber from "bignumber.js";
 import { List, Map } from "immutable";
 import { Container } from "unstated";
 import { PromiEvent } from "web3-core";
 
-import { tokenAddresses } from "../../lib/contractAddresses";
 import { Transaction } from "../../lib/contracts/ren_ex_adapter";
 import { Commitment, DexSDK, OrderInputs, ReserveBalances } from "../../lib/dexSDK";
 import { estimatePrice } from "../../lib/estimatePrice";
@@ -135,8 +135,8 @@ export class AppContainer extends Container<typeof initialState> {
         }
         const blockNumber = await dexSDK.web3.eth.getBlockNumber();
         const commitment: Commitment = {
-            srcToken: tokenAddresses(order.srcToken, "testnet"),
-            dstToken: tokenAddresses(order.dstToken, "testnet"),
+            srcToken: kovanAddresses.addresses.tokens[order.srcToken].address,
+            dstToken: kovanAddresses.addresses.tokens[order.dstToken].address,
             minDestinationAmount: new BigNumber(0),
             srcAmount: new BigNumber(order.srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals)),
             toAddress,
