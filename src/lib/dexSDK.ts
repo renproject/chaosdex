@@ -191,17 +191,18 @@ export class DexSDK {
     public shiftERC20 = async (address: string, commitment: Commitment): Promise<void> => {
         const tokenAddress = commitment.srcToken;
         const tokenInstance = getERC20(this.web3, tokenAddress);
-        // console.log(`Approving contract for use of: ${commitment.srcAmount.toString()}`);
-        const promiEvent = tokenInstance.methods.approve(
-            getAdapter(this.web3).address,
-            commitment.srcAmount.times(2).toString()
-        ).send({ from: address });
-        let transactionHash: string | undefined;
-        transactionHash = await new Promise((resolve, reject) => promiEvent.on("transactionHash", resolve));
-        console.log(transactionHash);
 
         const allowance = await tokenInstance.methods.allowance(address, getAdapter(this.web3).address).call();
-        console.log(`allowance is: ${allowance.toString()}`);
+        if (new BigNumber(allowance.toString()).lt(commitment.srcAmount)) {
+            // We don't have enough allowance so approve more
+            const promiEvent = tokenInstance.methods.approve(
+                getAdapter(this.web3).address,
+                commitment.srcAmount.toString()
+            ).send({ from: address });
+            let transactionHash: string | undefined;
+            transactionHash = await new Promise((resolve, reject) => promiEvent.on("transactionHash", resolve));
+            console.log(`Approving ${commitment.srcAmount.toString()} ${commitment.originals.srcToken} Tx hash: ${transactionHash}`);
+        }
 
         const params: [string, string, number, string, number, string, string, string, string] = [
             commitment.srcToken, // _src: string
