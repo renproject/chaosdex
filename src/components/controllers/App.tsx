@@ -50,6 +50,7 @@ export const App = connect<Props>([AppContainer, OptionsContainer])(
                 setInterval(() => appContainer.updateBalanceReserves().catch(_catchBackgroundErr_), 30 * 1000);
                 appContainer.updateTokenPrices().catch(_catchBackgroundErr_);
                 appContainer.updateBalanceReserves().catch(_catchBackgroundErr_);
+                appContainer.updateAccountBalances().catch(_catchBackgroundErr_);
                 setInitialized(true);
             }
         }, [initialized, appContainer]);

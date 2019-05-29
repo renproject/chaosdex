@@ -63,6 +63,7 @@ export class AppContainer extends Container<typeof initialState> {
 
         const addresses = await dexSDK.web3.eth.getAccounts();
         await this.setState({ address: addresses.length > 0 ? addresses[0] : null });
+        await this.updateAccountBalances();
     }
 
     // Token prices ////////////////////////////////////////////////////////////
@@ -89,7 +90,6 @@ export class AppContainer extends Container<typeof initialState> {
 
     public updateSrcToken = async (srcToken: Token): Promise<void> => {
         await this.setState({ order: { ...this.state.order, srcToken } });
-        await this.updateAccountBalances(srcToken);
         await this.updateHistory();
         await this.updateReceiveValue();
     }
@@ -256,6 +256,38 @@ export class AppContainer extends Container<typeof initialState> {
         await dexSDK.shiftERC20(address, commitment);
     }
 
+    public sufficientBalance = (): boolean => {
+        const { order: { srcToken, sendVolume }, accountBalances } = this.state;
+        const srcTokenDetails = Tokens.get(srcToken);
+        if (![Token.ETH, Token.DAI, Token.REN].includes(srcToken)) {
+            return true;
+        }
+        if (!srcTokenDetails) {
+            return true;
+        }
+        const srcAmount = new BigNumber(sendVolume).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals));
+        const balance = accountBalances.get(srcToken) || new BigNumber(0);
+        console.log(srcAmount.toString());
+        console.log(balance.toString());
+        return srcAmount.lte(balance);
+    }
+
+    public updateAccountBalances = async (): Promise<void> => {
+        const { dexSDK, address } = this.state;
+        if (!address) {
+            return;
+        }
+        let accountBalances = this.state.accountBalances;
+        const ethTokens = [Token.ETH, Token.DAI, Token.REN];
+        const promises = ethTokens.map(token => dexSDK.fetchEthereumTokenBalance(token, address));
+        const balances = await Promise.all(promises);
+        balances.forEach((bal, index) => {
+            accountBalances = accountBalances.set(ethTokens[index], bal);
+        });
+
+        await this.setState({ accountBalances });
+    }
+
     private readonly updateReceiveValue = async (): Promise<void> => {
         const { order: { srcToken, dstToken, sendVolume } } = this.state;
         const market = getMarket(srcToken, dstToken);
@@ -270,17 +302,5 @@ export class AppContainer extends Container<typeof initialState> {
     private readonly updateHistory = async (): Promise<void> => {
         const { order: { srcToken, dstToken } } = this.state;
         history.replace(`/?send=${srcToken}&receive=${dstToken}`);
-    }
-
-    private readonly updateAccountBalances = async (token: Token): Promise<void> => {
-        const { dexSDK, address, accountBalances } = this.state;
-        if (!address) {
-            return;
-        }
-        if (![Token.ETH, Token.DAI, Token.REN].includes(token)) {
-            return;
-        }
-        const balance = await dexSDK.fetchEthereumTokenBalance(token, address);
-        await this.setState({ accountBalances: accountBalances.set(token, balance) });
     }
 }
