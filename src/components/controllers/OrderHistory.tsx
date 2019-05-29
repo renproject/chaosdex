@@ -38,7 +38,7 @@ export const OrderHistory = (props: Props) => {
                 <span>{t("history.history")}</span>
             </div>
             <div className="history--list">
-                {orders.map(h => {
+                {orders.reverse().map(h => {
                     return <OrderHistoryEntry
                         t={t}
                         key={`${h.refundBlockNumber}--${h.time}`}
