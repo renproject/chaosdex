@@ -59,7 +59,7 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
                                 </li>
                                 <li
                                     role="button"
-                                    onClick={this.handleLogout}
+                                    onClick={this.props.handleLogout}
                                     className="header--dropdown--option"
                                 >
                                     {t("header.log_out")}
@@ -67,7 +67,7 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
                             </> :
                                 <li
                                     role="button"
-                                    onClick={this.handleLogin}
+                                    onClick={this.props.handleLogin}
                                     className="header--dropdown--option header--dropdown--highlight"
                                 >
                                     {t("header.log_in")}
@@ -78,15 +78,6 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
                 }
             </div>
         </div>;
-    }
-
-    private readonly handleLogin = async (): Promise<void> => {
-        const { containers: [appContainer] } = this.props;
-        await appContainer.connect();
-    }
-
-    private readonly handleLogout = async (): Promise<void> => {
-        location.reload(); // eslint-disable-line no-restricted-globals
     }
 
     private readonly copyToClipboard = (e: React.MouseEvent<HTMLElement>): void => {
@@ -128,6 +119,8 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
 }
 
 interface Props extends WithTranslation, ConnectedProps<[AppContainer]> {
+    handleLogin: () => {};
+    handleLogout: () => {};
 }
 
 export const AccountDropdown = withTranslation()(connect<Props>([AppContainer])(AccountDropdownClass));

@@ -66,6 +66,10 @@ export class AppContainer extends Container<typeof initialState> {
         await this.updateAccountBalances();
     }
 
+    public clearAddress = async (): Promise<void> => {
+        await this.setState({ address: null });
+    }
+
     // Token prices ////////////////////////////////////////////////////////////
 
     public updateTokenPrices = async (): Promise<void> => {
