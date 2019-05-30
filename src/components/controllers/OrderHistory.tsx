@@ -32,7 +32,6 @@ export const OrderHistory = (props: Props) => {
     if (orders.length === 0) {
         return <></>;
     }
-    console.log(`Orders: ${orders}`);
     return <>
         <div className="section history">
             <div className="history--banner">

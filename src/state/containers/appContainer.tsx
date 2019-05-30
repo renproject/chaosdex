@@ -1,11 +1,9 @@
 import { Currency } from "@renex/react-components";
 import BigNumber from "bignumber.js";
-import { List, Map } from "immutable";
+import { Map } from "immutable";
 import { Container } from "unstated";
-import { PromiEvent } from "web3-core";
 
 import { tokenAddresses } from "../../lib/contractAddresses";
-import { Transaction } from "../../lib/contracts/ren_ex_adapter";
 import { Commitment, DexSDK, OrderInputs, ReserveBalances } from "../../lib/dexSDK";
 import { estimatePrice } from "../../lib/estimatePrice";
 import { history } from "../../lib/history";
@@ -180,7 +178,7 @@ export class AppContainer extends Container<typeof initialState> {
         }
 
         const promiEvent = dexSDK.submitSwap(address, commitment, signature);
-        const transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve));
+        const transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve).catch(reject));
 
         const historyItem: HistoryEvent = {
             transactionHash,
@@ -188,7 +186,6 @@ export class AppContainer extends Container<typeof initialState> {
             time: Date.now() / 1000,
         };
 
-        // await this.setState({ swapHistory: swapHistory.push(historyItem) });
         await this.resetTrade();
         return historyItem;
     }
@@ -202,6 +199,9 @@ export class AppContainer extends Container<typeof initialState> {
             const messageResponse = await dexSDK.shiftStatus(messageID);
             await this.setState({ signature: messageResponse });
         } catch (error) {
+            if (`${error}`.match("Signature not available")) {
+                return;
+            }
             console.error(error);
         }
     }

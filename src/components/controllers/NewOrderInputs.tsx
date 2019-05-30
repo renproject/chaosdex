@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { CurrencyIcon, InfoLabel, TokenValueInput } from "@renex/react-components";
+import { CurrencyIcon, TokenValueInput } from "@renex/react-components";
 import BigNumber from "bignumber.js";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { debounce } from "throttle-debounce";
@@ -111,11 +111,6 @@ class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
 
     private readonly toggleSide = async () => {
         await this.appContainer.flipSendReceive();
-    }
-
-    private readonly handleMoreOptions = (e: React.ChangeEvent<HTMLInputElement>): void => {
-        const { name, checked } = e.target;
-        this.setState((oldState) => ({ ...oldState, [name]: checked, }));
     }
 }
 

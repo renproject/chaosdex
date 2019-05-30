@@ -9,7 +9,6 @@ import { HistoryEvent } from "../../state/containers/appContainer";
 import { AskForAddress } from "../popups/AskForAddress";
 import { ConfirmTradeDetails } from "../popups/ConfirmTradeDetails";
 import { DepositReceived } from "../popups/DepositReceived";
-import { Popup } from "../popups/Popup";
 import { ShowDepositAddress } from "../popups/ShowDepositAddress";
 import { SubmitToEthereum } from "../popups/SubmitToEthereum";
 
@@ -130,7 +129,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     }
 
     private readonly submitSwap = async () => {
-        const historyItem = await this.appContainer.submitSwap().catch(_catchInteractionErr_);
+        const historyItem = await this.appContainer.submitSwap();
         if (!historyItem || !this.props.swapSubmitted) {
             return;
         }
