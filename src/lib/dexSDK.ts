@@ -12,7 +12,7 @@ import { RenExAdapterWeb3, Transaction } from "./contracts/ren_ex_adapter";
 import { NETWORK } from "./environmentVariables";
 import { getReadonlyWeb3, getWeb3 } from "./getWeb3";
 import { Signature } from "./shiftSDK/darknode/darknodeGroup";
-import { NULL_BYTES32 } from "./shiftSDK/eth/eth";
+import { isERC20, NULL_BYTES32 } from "./shiftSDK/eth/eth";
 import { Chain, ShiftSDK, UTXO } from "./shiftSDK/shiftSDK";
 
 const ERC20ABI = require("./contracts/erc20_abi.json");
@@ -205,7 +205,7 @@ export class DexSDK {
         let balance: string;
         if (token === Token.ETH) {
             balance = await this.web3.eth.getBalance(address);
-        } else if ([Token.REN, Token.DAI].includes(token)) {
+        } else if (isERC20(token)) {
             const tokenAddress = tokenAddresses(token, NETWORK || "");
             const tokenInstance = getERC20(this.web3, tokenAddress);
             balance = (await tokenInstance.methods.balanceOf(address).call()).toString();

@@ -3,10 +3,10 @@ import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
+import { isERC20 } from "../../lib/shiftSDK/eth/eth";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer, OptionsContainer } from "../../state/containers";
 import { HistoryEvent } from "../../state/containers/appContainer";
-import { Token } from "../../state/generalTypes";
 import { AskForAddress } from "../popups/AskForAddress";
 import { ConfirmTradeDetails } from "../popups/ConfirmTradeDetails";
 import { DepositReceived } from "../popups/DepositReceived";
@@ -82,7 +82,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
                 onAddress={this.onRefundAddress}
                 cancel={this.cancel}
             />;
-        } else if ([Token.DAI, Token.REN].includes(orderInput.srcToken)) {
+        } else if (isERC20(orderInput.srcToken)) {
             if (!sufficientAllowance) {
                 submitPopup = <TokenAllowance token={orderInput.srcToken} amount={confirmedOrderInputs.srcAmount} submit={this.setAllowance} />;
             } else {

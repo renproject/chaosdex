@@ -10,6 +10,7 @@ import { history } from "../../lib/history";
 import { getMarket, getTokenPricesInCurrencies } from "../../lib/market";
 import { btcAddressToHex } from "../../lib/shiftSDK/blockchain/btc";
 import { Signature } from "../../lib/shiftSDK/darknode/darknodeGroup";
+import { isEthereumBased } from "../../lib/shiftSDK/eth/eth";
 import { Chain, UTXO } from "../../lib/shiftSDK/shiftSDK";
 import { MarketPair, Token, Tokens } from "../generalTypes";
 
@@ -147,7 +148,7 @@ export class AppContainer extends Container<typeof initialState> {
             refundAddress: hexRefundAddress,
             orderInputs: order,
         };
-        if ([Token.ETH, Token.DAI, Token.REN].includes(order.srcToken)) {
+        if (isEthereumBased(order.srcToken)) {
             await this.setState({ commitment });
         } else {
             const depositAddress = await dexSDK.generateAddress(order.srcToken, commitment);
@@ -243,7 +244,7 @@ export class AppContainer extends Container<typeof initialState> {
     public sufficientBalance = (): boolean => {
         const { orderInputs: { srcToken, srcAmount }, accountBalances } = this.state;
         const srcTokenDetails = Tokens.get(srcToken);
-        if (![Token.ETH, Token.DAI, Token.REN].includes(srcToken)) {
+        if (!isEthereumBased(srcToken)) {
             return true;
         }
         if (!srcTokenDetails) {
