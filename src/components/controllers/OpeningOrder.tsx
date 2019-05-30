@@ -172,7 +172,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     }
 
     private readonly shiftERC20 = async () => {
-        const historyItem = await this.appContainer.shiftERC20().catch(_catchInteractionErr_);
+        const historyItem = await this.appContainer.shiftERC20();
         if (!historyItem || !this.props.swapSubmitted) {
             return;
         }
