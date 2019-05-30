@@ -163,12 +163,20 @@ export class DexSDK {
         return this.shiftSDK.shift(tokenToChain(token), transaction, await this.hashCommitment(commitment));
     }
 
-    public submitSwap = (address: string, commitment: Commitment, signature: Signature): PromiEvent<Transaction> => { // Promise<string> => new Promise<string>(async (resolve, reject) => {
-        if (signature.v === "") {
-            signature.v = "0";
+    public submitSwap = (address: string, commitment: Commitment, signature?: Signature | null): PromiEvent<Transaction> => { // Promise<string> => new Promise<string>(async (resolve, reject) => {
+        let amount = commitment.srcAmount.toString();
+        let txHash = NULL_BYTES32;
+        let signatureBytes = NULL_BYTES32;
+
+        if (signature) {
+            amount = `0x${signature.amount}`; // _amount: BigNumber
+            txHash = `0x${signature.txHash}`; // _hash: string
+            if (signature.v === "") {
+                signature.v = "0";
+            }
+            const v = ((parseInt(signature.v, 10) + 27) || 27).toString(16);
+            signatureBytes = `0x${signature.r}${signature.s}${v}`;
         }
-        const v = ((parseInt(signature.v, 10) + 27) || 27).toString(16);
-        const signatureBytes = `0x${signature.r}${signature.s}${v}`;
 
         const params: [string, string, number, string, number, string, string, string, string] = [
             commitment.srcToken, // _src: string
@@ -177,9 +185,9 @@ export class DexSDK {
             commitment.toAddress, // _to: string
             commitment.refundBlockNumber, // _refundBN: BigNumber
             commitment.refundAddress, // _refundAddress: string
-            `0x${signature.amount}`, // _amount: BigNumber
-            `0x${signature.txHash}`, // _hash: string
-            `${signatureBytes}`, // _sig: string
+            amount, // _amount: BigNumber
+            txHash, // _hash: string
+            signatureBytes, // _sig: string
         ];
 
         console.groupCollapsed("Swap details");
@@ -227,31 +235,6 @@ export class DexSDK {
         transactionHash = await new Promise((resolve, reject) => promiEvent.on("transactionHash", resolve));
         console.log(`Approving ${amount.toString()} ${token} Tx hash: ${transactionHash}`);
         return amount;
-    }
-
-    public shiftERC20 = (address: string, commitment: Commitment): PromiEvent<Transaction> => {
-        const params: [string, string, number, string, number, string, string, string, string] = [
-            commitment.srcToken, // _src: string
-            commitment.dstToken, // _dst: string
-            commitment.minDestinationAmount.toNumber(), // _minDstAmt: BigNumber
-            commitment.toAddress, // _to: string
-            commitment.refundBlockNumber, // _refundBN: BigNumber
-            commitment.refundAddress, // _refundAddress: string
-            commitment.srcAmount.toString(), // _amount: BigNumber
-            NULL_BYTES32, // _hash: string
-            NULL_BYTES32, // _sig: string
-        ];
-
-        console.groupCollapsed("Swap details");
-        console.log(`Commitment`);
-        console.table(commitment);
-        console.log(`Call parameters`);
-        console.table(params);
-        console.groupEnd();
-
-        return getAdapter(this.web3).methods.trade(
-            ...params,
-        ).send({ from: address });
     }
 
     // Retrieves the current progress of the shift

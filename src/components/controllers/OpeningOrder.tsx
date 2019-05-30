@@ -86,7 +86,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
             if (!sufficientAllowance) {
                 submitPopup = <TokenAllowance token={orderInput.srcToken} amount={confirmedOrderInputs.srcAmount} submit={this.setAllowance} />;
             } else {
-                submitPopup = <SubmitToEthereum token={orderInput.dstToken} submit={this.shiftERC20} />;
+                submitPopup = <SubmitToEthereum token={orderInput.dstToken} submit={this.submitSwap} />;
             }
         } else {
             if ((!utxos || utxos.size === 0)) {
@@ -169,14 +169,6 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
         this.setState({ confirmedTrade: false, });
         this.appContainer.resetTrade().catch(_catchInteractionErr_);
         this.props.cancel();
-    }
-
-    private readonly shiftERC20 = async () => {
-        const historyItem = await this.appContainer.shiftERC20();
-        if (!historyItem || !this.props.swapSubmitted) {
-            return;
-        }
-        this.props.swapSubmitted(historyItem);
     }
 }
 

@@ -186,7 +186,7 @@ export class AppContainer extends Container<typeof initialState> {
 
     public submitSwap = async (): Promise<HistoryEvent | null> => {
         const { address, dexSDK, commitment, signature } = this.state;
-        if (!address || !commitment || !signature) {
+        if (!address || !commitment) {
             return null;
         }
 
@@ -235,33 +235,9 @@ export class AppContainer extends Container<typeof initialState> {
             depositAddress: null,
             depositAddressToken: null,
             utxos: null,
+            messageID: null,
+            signature: null,
         });
-    }
-
-    public shiftERC20 = async () => {
-        const { address, dexSDK, commitment } = this.state;
-        if (!address || !commitment) {
-            return;
-        }
-        const promiEvent = dexSDK.shiftERC20(address, commitment);
-
-        let transactionHash: string | undefined;
-        let swapError: Error | undefined;
-        try {
-            transactionHash = await new Promise((resolve, reject) => promiEvent.on("transactionHash", resolve));
-        } catch (error) {
-            swapError = error;
-        }
-
-        const historyItem: HistoryEvent = {
-            transactionHash: transactionHash || "",
-            orderInputs: commitment.orderInputs,
-            time: Date.now() / 1000,
-        };
-
-        // await this.setState({ swapHistory: swapHistory.push(historyItem) });
-        await this.resetTrade();
-        return historyItem;
     }
 
     public sufficientBalance = (): boolean => {
