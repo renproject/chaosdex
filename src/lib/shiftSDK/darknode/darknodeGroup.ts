@@ -13,23 +13,41 @@ import {
 
 export const NewMultiAddress = (multiAddress: string) => multiAddress;
 
-export const lightnodes = [
-    // Lightnode
-    "https://lightnode.herokuapp.com",
-
-    // Local node
-    // NewMultiAddress("/ip4/0.0.0.0/tcp/18515/ren/8MJw8s6TVKmQH3kdM5kJUYqPmh3JmF"),
-
-    // DevNet nodes
-    // NewMultiAddress("/ip4/54.221.29.240/tcp/18515/8MJF6WEFR5SM7g652Uj52LH5GAfgGE"),
-    // NewMultiAddress("/ip4/34.213.51.170/tcp/18515/8MJFpCbi2jkVMLu4LdLywCPKuLdYFu"),
-    // NewMultiAddress("/ip4/34.205.143.11/tcp/18515/8MHAgaq5NcujBZy1SayoG1DtbjF8pH"),
-    // NewMultiAddress("/ip4/99.79.61.64/tcp/18515/8MJyd8wXBvC8xoinLxECskbUgMVrBy"),
-    // NewMultiAddress("/ip4/35.154.42.26/tcp/18515/8MJRT4E1yS1HN2JwZt9DRFkwCGuzcV"),
-    // NewMultiAddress("/ip4/34.220.215.156/tcp/18515/8MJ5yefA76JSeu4c7mSP5UBevuXr3N"),
-    // NewMultiAddress("/ip4/18.196.15.243/tcp/18515/8MHgw9WH3KAqwRv8GHHpBsdBai9Nw9"),
-    // NewMultiAddress("/ip4/18.231.179.161/tcp/18515/8MKJXQrye3EG5PEEwVebkaRXBUCn9g"),
+const _localNode = [
+    NewMultiAddress("/ip4/0.0.0.0/tcp/18515/ren/8MJF6WEFR5SM7g652Uj52LH5GAfgGE"),
 ];
+
+const _testnetNodes = [
+    NewMultiAddress("/ip4/13.56.169.110/tcp/18515/8MJwRoUfhU2bRmuJUWPRoDuQPYK1Rj"),
+    NewMultiAddress("/ip4/13.52.161.137/tcp/18515/8MGUXixUxCK1s8Fpko5pUfPFC3V2KK"),
+    NewMultiAddress("/ip4/13.57.71.179/tcp/18515/8MJzChiEMBffzvSvxi2qWrB6zQeNaF"),
+    NewMultiAddress("/ip4/52.9.86.59/tcp/18515/8MJxbKycNEm8epPfwyWbBMeuQrsvjb"),
+    NewMultiAddress("/ip4/52.89.211.7/tcp/18515/8MHuJF93QbHtkRip46p4WMi6FcppXR"),
+    NewMultiAddress("/ip4/52.37.221.167/tcp/18515/8MKWQvkAwTdjwJnZqgPbcgUfZn5bwV"),
+    NewMultiAddress("/ip4/52.43.239.115/tcp/18515/8MHk4gGMYKDvaGjBpup5wSpZZ5Kc2j"),
+    NewMultiAddress("/ip4/52.42.160.15/tcp/18515/8MGPBAL3kx7HYfvbzx5K7VCNn8PYvC"),
+];
+
+const _devnetNodes = [
+    NewMultiAddress("/ip4/54.221.29.240/tcp/18515/8MJF6WEFR5SM7g652Uj52LH5GAfgGE"),
+    NewMultiAddress("/ip4/34.213.51.170/tcp/18515/8MJFpCbi2jkVMLu4LdLywCPKuLdYFu"),
+    NewMultiAddress("/ip4/34.205.143.11/tcp/18515/8MHAgaq5NcujBZy1SayoG1DtbjF8pH"),
+    NewMultiAddress("/ip4/99.79.61.64/tcp/18515/8MJyd8wXBvC8xoinLxECskbUgMVrBy"),
+    NewMultiAddress("/ip4/35.154.42.26/tcp/18515/8MJRT4E1yS1HN2JwZt9DRFkwCGuzcV"),
+    NewMultiAddress("/ip4/34.220.215.156/tcp/18515/8MJ5yefA76JSeu4c7mSP5UBevuXr3N"),
+    NewMultiAddress("/ip4/18.196.15.243/tcp/18515/8MHgw9WH3KAqwRv8GHHpBsdBai9Nw9"),
+    NewMultiAddress("/ip4/18.231.179.161/tcp/18515/8MKJXQrye3EG5PEEwVebkaRXBUCn9g"),
+];
+
+const _testnetLightnode = [
+    "https://lightnode-testnet.herokuapp.com",
+];
+
+export const devnetLightnode = [
+    "https://lightnode.herokuapp.com",
+];
+
+export const lightnodes = devnetLightnode;
 
 // export const multiAddressToID = (multiAddress: MultiAddress): DarknodeID => {
 //     const split = multiAddress.multiAddress.split("/");
@@ -168,7 +186,7 @@ export class ShifterGroup extends DarknodeGroup {
             throw new Error("Unable to send message to lightnodes.");
         }
 
-        return results.filter(x => x !== null).map((result) => ({
+        return results.filter(x => x !== null && x.result.result !== undefined).map((result) => ({
             // tslint:disable: no-non-null-assertion no-unnecessary-type-assertion
             lightnode: result!.lightnode,
             messageID: result!.result.result!.messageID,

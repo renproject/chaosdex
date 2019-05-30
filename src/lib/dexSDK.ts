@@ -17,6 +17,13 @@ const ERC20ABI = require("./contracts/erc20_abi.json");
 const RenExABI = require("./contracts/ren_ex_abi.json");
 const RenExAdapterABI = require("./contracts/ren_ex_adapter_abi.json");
 
+export interface OrderInputs {
+    srcToken: Token;
+    dstToken: Token;
+    srcAmount: string;
+    dstAmount: string;
+}
+
 export interface Commitment {
     srcToken: string;
     dstToken: string;
@@ -26,12 +33,7 @@ export interface Commitment {
     refundBlockNumber: number;
     refundAddress: string;
 
-    originals: {
-        srcToken: Token;
-        dstToken: Token;
-        dstAmount: BigNumber;
-        srcAmount: BigNumber;
-    };
+    orderInputs: OrderInputs;
 }
 
 // enum ShiftStatus {

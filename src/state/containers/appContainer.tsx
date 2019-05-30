@@ -2,11 +2,9 @@ import { Currency } from "@renex/react-components";
 import BigNumber from "bignumber.js";
 import { List, Map } from "immutable";
 import { Container } from "unstated";
-import { PromiEvent } from "web3-core";
 
 import { tokenAddresses } from "../../lib/contractAddresses";
-import { Transaction } from "../../lib/contracts/ren_ex_adapter";
-import { Commitment, DexSDK, ReserveBalances } from "../../lib/dexSDK";
+import { Commitment, DexSDK, OrderInputs, ReserveBalances } from "../../lib/dexSDK";
 import { estimatePrice } from "../../lib/estimatePrice";
 import { history } from "../../lib/history";
 import { getMarket, getTokenPricesInCurrencies } from "../../lib/market";
@@ -16,17 +14,17 @@ import { Chain, UTXO } from "../../lib/shiftSDK/shiftSDK";
 import { MarketPair, Token, Tokens } from "../generalTypes";
 
 export interface HistoryEvent {
-    commitment: Commitment;
-    srcToken: Token;
-    dstToken: Token;
-    srcAmount: BigNumber; // Normal units
-    dstAmount: BigNumber; // Normal units
     time: number; // Seconds since Unix epoch
-
-    promiEvent?: PromiEvent<Transaction>;
-    transactionHash?: string;
-    swapError?: Error;
+    transactionHash: string;
+    orderInputs: OrderInputs;
 }
+
+const initialOrder: OrderInputs = {
+    srcToken: Token.BTC,
+    dstToken: Token.DAI,
+    srcAmount: "0.01",
+    dstAmount: "0",
+};
 
 const initialState = {
     address: null as string | null,
@@ -34,25 +32,22 @@ const initialState = {
     accountBalances: Map<Token, BigNumber>(),
     balanceReserves: Map<MarketPair, ReserveBalances>(),
     dexSDK: new DexSDK(),
-    order: {
-        srcToken: Token.BTC,
-        dstToken: Token.DAI,
-        sendVolume: "0.0001",
-        receiveVolume: "0",
-    },
+
+    orderInputs: initialOrder,
+    confirmedOrderInputs: null as null | OrderInputs,
+
     submitting: false,
     toAddress: null as string | null,
     refundAddress: null as string | null,
     commitment: null as Commitment | null,
     depositAddress: null as string | null,
     depositAddressToken: null as Token | null,
-    utxos: null as UTXO[] | null,
+    utxos: null as List<UTXO> | null,
     messageID: null as string | null,
-    // tslint:disable-next-line: no-any
     signature: null as Signature | null,
 };
 
-export type OrderData = typeof initialState.order;
+export type OrderData = typeof initialState.orderInputs;
 
 export class AppContainer extends Container<typeof initialState> {
     public state = initialState;
@@ -93,25 +88,25 @@ export class AppContainer extends Container<typeof initialState> {
     // Swap inputs /////////////////////////////////////////////////////////////
 
     public updateSrcToken = async (srcToken: Token): Promise<void> => {
-        await this.setState({ order: { ...this.state.order, srcToken } });
+        await this.setState({ orderInputs: { ...this.state.orderInputs, srcToken } });
         await this.updateHistory();
         await this.updateReceiveValue();
     }
 
     public updateDstToken = async (dstToken: Token): Promise<void> => {
-        await this.setState({ order: { ...this.state.order, dstToken } });
+        await this.setState({ orderInputs: { ...this.state.orderInputs, dstToken } });
         await this.updateHistory();
         await this.updateReceiveValue();
     }
 
-    public updateSendVolume = async (sendVolume: string): Promise<void> => {
-        await this.setState({ order: { ...this.state.order, sendVolume } });
+    public updateSrcAmount = async (srcAmount: string): Promise<void> => {
+        await this.setState({ orderInputs: { ...this.state.orderInputs, srcAmount } });
         await this.updateReceiveValue();
     }
 
     public flipSendReceive = async (): Promise<void> => {
-        const { order: { srcToken, dstToken } } = this.state;
-        await this.setState({ order: { ...this.state.order, srcToken: dstToken, dstToken: srcToken } });
+        const { orderInputs: { srcToken, dstToken } } = this.state;
+        await this.setState({ orderInputs: { ...this.state.orderInputs, srcToken: dstToken, dstToken: srcToken } });
         await this.updateHistory();
         await this.updateReceiveValue();
     }
@@ -124,7 +119,7 @@ export class AppContainer extends Container<typeof initialState> {
     }
 
     public updateCommitment = async () => {
-        const { order, dexSDK, toAddress, refundAddress } = this.state;
+        const { orderInputs: order, dexSDK, toAddress, refundAddress } = this.state;
         const srcTokenDetails = Tokens.get(order.srcToken);
         if (!toAddress || !refundAddress || !srcTokenDetails) {
             throw new Error(`Required info is undefined (${toAddress}, ${refundAddress}, ${srcTokenDetails})`);
@@ -142,16 +137,11 @@ export class AppContainer extends Container<typeof initialState> {
             srcToken: tokenAddresses(order.srcToken, "testnet"),
             dstToken: tokenAddresses(order.dstToken, "testnet"),
             minDestinationAmount: new BigNumber(0),
-            srcAmount: new BigNumber(order.sendVolume).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals)),
+            srcAmount: new BigNumber(order.srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals)),
             toAddress: hexToAddress,
             refundBlockNumber: blockNumber + 360, // 360 blocks (assuming 0.1bps, equals 1 hour)
             refundAddress: hexRefundAddress,
-            originals: {
-                srcToken: order.srcToken,
-                dstToken: order.dstToken,
-                dstAmount: new BigNumber(order.receiveVolume),
-                srcAmount: new BigNumber(order.sendVolume),
-            }
+            orderInputs: order,
         };
         if ([Token.ETH, Token.DAI, Token.REN].includes(order.srcToken)) {
             await this.setState({ commitment });
@@ -168,7 +158,9 @@ export class AppContainer extends Container<typeof initialState> {
             return;
         }
         const utxos = await dexSDK.retrieveDeposits(depositAddressToken, depositAddress);
-        await this.setState({ utxos });
+        if (!this.state.utxos || (utxos.length >= this.state.utxos.size)) {
+            await this.setState({ utxos: List(utxos) });
+        }
     }
 
     public submitDeposit = async () => {
@@ -195,28 +187,14 @@ export class AppContainer extends Container<typeof initialState> {
         }
 
         const promiEvent = dexSDK.submitSwap(address, commitment, signature);
-
-        let transactionHash: string | undefined;
-        let swapError: Error | undefined;
-        try {
-            transactionHash = await new Promise((resolve, reject) => promiEvent.on("transactionHash", resolve));
-        } catch (error) {
-            swapError = error;
-        }
+        const transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve).catch(reject));
 
         const historyItem: HistoryEvent = {
-            promiEvent,
             transactionHash,
-            commitment,
-            swapError,
+            orderInputs: commitment.orderInputs,
             time: Date.now() / 1000,
-            srcToken: commitment.originals.srcToken,
-            dstToken: commitment.originals.dstToken,
-            srcAmount: commitment.originals.srcAmount,
-            dstAmount: commitment.originals.dstAmount,
         };
 
-        // await this.setState({ swapHistory: swapHistory.push(historyItem) });
         await this.resetTrade();
         return historyItem;
     }
@@ -230,6 +208,9 @@ export class AppContainer extends Container<typeof initialState> {
             const messageResponse = await dexSDK.shiftStatus(messageID);
             await this.setState({ signature: messageResponse });
         } catch (error) {
+            if (`${error}`.match("Signature not available")) {
+                return;
+            }
             console.error(error);
         }
     }
@@ -237,6 +218,7 @@ export class AppContainer extends Container<typeof initialState> {
     public setSubmitting = async (submitting: boolean) => {
         await this.setState({
             submitting,
+            confirmedOrderInputs: { ...this.state.orderInputs },
         });
     }
 
@@ -268,15 +250,9 @@ export class AppContainer extends Container<typeof initialState> {
         }
 
         const historyItem: HistoryEvent = {
-            promiEvent,
-            transactionHash,
-            commitment,
-            swapError,
+            transactionHash: transactionHash || "",
+            orderInputs: commitment.orderInputs,
             time: Date.now() / 1000,
-            srcToken: commitment.originals.srcToken,
-            dstToken: commitment.originals.dstToken,
-            srcAmount: commitment.originals.srcAmount,
-            dstAmount: commitment.originals.dstAmount,
         };
 
         // await this.setState({ swapHistory: swapHistory.push(historyItem) });
@@ -285,7 +261,7 @@ export class AppContainer extends Container<typeof initialState> {
     }
 
     public sufficientBalance = (): boolean => {
-        const { order: { srcToken, sendVolume }, accountBalances } = this.state;
+        const { orderInputs: { srcToken, srcAmount }, accountBalances } = this.state;
         const srcTokenDetails = Tokens.get(srcToken);
         if (![Token.ETH, Token.DAI, Token.REN].includes(srcToken)) {
             return true;
@@ -293,11 +269,11 @@ export class AppContainer extends Container<typeof initialState> {
         if (!srcTokenDetails) {
             return true;
         }
-        const srcAmount = new BigNumber(sendVolume).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals));
+        const srcAmountBN = new BigNumber(srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals));
         const balance = accountBalances.get(srcToken) || new BigNumber(0);
-        console.log(srcAmount.toString());
+        console.log(srcAmountBN.toString());
         console.log(balance.toString());
-        return srcAmount.lte(balance);
+        return srcAmountBN.lte(balance);
     }
 
     public updateAccountBalances = async (): Promise<void> => {
@@ -317,29 +293,29 @@ export class AppContainer extends Container<typeof initialState> {
     }
 
     public setAllowance = async (): Promise<boolean> => {
-        const { order: { srcToken, sendVolume }, dexSDK, address } = this.state;
+        const { orderInputs: { srcToken, srcAmount }, dexSDK, address } = this.state;
         const srcTokenDetails = Tokens.get(srcToken);
         if (!address || !srcTokenDetails) {
             return false;
         }
-        const srcAmount = new BigNumber(sendVolume).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals));
-        const allowance = await dexSDK.setTokenAllowance(srcAmount, srcToken, address);
-        return allowance.gte(srcAmount);
+        const srcAmountBN = new BigNumber(srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals));
+        const allowance = await dexSDK.setTokenAllowance(srcAmountBN, srcToken, address);
+        return allowance.gte(srcAmountBN);
     }
 
     private readonly updateReceiveValue = async (): Promise<void> => {
-        const { order: { srcToken, dstToken, sendVolume } } = this.state;
+        const { orderInputs: { srcToken, dstToken, srcAmount } } = this.state;
         const market = getMarket(srcToken, dstToken);
         if (market) {
             const reserves = this.state.balanceReserves.get(market);
 
-            const receiveVolume = await estimatePrice(srcToken, dstToken, sendVolume, reserves);
-            await this.setState({ order: { ...this.state.order, receiveVolume: receiveVolume.toFixed() } });
+            const dstAmount = await estimatePrice(srcToken, dstToken, srcAmount, reserves);
+            await this.setState({ orderInputs: { ...this.state.orderInputs, dstAmount: dstAmount.toFixed() } });
         }
     }
 
     private readonly updateHistory = async (): Promise<void> => {
-        const { order: { srcToken, dstToken } } = this.state;
+        const { orderInputs: { srcToken, dstToken } } = this.state;
         history.replace(`/?send=${srcToken}&receive=${dstToken}`);
     }
 }

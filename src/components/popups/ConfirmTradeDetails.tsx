@@ -3,15 +3,15 @@ import * as React from "react";
 import { Currency, CurrencyIcon, InfoLabel, TokenIcon } from "@renex/react-components";
 import { useTranslation } from "react-i18next";
 
+import { OrderInputs } from "../../lib/dexSDK";
 import { _catchInteractionErr_ } from "../../lib/errors";
-import { OrderData } from "../../state/containers/appContainer";
 import { TokenPrices } from "../../state/generalTypes";
 import { ReactComponent as Arrow } from "../../styles/images/arrow-right.svg";
 import { TokenBalance } from "../views/TokenBalance";
 import { Popup } from "./Popup";
 
 export const ConfirmTradeDetails: React.StatelessComponent<{
-    orderInputs: OrderData;
+    orderInputs: OrderInputs;
     quoteCurrency: Currency;
     tokenPrices: TokenPrices;
     done(): void;
@@ -30,7 +30,7 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
                         <span>
                             <TokenBalance
                                 token={orderInputs.srcToken}
-                                amount={orderInputs.sendVolume}
+                                amount={orderInputs.srcAmount}
                             />
                             {" "}
                             {orderInputs.srcToken}
@@ -40,7 +40,7 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
                             <TokenBalance
                                 token={orderInputs.srcToken}
                                 convertTo={quoteCurrency}
-                                amount={orderInputs.sendVolume}
+                                amount={orderInputs.srcAmount}
                                 tokenPrices={tokenPrices}
                             />
                         </span>
@@ -53,7 +53,7 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
                         <span>
                             <TokenBalance
                                 token={orderInputs.dstToken}
-                                amount={orderInputs.receiveVolume}
+                                amount={orderInputs.dstAmount}
                             />
                             {" "}
                             {orderInputs.dstToken}
@@ -63,7 +63,7 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
                             <TokenBalance
                                 token={orderInputs.dstToken}
                                 convertTo={quoteCurrency}
-                                amount={orderInputs.receiveVolume}
+                                amount={orderInputs.dstAmount}
                                 tokenPrices={tokenPrices}
                             />
                         </span>
@@ -82,7 +82,7 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
                             <span className="swap-details--values--left">
                                 <TokenBalance
                                     token={orderInputs.dstToken}
-                                    amount={orderInputs.receiveVolume}
+                                    amount={orderInputs.dstAmount}
                                 />
                                 {" "}
                                 {orderInputs.dstToken}
@@ -97,7 +97,7 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
                                 <TokenBalance
                                     token={orderInputs.dstToken}
                                     convertTo={quoteCurrency}
-                                    amount={orderInputs.receiveVolume}
+                                    amount={orderInputs.dstAmount}
                                     tokenPrices={tokenPrices}
                                 />
                             </div>
@@ -124,7 +124,7 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
                             <div className="swap-details--values--right">
                                 <TokenBalance
                                     token={orderInputs.dstToken}
-                                    amount={orderInputs.receiveVolume}
+                                    amount={orderInputs.dstAmount}
                                 />
                                 {" "}
                                 {orderInputs.dstToken}
@@ -140,4 +140,4 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
             </div>
         </div>
     </Popup>;
-}
+};

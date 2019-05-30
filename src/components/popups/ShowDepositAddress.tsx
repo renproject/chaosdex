@@ -11,8 +11,9 @@ import { Popup } from "./Popup";
 export const ShowDepositAddress: React.StatelessComponent<{
     token: Token,
     depositAddress: string | null,
+    amount: string,
     cancel(): void;
-}> = ({ token, depositAddress, cancel }) => {
+}> = ({ amount, token, depositAddress, cancel }) => {
     // Defaults for demo
     const [understood, setUnderstood] = React.useState(false);
     const [copied, setCopied] = React.useState(false);
@@ -41,10 +42,10 @@ export const ShowDepositAddress: React.StatelessComponent<{
         <div className="deposit-address">
             <div className="popup--body">
                 <TokenIcon className="token-icon" token={token} />
-                <h2>Deposit {token.toUpperCase()}</h2>
+                <h2>Deposit {amount} {token.toUpperCase()}</h2>
                 <div role="button" className="popup--header--x" onClick={cancel} />
                 <div className="address-input--message">
-                    Only send {token.toUpperCase()} to this address.<br />
+                    Only send {token.toUpperCase()} to your deposit address.<br />
                     Sending any other assets will result in permanent loss!
                 </div>
                 {understood ?
@@ -77,7 +78,7 @@ export const ShowDepositAddress: React.StatelessComponent<{
                     </> :
                     <>
                         <div className="popup--buttons">
-                            <button className="button open--confirm" disabled={depositAddress === null} onClick={onClick}>I understand</button>
+                            <button className="button open--confirm" disabled={depositAddress === null} onClick={onClick}>Show deposit address</button>
                         </div>
                     </>
                 }

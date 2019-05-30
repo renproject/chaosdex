@@ -10,7 +10,6 @@ import { Token } from "../../state/generalTypes";
 import { AskForAddress } from "../popups/AskForAddress";
 import { ConfirmTradeDetails } from "../popups/ConfirmTradeDetails";
 import { DepositReceived } from "../popups/DepositReceived";
-import { Popup } from "../popups/Popup";
 import { ShowDepositAddress } from "../popups/ShowDepositAddress";
 import { SubmitToEthereum } from "../popups/SubmitToEthereum";
 import { TokenAllowance } from "../popups/TokenAllowance";
@@ -50,14 +49,18 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     public render(): React.ReactNode {
         const { sufficientAllowance, confirmedTrade } = this.state;
         const {
-            order: orderInput, toAddress, refundAddress, depositAddress, utxos,
-            messageID, signature: messageResponse,
+            orderInputs: orderInput, toAddress, refundAddress, depositAddress, utxos,
+            messageID, signature: messageResponse, confirmedOrderInputs
         } = this.appContainer.state;
+
+        if (!confirmedOrderInputs) {
+            return <></>;
+        }
 
         let submitPopup = <></>;
         if (!confirmedTrade) {
             submitPopup = <ConfirmTradeDetails
-                orderInputs={orderInput}
+                orderInputs={confirmedOrderInputs}
                 done={this.onConfirmedTrade}
                 cancel={this.cancel}
                 quoteCurrency={this.optionsContainer.state.preferredCurrency}
@@ -65,31 +68,32 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
             />;
         } else if (toAddress === null) {
             submitPopup = <AskForAddress
-                key={orderInput.dstToken} // Since AskForAddress is used twice
-                token={orderInput.dstToken}
-                message={`Enter the ${orderInput.dstToken} public address you want to receive your tokens to.`}
+                key={confirmedOrderInputs.dstToken} // Since AskForAddress is used twice
+                token={confirmedOrderInputs.dstToken}
+                message={`Enter the ${confirmedOrderInputs.dstToken} public address you want to receive your tokens to.`}
                 onAddress={this.ontoAddress}
                 cancel={this.cancel}
             />;
         } else if (refundAddress === null) {
             submitPopup = <AskForAddress
-                key={orderInput.srcToken} // Since AskForAddress is used twice
-                token={orderInput.srcToken}
-                message={`Enter your ${orderInput.srcToken} refund address in case the trade doesn't go through.`}
+                key={confirmedOrderInputs.srcToken} // Since AskForAddress is used twice
+                token={confirmedOrderInputs.srcToken}
+                message={`Enter your ${confirmedOrderInputs.srcToken} refund address in case the trade doesn't go through.`}
                 onAddress={this.onRefundAddress}
                 cancel={this.cancel}
             />;
         } else if ([Token.DAI, Token.REN].includes(orderInput.srcToken)) {
             if (!sufficientAllowance) {
-                submitPopup = <TokenAllowance token={orderInput.srcToken} amount={orderInput.sendVolume} submit={this.setAllowance} />;
+                submitPopup = <TokenAllowance token={orderInput.srcToken} amount={confirmedOrderInputs.srcAmount} submit={this.setAllowance} />;
             } else {
                 submitPopup = <SubmitToEthereum token={orderInput.dstToken} submit={this.shiftERC20} />;
             }
         } else {
-            if (!utxos || utxos.length === 0) {
+            if ((!utxos || utxos.size === 0)) {
                 submitPopup = <ShowDepositAddress
                     token={orderInput.srcToken}
                     depositAddress={depositAddress}
+                    amount={confirmedOrderInputs.srcAmount}
                     cancel={this.cancel}
                 />;
             } else if (!messageResponse) {
@@ -141,7 +145,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     }
 
     private readonly submitSwap = async () => {
-        const historyItem = await this.appContainer.submitSwap().catch(_catchInteractionErr_);
+        const historyItem = await this.appContainer.submitSwap();
         if (!historyItem || !this.props.swapSubmitted) {
             return;
         }

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { CurrencyIcon, InfoLabel, TokenValueInput } from "@renex/react-components";
+import { CurrencyIcon, TokenValueInput } from "@renex/react-components";
 import BigNumber from "bignumber.js";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { debounce } from "throttle-debounce";
@@ -17,7 +17,7 @@ export const normalizeDecimals = (inputIn: string | null): string | null => {
 };
 
 const defaultState = {
-    sendVolumeState: "",
+    srcAmountState: "",
     allOrNothing: false,
     immediateOrCancel: false,
     fillOrKill: false,
@@ -31,7 +31,7 @@ class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
     constructor(props: Props) {
         super(props);
         [this.appContainer, this.optionsContainer] = this.props.containers;
-        this.state = { ...defaultState, sendVolumeState: this.appContainer.state.order.sendVolume };
+        this.state = { ...defaultState, srcAmountState: this.appContainer.state.orderInputs.srcAmount };
     }
 
     public render(): React.ReactNode {
@@ -48,7 +48,7 @@ class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
         </div>;
 
         const quoteCurrency = this.optionsContainer.state.preferredCurrency;
-        const orderInputs = this.appContainer.state.order;
+        const orderInputs = this.appContainer.state.orderInputs;
 
         const firstSubtext = <>
             {"~ "}
@@ -58,13 +58,13 @@ class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
                 token={orderInputs.srcToken}
                 convertTo={quoteCurrency}
                 tokenPrices={this.appContainer.state.tokenPrices}
-                amount={orderInputs.sendVolume || "0"}
+                amount={orderInputs.srcAmount || "0"}
             />
         </>;
 
         const first = <TokenValueInput
             title={t("new_order.spend")}
-            value={this.state.sendVolumeState}
+            value={this.state.srcAmountState}
             subtext={firstSubtext}
             hint={null}
             error={false}
@@ -75,7 +75,7 @@ class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
 
         const second = <TokenValueInput
             title={t("new_order.receive")}
-            value={normalizeDecimals(orderInputs.receiveVolume)}
+            value={normalizeDecimals(orderInputs.dstAmount)}
             subtext={<></>}
             hint={t<string>("new_order.based_on_market_price")}
             error={false}
@@ -96,7 +96,7 @@ class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
             value = new BigNumber(value).toFixed();
         }
 
-        this.setState({ sendVolumeState: value });
+        this.setState({ srcAmountState: value });
         // tslint:disable-next-line: no-floating-promises
         this.debouncedVolumeChange(value);
     }
@@ -106,16 +106,11 @@ class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
      */
     private readonly debouncedVolumeChange = async (value: string) =>
         debounce(100, false, async () =>
-            this.appContainer.updateSendVolume(value).catch(_catchInteractionErr_)
+            this.appContainer.updateSrcAmount(value).catch(_catchInteractionErr_)
         )()
 
     private readonly toggleSide = async () => {
         await this.appContainer.flipSendReceive();
-    }
-
-    private readonly handleMoreOptions = (e: React.ChangeEvent<HTMLInputElement>): void => {
-        const { name, checked } = e.target;
-        this.setState((oldState) => ({ ...oldState, [name]: checked, }));
     }
 }
 
