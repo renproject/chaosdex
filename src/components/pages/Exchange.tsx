@@ -14,7 +14,7 @@ import { NewOrder } from "../controllers/NewOrder";
 import { OrderHistory } from "../controllers/OrderHistory";
 import { _catch_ } from "../views/ErrorBoundary";
 
-const useOrderHistoryState = createPersistedState("order-history");
+const useOrderHistoryState = createPersistedState("order-history-v1");
 
 /**
  * Exchange is the main token-swapping page.
