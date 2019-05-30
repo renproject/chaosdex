@@ -12,7 +12,10 @@ export const TokenAllowance: React.StatelessComponent<{
     const [ submitting, setSubmitting] = React.useState(false);
     const onSubmit = () => {
         setSubmitting(true);
-        submit().catch(_catchInteractionErr_);
+        submit().catch((err) => {
+            setSubmitting(false);
+            _catchInteractionErr_(err);
+        });
     };
     return <Popup>
         <div className="address-input">
