@@ -106,7 +106,11 @@ export class AppContainer extends Container<typeof initialState> {
 
     public flipSendReceive = async (): Promise<void> => {
         const { orderInputs: { srcToken, dstToken } } = this.state;
-        await this.setState({ orderInputs: { ...this.state.orderInputs, srcToken: dstToken, dstToken: srcToken } });
+        await this.updateBothTokens(dstToken, srcToken);
+    }
+
+    public updateBothTokens = async (srcToken: Token, dstToken: Token): Promise<void> => {
+        await this.setState({ orderInputs: { ...this.state.orderInputs, srcToken, dstToken } });
         await this.updateHistory();
         await this.updateReceiveValue();
     }

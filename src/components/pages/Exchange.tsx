@@ -40,11 +40,15 @@ export const Exchange = connect<RouteComponentProps & ConnectedProps<[AppContain
                  */
                 try {
                     const queryParams = qs.parse(location.search);
-                    if (queryParams.send) {
-                        appContainer.updateSrcToken(queryParams.send as Token).catch(_catchInteractionErr_);
-                    }
-                    if (queryParams.receive) {
-                        appContainer.updateDstToken(queryParams.receive as Token).catch(_catchInteractionErr_);
+                    if (queryParams.send && queryParams.receive) {
+                        appContainer.updateBothTokens(queryParams.send as Token, queryParams.receive as Token).catch(_catchInteractionErr_);
+                    } else {
+                        if (queryParams.send) {
+                            appContainer.updateSrcToken(queryParams.send as Token).catch(_catchInteractionErr_);
+                        }
+                        if (queryParams.receive) {
+                            appContainer.updateDstToken(queryParams.receive as Token).catch(_catchInteractionErr_);
+                        }
                     }
                 } catch (error) {
                     _catchInteractionErr_(error, {
