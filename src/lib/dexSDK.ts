@@ -12,13 +12,12 @@ import { RenExAdapterWeb3, Transaction } from "./contracts/ren_ex_adapter";
 import { NETWORK } from "./environmentVariables";
 import { getReadonlyWeb3, getWeb3 } from "./getWeb3";
 import { Signature } from "./shiftSDK/darknode/darknodeGroup";
+import { NULL_BYTES32 } from "./shiftSDK/eth/eth";
 import { Chain, ShiftSDK, UTXO } from "./shiftSDK/shiftSDK";
 
 const ERC20ABI = require("./contracts/erc20_abi.json");
 const RenExABI = require("./contracts/ren_ex_abi.json");
 const RenExAdapterABI = require("./contracts/ren_ex_adapter_abi.json");
-
-const NULL_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 export interface OrderInputs {
     srcToken: Token;

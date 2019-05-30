@@ -7,7 +7,8 @@ import { AbiItem } from "web3-utils";
 import BridgedTokenABI from "./BridgedTokenABI.json";
 import DarknodeRegistryABI from "./DarknodeRegistryABI.json";
 
-const NULL = "0x0000000000000000000000000000000000000000";
+export const NULL         = "0x0000000000000000000000000000000000000000";
+export const NULL_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 export interface DarknodeID { id: string; }
 export const NewDarknodeID = (id: string) => ({ id });
