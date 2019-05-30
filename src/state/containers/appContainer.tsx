@@ -10,6 +10,7 @@ import { history } from "../../lib/history";
 import { getMarket, getTokenPricesInCurrencies } from "../../lib/market";
 import { btcAddressToHex } from "../../lib/shiftSDK/blockchain/btc";
 import { Signature } from "../../lib/shiftSDK/darknode/darknodeGroup";
+import { isEthereumBased } from "../../lib/shiftSDK/eth/eth";
 import { Chain, UTXO } from "../../lib/shiftSDK/shiftSDK";
 import { MarketPair, Token, Tokens } from "../generalTypes";
 
@@ -29,6 +30,7 @@ const initialOrder: OrderInputs = {
 const initialState = {
     address: null as string | null,
     tokenPrices: Map<Token, Map<Currency, number>>(),
+    accountBalances: Map<Token, BigNumber>(),
     balanceReserves: Map<MarketPair, ReserveBalances>(),
     dexSDK: new DexSDK(),
 
@@ -57,6 +59,11 @@ export class AppContainer extends Container<typeof initialState> {
 
         const addresses = await dexSDK.web3.eth.getAccounts();
         await this.setState({ address: addresses.length > 0 ? addresses[0] : null });
+        await this.updateAccountBalances();
+    }
+
+    public clearAddress = async (): Promise<void> => {
+        await this.setState({ address: null });
     }
 
     // Token prices ////////////////////////////////////////////////////////////
@@ -100,7 +107,11 @@ export class AppContainer extends Container<typeof initialState> {
 
     public flipSendReceive = async (): Promise<void> => {
         const { orderInputs: { srcToken, dstToken } } = this.state;
-        await this.setState({ orderInputs: { ...this.state.orderInputs, srcToken: dstToken, dstToken: srcToken } });
+        await this.updateBothTokens(dstToken, srcToken);
+    }
+
+    public updateBothTokens = async (srcToken: Token, dstToken: Token): Promise<void> => {
+        await this.setState({ orderInputs: { ...this.state.orderInputs, srcToken, dstToken } });
         await this.updateHistory();
         await this.updateReceiveValue();
     }
@@ -119,19 +130,31 @@ export class AppContainer extends Container<typeof initialState> {
             throw new Error(`Required info is undefined (${toAddress}, ${refundAddress}, ${srcTokenDetails})`);
         }
         const blockNumber = await dexSDK.web3.eth.getBlockNumber();
+        let hexRefundAddress = refundAddress;
+        if (order.srcToken === Token.BTC) {
+            hexRefundAddress = btcAddressToHex(refundAddress);
+        }
+        let hexToAddress = toAddress;
+        if (order.dstToken === Token.BTC) {
+            hexToAddress = btcAddressToHex(toAddress);
+        }
         const commitment: Commitment = {
             srcToken: tokenAddresses(order.srcToken, "testnet"),
             dstToken: tokenAddresses(order.dstToken, "testnet"),
             minDestinationAmount: new BigNumber(0),
             srcAmount: new BigNumber(order.srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals)),
-            toAddress,
+            toAddress: hexToAddress,
             refundBlockNumber: blockNumber + 360, // 360 blocks (assuming 0.1bps, equals 1 hour)
-            refundAddress: btcAddressToHex(refundAddress),
+            refundAddress: hexRefundAddress,
             orderInputs: order,
         };
-        const depositAddress = await dexSDK.generateAddress(order.srcToken, commitment);
-        const depositAddressToken = order.srcToken;
-        await this.setState({ commitment, depositAddress, depositAddressToken });
+        if (isEthereumBased(order.srcToken)) {
+            await this.setState({ commitment });
+        } else {
+            const depositAddress = await dexSDK.generateAddress(order.srcToken, commitment);
+            const depositAddressToken = order.srcToken;
+            await this.setState({ commitment, depositAddress, depositAddressToken });
+        }
     }
 
     public updateDeposits = async () => {
@@ -164,7 +187,7 @@ export class AppContainer extends Container<typeof initialState> {
 
     public submitSwap = async (): Promise<HistoryEvent | null> => {
         const { address, dexSDK, commitment, signature } = this.state;
-        if (!address || !commitment || !signature) {
+        if (!address || !commitment) {
             return null;
         }
 
@@ -213,7 +236,55 @@ export class AppContainer extends Container<typeof initialState> {
             depositAddress: null,
             depositAddressToken: null,
             utxos: null,
+            messageID: null,
+            signature: null,
         });
+    }
+
+    public sufficientBalance = (): boolean => {
+        const { orderInputs: { srcToken, srcAmount }, accountBalances } = this.state;
+        // We can't know the balance if it's not an Ethereum token
+        if (!isEthereumBased(srcToken)) {
+            return true;
+        }
+
+        // Fetch information about srcToken
+        const srcTokenDetails = Tokens.get(srcToken);
+        if (!srcTokenDetails) {
+            return false;
+        }
+        const srcAmountBN = new BigNumber(srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals));
+        const balance = accountBalances.get(srcToken) || new BigNumber(0);
+        console.log(srcAmountBN.toString());
+        console.log(balance.toString());
+        return srcAmountBN.lte(balance);
+    }
+
+    public updateAccountBalances = async (): Promise<void> => {
+        const { dexSDK, address } = this.state;
+        if (!address) {
+            return;
+        }
+        let accountBalances = this.state.accountBalances;
+        const ethTokens = [Token.ETH, Token.DAI, Token.REN];
+        const promises = ethTokens.map(token => dexSDK.fetchEthereumTokenBalance(token, address));
+        const balances = await Promise.all(promises);
+        balances.forEach((bal, index) => {
+            accountBalances = accountBalances.set(ethTokens[index], bal);
+        });
+
+        await this.setState({ accountBalances });
+    }
+
+    public setAllowance = async (): Promise<boolean> => {
+        const { orderInputs: { srcToken, srcAmount }, dexSDK, address } = this.state;
+        const srcTokenDetails = Tokens.get(srcToken);
+        if (!address || !srcTokenDetails) {
+            return false;
+        }
+        const srcAmountBN = new BigNumber(srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals));
+        const allowance = await dexSDK.setTokenAllowance(srcAmountBN, srcToken, address);
+        return allowance.gte(srcAmountBN);
     }
 
     private readonly updateReceiveValue = async (): Promise<void> => {

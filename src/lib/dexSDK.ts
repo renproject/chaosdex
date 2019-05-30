@@ -5,11 +5,14 @@ import { PromiEvent } from "web3-core";
 import { AbiItem } from "web3-utils";
 
 import { MarketPair, Token, Tokens } from "../state/generalTypes";
+import { tokenAddresses } from "./contractAddresses";
 import { ERC20DetailedWeb3 } from "./contracts/erc20";
 import { RenExWeb3 } from "./contracts/ren_ex";
 import { RenExAdapterWeb3, Transaction } from "./contracts/ren_ex_adapter";
+import { NETWORK } from "./environmentVariables";
 import { getReadonlyWeb3, getWeb3 } from "./getWeb3";
 import { Signature } from "./shiftSDK/darknode/darknodeGroup";
+import { isERC20, NULL_BYTES32 } from "./shiftSDK/eth/eth";
 import { Chain, ShiftSDK, UTXO } from "./shiftSDK/shiftSDK";
 
 const ERC20ABI = require("./contracts/erc20_abi.json");
@@ -159,12 +162,20 @@ export class DexSDK {
         return this.shiftSDK.shift(tokenToChain(token), transaction, await this.hashCommitment(commitment));
     }
 
-    public submitSwap = (address: string, commitment: Commitment, signature: Signature): PromiEvent<Transaction> => { // Promise<string> => new Promise<string>(async (resolve, reject) => {
-        if (signature.v === "") {
-            signature.v = "0";
+    public submitSwap = (address: string, commitment: Commitment, signature?: Signature | null): PromiEvent<Transaction> => { // Promise<string> => new Promise<string>(async (resolve, reject) => {
+        let amount = commitment.srcAmount.toString();
+        let txHash = NULL_BYTES32;
+        let signatureBytes = NULL_BYTES32;
+
+        if (signature) {
+            amount = `0x${signature.amount}`; // _amount: BigNumber
+            txHash = `0x${signature.txHash}`; // _hash: string
+            if (signature.v === "") {
+                signature.v = "0";
+            }
+            const v = ((parseInt(signature.v, 10) + 27) || 27).toString(16);
+            signatureBytes = `0x${signature.r}${signature.s}${v}`;
         }
-        const v = ((parseInt(signature.v, 10) + 27) || 27).toString(16);
-        const signatureBytes = `0x${signature.r}${signature.s}${v}`;
 
         const params: [string, string, number, string, number, string, string, string, string] = [
             commitment.srcToken, // _src: string
@@ -173,9 +184,9 @@ export class DexSDK {
             commitment.toAddress, // _to: string
             commitment.refundBlockNumber, // _refundBN: BigNumber
             commitment.refundAddress, // _refundAddress: string
-            `0x${signature.amount}`, // _amount: BigNumber
-            `0x${signature.txHash}`, // _hash: string
-            `${signatureBytes}`, // _sig: string
+            amount, // _amount: BigNumber
+            txHash, // _hash: string
+            signatureBytes, // _sig: string
         ];
 
         console.groupCollapsed("Swap details");
@@ -188,6 +199,41 @@ export class DexSDK {
         return getAdapter(this.web3).methods.trade(
             ...params,
         ).send({ from: address });
+    }
+
+    public fetchEthereumTokenBalance = async (token: Token, address: string): Promise<BigNumber> => {
+        let balance: string;
+        if (token === Token.ETH) {
+            balance = await this.web3.eth.getBalance(address);
+        } else if (isERC20(token)) {
+            const tokenAddress = tokenAddresses(token, NETWORK || "");
+            const tokenInstance = getERC20(this.web3, tokenAddress);
+            balance = (await tokenInstance.methods.balanceOf(address).call()).toString();
+        } else {
+            throw new Error(`Invalid Ethereum token: ${token}`);
+        }
+        return new BigNumber(balance);
+    }
+
+    public setTokenAllowance = async (amount: BigNumber, token: Token, address: string): Promise<BigNumber> => {
+        const tokenAddress = tokenAddresses(token, NETWORK || "");
+        const tokenInstance = getERC20(this.web3, tokenAddress);
+
+        const allowance = await tokenInstance.methods.allowance(address, getAdapter(this.web3).address).call();
+        const allowanceBN = new BigNumber(allowance.toString());
+        if (allowanceBN.gte(amount)) {
+            return allowanceBN;
+        }
+
+        // We don't have enough allowance so approve more
+        const promiEvent = tokenInstance.methods.approve(
+            getAdapter(this.web3).address,
+            amount.toString()
+        ).send({ from: address });
+        let transactionHash: string | undefined;
+        transactionHash = await new Promise((resolve, reject) => promiEvent.on("transactionHash", resolve));
+        console.log(`Approving ${amount.toString()} ${token} Tx hash: ${transactionHash}`);
+        return amount;
     }
 
     // Retrieves the current progress of the shift

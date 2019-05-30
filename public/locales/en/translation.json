@@ -5,7 +5,8 @@
     "trade": "Trade",
     "based_on_market_price": "Based on market price.",
     "unsupported_token_pair": "Token pair not supported",
-    "connect_to_trade": "Connect to trade"
+    "connect_to_trade": "Connect to trade",
+    "insufficient_balance": "Insufficient balance"
   },
   "history": {
     "history": "History",

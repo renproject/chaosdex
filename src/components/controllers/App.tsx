@@ -1,5 +1,7 @@
 import * as React from "react";
 
+import createPersistedState from "use-persisted-state";
+
 import { FeedbackButton } from "@renex/react-components";
 import { Route, RouteComponentProps, withRouter } from "react-router-dom";
 
@@ -9,6 +11,8 @@ import { AppContainer, OptionsContainer } from "../../state/containers";
 import { Exchange } from "../pages/Exchange";
 import { _catch_ } from "../views/ErrorBoundary";
 import { HeaderController } from "./HeaderController";
+
+const useLoggedInState = createPersistedState("web3-logged-in");
 
 // Scroll restoration based on https://reacttraining.com/react-router/web/guides/scroll-restoration
 const ScrollToTop = withRouter(
@@ -38,8 +42,20 @@ const ScrollToTop = withRouter(
 type Props = ConnectedProps<[AppContainer, OptionsContainer]>;
 export const App = connect<Props>([AppContainer, OptionsContainer])(
     (props) => {
-
         const { containers: [appContainer, optionsContainer] } = props;
+        const [loggedIn, setLoggedIn] = useLoggedInState(false);
+
+        const login = async () => {
+            await appContainer.connect();
+            if (appContainer.state.address !== null) {
+                setLoggedIn(true);
+            }
+        };
+
+        const logout = async () => {
+            await appContainer.clearAddress();
+            setLoggedIn(false);
+        };
 
         // useEffect replaces `componentDidMount` and `componentDidUpdate`.
         // To limit it to running once, we use the initialized hook.
@@ -48,8 +64,12 @@ export const App = connect<Props>([AppContainer, OptionsContainer])(
             if (!initialized) {
                 setInterval(() => appContainer.updateTokenPrices().catch(_catchBackgroundErr_), 30 * 1000);
                 setInterval(() => appContainer.updateBalanceReserves().catch(_catchBackgroundErr_), 30 * 1000);
+                if (loggedIn) {
+                    appContainer.connect().catch(_catchBackgroundErr_);
+                }
                 appContainer.updateTokenPrices().catch(_catchBackgroundErr_);
                 appContainer.updateBalanceReserves().catch(_catchBackgroundErr_);
+                appContainer.updateAccountBalances().catch(_catchBackgroundErr_);
                 setInitialized(true);
             }
         }, [initialized, appContainer]);
@@ -59,7 +79,7 @@ export const App = connect<Props>([AppContainer, OptionsContainer])(
 
             {_catch_(
                 <React.Suspense fallback={null/*<Loading />*/}>
-                    <HeaderController />
+                    <HeaderController handleLogin={login} handleLogout={logout}/>
                 </React.Suspense>
             )}
             <Route path="/" exact={true} component={Exchange} />

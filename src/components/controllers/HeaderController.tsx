@@ -29,13 +29,16 @@ const logo = <Link className="no-underline" to="/">
     <h1>DEX Demo</h1>
 </Link>;
 
-type Props = ConnectedProps<[OptionsContainer]> & RouteComponentProps;
+interface Props extends RouteComponentProps, ConnectedProps<[OptionsContainer]> {
+    handleLogin: () => {};
+    handleLogout: () => {};
+}
 
 /**
  * HeaderController is a visual component providing page branding and navigation.
  */
 export const HeaderController = (withRouter(connect<Props>([OptionsContainer])(
-    ({ containers: [optionsContainer] }) => {
+    ({ handleLogout, handleLogin, containers: [optionsContainer] }) => {
         const { t, i18n } = useTranslation();
 
         const [currentLanguage, setCurrentLanguage] = React.useState(i18n.language);
@@ -78,7 +81,11 @@ export const HeaderController = (withRouter(connect<Props>([OptionsContainer])(
         return <Header
             logo={logo}
             menu={[
-                languageDropdown, currencyDropdown, <AccountDropdown key="AccountDropdown" />,
+                languageDropdown, currencyDropdown, <AccountDropdown
+                    key="AccountDropdown"
+                    handleLogin={handleLogin}
+                    handleLogout={handleLogout}
+                />,
             ]}
         />;
 

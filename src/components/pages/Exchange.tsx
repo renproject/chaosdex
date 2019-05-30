@@ -14,7 +14,7 @@ import { NewOrder } from "../controllers/NewOrder";
 import { OrderHistory } from "../controllers/OrderHistory";
 import { _catch_ } from "../views/ErrorBoundary";
 
-const useOrderHistoryState = createPersistedState("order-history");
+const useOrderHistoryState = createPersistedState("order-history-v1");
 
 /**
  * Exchange is the main token-swapping page.
@@ -24,7 +24,7 @@ export const Exchange = connect<RouteComponentProps & ConnectedProps<[AppContain
         const [orderHistory, setOrderHistory] = useOrderHistoryState([] as HistoryEvent[]);
 
         const swapSubmitted = (historyEvent: HistoryEvent) => {
-            setOrderHistory((hist: HistoryEvent[]) => [...hist, historyEvent]);
+            setOrderHistory((hist: HistoryEvent[]) => [historyEvent, ...hist]);
         };
 
         // useEffect replaces `componentDidMount` and `componentDidUpdate`.
@@ -40,11 +40,15 @@ export const Exchange = connect<RouteComponentProps & ConnectedProps<[AppContain
                  */
                 try {
                     const queryParams = qs.parse(location.search);
-                    if (queryParams.send) {
-                        appContainer.updateSrcToken(queryParams.send as Token).catch(_catchInteractionErr_);
-                    }
-                    if (queryParams.receive) {
-                        appContainer.updateDstToken(queryParams.receive as Token).catch(_catchInteractionErr_);
+                    if (queryParams.send && queryParams.receive) {
+                        appContainer.updateBothTokens(queryParams.send as Token, queryParams.receive as Token).catch(_catchInteractionErr_);
+                    } else {
+                        if (queryParams.send) {
+                            appContainer.updateSrcToken(queryParams.send as Token).catch(_catchInteractionErr_);
+                        }
+                        if (queryParams.receive) {
+                            appContainer.updateDstToken(queryParams.receive as Token).catch(_catchInteractionErr_);
+                        }
                     }
                 } catch (error) {
                     _catchInteractionErr_(error, {
