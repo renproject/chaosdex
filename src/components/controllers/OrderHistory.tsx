@@ -37,7 +37,7 @@ export const OrderHistory = (props: Props) => {
                 <span>{t("history.history")}</span>
             </div>
             <div className="history--list">
-                {orders.reverse().map(historyEvent => {
+                {orders.map(historyEvent => {
                     return <OrderHistoryEntry
                         t={t}
                         key={historyEvent.transactionHash}

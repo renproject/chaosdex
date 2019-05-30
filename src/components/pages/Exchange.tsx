@@ -24,7 +24,7 @@ export const Exchange = connect<RouteComponentProps & ConnectedProps<[AppContain
         const [orderHistory, setOrderHistory] = useOrderHistoryState([] as HistoryEvent[]);
 
         const swapSubmitted = (historyEvent: HistoryEvent) => {
-            setOrderHistory((hist: HistoryEvent[]) => [...hist, historyEvent]);
+            setOrderHistory((hist: HistoryEvent[]) => [historyEvent, ...hist]);
         };
 
         // useEffect replaces `componentDidMount` and `componentDidUpdate`.
