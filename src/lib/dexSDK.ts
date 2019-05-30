@@ -18,6 +18,8 @@ const ERC20ABI = require("./contracts/erc20_abi.json");
 const RenExABI = require("./contracts/ren_ex_abi.json");
 const RenExAdapterABI = require("./contracts/ren_ex_adapter_abi.json");
 
+const NULL_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000";
+
 export interface OrderInputs {
     srcToken: Token;
     dstToken: Token;
@@ -236,8 +238,8 @@ export class DexSDK {
             commitment.refundBlockNumber, // _refundBN: BigNumber
             commitment.refundAddress, // _refundAddress: string
             commitment.srcAmount.toString(), // _amount: BigNumber
-            "0x0000000000000000000000000000000000000000000000000000000000000000", // _hash: string
-            "0x0000000000000000000000000000000000000000000000000000000000000000", // _sig: string
+            NULL_BYTES32, // _hash: string
+            NULL_BYTES32, // _sig: string
         ];
 
         console.groupCollapsed("Swap details");
