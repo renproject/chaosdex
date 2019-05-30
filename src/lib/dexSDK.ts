@@ -5,13 +5,14 @@ import { PromiEvent } from "web3-core";
 import { AbiItem } from "web3-utils";
 
 import { MarketPair, Token, Tokens } from "../state/generalTypes";
+import { tokenAddresses } from "./contractAddresses";
 import { ERC20DetailedWeb3 } from "./contracts/erc20";
 import { RenExWeb3 } from "./contracts/ren_ex";
 import { RenExAdapterWeb3, Transaction } from "./contracts/ren_ex_adapter";
+import { NETWORK } from "./environmentVariables";
 import { getReadonlyWeb3, getWeb3 } from "./getWeb3";
 import { Signature } from "./shiftSDK/darknode/darknodeGroup";
 import { Chain, ShiftSDK, UTXO } from "./shiftSDK/shiftSDK";
-import { tokenAddresses } from "./contractAddresses";
 
 const ERC20ABI = require("./contracts/erc20_abi.json");
 const RenExABI = require("./contracts/ren_ex_abi.json");
@@ -196,7 +197,7 @@ export class DexSDK {
         if (token === Token.ETH) {
             balance = await this.web3.eth.getBalance(address);
         } else if ([Token.REN, Token.DAI].includes(token)) {
-            const tokenAddress = tokenAddresses(token, process.env.REACT_APP_NETWORK || "");
+            const tokenAddress = tokenAddresses(token, NETWORK || "");
             const tokenInstance = getERC20(this.web3, tokenAddress);
             balance = (await tokenInstance.methods.balanceOf(address).call()).toString();
         } else {
@@ -206,7 +207,7 @@ export class DexSDK {
     }
 
     public setTokenAllowance = async (amount: BigNumber, token: Token, address: string): Promise<BigNumber> => {
-        const tokenAddress = tokenAddresses(token, process.env.REACT_APP_NETWORK || "");
+        const tokenAddress = tokenAddresses(token, NETWORK || "");
         const tokenInstance = getERC20(this.web3, tokenAddress);
 
         const allowance = await tokenInstance.methods.allowance(address, getAdapter(this.web3).address).call();
