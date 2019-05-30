@@ -178,7 +178,7 @@ export class ShifterGroup extends DarknodeGroup {
             throw new Error("Unable to send message to lightnodes.");
         }
 
-        return results.filter(x => x !== null).map((result) => ({
+        return results.filter(x => x !== null && x.result.result !== undefined).map((result) => ({
             // tslint:disable: no-non-null-assertion no-unnecessary-type-assertion
             lightnode: result!.lightnode,
             messageID: result!.result.result!.messageID,

@@ -3,20 +3,29 @@ import * as React from "react";
 
 import { Loading } from "@renex/react-components";
 import { RouteComponentProps } from "react-router";
+import createPersistedState from "use-persisted-state";
 
 import { _catchInteractionErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer } from "../../state/containers";
+import { HistoryEvent } from "../../state/containers/appContainer";
 import { Token } from "../../state/generalTypes";
 import { NewOrder } from "../controllers/NewOrder";
 import { OrderHistory } from "../controllers/OrderHistory";
 import { _catch_ } from "../views/ErrorBoundary";
+
+const useOrderHistoryState = createPersistedState("order-history");
 
 /**
  * Exchange is the main token-swapping page.
  */
 export const Exchange = connect<RouteComponentProps & ConnectedProps<[AppContainer]>>([AppContainer])(
     ({ containers: [appContainer], location }) => {
+        const [orderHistory, setOrderHistory] = useOrderHistoryState([] as HistoryEvent[]);
+
+        const swapSubmitted = (historyEvent: HistoryEvent) => {
+            setOrderHistory((hist: HistoryEvent[]) => { hist.push(historyEvent); return hist; });
+        };
 
         // useEffect replaces `componentDidMount` and `componentDidUpdate`.
         // To limit it to running once, we use the initialized hook.
@@ -52,8 +61,8 @@ export const Exchange = connect<RouteComponentProps & ConnectedProps<[AppContain
                 <div className="exchange--center">
                     {_catch_(
                         <React.Suspense fallback={<Loading />}>
-                            <NewOrder />
-                            <OrderHistory />
+                            <NewOrder swapSubmitted={swapSubmitted} />
+                            <OrderHistory orders={orderHistory as HistoryEvent[]} />
                         </React.Suspense>
                     )}
                 </div>

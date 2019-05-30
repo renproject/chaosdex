@@ -1,59 +1,56 @@
 import * as React from "react";
 
-import i18next from "i18next";
 import { TokenIcon } from "@renex/react-components";
-import { withTranslation, WithTranslation } from "react-i18next";
+import i18next from "i18next";
+import { useTranslation } from "react-i18next";
 
 import { naturalTime } from "../../lib/conversion";
-import { connect, ConnectedProps } from "../../state/connect";
-import { AppContainer } from "../../state/containers";
+import { ETHERSCAN } from "../../lib/environmentVariables";
 import { HistoryEvent } from "../../state/containers/appContainer";
 
 const OrderHistoryEntry = ({ order, t }: { order: HistoryEvent, t: i18next.TFunction }) => {
+    const etherscanUrl = order.transactionHash ? `${ETHERSCAN}/tx/${order.transactionHash}` : undefined;
     return (
-        <div className="swap--history--entry">
+        <a className="swap--history--entry" target="_blank" rel="noopener noreferrer" href={etherscanUrl} >
             <div className="token--info">
-                <TokenIcon className="token-icon" token={order.commitment.orderInputs.dstToken} />
-                <span className="received--text">{t("history.received")}</span><span className="token--amount">{order.commitment.orderInputs.dstAmount} {order.commitment.orderInputs.dstToken}</span>
+
+                <TokenIcon className="token-icon" token={order.orderInputs.dstToken} />
+                <span className="received--text">{t("history.received")}</span><span className="token--amount">{order.orderInputs.dstAmount} {order.orderInputs.dstToken}</span>
             </div>
             <span className="swap--time">{naturalTime(order.time, { message: "Just now", suffix: "ago", countDown: false, abbreviate: true })}</span>
-        </div>
+        </a>
     );
 };
 
 /**
  * OrderHistory is a visual component for allowing users to open new orders
  */
-class OrderHistoryClass extends React.Component<Props, {}> {
-    /**
-     * The main render function.
-     * @dev Should have minimal computation, loops and anonymous functions.
-     */
-    public render(): React.ReactNode {
-        const { t, containers: [appContainer] } = this.props;
-        if (appContainer.state.swapHistory.size === 0) {
-            return <></>;
-        }
-        return <>
-            <div className="section history">
-                <div className="history--banner">
-                    <span>{t("history.history")}</span>
-                </div>
-                <div className="history--list">
-                    {appContainer.state.swapHistory.map(h => {
-                        return <OrderHistoryEntry
-                            t={t}
-                            key={`${h.commitment.refundBlockNumber}--${h.time}`}
-                            order={h}
-                        />;
-                    })}
-                </div>
-            </div>
-        </>;
+export const OrderHistory = (props: Props) => {
+    const { t } = useTranslation();
+
+    const { orders } = props;
+    if (orders.length === 0) {
+        return <></>;
     }
-}
+    console.log(`Orders: ${orders}`);
+    return <>
+        <div className="section history">
+            <div className="history--banner">
+                <span>{t("history.history")}</span>
+            </div>
+            <div className="history--list">
+                {orders.map(historyEvent => {
+                    return <OrderHistoryEntry
+                        t={t}
+                        key={historyEvent.transactionHash}
+                        order={historyEvent}
+                    />;
+                })}
+            </div>
+        </div>
+    </>;
+};
 
-interface Props extends ConnectedProps<[AppContainer]>, WithTranslation {
+interface Props {
+    orders: HistoryEvent[];
 }
-
-export const OrderHistory = withTranslation()(connect<Props>([AppContainer])(OrderHistoryClass));

@@ -16,12 +16,9 @@ import { Chain, UTXO } from "../../lib/shiftSDK/shiftSDK";
 import { MarketPair, Token, Tokens } from "../generalTypes";
 
 export interface HistoryEvent {
-    commitment: Commitment;
     time: number; // Seconds since Unix epoch
-
-    promiEvent?: PromiEvent<Transaction>;
-    transactionHash?: string;
-    swapError?: Error;
+    transactionHash: string;
+    orderInputs: OrderInputs;
 }
 
 const initialOrder: OrderInputs = {
@@ -58,7 +55,6 @@ const initialState = {
     messageID: null as string | null,
     // tslint:disable-next-line: no-any
     signature: null as Signature | null,
-    swapHistory: List<HistoryEvent>(),
 };
 
 export type OrderData = typeof initialState.orderInputs;
@@ -177,32 +173,24 @@ export class AppContainer extends Container<typeof initialState> {
         await this.setState({ messageID });
     }
 
-    public submitSwap = async () => {
-        const { swapHistory, address, dexSDK, commitment, signature } = this.state;
+    public submitSwap = async (): Promise<HistoryEvent | null> => {
+        const { address, dexSDK, commitment, signature } = this.state;
         if (!address || !commitment || !signature) {
-            return;
+            return null;
         }
 
         const promiEvent = dexSDK.submitSwap(address, commitment, signature);
-
-        let transactionHash: string | undefined;
-        let swapError: Error | undefined;
-        try {
-            transactionHash = await new Promise((resolve, reject) => promiEvent.on("transactionHash", resolve));
-        } catch (error) {
-            swapError = error;
-        }
+        const transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve));
 
         const historyItem: HistoryEvent = {
-            promiEvent,
             transactionHash,
-            commitment,
-            swapError,
+            orderInputs: commitment.orderInputs,
             time: Date.now() / 1000,
         };
 
-        await this.setState({ swapHistory: swapHistory.push(historyItem) });
-        await this.cancelTrade();
+        // await this.setState({ swapHistory: swapHistory.push(historyItem) });
+        await this.resetTrade();
+        return historyItem;
     }
 
     public updateMessageStatus = async () => {
@@ -225,7 +213,7 @@ export class AppContainer extends Container<typeof initialState> {
         });
     }
 
-    public cancelTrade = async () => {
+    public resetTrade = async () => {
         await this.setState({
             submitting: false,
             toAddress: null,

@@ -5,6 +5,7 @@ import { withTranslation, WithTranslation } from "react-i18next";
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer, OptionsContainer } from "../../state/containers";
+import { HistoryEvent } from "../../state/containers/appContainer";
 import { AskForAddress } from "../popups/AskForAddress";
 import { ConfirmTradeDetails } from "../popups/ConfirmTradeDetails";
 import { DepositReceived } from "../popups/DepositReceived";
@@ -129,7 +130,11 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     }
 
     private readonly submitSwap = async () => {
-        this.appContainer.submitSwap().catch(_catchInteractionErr_);
+        const historyItem = await this.appContainer.submitSwap().catch(_catchInteractionErr_);
+        if (!historyItem || !this.props.swapSubmitted) {
+            return;
+        }
+        this.props.swapSubmitted(historyItem);
     }
 
     private readonly onConfirmedTrade = () => {
@@ -147,7 +152,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
 
     private readonly cancel = () => {
         this.setState({ confirmedTrade: false, });
-        this.appContainer.cancelTrade().catch(_catchInteractionErr_);
+        this.appContainer.resetTrade().catch(_catchInteractionErr_);
         this.props.cancel();
     }
 }
@@ -155,6 +160,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
 interface Props extends ConnectedProps<[AppContainer, OptionsContainer]>, WithTranslation {
     cancel: () => void;
     done: () => void;
+    swapSubmitted?: (h: HistoryEvent) => void;
 }
 
 export const OpeningOrder = withTranslation()(connect<Props>([AppContainer, OptionsContainer])(OpeningOrderClass));
