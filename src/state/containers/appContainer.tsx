@@ -243,12 +243,15 @@ export class AppContainer extends Container<typeof initialState> {
 
     public sufficientBalance = (): boolean => {
         const { orderInputs: { srcToken, srcAmount }, accountBalances } = this.state;
-        const srcTokenDetails = Tokens.get(srcToken);
+        // We can't know the balance if it's not an Ethereum token
         if (!isEthereumBased(srcToken)) {
             return true;
         }
+
+        // Fetch information about srcToken
+        const srcTokenDetails = Tokens.get(srcToken);
         if (!srcTokenDetails) {
-            return true;
+            return false;
         }
         const srcAmountBN = new BigNumber(srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals));
         const balance = accountBalances.get(srcToken) || new BigNumber(0);
