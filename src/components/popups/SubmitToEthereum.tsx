@@ -8,10 +8,15 @@ export const SubmitToEthereum: React.StatelessComponent<{
     token: Token,
     submit: () => Promise<void>,
 }> = ({ token, submit }) => {
-    const [ submitting, setSubmitting] = React.useState(false);
-    const onSubmit = () => {
+    const [submitting, setSubmitting] = React.useState(false);
+    const onSubmit = async () => {
         setSubmitting(true);
-        submit().catch(_catchInteractionErr_);
+        try {
+            await submit();
+        } catch (error) {
+            _catchInteractionErr_(error);
+            setSubmitting(false);
+        }
     };
     return <Popup>
         <div className="address-input">

@@ -1,16 +1,15 @@
 import * as qs from "query-string";
 import * as React from "react";
 
-import createPersistedState from "use-persisted-state";
-
 import { Loading } from "@renex/react-components";
 import { RouteComponentProps } from "react-router";
+import createPersistedState from "use-persisted-state";
 
 import { _catchInteractionErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer } from "../../state/containers";
 import { HistoryEvent } from "../../state/containers/appContainer";
-import { StoredHistoryEvent, Token} from "../../state/generalTypes";
+import { Token } from "../../state/generalTypes";
 import { NewOrder } from "../controllers/NewOrder";
 import { OrderHistory } from "../controllers/OrderHistory";
 import { _catch_ } from "../views/ErrorBoundary";
@@ -22,18 +21,10 @@ const useOrderHistoryState = createPersistedState("order-history");
  */
 export const Exchange = connect<RouteComponentProps & ConnectedProps<[AppContainer]>>([AppContainer])(
     ({ containers: [appContainer], location }) => {
-        const [orderHistory, setOrderHistory] = useOrderHistoryState([] as StoredHistoryEvent[]);
+        const [orderHistory, setOrderHistory] = useOrderHistoryState([] as HistoryEvent[]);
 
-        const swapSubmitted = (h: HistoryEvent) => {
-            setOrderHistory((hist: StoredHistoryEvent[]) => hist.concat([{
-                srcToken: h.srcToken,
-                dstToken: h.dstToken,
-                srcAmount: h.srcAmount.toFixed(),
-                dstAmount: h.dstAmount.toFixed(),
-                time: h.time,
-                transactionHash: h.transactionHash,
-                refundBlockNumber: h.commitment.refundBlockNumber,
-            }]));
+        const swapSubmitted = (historyEvent: HistoryEvent) => {
+            setOrderHistory((hist: HistoryEvent[]) => [...hist, historyEvent]);
         };
 
         // useEffect replaces `componentDidMount` and `componentDidUpdate`.
@@ -71,7 +62,7 @@ export const Exchange = connect<RouteComponentProps & ConnectedProps<[AppContain
                     {_catch_(
                         <React.Suspense fallback={<Loading />}>
                             <NewOrder swapSubmitted={swapSubmitted} />
-                            <OrderHistory orders={orderHistory as StoredHistoryEvent[]} />
+                            <OrderHistory orders={orderHistory as HistoryEvent[]} />
                         </React.Suspense>
                     )}
                 </div>

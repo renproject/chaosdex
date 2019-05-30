@@ -70,7 +70,6 @@ export class ShiftSDK {
     // Submits the commitment and transaction to the darknodes, and then submits
     // the signature to the adapter address
     public shift = async (chain: Chain, transaction: UTXO, commitmentHash: string): Promise<string> => {
-        // const address = this.generateAddress(chain, commitmentHash);
         const responses = await this.darknodeGroup.submitDeposits(chain, this.adapter.address, commitmentHash);
         const first = responses.first(undefined);
         if (first === undefined) {

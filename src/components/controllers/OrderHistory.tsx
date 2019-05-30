@@ -1,23 +1,22 @@
 import * as React from "react";
 
-import i18next from "i18next";
-
 import { TokenIcon } from "@renex/react-components";
+import i18next from "i18next";
 import { useTranslation } from "react-i18next";
 
 import { naturalTime } from "../../lib/conversion";
 import { ETHERSCAN } from "../../lib/environmentVariables";
-import { StoredHistoryEvent } from "../../state/generalTypes";
+import { HistoryEvent } from "../../state/containers/appContainer";
 
-const OrderHistoryEntry = (props: { order: StoredHistoryEvent, t: i18next.TFunction }) => {
-    const etherscanUrl = props.order.transactionHash ? `${ETHERSCAN}/tx/${props.order.transactionHash}` : undefined;
+const OrderHistoryEntry = ({ order, t }: { order: HistoryEvent, t: i18next.TFunction }) => {
+    const etherscanUrl = order.transactionHash ? `${ETHERSCAN}/tx/${order.transactionHash}` : undefined;
     return (
         <a className="swap--history--entry" target="_blank" rel="noopener noreferrer" href={etherscanUrl} >
             <div className="token--info">
-                <TokenIcon className="token-icon" token={props.order.dstToken} />
-                <span className="received--text">{props.t("history.received")}</span><span className="token--amount">{props.order.dstAmount} {props.order.dstToken}</span>
+                <TokenIcon className="token-icon" token={order.orderInputs.dstToken} />
+                <span className="received--text">{t("history.received")}</span><span className="token--amount">{order.orderInputs.dstAmount} {order.orderInputs.dstToken}</span>
             </div>
-            <span className="swap--time">{naturalTime(props.order.time, { message: "Just now", suffix: "ago", countDown: false, abbreviate: true })}</span>
+            <span className="swap--time">{naturalTime(order.time, { message: "Just now", suffix: "ago", countDown: false, abbreviate: true })}</span>
         </a>
     );
 };
@@ -38,11 +37,11 @@ export const OrderHistory = (props: Props) => {
                 <span>{t("history.history")}</span>
             </div>
             <div className="history--list">
-                {orders.map(h => {
+                {orders.map(historyEvent => {
                     return <OrderHistoryEntry
                         t={t}
-                        key={`${h.refundBlockNumber}--${h.time}`}
-                        order={h}
+                        key={historyEvent.transactionHash}
+                        order={historyEvent}
                     />;
                 })}
             </div>
@@ -51,5 +50,5 @@ export const OrderHistory = (props: Props) => {
 };
 
 interface Props {
-    orders: StoredHistoryEvent[];
+    orders: HistoryEvent[];
 }
