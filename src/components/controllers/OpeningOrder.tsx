@@ -79,7 +79,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
                 onAddress={this.onRefundAddress}
                 cancel={this.cancel}
             />;
-        } else if ((!utxos || utxos.length === 0)) {
+        } else if ((!utxos || utxos.size === 0)) {
             submitPopup = <ShowDepositAddress
                 token={orderInput.srcToken}
                 depositAddress={depositAddress}

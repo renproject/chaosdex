@@ -1,6 +1,6 @@
 import { Currency } from "@renex/react-components";
 import BigNumber from "bignumber.js";
-import { Map } from "immutable";
+import { List, Map } from "immutable";
 import { Container } from "unstated";
 
 import { tokenAddresses } from "../../lib/contractAddresses";
@@ -41,17 +41,8 @@ const initialState = {
     commitment: null as Commitment | null,
     depositAddress: null as string | null,
     depositAddressToken: null as Token | null,
-    utxos: [] as UTXO[] | null,
-    // utxos: [{
-    //     chain: Chain.Bitcoin, utxo: {
-    //         txHash: "0x1234",
-    //         amount: 1,
-    //         scriptPubKey: "",
-    //         vout: 1,
-    //     }
-    // }] as UTXO[] | null,
+    utxos: null as List<UTXO> | null,
     messageID: null as string | null,
-    // tslint:disable-next-line: no-any
     signature: null as Signature | null,
 };
 
@@ -149,8 +140,8 @@ export class AppContainer extends Container<typeof initialState> {
             return;
         }
         const utxos = await dexSDK.retrieveDeposits(depositAddressToken, depositAddress);
-        if (!this.state.utxos || (utxos.length >= this.state.utxos.length)) {
-            await this.setState({ utxos });
+        if (!this.state.utxos || (utxos.length >= this.state.utxos.size)) {
+            await this.setState({ utxos: List(utxos) });
         }
     }
 

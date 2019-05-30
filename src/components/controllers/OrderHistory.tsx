@@ -13,7 +13,6 @@ const OrderHistoryEntry = ({ order, t }: { order: HistoryEvent, t: i18next.TFunc
     return (
         <a className="swap--history--entry" target="_blank" rel="noopener noreferrer" href={etherscanUrl} >
             <div className="token--info">
-
                 <TokenIcon className="token-icon" token={order.orderInputs.dstToken} />
                 <span className="received--text">{t("history.received")}</span><span className="token--amount">{order.orderInputs.dstAmount} {order.orderInputs.dstToken}</span>
             </div>
