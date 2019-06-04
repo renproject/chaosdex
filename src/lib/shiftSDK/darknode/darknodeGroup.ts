@@ -1,6 +1,6 @@
 import { List, Map } from "immutable";
 
-import { strip0x } from "../blockchain/common";
+import { evenHex, strip0x } from "../blockchain/common";
 // tslint:disable: no-unused-variable
 import { Chain } from "../shiftSDK";
 import { Lightnode } from "./darknode";
@@ -178,6 +178,43 @@ export class ShifterGroup extends DarknodeGroup {
                 args: [
                     { name: "uid", type: "public", value: strip0x(address) },
                     { name: "commitment", type: "public", value: strip0x(commitmentHash) },
+                ],
+            },
+        });
+
+        if (results.filter(x => x !== null).size < 1) {
+            throw new Error("Unable to send message to lightnodes.");
+        }
+
+        return results.filter(x => x !== null && x.result.result !== undefined).map((result) => ({
+            // tslint:disable: no-non-null-assertion no-unnecessary-type-assertion
+            lightnode: result!.lightnode,
+            messageID: result!.result.result!.messageID,
+            // tslint:enable: no-non-null-assertion no-unnecessary-type-assertion
+        })).toList();
+    }
+
+    public submitWithdrawal = async (chain: Chain, to: string, valueHex: string): Promise<List<{ messageID: string, lightnode: string }>> => {
+
+        console.log(`Submitting withdrawal!`);
+        // TODO: If one fails, still return the other.
+
+        // const method = chain === Chain.Bitcoin ? "MintZBTC"
+        //     : chain === Chain.ZCash ? "MintZZEC" : undefined;
+
+        // if (!method) {
+        //     throw new Error(`Minting ${chain} not supported`);
+        // }
+
+        const results = await this.sendMessage({
+            nonce: window.crypto.getRandomValues(new Uint32Array(1))[0],
+            to: "Shifter",
+            signature: "",
+            payload: {
+                method: `ShiftOut${chain.toUpperCase()}`,
+                args: [
+                    { name: "to", type: "public", value: strip0x(to) },
+                    { name: "value", type: "public", value: evenHex(strip0x(valueHex)) }, // Hex should be: "2711"
                 ],
             },
         });

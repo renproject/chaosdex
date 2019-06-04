@@ -191,8 +191,14 @@ export class AppContainer extends Container<typeof initialState> {
             return null;
         }
 
+        let submitted = false;
         const promiEvent = dexSDK.submitSwap(address, commitment, signature);
-        const transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve).catch(reject));
+        const transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve).on("confirmation", (confirmations) => {
+            if (!submitted) {
+                submitted = true;
+                dexSDK.submitBurn(commitment);
+            }
+        }).catch(reject));
 
         const historyItem: HistoryEvent = {
             transactionHash,
@@ -255,8 +261,9 @@ export class AppContainer extends Container<typeof initialState> {
         }
         const srcAmountBN = new BigNumber(srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals));
         const balance = accountBalances.get(srcToken) || new BigNumber(0);
-        console.log(srcAmountBN.toString());
-        console.log(balance.toString());
+        if (srcAmountBN.isNaN()) {
+            return true;
+        }
         return srcAmountBN.lte(balance);
     }
 

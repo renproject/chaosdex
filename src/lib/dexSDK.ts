@@ -10,6 +10,7 @@ import { ERC20DetailedWeb3 } from "./contracts/erc20";
 import { RenExWeb3 } from "./contracts/ren_ex";
 import { RenExAdapterWeb3, Transaction } from "./contracts/ren_ex_adapter";
 import { NETWORK } from "./environmentVariables";
+import { _catchInteractionErr_ } from "./errors";
 import { getReadonlyWeb3, getWeb3 } from "./getWeb3";
 import { Signature } from "./shiftSDK/darknode/darknodeGroup";
 import { isERC20, NULL_BYTES32 } from "./shiftSDK/eth/eth";
@@ -199,6 +200,10 @@ export class DexSDK {
         return getAdapter(this.web3).methods.trade(
             ...params,
         ).send({ from: address });
+    }
+
+    public submitBurn = (commitment: Commitment) => {
+        this.shiftSDK.burn(tokenToChain(commitment.orderInputs.dstToken), commitment.toAddress, commitment.srcAmount.toString(16)).catch(_catchInteractionErr_);
     }
 
     public fetchEthereumTokenBalance = async (token: Token, address: string): Promise<BigNumber> => {

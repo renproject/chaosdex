@@ -1,7 +1,7 @@
 import { Networks, Opcode, Script } from "bitcore-lib";
 import { decode as decode58 } from "bs58";
 
-import { testnetMasterPKH } from "../darknode/masterKey";
+import { masterPKH } from "../darknode/masterKey";
 import { createAddress } from "./common";
 import { getUTXOs } from "./mercury";
 
@@ -30,7 +30,7 @@ export const getBTCTestnetUTXOs = getUTXOs<BitcoinUTXO>(testnetMercury);
 //     return (await getUTXOs<RawUTXO>(testnetMercury)(address, limit, confirmations)).map(raw => new BitcoinUTXO(raw));
 // };
 
-export const createBTCTestnetAddress = createBTCAddress({ mainnet: false, masterPKH: testnetMasterPKH });
+export const createBTCTestnetAddress = createBTCAddress({ mainnet: false, masterPKH });
 
 export const btcAddressToHex = (address: string) => `0x${decode58(address).toString("hex")}`;
 // `0x${(new Address(address)).toBuffer().toString("hex")}`;

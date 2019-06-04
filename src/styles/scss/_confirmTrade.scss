@@ -54,10 +54,11 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        padding: 0 42px;
+        width: initial;
     }
 
     >div {
+        width: 100%;
         display: flex;
         flex-flow: column;
         align-items: center;

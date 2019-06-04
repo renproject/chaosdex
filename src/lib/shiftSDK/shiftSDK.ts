@@ -78,6 +78,17 @@ export class ShiftSDK {
         return first.messageID;
     }
 
+    // Submits the commitment and transaction to the darknodes, and then submits
+    // the signature to the adapter address
+    public burn = async (chain: Chain, to: string, valueHex: string): Promise<string> => {
+        const responses = await this.darknodeGroup.submitWithdrawal(chain, to, valueHex);
+        const first = responses.first(undefined);
+        if (first === undefined) {
+            throw new Error(`No response from lightnodes`);
+        }
+        return first.messageID;
+    }
+
     // Retrieves the current progress of the shift
     public shiftStatus = async (messageID: string): Promise<Signature> => {
         return /*await*/ this.darknodeGroup.checkForResponse(messageID);

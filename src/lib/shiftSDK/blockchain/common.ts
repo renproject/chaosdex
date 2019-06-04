@@ -8,6 +8,7 @@ export const intToBuffer = (int: number) => {
 };
 
 export const strip0x = (hex: string) => hex.substring(0, 2) === "0x" ? hex.slice(2) : hex;
+export const evenHex = (hex: string) => hex.length % 2 ? `0${hex}` : hex;
 
 export const hashPayload = (mintToAddress: string, commitmentHash: string) =>
     Buffer.from(strip0x(keccak256(`0x${strip0x(mintToAddress)}${strip0x(commitmentHash)}`)), "hex");

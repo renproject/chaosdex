@@ -4,12 +4,11 @@ import Web3 from "web3";
 import { Contract } from "web3-eth-contract/types";
 import { AbiItem } from "web3-utils";
 
+import { Token } from "../../../state/generalTypes";
 import BridgedTokenABI from "./BridgedTokenABI.json";
 import DarknodeRegistryABI from "./DarknodeRegistryABI.json";
 
-import { Token } from "../../../state/generalTypes";
-
-export const NULL         = "0x0000000000000000000000000000000000000000";
+export const NULL = "0x0000000000000000000000000000000000000000";
 export const NULL_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 export interface DarknodeID { id: string; }
@@ -33,12 +32,12 @@ export const bridgedToken = (web3: Web3, address: string): Contract => {
     return new web3.eth.Contract(BridgedTokenABI as AbiItem[], address);
 };
 
-export const isEthereumBased = (token: Token) => {
-    return token === Token.ETH || isERC20(token);
-};
-
 export const isERC20 = (token: Token) => {
     return [Token.DAI, Token.REN].includes(token);
+};
+
+export const isEthereumBased = (token: Token) => {
+    return token === Token.ETH || isERC20(token);
 };
 
 /*
