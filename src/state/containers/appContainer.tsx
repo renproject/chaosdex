@@ -4,15 +4,36 @@ import { List, Map } from "immutable";
 import { Container } from "unstated";
 
 import { tokenAddresses } from "../../lib/contractAddresses";
-import { Commitment, DexSDK, OrderInputs, ReserveBalances } from "../../lib/dexSDK";
+import {
+    Commitment, DexSDK, OrderInputs, RENEX_ADAPTER_ADDRESS, ReserveBalances,
+} from "../../lib/dexSDK";
+import { NETWORK } from "../../lib/environmentVariables";
 import { estimatePrice } from "../../lib/estimatePrice";
 import { history } from "../../lib/history";
 import { getMarket, getTokenPricesInCurrencies } from "../../lib/market";
 import { btcAddressToHex } from "../../lib/shiftSDK/blockchain/btc";
+import { strip0x } from "../../lib/shiftSDK/blockchain/common";
 import { Signature } from "../../lib/shiftSDK/darknode/darknodeGroup";
 import { isEthereumBased } from "../../lib/shiftSDK/eth/eth";
 import { Chain, UTXO } from "../../lib/shiftSDK/shiftSDK";
 import { MarketPair, Token, Tokens } from "../generalTypes";
+
+// const transferEvent = [{
+//     "indexed": true,
+//     "name": "from",
+//     "type": "address"
+// },
+// {
+//     "indexed": true,
+//     "name": "to",
+//     "type": "address"
+// },
+// {
+//     "indexed": false,
+//     "name": "tokens",
+//     "type": "uint256"
+// }
+// ];
 
 export interface HistoryEvent {
     time: number; // Seconds since Unix epoch
@@ -191,14 +212,52 @@ export class AppContainer extends Container<typeof initialState> {
             return null;
         }
 
-        let submitted = false;
         const promiEvent = dexSDK.submitSwap(address, commitment, signature);
-        const transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve).on("confirmation", (confirmations) => {
+        const transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve).catch(reject));
+
+        let submitted = false;
+        promiEvent.on("confirmation", async () => {
             if (!submitted) {
                 submitted = true;
-                dexSDK.submitBurn(commitment);
+
+                const receipt = await dexSDK.web3.eth.getTransactionReceipt(transactionHash);
+
+                /*
+                // Example log:
+                {
+                    address: "",
+                    blockHash: "0xf45bb29e86499cb9270fac41a522e2229d135e64facdb41c5f206bda6cd11a10",
+                    blockNumber: 11354259,
+                    data: "0x00000000000000000000000000000000000000000000000000000000000003ca",
+                    id: "log_0xcb6de4ec665873cd9782fca0a23b686b9ccb68c775ef27746d83af0c7ba0be5e",
+                    logIndex: 7,
+                    removed: false,
+                    topics: [
+                        "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+                        "0x0000000000000000000000008cfbf788757e767392e707aca1ec18ce26e570fc",
+                        "0x0000000000000000000000000000000000000000000000000000000000000000",
+                    ],
+                    transactionHash: "0x9d489c404e39326da77a7a2252c2bcfc4ec66140cc32064f0d5eb141a87bf29f",
+                    transactionIndex: 0,
+                    transactionLogIndex: "0x7",
+                    type: "mined",
+                }
+                */
+
+                // Loop through logs to find burn log
+                for (const log of receipt.logs) {
+                    if (
+                        log.address.toLowerCase() === tokenAddresses(Token.BTC, NETWORK || "").toLowerCase() &&
+                        log.topics[0] === "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef".toLowerCase() &&
+                        log.topics[1] === `0x000000000000000000000000${strip0x(RENEX_ADAPTER_ADDRESS)}`.toLowerCase() &&
+                        log.topics[2] === "0x0000000000000000000000000000000000000000000000000000000000000000".toLowerCase()
+                    ) {
+                        const amountHex = parseInt(log.data, 16).toString(16); // TODO: create "strip" function
+                        dexSDK.submitBurn(commitment, amountHex);
+                    }
+                }
             }
-        }).catch(reject));
+        });
 
         const historyItem: HistoryEvent = {
             transactionHash,

@@ -62,7 +62,7 @@ export interface Commitment {
 export type ReserveBalances = Map<Token, BigNumber>;
 
 const RENEX_ADDRESS = "0x0dF3510a4128c0cA11518465f670dB970E9302B7";
-const RENEX_ADAPTER_ADDRESS = "0x8cFbF788757e767392e707ACA1Ec18cE26e570fc";
+export const RENEX_ADAPTER_ADDRESS = "0x8cFbF788757e767392e707ACA1Ec18cE26e570fc";
 
 const tokenToChain = (token: Token): Chain => {
     const tokenDetails = Tokens.get(token, undefined);
@@ -190,20 +190,20 @@ export class DexSDK {
             signatureBytes, // _sig: string
         ];
 
-        console.groupCollapsed("Swap details");
-        console.log(`Commitment`);
-        console.table(commitment);
-        console.log(`Call parameters`);
-        console.table(params);
-        console.groupEnd();
+        // console.groupCollapsed("Swap details");
+        // console.log(`Commitment`);
+        // console.table(commitment);
+        // console.log(`Call parameters`);
+        // console.table(params);
+        // console.groupEnd();
 
         return getAdapter(this.web3).methods.trade(
             ...params,
         ).send({ from: address });
     }
 
-    public submitBurn = (commitment: Commitment) => {
-        this.shiftSDK.burn(tokenToChain(commitment.orderInputs.dstToken), commitment.toAddress, commitment.srcAmount.toString(16)).catch(_catchInteractionErr_);
+    public submitBurn = (commitment: Commitment, amountHex: string) => {
+        this.shiftSDK.burn(tokenToChain(commitment.orderInputs.dstToken), commitment.toAddress, amountHex).catch(_catchInteractionErr_);
     }
 
     public fetchEthereumTokenBalance = async (token: Token, address: string): Promise<BigNumber> => {
@@ -237,7 +237,6 @@ export class DexSDK {
         ).send({ from: address });
         let transactionHash: string | undefined;
         transactionHash = await new Promise((resolve, reject) => promiEvent.on("transactionHash", resolve));
-        console.log(`Approving ${amount.toString()} ${token} Tx hash: ${transactionHash}`);
         return amount;
     }
 
