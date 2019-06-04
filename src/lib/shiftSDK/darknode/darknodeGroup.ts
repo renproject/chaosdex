@@ -17,7 +17,7 @@ const _localNode = [
     NewMultiAddress("/ip4/0.0.0.0/tcp/18515/ren/8MJF6WEFR5SM7g652Uj52LH5GAfgGE"),
 ];
 
-const _testnetNodes = [
+const _devnetNodes = [
     NewMultiAddress("/ip4/13.56.169.110/tcp/18515/8MJwRoUfhU2bRmuJUWPRoDuQPYK1Rj"),
     NewMultiAddress("/ip4/13.52.161.137/tcp/18515/8MGUXixUxCK1s8Fpko5pUfPFC3V2KK"),
     NewMultiAddress("/ip4/13.57.71.179/tcp/18515/8MJzChiEMBffzvSvxi2qWrB6zQeNaF"),
@@ -28,7 +28,7 @@ const _testnetNodes = [
     NewMultiAddress("/ip4/52.42.160.15/tcp/18515/8MGPBAL3kx7HYfvbzx5K7VCNn8PYvC"),
 ];
 
-const _devnetNodes = [
+const _testnetNodes = [
     NewMultiAddress("/ip4/54.221.29.240/tcp/18515/8MJF6WEFR5SM7g652Uj52LH5GAfgGE"),
     NewMultiAddress("/ip4/34.213.51.170/tcp/18515/8MJFpCbi2jkVMLu4LdLywCPKuLdYFu"),
     NewMultiAddress("/ip4/34.205.143.11/tcp/18515/8MHAgaq5NcujBZy1SayoG1DtbjF8pH"),
@@ -43,11 +43,11 @@ const _testnetLightnode = [
     "https://lightnode-testnet.herokuapp.com",
 ];
 
-export const devnetLightnode = [
-    "https://lightnode.herokuapp.com",
+const _devnetLightnode = [
+    "https://lightnode-devnet.herokuapp.com",
 ];
 
-export const lightnodes = devnetLightnode;
+export const lightnodes = _testnetLightnode;
 
 // export const multiAddressToID = (multiAddress: MultiAddress): DarknodeID => {
 //     const split = multiAddress.multiAddress.split("/");
