@@ -213,7 +213,7 @@ export class DexSDK {
 
         return getAdapter(this.web3).methods.trade(
             ...params,
-        ).send({ from: address });
+        ).send({ from: address, gas: 350000 });
     }
 
     public submitBurn = async (commitment: Commitment, amountHex: string): Promise<string> => {

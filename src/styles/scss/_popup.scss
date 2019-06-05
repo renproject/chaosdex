@@ -163,3 +163,24 @@
     padding: 0;
     width: 360px;
 }
+
+.metamask-logo {
+    width: 30px;
+    min-width: 30px;
+    background: rgba(0, 0, 0, 0);
+    padding: 0;
+    height: 30px;
+    border: none;
+    display: flex;
+    justify-content: center;
+    margin-left: 5px;
+    position: absolute;
+    z-index: 10;
+    margin-left: calc(100% - 46px);
+    background: white;
+    margin-top: -35px;
+
+    svg {
+        width: 20px;
+    }
+}

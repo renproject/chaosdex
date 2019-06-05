@@ -7,24 +7,33 @@ import { _catchInteractionErr_ } from "../../lib/errors";
 import { Token, Tokens } from "../../state/generalTypes";
 import { Popup } from "./Popup";
 
+import { ReactComponent as MetaMask } from "../../styles/images/metamask.svg";
+import { Chain } from "../../lib/shiftSDK/shiftSDK";
+
 export const AskForAddress: React.StatelessComponent<{
     token: Token,
     message: string,
+    defaultAddress: string,
     onAddress(address: string): void;
     cancel(): void;
-}> = ({ token, message, onAddress, cancel }) => {
+}> = ({ token, message, defaultAddress, onAddress, cancel }) => {
     const { t } = useTranslation();
     const [address, updateAddress] = React.useState("");
     const [error, updateError] = React.useState(null as string | null);
 
+    const tokenDetails = Tokens.get(token);
+
     const submit = () => {
-        const tokenDetails = Tokens.get(token);
         if (!error && tokenDetails && !tokenDetails.validator(address)) {
-            updateError(`Invalid ${token.toUpperCase()} address`);
+            updateError(`Invalid ${tokenDetails.chain.toUpperCase()} address`);
             return;
         }
         onAddress(address);
     };
+
+    const useDefaultAddress = () => {
+        updateAddress(defaultAddress);
+    }
 
     const onChange = (event: React.FormEvent<HTMLInputElement>): void => {
         updateError(null);
@@ -52,6 +61,10 @@ export const AskForAddress: React.StatelessComponent<{
                         aria-required={true}
                     />
                     <label className="form-control-placeholder">{token} address</label>
+                    {tokenDetails && tokenDetails.chain === Chain.Ethereum ? 
+                        <button type="button" className="metamask-logo" onClick={useDefaultAddress}><MetaMask /></button> :
+                        null
+                    }
                 </div>
                 {error ? <span className="red"><br />{error}</span> : null}
                 <div className="popup--buttons">

@@ -53,7 +53,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
         const {
             orderInputs: orderInput, toAddress, refundAddress, depositAddress,
             utxos, messageID, signature: messageResponse, confirmedOrderInputs,
-            erc20Approved, confirmedTrade, inTx, outTx,
+            erc20Approved, confirmedTrade, inTx, outTx, address
         } = this.appContainer.state;
 
         // The confirmed order inputs should always be available
@@ -80,6 +80,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
                 message={`Enter the ${confirmedOrderInputs.dstToken} public address you want to receive your tokens to.`}
                 onAddress={this.ontoAddress}
                 cancel={this.cancel}
+                defaultAddress={address || ""}
             />;
         }
 
@@ -92,6 +93,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
                 message={`Enter your ${confirmedOrderInputs.srcToken} refund address in case the trade doesn't go through.`}
                 onAddress={this.onRefundAddress}
                 cancel={this.cancel}
+                defaultAddress={address || ""}
             />;
         }
 
@@ -195,6 +197,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
 
     private readonly onRefundAddress = async (refundAddress: string) => {
         await this.appContainer.updateRefundAddress(refundAddress).catch(_catchInteractionErr_);
+        this.generateAddress().catch(_catchInteractionErr_);
     }
 
     private readonly generateAddress = async () => {

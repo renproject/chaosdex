@@ -45,10 +45,10 @@ interface MarketDetails {
 
 const MarketPairs = OrderedMap<MarketPair, MarketDetails>()
     // BTC pairs
-    .set(MarketPair.ETH_BTC, { symbol: MarketPair.ETH_BTC, quote: Token.BTC, base: Token.ETH })
-    .set(MarketPair.REN_BTC, { symbol: MarketPair.REN_BTC, quote: Token.BTC, base: Token.REN })
+    // .set(MarketPair.ETH_BTC, { symbol: MarketPair.ETH_BTC, quote: Token.BTC, base: Token.ETH })
+    // .set(MarketPair.REN_BTC, { symbol: MarketPair.REN_BTC, quote: Token.BTC, base: Token.REN })
     .set(MarketPair.DAI_BTC, { symbol: MarketPair.DAI_BTC, quote: Token.BTC, base: Token.DAI })
-    .set(MarketPair.ZEC_BTC, { symbol: MarketPair.ZEC_BTC, quote: Token.BTC, base: Token.ZEC })
+    // .set(MarketPair.ZEC_BTC, { symbol: MarketPair.ZEC_BTC, quote: Token.BTC, base: Token.ZEC })
     ;
 
 export const getMarket = (left: Token, right: Token): MarketPair | undefined => {

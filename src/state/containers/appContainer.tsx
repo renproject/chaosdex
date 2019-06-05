@@ -117,7 +117,8 @@ export class AppContainer extends Container<typeof initialState> {
         const { balanceReserves,
             dexSDK } = this.state;
         let newBalanceReserves = balanceReserves;
-        const marketPairs = [MarketPair.DAI_BTC, MarketPair.ETH_BTC, MarketPair.REN_BTC, MarketPair.ZEC_BTC];
+        // const marketPairs = [MarketPair.DAI_BTC, MarketPair.ETH_BTC, MarketPair.REN_BTC, MarketPair.ZEC_BTC];
+        const marketPairs = [MarketPair.DAI_BTC];
         const res = await dexSDK.getReserveBalance(marketPairs); // Promise<Array<Map<Token, BigNumber>>> => {
         marketPairs.forEach((value, index) => {
             newBalanceReserves = newBalanceReserves.set(value, res[index]);
@@ -362,6 +363,7 @@ export class AppContainer extends Container<typeof initialState> {
     }
 
     public resetTrade = async () => {
+        console.log(`Clearing commitment!!!`);
         await this.setState({
             confirmedTrade: false,
             submitting: false,

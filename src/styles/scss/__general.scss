@@ -257,3 +257,8 @@ button {
     opacity: 0.5;
     cursor: default;
 }
+
+.ellipsis {
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+}

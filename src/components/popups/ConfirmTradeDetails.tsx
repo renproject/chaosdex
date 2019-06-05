@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { OrderInputs } from "../../lib/dexSDK";
 import { _catchInteractionErr_ } from "../../lib/errors";
-import { TokenPrices } from "../../state/generalTypes";
+import { Token, TokenPrices } from "../../state/generalTypes";
 import { ReactComponent as Arrow } from "../../styles/images/arrow-right.svg";
 import { TokenBalance } from "../views/TokenBalance";
 import { Popup } from "./Popup";
@@ -105,14 +105,14 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
                         <hr />
                         <div>
                             <span className="swap-details--values--left">
-                                FEE (0%) <InfoLabel>Darknode fee</InfoLabel>
+                                FEE <InfoLabel>Darknode and transfer fees</InfoLabel>
                             </span>
                             <div className="swap-details--values--right">
                                 <CurrencyIcon currency={quoteCurrency} />
                                 <TokenBalance
-                                    token={orderInputs.dstToken}
+                                    token={Token.BTC}
                                     convertTo={quoteCurrency}
-                                    amount={"0"}
+                                    amount={"0.0001"}
                                     tokenPrices={tokenPrices}
                                 />
                             </div>

@@ -14,10 +14,10 @@ export enum Token {
 
 export enum MarketPair {
     DAI_BTC = "DAI/BTC",
-    DAI_ZEC = "DAI/ZEC",
-    REN_BTC = "REN/BTC",
-    ETH_BTC = "ETH/BTC",
-    ZEC_BTC = "ZEC/BTC",
+    // DAI_ZEC = "DAI/ZEC",
+    // REN_BTC = "REN/BTC",
+    // ETH_BTC = "ETH/BTC",
+    // ZEC_BTC = "ZEC/BTC",
 }
 
 const btcValidator = (address: string) => validate(address, "btc", "testnet");
