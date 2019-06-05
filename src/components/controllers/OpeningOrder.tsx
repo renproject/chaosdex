@@ -123,7 +123,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
 
         if (!outTx) {
             if (isEthereumBased(orderInput.srcToken)) {
-                return <DepositReceived messageID={messageID} />;
+                return <DepositReceived submitDeposit={this.submitBurn} messageID={messageID} />;
             } else {
                 // Submit the trade to Ethereum
                 return <SubmitToEthereum token={orderInput.dstToken} submit={this.submitSwap} />;
@@ -170,6 +170,10 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
 
     private readonly submitSwap = async () => {
         await this.appContainer.submitSwap();
+    }
+
+    private readonly submitBurn = async () => {
+        await this.appContainer.submitBurn();
     }
 
     private readonly onDone = async () => {

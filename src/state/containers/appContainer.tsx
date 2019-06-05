@@ -83,6 +83,7 @@ const initialState = {
     signature: null as ShiftedInResponse | ShiftedOutResponse | null,
     inTx: null as Tx | null,
     outTx: null as Tx | null,
+    amountHex: null as string | null,
 };
 
 export type OrderData = typeof initialState.orderInputs;
@@ -223,9 +224,20 @@ export class AppContainer extends Container<typeof initialState> {
         await this.setState({ messageID });
     }
 
+    public submitBurn = async () => {
+        const { dexSDK, commitment, amountHex } = this.state;
+        if (!commitment || !amountHex) {
+            throw new Error(`Invalid values required to submit burn`);
+        }
+        const messageID = await dexSDK.submitBurn(commitment, amountHex);
+        this.setState({ messageID }).catch(_catchBackgroundErr_);
+    }
+
     public submitSwap = async () => {
         const { address, dexSDK, commitment, signature } = this.state;
         if (!address || !commitment) {
+            console.error(`address: ${address}`);
+            console.error(`commitment: ${commitment}`);
             throw new Error(`Invalid values required for swap`);
         }
 
@@ -237,9 +249,7 @@ export class AppContainer extends Container<typeof initialState> {
             return;
         }
 
-        this.setState({ inTx: EthereumTx(transactionHash) }).catch(_catchInteractionErr_);
-
-        return new Promise((resolve, reject) => {
+        await new Promise((resolve, reject) => {
             let submitted = false;
             promiEvent.on("confirmation", async () => {
                 if (!submitted) {
@@ -279,8 +289,7 @@ export class AppContainer extends Container<typeof initialState> {
                                 log.topics[2] === "0x0000000000000000000000000000000000000000000000000000000000000000".toLowerCase()
                             ) {
                                 const amountHex = parseInt(log.data, 16).toString(16); // TODO: create "strip" function
-                                const messageID = await dexSDK.submitBurn(commitment, amountHex);
-                                this.setState({ messageID }).catch(_catchBackgroundErr_);
+                                this.setState({ amountHex }).catch(_catchInteractionErr_);
                                 resolve();
                             }
                         }
@@ -290,6 +299,8 @@ export class AppContainer extends Container<typeof initialState> {
                 }
             });
         });
+
+        this.setState({ inTx: EthereumTx(transactionHash) }).catch(_catchInteractionErr_);
     }
 
     public getHistoryEvent = async () => {
@@ -354,6 +365,7 @@ export class AppContainer extends Container<typeof initialState> {
             erc20Approved: false,
             inTx: null,
             outTx: null,
+            amountHex: null,
         });
     }
 

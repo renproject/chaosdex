@@ -29,12 +29,12 @@ export const DepositReceived: React.StatelessComponent<{
         <div className="deposit-address">
             <div className="popup--body">
                 {waiting ? <Loading /> : null}
-                <h2>Deposit received</h2>
+                <h2>Submit to darknodes</h2>
                 {waiting ? <div className="address-input--message">
                     <>Submitting order to RenVM...</>
                     {messageID ? <details><summary>Message ID</summary>{messageID}</details> : <></>}
                 </div> : <div className="popup--buttons">
-                        <button className="button open--confirm" onClick={onClick}>Submit deposit</button>
+                        <button className="button open--confirm" onClick={onClick}>Submit to darknodes</button>
                     </div>
                 }
             </div>

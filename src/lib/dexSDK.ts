@@ -216,7 +216,7 @@ export class DexSDK {
         ).send({ from: address });
     }
 
-    public submitBurn = (commitment: Commitment, amountHex: string): Promise<string> => {
+    public submitBurn = async (commitment: Commitment, amountHex: string): Promise<string> => {
         return this.shiftSDK.burn(tokenToChain(commitment.orderInputs.dstToken), commitment.toAddress, amountHex);
     }
 
