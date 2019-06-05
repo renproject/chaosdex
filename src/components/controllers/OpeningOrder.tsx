@@ -154,11 +154,11 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
 
     private readonly updateResponse = async () => {
         if (!this._mounted) { return; }
-        let timeout = 10000; // Half a second
+        let timeout = 5000; // 5 seconds
         if (this.appContainer.state.messageID) {
             try {
                 await this.appContainer.updateMessageStatus();
-                timeout = 10000; // 5 seconds
+                timeout = 5000; // 5 seconds
             } catch (error) {
                 _catchBackgroundErr_(error);
             }

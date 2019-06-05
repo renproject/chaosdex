@@ -1,7 +1,6 @@
 import * as React from "react";
 
 import createPersistedState from "use-persisted-state";
-
 import { FeedbackButton } from "@renex/react-components";
 import { Route, RouteComponentProps, withRouter } from "react-router-dom";
 
@@ -64,6 +63,7 @@ export const App = connect<Props>([AppContainer, OptionsContainer])(
             if (!initialized) {
                 setInterval(() => appContainer.updateTokenPrices().catch(_catchBackgroundErr_), 30 * 1000);
                 setInterval(() => appContainer.updateBalanceReserves().catch(_catchBackgroundErr_), 30 * 1000);
+                setInterval(() => appContainer.updateAccountBalances().catch(_catchBackgroundErr_), 30 * 1000);
                 if (loggedIn) {
                     appContainer.connect().catch(_catchBackgroundErr_);
                 }
@@ -79,7 +79,7 @@ export const App = connect<Props>([AppContainer, OptionsContainer])(
 
             {_catch_(
                 <React.Suspense fallback={null/*<Loading />*/}>
-                    <HeaderController handleLogin={login} handleLogout={logout}/>
+                    <HeaderController handleLogin={login} handleLogout={logout} />
                 </React.Suspense>
             )}
             <Route path="/" exact={true} component={Exchange} />
