@@ -93,8 +93,10 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
         // If `srcToken` is Ethereum-based they can submit to the contract
         // directly, otherwise they must deposit `srcToken` to a generated
         // address.
-        if (isERC20(orderInput.srcToken) && !erc20Approved) {
-            return <TokenAllowance token={orderInput.srcToken} amount={confirmedOrderInputs.srcAmount} submit={this.appContainer.setAllowance} />;
+        if (isERC20(orderInput.srcToken)) {
+            if (!erc20Approved) {
+                return <TokenAllowance token={orderInput.srcToken} amount={confirmedOrderInputs.srcAmount} submit={this.appContainer.setAllowance} />;
+            }
         } else {
             // Show the deposit address and wait for a deposit
             if ((!utxos || utxos.size === 0)) {
