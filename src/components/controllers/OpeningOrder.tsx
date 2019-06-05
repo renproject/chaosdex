@@ -110,6 +110,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
                 // Show the deposit address and wait for a deposit
                 if ((!utxos || utxos.size === 0)) {
                     return <ShowDepositAddress
+                        generateAddress={this.generateAddress}
                         token={orderInput.srcToken}
                         depositAddress={depositAddress}
                         amount={confirmedOrderInputs.srcAmount}
@@ -165,7 +166,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     }
 
     private readonly submitDeposit = async () => {
-        this.appContainer.submitDeposit().catch(_catchInteractionErr_);
+        this.appContainer.submitDeposit();
     }
 
     private readonly submitSwap = async () => {
@@ -194,7 +195,10 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
 
     private readonly onRefundAddress = async (refundAddress: string) => {
         await this.appContainer.updateRefundAddress(refundAddress).catch(_catchInteractionErr_);
-        await this.appContainer.updateCommitment().catch(_catchInteractionErr_);
+    }
+
+    private readonly generateAddress = async () => {
+        await this.appContainer.updateCommitment();
     }
 
     private readonly cancel = () => {

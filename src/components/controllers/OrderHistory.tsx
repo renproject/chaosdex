@@ -3,6 +3,7 @@ import * as React from "react";
 import { Loading, TokenIcon } from "@renex/react-components";
 import i18next from "i18next";
 import { useTranslation } from "react-i18next";
+import { OrderedMap } from "immutable";
 
 import { naturalTime } from "../../lib/conversion";
 import { ETHERSCAN } from "../../lib/environmentVariables";
@@ -25,7 +26,7 @@ const txUrl = (tx: Tx | null): string => {
     }
 }
 
-const OrderHistoryEntry = ({ order, t }: { order: HistoryEvent, t: i18next.TFunction }) => {
+const OrderHistoryEntry = ({ order, t, inTxPending, outTxPending }: { order: HistoryEvent, t: i18next.TFunction, inTxPending: boolean, outTxPending: boolean }) => {
     if ((order as any).transactionHash) {
         order.outTx = (order as any).transactionHash;
     }
@@ -43,11 +44,11 @@ const OrderHistoryEntry = ({ order, t }: { order: HistoryEvent, t: i18next.TFunc
         </div>
         <div className="history--txs">
             <span className="swap--time">{naturalTime(order.time, { message: "Just now", suffix: "ago", countDown: false, abbreviate: true })}</span>
-            <a target={order.inTx ? "_blank" : ""} className="tx-in" rel="noopener noreferrer" href={txUrl(order.inTx)}>
-                {order.inTx ? <Arrow /> : <Loading />}
+            <a target="_blank" className={`tx-in ${inTxPending ? "tx-pending" : ""}`} rel="noopener noreferrer" href={txUrl(order.inTx)}>
+                <Arrow />
             </a>
-            <a target={order.outTx ? "_blank" : ""} className="tx-out" rel="noopener noreferrer" href={txUrl(order.outTx)}>
-                {order.outTx ? <Arrow /> : <Loading />}
+            <a target="_blank" className={`tx-out ${outTxPending ? "tx-pending" : ""}`} rel="noopener noreferrer" href={txUrl(order.outTx)}>
+                <Arrow />
             </a>
         </div>
     </div>;
@@ -56,14 +57,13 @@ const OrderHistoryEntry = ({ order, t }: { order: HistoryEvent, t: i18next.TFunc
 /**
  * OrderHistory is a visual component for allowing users to open new orders
  */
-export const OrderHistory = (props: Props) => {
+export const OrderHistory = ({ orders, pendingTXs }: Props) => {
     const { t } = useTranslation();
     const [start, setStart] = React.useState(0);
 
     const nextPage = () => { setStart(start + 5); };
     const previousPage = () => { setStart(Math.max(start - 5, 0)); };
 
-    const { orders } = props;
     if (orders.length === 0) {
         return <></>;
     }
@@ -78,6 +78,8 @@ export const OrderHistory = (props: Props) => {
                         t={t}
                         key={historyEvent.inTx ? historyEvent.inTx.hash : historyEvent.outTx ? historyEvent.outTx.hash : historyEvent.time}
                         order={historyEvent}
+                        inTxPending={pendingTXs.has(historyEvent.inTx.hash)}
+                        outTxPending={pendingTXs.has(historyEvent.outTx.hash)}
                     />;
                 })}
             </div>
@@ -92,4 +94,5 @@ export const OrderHistory = (props: Props) => {
 
 interface Props {
     orders: HistoryEvent[];
+    pendingTXs: OrderedMap<string, number>;
 }

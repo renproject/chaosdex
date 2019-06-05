@@ -66,7 +66,7 @@ export const Exchange = connect<RouteComponentProps & ConnectedProps<[AppContain
                     {_catch_(
                         <React.Suspense fallback={<Loading />}>
                             <NewOrder swapSubmitted={swapSubmitted} />
-                            <OrderHistory orders={orderHistory as HistoryEvent[]} />
+                            <OrderHistory orders={orderHistory as HistoryEvent[]} pendingTXs={appContainer.state.pendingTXs} />
                         </React.Suspense>
                     )}
                 </div>

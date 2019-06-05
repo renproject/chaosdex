@@ -6,7 +6,8 @@
     "based_on_market_price": "Basierend auf dem Marktpreis.",
     "unsupported_token_pair": "Token-Paar wird nicht unterstützt",
     "connect_to_trade": "Verbinden, um zu handeln",
-    "insufficient_balance": "Mangelhaftes Gleichgewicht"
+    "insufficient_balance": "Mangelhaftes Gleichgewicht",
+    "invalid_volume": "Volumen zu niedrig"
   },
   "history": {
     "history": "Geschichte",

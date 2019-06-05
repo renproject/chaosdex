@@ -6,7 +6,8 @@
     "based_on_market_price": "Based on market price.",
     "unsupported_token_pair": "Token pair not supported",
     "connect_to_trade": "Connect to trade",
-    "insufficient_balance": "Insufficient balance"
+    "insufficient_balance": "Insufficient balance",
+    "invalid_volume": "Volume too low"
   },
   "history": {
     "history": "History",

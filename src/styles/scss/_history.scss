@@ -75,6 +75,10 @@
         border-color: #555 transparent #555 transparent;
     }
 
+    &.tx-pending {
+        border: none;
+    }
+
     &.tx-in {
         transform: rotate(-45deg);
 
@@ -85,6 +89,10 @@
         border-color: #555;
 
         margin-right: 7px;
+
+        &.tx-pending:after {
+            border-color: #555 transparent #555 transparent;
+        }
     }
 
     &.tx-out {
@@ -95,6 +103,10 @@
         }
 
         border-color: $blue-bright;
+
+        &.tx-pending:after {
+            border-color: $blue-bright transparent $blue-bright transparent;
+        }
     }
 }
 
@@ -128,4 +140,26 @@
     text-transform: uppercase;
     color: #555;
     font-size: 10px;
+}
+
+.tx-pending:after {
+    content: ' ';
+    // display: block;
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    margin: 0 auto;
+    border-radius: 50%;
+    border: 0.5px solid;
+    animation: tx-pending 1.2s linear infinite;
+}
+
+@keyframes tx-pending {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }

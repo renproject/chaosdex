@@ -13,12 +13,26 @@ export const ShowDepositAddress: React.StatelessComponent<{
     depositAddress: string | null,
     amount: string,
     cancel(): void;
-}> = ({ amount, token, depositAddress, cancel }) => {
+    generateAddress(): Promise<void>;
+}> = ({ amount, token, depositAddress, cancel, generateAddress }) => {
     // Defaults for demo
     const [understood, setUnderstood] = React.useState(false);
     const [copied, setCopied] = React.useState(false);
     const [showSpinner, setShowSpinner] = React.useState(false);
     const [timer, setTimer] = React.useState<NodeJS.Timeout | null>(null);
+    const [failed, setFailed] = React.useState(null as Error | null)
+
+    // useEffect replaces `componentDidMount` and `componentDidUpdate`.
+    // To limit it to running once, we use the initialized hook.
+    const [initialized, setInitialized] = React.useState(false);
+    React.useEffect(() => {
+        if (!initialized) {
+            generateAddress().catch((error) => {
+                setFailed(error);
+            });
+            setInitialized(true);
+        }
+    }, [initialized]);
 
     const onClick = () => {
         setUnderstood(true);
@@ -77,8 +91,9 @@ export const ShowDepositAddress: React.StatelessComponent<{
                         }
                     </> :
                     <>
+                        {failed ? <div className="red">{`${failed.message || failed}`}</div> : ""}
                         <div className="popup--buttons">
-                            <button className="button open--confirm" disabled={depositAddress === null} onClick={onClick}>Show deposit address</button>
+                            <button className="button open--confirm" disabled={depositAddress === null || failed !== null} onClick={onClick}>{failed ? "Unable to generate address" : "Show deposit address"}</button>
                         </div>
                     </>
                 }

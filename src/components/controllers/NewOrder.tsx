@@ -29,7 +29,8 @@ class NewOrderClass extends React.Component<Props> {
 
         const loggedIn = appContainer.state.address !== null;
         const sufficientBalance = appContainer.sufficientBalance();
-        const disabled = !loggedIn || !sufficientBalance;
+        const validVolume = appContainer.validVolume();
+        const disabled = !loggedIn || !sufficientBalance || !validVolume;
 
         return <>
             <div className="section order">
@@ -44,7 +45,10 @@ class NewOrderClass extends React.Component<Props> {
                                 className={`button submit-swap ${disabled ? "disabled" : ""}`}
                             >
                                 {appContainer.state.submitting ? <Loading alt={true} /> :
-                                    !loggedIn ? t("new_order.connect_to_trade") : !sufficientBalance ? t("new_order.insufficient_balance") : t("new_order.trade")
+                                    !loggedIn ? t("new_order.connect_to_trade") :
+                                        !sufficientBalance ? t("new_order.insufficient_balance") :
+                                            !validVolume ? t("new_order.invalid_volume") :
+                                                t("new_order.trade")
                                 }
                             </button> :
                             <button disabled={true} className="button submit-swap">

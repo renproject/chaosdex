@@ -1,6 +1,6 @@
 import { Currency } from "@renex/react-components";
 import BigNumber from "bignumber.js";
-import { List, Map } from "immutable";
+import { List, Map, OrderedMap } from "immutable";
 import { Container } from "unstated";
 
 import { tokenAddresses } from "../../lib/contractAddresses";
@@ -47,8 +47,8 @@ const EthereumTx = (hash: string) => ({ hash, chain: Chain.Ethereum });
 
 export interface HistoryEvent {
     time: number; // Seconds since Unix epoch
-    inTx: Tx | null;
-    outTx: Tx | null;
+    inTx: Tx;
+    outTx: Tx;
     orderInputs: OrderInputs;
     complete: boolean;
 }
@@ -69,6 +69,8 @@ const initialState = {
 
     orderInputs: initialOrder,
     confirmedOrderInputs: null as null | OrderInputs,
+
+    pendingTXs: OrderedMap<string, number>(),
 
     confirmedTrade: false,
     submitting: false,
@@ -245,7 +247,16 @@ export class AppContainer extends Container<typeof initialState> {
         const transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve).catch(reject));
 
         if (isEthereumBased(commitment.orderInputs.dstToken)) {
-            this.setState({ outTx: EthereumTx(transactionHash) }).catch(_catchInteractionErr_);
+            this.setState({ outTx: EthereumTx(transactionHash), pendingTXs: this.state.pendingTXs.set(transactionHash, 0) }).catch(_catchInteractionErr_);
+            promiEvent.on("confirmation", async (confirmations) => {
+                // TODO: Use an environment variable for # of confirmations
+                // required.
+                if (confirmations >= 1) {
+                    this.setState({ pendingTXs: this.state.pendingTXs.remove(transactionHash) }).catch(_catchInteractionErr_);
+                } else {
+                    this.setState({ pendingTXs: this.state.pendingTXs.set(transactionHash, confirmations) }).catch(_catchInteractionErr_);
+                }
+            });
             return;
         }
 
@@ -305,8 +316,8 @@ export class AppContainer extends Container<typeof initialState> {
 
     public getHistoryEvent = async () => {
         const { inTx, outTx, commitment } = this.state;
-        if (!commitment) {
-            return;
+        if (!commitment || !inTx || !outTx) {
+            throw new Error(`Invalid values passed to getHistoryEvent`);
         }
         const historyItem: HistoryEvent = {
             inTx,
@@ -323,7 +334,7 @@ export class AppContainer extends Container<typeof initialState> {
     public updateMessageStatus = async () => {
         const { dexSDK, messageID, commitment } = this.state;
         if (!messageID || !commitment) {
-            return;
+            throw new Error(`Invalid values passed to updateMessageStatus`);
         }
         try {
             const messageResponse = await dexSDK.shiftStatus(messageID);
@@ -387,6 +398,22 @@ export class AppContainer extends Container<typeof initialState> {
             return true;
         }
         return srcAmountBN.lte(balance);
+    }
+
+    // Check the the volume isn't below the minimum required volume
+    public validVolume = (): boolean => {
+        const { orderInputs: { srcToken, srcAmount, dstToken, dstAmount } } = this.state;
+        if (srcToken === Token.BTC || srcToken === Token.ZEC) {
+            if (new BigNumber(srcAmount).isLessThan(0.00015)) {
+                return false;
+            }
+        }
+        if (dstToken === Token.BTC || dstToken === Token.ZEC) {
+            if (new BigNumber(dstAmount).isLessThan(0.00015)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public updateAccountBalances = async (): Promise<void> => {
