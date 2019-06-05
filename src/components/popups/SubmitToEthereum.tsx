@@ -1,5 +1,7 @@
 import * as React from "react";
 
+import { Loading } from "@renex/react-components";
+
 import { _catchInteractionErr_ } from "../../lib/errors";
 import { Token } from "../../state/generalTypes";
 import { Popup } from "./Popup";
@@ -28,7 +30,7 @@ export const SubmitToEthereum: React.StatelessComponent<{
                     <br />
                 </div>
                 <div className="popup--buttons">
-                    <button className="button open--confirm" disabled={submitting} onClick={onSubmit}>Submit</button>
+                    <button className="button open--confirm" disabled={submitting} onClick={onSubmit}>{submitting ? <Loading alt={true} /> : "Submit"}</button>
                 </div>
             </div>
         </div>

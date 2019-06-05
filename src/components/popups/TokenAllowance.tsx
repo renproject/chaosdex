@@ -1,5 +1,7 @@
 import * as React from "react";
 
+import { Loading } from "@renex/react-components";
+
 import { _catchInteractionErr_ } from "../../lib/errors";
 import { Token } from "../../state/generalTypes";
 import { Popup } from "./Popup";
@@ -27,7 +29,7 @@ export const TokenAllowance: React.StatelessComponent<{
                     <br />
                 </div>
                 <div className="popup--buttons">
-                    <button className="button open--confirm" disabled={submitting} onClick={onSubmit}>Approve</button>
+                    <button className="button open--confirm" disabled={submitting} onClick={onSubmit}>{submitting ? <Loading alt={true} /> : "Approve"}</button>
                 </div>
             </div>
         </div>
