@@ -4,7 +4,7 @@ import { TokenIcon } from "@renex/react-components";
 import { useTranslation } from "react-i18next";
 
 import { _catchInteractionErr_ } from "../../lib/errors";
-import { Token } from "../../state/generalTypes";
+import { Token, Tokens } from "../../state/generalTypes";
 import { Popup } from "./Popup";
 
 export const AskForAddress: React.StatelessComponent<{
@@ -15,12 +15,19 @@ export const AskForAddress: React.StatelessComponent<{
 }> = ({ token, message, onAddress, cancel }) => {
     const { t } = useTranslation();
     const [address, updateAddress] = React.useState("");
+    const [error, updateError] = React.useState(null as string | null);
 
     const submit = () => {
+        const tokenDetails = Tokens.get(token);
+        if (!error && tokenDetails && !tokenDetails.validator(address)) {
+            updateError(`Invalid ${token.toUpperCase()} address`);
+            return;
+        }
         onAddress(address);
     };
 
     const onChange = (event: React.FormEvent<HTMLInputElement>): void => {
+        updateError(null);
         updateAddress((event.target as HTMLInputElement).value);
     };
 
@@ -46,8 +53,9 @@ export const AskForAddress: React.StatelessComponent<{
                     />
                     <label className="form-control-placeholder">{token} address</label>
                 </div>
+                {error ? <span className="red"><br />{error}</span> : null}
                 <div className="popup--buttons">
-                    <button className="button open--confirm" disabled={address === ""} onClick={submit}><span>{t("popup.confirm")}</span></button>
+                    <button className="button open--confirm" disabled={address === ""} onClick={submit}><span>{error ? "Use anyway" : t("popup.confirm")}</span></button>
                 </div>
             </div>
         </div>

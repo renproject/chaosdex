@@ -20,7 +20,7 @@ export const ShowDepositAddress: React.StatelessComponent<{
     const [copied, setCopied] = React.useState(false);
     const [showSpinner, setShowSpinner] = React.useState(false);
     const [timer, setTimer] = React.useState<NodeJS.Timeout | null>(null);
-    const [failed, setFailed] = React.useState(null as Error | null)
+    const [failed, setFailed] = React.useState(null as Error | null);
 
     // useEffect replaces `componentDidMount` and `componentDidUpdate`.
     // To limit it to running once, we use the initialized hook.

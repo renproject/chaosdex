@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { Loading, TokenIcon } from "@renex/react-components";
+import { TokenIcon } from "@renex/react-components";
 import i18next from "i18next";
 import { useTranslation } from "react-i18next";
 import { OrderedMap } from "immutable";
