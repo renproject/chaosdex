@@ -21,6 +21,7 @@
   },
   "popup": {
     "receive": "Receive",
+    "address": "address",
     "confirm": "Confirm",
     "confirm_trade": "Confirm Trade"
   },

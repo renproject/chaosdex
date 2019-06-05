@@ -1,26 +1,56 @@
 import * as React from "react";
 
-import { TokenIcon } from "@renex/react-components";
+import { Loading, TokenIcon } from "@renex/react-components";
 import i18next from "i18next";
 import { useTranslation } from "react-i18next";
 
 import { naturalTime } from "../../lib/conversion";
 import { ETHERSCAN } from "../../lib/environmentVariables";
-import { HistoryEvent } from "../../state/containers/appContainer";
+import { Chain } from "../../lib/shiftSDK/shiftSDK";
+import { HistoryEvent, Tx } from "../../state/containers/appContainer";
+import { ReactComponent as Arrow } from "../../styles/images/arrow-right.svg";
 import { ReactComponent as Next } from "../../styles/images/next.svg";
 import { ReactComponent as Previous } from "../../styles/images/previous.svg";
+import { TokenBalance } from "../views/TokenBalance";
+
+const txUrl = (tx: Tx | null): string => {
+    if (!tx) { return ""; }
+    switch (tx.chain) {
+        case Chain.Ethereum:
+            return `${ETHERSCAN}/tx/${tx.hash}`;
+        case Chain.Bitcoin:
+            return `https://live.blockcypher.com/btc-testnet/tx/${tx.hash}`;
+        case Chain.ZCash:
+            return `https://chain.so/tx/ZEC/${tx.hash}`;
+    }
+}
 
 const OrderHistoryEntry = ({ order, t }: { order: HistoryEvent, t: i18next.TFunction }) => {
-    const etherscanUrl = order.outTx ? `${ETHERSCAN}/tx/${order.outTx}` : undefined;
-    return (
-        <a className="swap--history--entry" target="_blank" rel="noopener noreferrer" href={etherscanUrl} >
-            <div className="token--info">
-                <TokenIcon className="token-icon" token={order.orderInputs.dstToken} />
-                <span className="received--text">{t("history.received")}</span><span className="token--amount">{order.orderInputs.dstAmount} {order.orderInputs.dstToken}</span>
-            </div>
+    if ((order as any).transactionHash) {
+        order.outTx = (order as any).transactionHash;
+    }
+    return <div className="swap--history--entry">
+        <div className="token--info">
+            <TokenIcon className="token-icon" token={order.orderInputs.dstToken} />
+            <span className="received--text">{t("history.received")}</span>
+            <span className="token--amount">
+                <TokenBalance
+                    token={order.orderInputs.dstToken}
+                    amount={order.orderInputs.dstAmount}
+                />{" "}
+                {order.orderInputs.dstToken}
+            </span>
+        </div>
+        <div className="history--txs">
             <span className="swap--time">{naturalTime(order.time, { message: "Just now", suffix: "ago", countDown: false, abbreviate: true })}</span>
-        </a>
-    );
+            <a target={order.inTx ? "_blank" : ""} className="tx-in" rel="noopener noreferrer" href={txUrl(order.inTx)}>
+                {order.inTx ? <Arrow /> : <Loading />}
+            </a>
+            <a target={order.outTx ? "_blank" : ""} className="tx-out" rel="noopener noreferrer" href={txUrl(order.outTx)}>
+                {order.outTx ? <Arrow /> : <Loading />}
+            </a>
+        </div>
+    </div>;
 };
 
 /**
@@ -46,7 +76,7 @@ export const OrderHistory = (props: Props) => {
                 {orders.slice(start, start + 5).map(historyEvent => {
                     return <OrderHistoryEntry
                         t={t}
-                        key={historyEvent.outTx}
+                        key={historyEvent.inTx ? historyEvent.inTx.hash : historyEvent.outTx ? historyEvent.outTx.hash : historyEvent.time}
                         order={historyEvent}
                     />;
                 })}

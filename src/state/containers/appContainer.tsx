@@ -8,13 +8,13 @@ import {
     Commitment, DexSDK, OrderInputs, RENEX_ADAPTER_ADDRESS, ReserveBalances,
 } from "../../lib/dexSDK";
 import { NETWORK } from "../../lib/environmentVariables";
-import { _catchBackgroundErr_ } from "../../lib/errors";
+import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
 import { estimatePrice } from "../../lib/estimatePrice";
 import { history } from "../../lib/history";
 import { getMarket, getTokenPricesInCurrencies } from "../../lib/market";
 import { btcAddressToHex } from "../../lib/shiftSDK/blockchain/btc";
 import { strip0x } from "../../lib/shiftSDK/blockchain/common";
-import { Signature } from "../../lib/shiftSDK/darknode/darknodeGroup";
+import { ShiftedInResponse, ShiftedOutResponse } from "../../lib/shiftSDK/darknode/darknodeGroup";
 import { isERC20, isEthereumBased } from "../../lib/shiftSDK/eth/eth";
 import { Chain, UTXO } from "../../lib/shiftSDK/shiftSDK";
 import { MarketPair, Token, Tokens } from "../generalTypes";
@@ -36,10 +36,21 @@ import { MarketPair, Token, Tokens } from "../generalTypes";
 // }
 // ];
 
+export interface Tx {
+    hash: string;
+    chain: Chain;
+}
+
+const BitcoinTx = (hash: string) => ({ hash, chain: Chain.Bitcoin });
+// const ZCashTx = (hash: string) => ({ hash, chain: Chain.ZCash });
+const EthereumTx = (hash: string) => ({ hash, chain: Chain.Ethereum });
+
 export interface HistoryEvent {
     time: number; // Seconds since Unix epoch
-    outTx: string;
+    inTx: Tx | null;
+    outTx: Tx | null;
     orderInputs: OrderInputs;
+    complete: boolean;
 }
 
 const initialOrder: OrderInputs = {
@@ -69,7 +80,9 @@ const initialState = {
     utxos: null as List<UTXO> | null,
     messageID: null as string | null,
     erc20Approved: false,
-    signature: null as Signature | null,
+    signature: null as ShiftedInResponse | ShiftedOutResponse | null,
+    inTx: null as Tx | null,
+    outTx: null as Tx | null,
 };
 
 export type OrderData = typeof initialState.orderInputs;
@@ -202,79 +215,94 @@ export class AppContainer extends Container<typeof initialState> {
     }
 
     public submitDeposit = async () => {
-        const { dexSDK, commitment, /* utxos, */ depositAddressToken } = this.state;
-        const utxos: UTXO[] = [{
-            chain: Chain.Bitcoin, utxo: {
-                txHash: "",
-                amount: 9000,
-                scriptPubKey: "",
-                vout: 1,
-            }
-        }];
-        if (!commitment || !depositAddressToken || !utxos || utxos.length === 0) {
-            return;
+        const { dexSDK, commitment, utxos, depositAddressToken } = this.state;
+        if (!commitment || !depositAddressToken || !utxos || utxos.size === 0) {
+            throw new Error(`Invalid values required to submit deposit`);
         }
-        const messageID = await dexSDK.submitDeposit(depositAddressToken, utxos[0], commitment);
+        const messageID = await dexSDK.submitDeposit(depositAddressToken, utxos.get(0)!, commitment);
         await this.setState({ messageID });
     }
 
-    public submitSwap = async (): Promise<HistoryEvent | null> => {
+    public submitSwap = async () => {
         const { address, dexSDK, commitment, signature } = this.state;
         if (!address || !commitment) {
-            return null;
+            throw new Error(`Invalid values required for swap`);
         }
 
         const promiEvent = dexSDK.submitSwap(address, commitment, signature);
         const transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve).catch(reject));
 
-        let submitted = false;
-        promiEvent.on("confirmation", async () => {
-            if (!submitted) {
-                submitted = true;
+        if (isEthereumBased(commitment.orderInputs.dstToken)) {
+            this.setState({ outTx: EthereumTx(transactionHash) }).catch(_catchInteractionErr_);
+            return;
+        }
 
-                const receipt = await dexSDK.web3.eth.getTransactionReceipt(transactionHash);
+        this.setState({ inTx: EthereumTx(transactionHash) }).catch(_catchInteractionErr_);
 
-                /*
-                // Example log:
-                {
-                    address: "",
-                    blockHash: "0xf45bb29e86499cb9270fac41a522e2229d135e64facdb41c5f206bda6cd11a10",
-                    blockNumber: 11354259,
-                    data: "0x00000000000000000000000000000000000000000000000000000000000003ca",
-                    id: "log_0xcb6de4ec665873cd9782fca0a23b686b9ccb68c775ef27746d83af0c7ba0be5e",
-                    logIndex: 7,
-                    removed: false,
-                    topics: [
-                        "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-                        "0x0000000000000000000000008cfbf788757e767392e707aca1ec18ce26e570fc",
-                        "0x0000000000000000000000000000000000000000000000000000000000000000",
-                    ],
-                    transactionHash: "0x9d489c404e39326da77a7a2252c2bcfc4ec66140cc32064f0d5eb141a87bf29f",
-                    transactionIndex: 0,
-                    transactionLogIndex: "0x7",
-                    type: "mined",
-                }
-                */
+        return new Promise((resolve, reject) => {
+            let submitted = false;
+            promiEvent.on("confirmation", async () => {
+                if (!submitted) {
+                    submitted = true;
 
-                // Loop through logs to find burn log
-                for (const log of receipt.logs) {
-                    if (
-                        log.address.toLowerCase() === tokenAddresses(Token.BTC, NETWORK || "").toLowerCase() &&
-                        log.topics[0] === "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef".toLowerCase() &&
-                        log.topics[1] === `0x000000000000000000000000${strip0x(RENEX_ADAPTER_ADDRESS)}`.toLowerCase() &&
-                        log.topics[2] === "0x0000000000000000000000000000000000000000000000000000000000000000".toLowerCase()
-                    ) {
-                        const amountHex = parseInt(log.data, 16).toString(16); // TODO: create "strip" function
-                        dexSDK.submitBurn(commitment, amountHex);
+                    try {
+                        const receipt = await dexSDK.web3.eth.getTransactionReceipt(transactionHash);
+
+                        /*
+                        // Example log:
+                        {
+                            address: "",
+                            blockHash: "0xf45bb29e86499cb9270fac41a522e2229d135e64facdb41c5f206bda6cd11a10",
+                            blockNumber: 11354259,
+                            data: "0x00000000000000000000000000000000000000000000000000000000000003ca",
+                            id: "log_0xcb6de4ec665873cd9782fca0a23b686b9ccb68c775ef27746d83af0c7ba0be5e",
+                            logIndex: 7,
+                            removed: false,
+                            topics: [
+                                "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+                                "0x0000000000000000000000008cfbf788757e767392e707aca1ec18ce26e570fc",
+                                "0x0000000000000000000000000000000000000000000000000000000000000000",
+                            ],
+                            transactionHash: "0x9d489c404e39326da77a7a2252c2bcfc4ec66140cc32064f0d5eb141a87bf29f",
+                            transactionIndex: 0,
+                            transactionLogIndex: "0x7",
+                            type: "mined",
+                        }
+                        */
+
+                        // Loop through logs to find burn log
+                        for (const log of receipt.logs) {
+                            if (
+                                log.address.toLowerCase() === tokenAddresses(Token.BTC, NETWORK || "").toLowerCase() &&
+                                log.topics[0] === "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef".toLowerCase() &&
+                                log.topics[1] === `0x000000000000000000000000${strip0x(RENEX_ADAPTER_ADDRESS)}`.toLowerCase() &&
+                                log.topics[2] === "0x0000000000000000000000000000000000000000000000000000000000000000".toLowerCase()
+                            ) {
+                                const amountHex = parseInt(log.data, 16).toString(16); // TODO: create "strip" function
+                                const messageID = await dexSDK.submitBurn(commitment, amountHex);
+                                this.setState({ messageID }).catch(_catchBackgroundErr_);
+                                resolve();
+                            }
+                        }
+                    } catch (error) {
+                        reject(error);
                     }
                 }
-            }
+            });
         });
+    }
 
+    public getHistoryEvent = async () => {
+        const { inTx, outTx, commitment } = this.state;
+        if (!commitment) {
+            return;
+        }
         const historyItem: HistoryEvent = {
-            outTx: transactionHash,
+            inTx,
+            outTx,
             orderInputs: commitment.orderInputs,
             time: Date.now() / 1000,
+            complete: false,
         };
 
         await this.resetTrade();
@@ -282,13 +310,20 @@ export class AppContainer extends Container<typeof initialState> {
     }
 
     public updateMessageStatus = async () => {
-        const { dexSDK, messageID } = this.state;
-        if (!messageID) {
+        const { dexSDK, messageID, commitment } = this.state;
+        if (!messageID || !commitment) {
             return;
         }
         try {
             const messageResponse = await dexSDK.shiftStatus(messageID);
             await this.setState({ signature: messageResponse });
+
+            if (isEthereumBased(commitment.orderInputs.dstToken)) {
+                this.setState({ inTx: BitcoinTx(messageResponse.txHash) }).catch(_catchInteractionErr_);
+            } else {
+                this.setState({ outTx: BitcoinTx(messageResponse.txHash) }).catch(_catchInteractionErr_);
+            }
+
         } catch (error) {
             if (`${error}`.match("Signature not available")) {
                 return;
@@ -316,6 +351,9 @@ export class AppContainer extends Container<typeof initialState> {
             utxos: null,
             messageID: null,
             signature: null,
+            erc20Approved: false,
+            inTx: null,
+            outTx: null,
         });
     }
 

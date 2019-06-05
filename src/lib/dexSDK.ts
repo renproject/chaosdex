@@ -12,7 +12,7 @@ import { RenExAdapterWeb3, Transaction } from "./contracts/ren_ex_adapter";
 import { NETWORK } from "./environmentVariables";
 import { _catchInteractionErr_ } from "./errors";
 import { getReadonlyWeb3, getWeb3 } from "./getWeb3";
-import { Signature } from "./shiftSDK/darknode/darknodeGroup";
+import { ShiftedInResponse, ShiftedOutResponse } from "./shiftSDK/darknode/darknodeGroup";
 import { isERC20, NULL_BYTES32 } from "./shiftSDK/eth/eth";
 import { Chain, ShiftSDK, UTXO } from "./shiftSDK/shiftSDK";
 
@@ -176,12 +176,13 @@ export class DexSDK {
         return this.shiftSDK.shift(tokenToChain(token), transaction, await this.hashCommitment(commitment));
     }
 
-    public submitSwap = (address: string, commitment: Commitment, signature?: Signature | null): PromiEvent<Transaction> => { // Promise<string> => new Promise<string>(async (resolve, reject) => {
+    public submitSwap = (address: string, commitment: Commitment, signatureIn?: ShiftedInResponse | ShiftedOutResponse | null): PromiEvent<Transaction> => { // Promise<string> => new Promise<string>(async (resolve, reject) => {
         let amount = commitment.srcAmount.toString();
         let txHash = NULL_BYTES32;
         let signatureBytes = NULL_BYTES32;
 
-        if (signature) {
+        if (signatureIn) {
+            const signature: ShiftedInResponse = signatureIn as ShiftedInResponse;
             amount = `0x${signature.amount}`; // _amount: BigNumber
             txHash = `0x${signature.txHash}`; // _hash: string
             if (signature.v === "") {
@@ -215,8 +216,8 @@ export class DexSDK {
         ).send({ from: address });
     }
 
-    public submitBurn = (commitment: Commitment, amountHex: string) => {
-        this.shiftSDK.burn(tokenToChain(commitment.orderInputs.dstToken), commitment.toAddress, amountHex).catch(_catchInteractionErr_);
+    public submitBurn = (commitment: Commitment, amountHex: string): Promise<string> => {
+        return this.shiftSDK.burn(tokenToChain(commitment.orderInputs.dstToken), commitment.toAddress, amountHex);
     }
 
     public fetchEthereumTokenBalance = async (token: Token, address: string): Promise<BigNumber> => {
@@ -263,7 +264,7 @@ export class DexSDK {
     }
 
     // Retrieves the current progress of the shift
-    public shiftStatus = async (commitmentHash: string): Promise<Signature> => {
+    public shiftStatus = async (commitmentHash: string): Promise<ShiftedInResponse | ShiftedOutResponse> => {
         return this.shiftSDK.shiftStatus(commitmentHash);
     }
 }

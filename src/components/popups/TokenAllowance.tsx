@@ -9,7 +9,7 @@ export const TokenAllowance: React.StatelessComponent<{
     amount: string,
     submit: () => Promise<void>,
 }> = ({ token, submit, amount }) => {
-    const [ submitting, setSubmitting] = React.useState(false);
+    const [submitting, setSubmitting] = React.useState(false);
     const onSubmit = () => {
         setSubmitting(true);
         submit().catch((err) => {

@@ -7,21 +7,30 @@ import { Popup } from "./Popup";
 
 export const DepositReceived: React.StatelessComponent<{
     messageID: string | null;
-    submitDeposit: () => Promise<void>;
+    submitDeposit?: () => Promise<void>;
 }> = ({ messageID, submitDeposit }) => {
     const [submitted, setSubmitted] = React.useState(false);
 
-    const onClick = () => {
+    const onClick = async () => {
         setSubmitted(true);
-        submitDeposit().catch(_catchInteractionErr_);
+        if (submitDeposit) {
+            try {
+                await submitDeposit();
+            } catch (error) {
+                setSubmitted(false);
+                _catchInteractionErr_(error);
+            }
+        }
     };
+
+    const waiting = (submitDeposit === undefined) || submitted;
 
     return <Popup>
         <div className="deposit-address">
             <div className="popup--body">
-                {submitted ? <Loading /> : null}
+                {waiting ? <Loading /> : null}
                 <h2>Deposit received</h2>
-                {submitted ? <div className="address-input--message">
+                {waiting ? <div className="address-input--message">
                     <>Submitting order to RenVM...</>
                     {messageID ? <details><summary>Message ID</summary>{messageID}</details> : <></>}
                 </div> : <div className="popup--buttons">

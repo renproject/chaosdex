@@ -14,8 +14,8 @@ export const SubmitToEthereum: React.StatelessComponent<{
         try {
             await submit();
         } catch (error) {
-            _catchInteractionErr_(error);
             setSubmitting(false);
+            _catchInteractionErr_(error);
         }
     };
     return <Popup>

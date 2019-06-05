@@ -3,7 +3,9 @@ import { Contract } from "web3-eth-contract";
 
 import { BitcoinUTXO, createBTCTestnetAddress, getBTCTestnetUTXOs } from "./blockchain/btc";
 import { createZECTestnetAddress, getZECTestnetUTXOs, ZcashUTXO } from "./blockchain/zec";
-import { lightnodes, ShifterGroup, Signature } from "./darknode/darknodeGroup";
+import {
+    lightnodes, ShiftedInResponse, ShiftedOutResponse, ShifterGroup,
+} from "./darknode/darknodeGroup";
 
 // export type Commitment = number | string | Buffer | Array<string | number | Buffer>;
 // const commitmentToBuffer = (commitment: Commitment): Buffer => {
@@ -90,7 +92,7 @@ export class ShiftSDK {
     }
 
     // Retrieves the current progress of the shift
-    public shiftStatus = async (messageID: string): Promise<Signature> => {
+    public shiftStatus = async (messageID: string): Promise<ShiftedInResponse | ShiftedOutResponse> => {
         return /*await*/ this.darknodeGroup.checkForResponse(messageID);
     }
 }

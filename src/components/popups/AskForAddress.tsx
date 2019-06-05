@@ -28,7 +28,7 @@ export const AskForAddress: React.StatelessComponent<{
         <div className="address-input">
             <div className="popup--body">
                 <TokenIcon className="token-icon" token={token} />
-                <h2>{t("popup.receive")} {token}</h2>
+                <h2>{token} {t("popup.address")}</h2>
                 <div role="button" className="popup--header--x" onClick={cancel} />
                 <div className="address-input--message">
                     {message}

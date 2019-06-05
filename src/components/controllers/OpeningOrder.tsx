@@ -3,7 +3,7 @@ import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
-import { isERC20 } from "../../lib/shiftSDK/eth/eth";
+import { isERC20, isEthereumBased } from "../../lib/shiftSDK/eth/eth";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer, OptionsContainer } from "../../state/containers";
 import { HistoryEvent } from "../../state/containers/appContainer";
@@ -25,6 +25,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     private readonly optionsContainer: OptionsContainer;
     private _depositTimer: NodeJS.Timeout | undefined;
     private _responseTimer: NodeJS.Timeout | undefined;
+    private _returned = false;
     private _mounted: boolean;
 
     constructor(props: Props) {
@@ -34,6 +35,10 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
         this._mounted = true;
         this.updateDeposits().catch(_catchBackgroundErr_);
         this.updateResponse().catch(_catchBackgroundErr_);
+    }
+
+    public componentDidMount = () => {
+        this._returned = false;
     }
 
     public componentWillUnmount = () => {
@@ -48,7 +53,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
         const {
             orderInputs: orderInput, toAddress, refundAddress, depositAddress,
             utxos, messageID, signature: messageResponse, confirmedOrderInputs,
-            erc20Approved, confirmedTrade,
+            erc20Approved, confirmedTrade, inTx, outTx,
         } = this.appContainer.state;
 
         // The confirmed order inputs should always be available
@@ -90,32 +95,43 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
             />;
         }
 
-        // If `srcToken` is Ethereum-based they can submit to the contract
-        // directly, otherwise they must deposit `srcToken` to a generated
-        // address.
-        if (isERC20(orderInput.srcToken)) {
-            if (!erc20Approved) {
-                return <TokenAllowance token={orderInput.srcToken} amount={confirmedOrderInputs.srcAmount} submit={this.appContainer.setAllowance} />;
-            }
-        } else {
-            // Show the deposit address and wait for a deposit
-            if ((!utxos || utxos.size === 0)) {
-                return <ShowDepositAddress
-                    token={orderInput.srcToken}
-                    depositAddress={depositAddress}
-                    amount={confirmedOrderInputs.srcAmount}
-                    cancel={this.cancel}
-                />;
-            }
+        if (!inTx) {
+            // If `srcToken` is Ethereum-based they can submit to the contract
+            // directly, otherwise they must deposit `srcToken` to a generated
+            // address.
+            if (isEthereumBased(orderInput.srcToken)) {
+                if (isERC20(orderInput.srcToken) && !erc20Approved) {
+                    return <TokenAllowance token={orderInput.srcToken} amount={confirmedOrderInputs.srcAmount} submit={this.appContainer.setAllowance} />;
+                }
 
-            // Wait for the darknodes to respond
-            if (!messageResponse) {
+                // Submit the trade to Ethereum
+                return <SubmitToEthereum token={orderInput.dstToken} submit={this.submitSwap} />;
+            } else {
+                // Show the deposit address and wait for a deposit
+                if ((!utxos || utxos.size === 0)) {
+                    return <ShowDepositAddress
+                        token={orderInput.srcToken}
+                        depositAddress={depositAddress}
+                        amount={confirmedOrderInputs.srcAmount}
+                        cancel={this.cancel}
+                    />;
+                }
+
                 return <DepositReceived submitDeposit={this.submitDeposit} messageID={messageID} />;
             }
         }
 
-        // Submit the trade to Ethereum
-        return <SubmitToEthereum token={orderInput.dstToken} submit={this.submitSwap} />;
+        if (!outTx) {
+            if (isEthereumBased(orderInput.srcToken)) {
+                return <DepositReceived messageID={messageID} />;
+            } else {
+                // Submit the trade to Ethereum
+                return <SubmitToEthereum token={orderInput.dstToken} submit={this.submitSwap} />;
+            }
+        }
+
+        this.onDone().catch(_catchInteractionErr_);
+        return <></>;
     }
 
     private readonly updateDeposits = async () => {
@@ -153,7 +169,15 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     }
 
     private readonly submitSwap = async () => {
-        const historyItem = await this.appContainer.submitSwap();
+        await this.appContainer.submitSwap();
+    }
+
+    private readonly onDone = async () => {
+        if (this._returned) {
+            return;
+        }
+        this._returned = true;
+        const historyItem = await this.appContainer.getHistoryEvent();
         if (!historyItem || !this.props.swapSubmitted) {
             return;
         }

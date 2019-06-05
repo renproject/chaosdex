@@ -54,12 +54,17 @@ export const lightnodes = _testnetLightnode;
 //     return { id: split[split.length - 1] };
 // };
 
-export interface Signature {
+export interface ShiftedInResponse {
     amount: string;
     txHash: string;
     r: string;
     s: string;
     v: string;
+}
+
+export interface ShiftedOutResponse {
+    amount: string;
+    txHash: string;
 }
 
 export type ShifterResponse = JSONRPCResponse<{
@@ -232,7 +237,7 @@ export class ShifterGroup extends DarknodeGroup {
         })).toList();
     }
 
-    public checkForResponse = async (messageID: string): Promise<Signature> => {
+    public checkForResponse = async (messageID: string): Promise<ShiftedInResponse | ShiftedOutResponse> => {
         for (const node of this.darknodes.valueSeq().toArray()) {
             if (node) {
                 try {
@@ -242,13 +247,11 @@ export class ShifterGroup extends DarknodeGroup {
                     // Success:
                     // (TODO)
                     if (response.result && response.result.values) {
-                        return {
-                            amount: response.result.values[0].value,
-                            txHash: response.result.values[1].value,
-                            r: response.result.values[2].value,
-                            s: response.result.values[3].value,
-                            v: response.result.values[4].value,
-                        };
+                        let ret: any = {};
+                        for (const value of response.result.values) {
+                            ret = { ...ret, [value.name]: value.value };
+                        }
+                        return ret;
                     } else if (response.error) {
                         throw response.error;
                     }

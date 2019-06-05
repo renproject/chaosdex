@@ -21,6 +21,7 @@
   },
   "popup": {
     "receive": "Erhalten",
+    "address": "Adresse",
     "confirm": "Bestätigen",
     "confirm_trade": "Bestätigen Sie den Handel"
   },
