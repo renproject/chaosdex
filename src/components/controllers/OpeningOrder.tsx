@@ -168,7 +168,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     }
 
     private readonly submitDeposit = async () => {
-        this.appContainer.submitDeposit();
+        await this.appContainer.submitDeposit();
     }
 
     private readonly submitSwap = async () => {
