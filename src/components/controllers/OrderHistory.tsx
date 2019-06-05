@@ -7,6 +7,8 @@ import { useTranslation } from "react-i18next";
 import { naturalTime } from "../../lib/conversion";
 import { ETHERSCAN } from "../../lib/environmentVariables";
 import { HistoryEvent } from "../../state/containers/appContainer";
+import { ReactComponent as Next } from "../../styles/images/next.svg";
+import { ReactComponent as Previous } from "../../styles/images/previous.svg";
 
 const OrderHistoryEntry = ({ order, t }: { order: HistoryEvent, t: i18next.TFunction }) => {
     const etherscanUrl = order.transactionHash ? `${ETHERSCAN}/tx/${order.transactionHash}` : undefined;
@@ -26,6 +28,10 @@ const OrderHistoryEntry = ({ order, t }: { order: HistoryEvent, t: i18next.TFunc
  */
 export const OrderHistory = (props: Props) => {
     const { t } = useTranslation();
+    const [start, setStart] = React.useState(0);
+
+    const nextPage = () => { setStart(start + 5); };
+    const previousPage = () => { setStart(Math.max(start - 5, 0)); };
 
     const { orders } = props;
     if (orders.length === 0) {
@@ -37,7 +43,7 @@ export const OrderHistory = (props: Props) => {
                 <span>{t("history.history")}</span>
             </div>
             <div className="history--list">
-                {orders.map(historyEvent => {
+                {orders.slice(start, start + 5).map(historyEvent => {
                     return <OrderHistoryEntry
                         t={t}
                         key={historyEvent.transactionHash}
@@ -45,6 +51,11 @@ export const OrderHistory = (props: Props) => {
                     />;
                 })}
             </div>
+            {orders.length > 0 ? <div className="history--pages">
+                <button disabled={start === 0} onClick={previousPage}><Previous /></button>
+                <div className="history--page-count">Page {start / 5 + 1} of {Math.ceil(orders.length / 5)}</div>
+                <button onClick={nextPage}><Next /></button>
+            </div> : null}
         </div>
     </>;
 };

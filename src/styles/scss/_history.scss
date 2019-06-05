@@ -4,10 +4,10 @@
     margin-bottom: 20px;
 
     span {
-       color: #006FE8; 
-       font-size: 12;
-       font-weight: 500;
-       border-bottom: 2px solid #006FE8;
+        color: #006FE8;
+        font-size: 12;
+        font-weight: 500;
+        border-bottom: 2px solid #006FE8;
     }
 }
 
@@ -19,7 +19,7 @@
     padding: 10px;
     border-radius: 22px;
     border: 1px solid #DBE0E8;
-    box-shadow: 0 1px 2px 0 rgba(0,27,58,0.05);
+    box-shadow: 0 1px 2px 0 rgba(0, 27, 58, 0.05);
 
     font-size: 12;
     font-weight: 500;
@@ -44,4 +44,36 @@
     .swap--time {
         color: #979797;
     }
+}
+
+.history--pages {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.history--pages button {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 100px;
+    min-width: unset;
+    width: 35px;
+
+    &:disabled {
+        border: 1px solid #f0f0f0;
+
+        svg {
+            fill: #ddd;
+        }
+    }
+
+    svg {
+        width: 10px;
+    }
+}
+
+.history--page-count {
+    text-transform: uppercase;
+    color: #555;
+    font-size: 10px;
 }
