@@ -114,10 +114,12 @@
     text-decoration: none;
 }
 
-.header--account {
-    display: flex;
-    flex-direction: row;
-    padding: 15px 20px;
+.header--menu {
+    .header--account {
+        display: flex;
+        flex-direction: row;
+        padding: 15px 20px;
+    }
 }
 
 .header--account--right {

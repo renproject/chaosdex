@@ -176,6 +176,7 @@ export class ShifterGroup extends DarknodeGroup {
             payload: {
                 method: `ShiftIn${chain.toUpperCase()}`,
                 args: [
+                    // Adapter address
                     { name: "uid", type: "public", value: strip0x(address) },
                     { name: "commitment", type: "public", value: strip0x(commitmentHash) },
                 ],

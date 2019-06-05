@@ -1,3 +1,6 @@
+// Import css first so that styles are consistent across dev and build
+import "./styles/index.scss";
+
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
@@ -13,7 +16,6 @@ import { _catch_ } from "./components/views/ErrorBoundary";
 import { _catchInteractionErr_ } from "./lib/errors";
 import { history } from "./lib/history";
 import { onLoad } from "./lib/onLoad";
-import "./styles/index.scss";
 
 // Initiate the i18n instance for multilingual support
 i18n.use(Backend)
