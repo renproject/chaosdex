@@ -1,4 +1,4 @@
-import { kovan as kovanAddresses } from "@renex/contracts";
+import { testnet as kovanAddresses } from "@renex/contracts";
 import BigNumber from "bignumber.js";
 import Web3 from "web3";
 import { PromiEvent } from "web3-core";
