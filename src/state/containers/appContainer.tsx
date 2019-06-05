@@ -8,13 +8,14 @@ import {
     Commitment, DexSDK, OrderInputs, RENEX_ADAPTER_ADDRESS, ReserveBalances,
 } from "../../lib/dexSDK";
 import { NETWORK } from "../../lib/environmentVariables";
+import { _catchBackgroundErr_ } from "../../lib/errors";
 import { estimatePrice } from "../../lib/estimatePrice";
 import { history } from "../../lib/history";
 import { getMarket, getTokenPricesInCurrencies } from "../../lib/market";
 import { btcAddressToHex } from "../../lib/shiftSDK/blockchain/btc";
 import { strip0x } from "../../lib/shiftSDK/blockchain/common";
 import { Signature } from "../../lib/shiftSDK/darknode/darknodeGroup";
-import { isEthereumBased } from "../../lib/shiftSDK/eth/eth";
+import { isERC20, isEthereumBased } from "../../lib/shiftSDK/eth/eth";
 import { Chain, UTXO } from "../../lib/shiftSDK/shiftSDK";
 import { MarketPair, Token, Tokens } from "../generalTypes";
 
@@ -58,6 +59,7 @@ const initialState = {
     orderInputs: initialOrder,
     confirmedOrderInputs: null as null | OrderInputs,
 
+    confirmedTrade: false,
     submitting: false,
     toAddress: null as string | null,
     refundAddress: null as string | null,
@@ -66,6 +68,7 @@ const initialState = {
     depositAddressToken: null as Token | null,
     utxos: null as List<UTXO> | null,
     messageID: null as string | null,
+    erc20Approved: false,
     signature: null as Signature | null,
 };
 
@@ -135,6 +138,15 @@ export class AppContainer extends Container<typeof initialState> {
         await this.setState({ orderInputs: { ...this.state.orderInputs, srcToken, dstToken } });
         await this.updateHistory();
         await this.updateReceiveValue();
+    }
+
+    // Opening order ///////////////////////////////////////////////////////////
+
+    public onConfirmedTrade = () => {
+        this.setState({ confirmedTrade: true }).catch(_catchBackgroundErr_);
+        if (this.state.confirmedOrderInputs && isERC20(this.state.confirmedOrderInputs.srcToken)) {
+            this.getAllowance().catch(_catchBackgroundErr_);
+        }
     }
 
     public updateToAddress = async (toAddress: string) => {
@@ -294,6 +306,7 @@ export class AppContainer extends Container<typeof initialState> {
 
     public resetTrade = async () => {
         await this.setState({
+            confirmedTrade: false,
             submitting: false,
             toAddress: null,
             refundAddress: null,
@@ -342,15 +355,28 @@ export class AppContainer extends Container<typeof initialState> {
         await this.setState({ accountBalances });
     }
 
-    public setAllowance = async (): Promise<boolean> => {
+    public getAllowance = async () => {
         const { orderInputs: { srcToken, srcAmount }, dexSDK, address } = this.state;
         const srcTokenDetails = Tokens.get(srcToken);
         if (!address || !srcTokenDetails) {
-            return false;
+            this.setState({ erc20Approved: false }).catch(_catchBackgroundErr_);
+            return;
+        }
+        const srcAmountBN = new BigNumber(srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals));
+        const allowance = await dexSDK.getTokenAllowance(srcToken, address);
+        this.setState({ erc20Approved: allowance.gte(srcAmountBN) }).catch(_catchBackgroundErr_);
+    }
+
+    public setAllowance = async () => {
+        const { orderInputs: { srcToken, srcAmount }, dexSDK, address } = this.state;
+        const srcTokenDetails = Tokens.get(srcToken);
+        if (!address || !srcTokenDetails) {
+            this.setState({ erc20Approved: false }).catch(_catchBackgroundErr_);
+            return;
         }
         const srcAmountBN = new BigNumber(srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals));
         const allowance = await dexSDK.setTokenAllowance(srcAmountBN, srcToken, address);
-        return allowance.gte(srcAmountBN);
+        this.setState({ erc20Approved: allowance.gte(srcAmountBN) }).catch(_catchBackgroundErr_);
     }
 
     private readonly updateReceiveValue = async (): Promise<void> => {

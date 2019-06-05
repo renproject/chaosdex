@@ -15,8 +15,6 @@ import { SubmitToEthereum } from "../popups/SubmitToEthereum";
 import { TokenAllowance } from "../popups/TokenAllowance";
 
 const defaultState = { // Entries must be immutable
-    confirmedTrade: false,
-    sufficientAllowance: false,
 };
 
 /**
@@ -47,67 +45,75 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
      * @dev Should have minimal computation, loops and anonymous functions.
      */
     public render(): React.ReactNode {
-        const { sufficientAllowance, confirmedTrade } = this.state;
         const {
-            orderInputs: orderInput, toAddress, refundAddress, depositAddress, utxos,
-            messageID, signature: messageResponse, confirmedOrderInputs
+            orderInputs: orderInput, toAddress, refundAddress, depositAddress,
+            utxos, messageID, signature: messageResponse, confirmedOrderInputs,
+            erc20Approved, confirmedTrade,
         } = this.appContainer.state;
 
+        // The confirmed order inputs should always be available
         if (!confirmedOrderInputs) {
             return <></>;
         }
 
-        let submitPopup = <></>;
+        // Ask the user to confirm the details before continuing
         if (!confirmedTrade) {
-            submitPopup = <ConfirmTradeDetails
+            return <ConfirmTradeDetails
                 orderInputs={confirmedOrderInputs}
-                done={this.onConfirmedTrade}
+                done={this.appContainer.onConfirmedTrade}
                 cancel={this.cancel}
                 quoteCurrency={this.optionsContainer.state.preferredCurrency}
                 tokenPrices={this.appContainer.state.tokenPrices}
             />;
-        } else if (toAddress === null) {
-            submitPopup = <AskForAddress
+        }
+
+        // Ask the user to provide an address for receiving `dstToken`
+        if (toAddress === null) {
+            return <AskForAddress
                 key={confirmedOrderInputs.dstToken} // Since AskForAddress is used twice
                 token={confirmedOrderInputs.dstToken}
                 message={`Enter the ${confirmedOrderInputs.dstToken} public address you want to receive your tokens to.`}
                 onAddress={this.ontoAddress}
                 cancel={this.cancel}
             />;
-        } else if (refundAddress === null) {
-            submitPopup = <AskForAddress
+        }
+
+        // Ask the user to provide an address for refunding `srcToken` to in
+        // case the trade doesn't go through
+        if (refundAddress === null) {
+            return <AskForAddress
                 key={confirmedOrderInputs.srcToken} // Since AskForAddress is used twice
                 token={confirmedOrderInputs.srcToken}
                 message={`Enter your ${confirmedOrderInputs.srcToken} refund address in case the trade doesn't go through.`}
                 onAddress={this.onRefundAddress}
                 cancel={this.cancel}
             />;
-        } else if (isERC20(orderInput.srcToken)) {
-            if (!sufficientAllowance) {
-                submitPopup = <TokenAllowance token={orderInput.srcToken} amount={confirmedOrderInputs.srcAmount} submit={this.setAllowance} />;
-            } else {
-                submitPopup = <SubmitToEthereum token={orderInput.dstToken} submit={this.submitSwap} />;
-            }
+        }
+
+        // If `srcToken` is Ethereum-based they can submit to the contract
+        // directly, otherwise they must deposit `srcToken` to a generated
+        // address.
+        if (isERC20(orderInput.srcToken) && !erc20Approved) {
+            return <TokenAllowance token={orderInput.srcToken} amount={confirmedOrderInputs.srcAmount} submit={this.appContainer.setAllowance} />;
         } else {
+            // Show the deposit address and wait for a deposit
             if ((!utxos || utxos.size === 0)) {
-                submitPopup = <ShowDepositAddress
+                return <ShowDepositAddress
                     token={orderInput.srcToken}
                     depositAddress={depositAddress}
                     amount={confirmedOrderInputs.srcAmount}
                     cancel={this.cancel}
                 />;
-            } else if (!messageResponse) {
-                submitPopup = <DepositReceived submitDeposit={this.submitDeposit} messageID={messageID} />;
-            } else {
-                submitPopup = <SubmitToEthereum token={orderInput.dstToken} submit={this.submitSwap} />;
+            }
+
+            // Wait for the darknodes to respond
+            if (!messageResponse) {
+                return <DepositReceived submitDeposit={this.submitDeposit} messageID={messageID} />;
             }
         }
-        return submitPopup;
-    }
 
-    private readonly setAllowance = async () => {
-        const sufficientAllowance = await this.appContainer.setAllowance();
-        this.setState({ sufficientAllowance });
+        // Submit the trade to Ethereum
+        return <SubmitToEthereum token={orderInput.dstToken} submit={this.submitSwap} />;
     }
 
     private readonly updateDeposits = async () => {
@@ -152,10 +158,6 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
         this.props.swapSubmitted(historyItem);
     }
 
-    private readonly onConfirmedTrade = () => {
-        this.setState({ confirmedTrade: true });
-    }
-
     private readonly ontoAddress = (toAddress: string) => {
         this.appContainer.updateToAddress(toAddress).catch(_catchInteractionErr_);
     }
@@ -166,7 +168,6 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     }
 
     private readonly cancel = () => {
-        this.setState({ confirmedTrade: false, });
         this.appContainer.resetTrade().catch(_catchInteractionErr_);
         this.props.cancel();
     }

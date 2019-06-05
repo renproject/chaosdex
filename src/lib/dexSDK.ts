@@ -129,6 +129,7 @@ export class DexSDK {
                 const reserve = await exchange.methods.reserve(leftAddress, rightAddress).call();
                 const leftBalance = await balance(left, reserve);
                 const rightBalance = await balance(right, reserve);
+                // console.log(`${_marketPair}: ${leftBalance.toString()} ${left} and ${rightBalance.toString()} ${right}`);
                 return new Map().set(left, leftBalance).set(right, rightBalance);
             })
         );
@@ -220,15 +221,24 @@ export class DexSDK {
         return new BigNumber(balance);
     }
 
-    public setTokenAllowance = async (amount: BigNumber, token: Token, address: string): Promise<BigNumber> => {
+    public getTokenAllowance = async (token: Token, address: string): Promise<BigNumber> => {
         const tokenAddress = tokenAddresses(token, NETWORK || "");
         const tokenInstance = getERC20(this.web3, tokenAddress);
 
         const allowance = await tokenInstance.methods.allowance(address, getAdapter(this.web3).address).call();
-        const allowanceBN = new BigNumber(allowance.toString());
+
+        return new BigNumber(allowance.toString());
+    }
+
+    public setTokenAllowance = async (amount: BigNumber, token: Token, address: string): Promise<BigNumber> => {
+        const allowanceBN = await this.getTokenAllowance(token, address);
+
         if (allowanceBN.gte(amount)) {
             return allowanceBN;
         }
+
+        const tokenAddress = tokenAddresses(token, NETWORK || "");
+        const tokenInstance = getERC20(this.web3, tokenAddress);
 
         // We don't have enough allowance so approve more
         const promiEvent = tokenInstance.methods.approve(
