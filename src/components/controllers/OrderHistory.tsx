@@ -11,7 +11,7 @@ import { ReactComponent as Next } from "../../styles/images/next.svg";
 import { ReactComponent as Previous } from "../../styles/images/previous.svg";
 
 const OrderHistoryEntry = ({ order, t }: { order: HistoryEvent, t: i18next.TFunction }) => {
-    const etherscanUrl = order.transactionHash ? `${ETHERSCAN}/tx/${order.transactionHash}` : undefined;
+    const etherscanUrl = order.outTx ? `${ETHERSCAN}/tx/${order.outTx}` : undefined;
     return (
         <a className="swap--history--entry" target="_blank" rel="noopener noreferrer" href={etherscanUrl} >
             <div className="token--info">
@@ -46,15 +46,15 @@ export const OrderHistory = (props: Props) => {
                 {orders.slice(start, start + 5).map(historyEvent => {
                     return <OrderHistoryEntry
                         t={t}
-                        key={historyEvent.transactionHash}
+                        key={historyEvent.outTx}
                         order={historyEvent}
                     />;
                 })}
             </div>
-            {orders.length > 0 ? <div className="history--pages">
+            {orders.length > 5 ? <div className="history--pages">
                 <button disabled={start === 0} onClick={previousPage}><Previous /></button>
                 <div className="history--page-count">Page {start / 5 + 1} of {Math.ceil(orders.length / 5)}</div>
-                <button onClick={nextPage}><Next /></button>
+                <button disabled={start + 5 > orders.length} onClick={nextPage}><Next /></button>
             </div> : null}
         </div>
     </>;

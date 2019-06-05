@@ -4,7 +4,8 @@ import Web3 from "web3";
 import { Contract } from "web3-eth-contract/types";
 import { AbiItem } from "web3-utils";
 
-import { Token } from "../../../state/generalTypes";
+import { Token, Tokens } from "../../../state/generalTypes";
+import { Chain } from "../shiftSDK";
 import BridgedTokenABI from "./BridgedTokenABI.json";
 import DarknodeRegistryABI from "./DarknodeRegistryABI.json";
 
@@ -32,13 +33,15 @@ export const bridgedToken = (web3: Web3, address: string): Contract => {
     return new web3.eth.Contract(BridgedTokenABI as AbiItem[], address);
 };
 
-export const isERC20 = (token: Token) => {
-    return [Token.DAI, Token.REN].includes(token);
+export const isEthereumBased = (token: Token) => {
+    const details = Tokens.get(token);
+    if (!details) {
+        return false;
+    }
+    return details.chain === Chain.Ethereum;
 };
 
-export const isEthereumBased = (token: Token) => {
-    return token === Token.ETH || isERC20(token);
-};
+export const isERC20 = (token: Token) => isEthereumBased(token) && token !== Token.ETH;
 
 /*
  * Retrieve all the darknodes registered in the current epoch.

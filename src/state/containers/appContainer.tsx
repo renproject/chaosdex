@@ -38,7 +38,7 @@ import { MarketPair, Token, Tokens } from "../generalTypes";
 
 export interface HistoryEvent {
     time: number; // Seconds since Unix epoch
-    transactionHash: string;
+    outTx: string;
     orderInputs: OrderInputs;
 }
 
@@ -272,7 +272,7 @@ export class AppContainer extends Container<typeof initialState> {
         });
 
         const historyItem: HistoryEvent = {
-            transactionHash,
+            outTx: transactionHash,
             orderInputs: commitment.orderInputs,
             time: Date.now() / 1000,
         };

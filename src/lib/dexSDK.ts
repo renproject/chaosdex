@@ -136,7 +136,7 @@ export class DexSDK {
     }
 
     public hashCommitment = async (commitment: Commitment): Promise<string> => {
-        return /*await*/ getAdapter(this.web3).methods.commitment(
+        const hash = await getAdapter(this.web3).methods.commitment(
             commitment.srcToken,
             commitment.dstToken,
             commitment.minDestinationAmount.toNumber(),
@@ -144,6 +144,18 @@ export class DexSDK {
             commitment.refundBlockNumber,
             commitment.refundAddress,
         ).call();
+        console.groupCollapsed(`Commitment`);
+        console.log(JSON.stringify({
+            srcToken: commitment.srcToken,
+            dstToken: commitment.dstToken,
+            minDestinationAmount: commitment.minDestinationAmount.toNumber(),
+            toAddress: commitment.toAddress,
+            refundBlockNumber: commitment.refundBlockNumber,
+            refundAddress: commitment.refundAddress,
+        }, null, "    "));
+        console.log(`Hash: ${hash}`);
+        console.groupEnd();
+        return hash;
     }
 
     // Takes a commitment as bytes or an array of primitive types and returns
