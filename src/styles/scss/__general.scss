@@ -232,8 +232,7 @@ a {
     margin-bottom: 8px;
 }
 
-span,
-[role="button"],
+span[role="button"],
 button {
     user-select: none;
 }
