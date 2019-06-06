@@ -2,8 +2,8 @@ import * as React from "react";
 
 import { TokenIcon } from "@renex/react-components";
 import i18next from "i18next";
-import { useTranslation } from "react-i18next";
 import { OrderedMap } from "immutable";
+import { useTranslation } from "react-i18next";
 
 import { naturalTime } from "../../lib/conversion";
 import { ETHERSCAN } from "../../lib/environmentVariables";
@@ -24,12 +24,9 @@ const txUrl = (tx: Tx | null): string => {
         case Chain.ZCash:
             return `https://chain.so/tx/ZEC/${tx.hash}`;
     }
-}
+};
 
 const OrderHistoryEntry = ({ order, t, inTxPending, outTxPending }: { order: HistoryEvent, t: i18next.TFunction, inTxPending: boolean, outTxPending: boolean }) => {
-    if ((order as any).transactionHash) {
-        order.outTx = (order as any).transactionHash;
-    }
     return <div className="swap--history--entry">
         <div className="token--info">
             <TokenIcon className="token-icon" token={order.orderInputs.dstToken} />
