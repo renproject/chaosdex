@@ -26,7 +26,6 @@
     color: $mid-grey;
     background-color: white;
     border-radius: 12px;
-    overflow: hidden;
 
     box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
 
@@ -42,6 +41,8 @@
     background: $blue-bright;
     padding: 10px;
     width: calc(100% - 20px);
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
 }
 
 .popup--body {
