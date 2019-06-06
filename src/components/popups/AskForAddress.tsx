@@ -4,11 +4,10 @@ import { TokenIcon } from "@renex/react-components";
 import { useTranslation } from "react-i18next";
 
 import { _catchInteractionErr_ } from "../../lib/errors";
-import { Token, Tokens } from "../../state/generalTypes";
-import { Popup } from "./Popup";
-
-import { ReactComponent as MetaMask } from "../../styles/images/metamask.svg";
 import { Chain } from "../../lib/shiftSDK/shiftSDK";
+import { Token, Tokens } from "../../state/generalTypes";
+import { ReactComponent as MetaMask } from "../../styles/images/metamask.svg";
+import { Popup } from "./Popup";
 
 export const AskForAddress: React.StatelessComponent<{
     token: Token,
@@ -20,10 +19,12 @@ export const AskForAddress: React.StatelessComponent<{
     const { t } = useTranslation();
     const [address, updateAddress] = React.useState("");
     const [error, updateError] = React.useState(null as string | null);
+    const inputRef = React.useRef<HTMLInputElement | null>() as React.MutableRefObject<HTMLInputElement | null>;
 
     const tokenDetails = Tokens.get(token);
 
-    const submit = () => {
+    const submit = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
         if (!error && tokenDetails && !tokenDetails.validator(address)) {
             updateError(`Invalid ${tokenDetails.chain.toUpperCase()} address`);
             return;
@@ -33,7 +34,11 @@ export const AskForAddress: React.StatelessComponent<{
 
     const useDefaultAddress = () => {
         updateAddress(defaultAddress);
-    }
+        const current = inputRef.current;
+        if (current) {
+            current.focus();
+        }
+    };
 
     const onChange = (event: React.FormEvent<HTMLInputElement>): void => {
         updateError(null);
@@ -49,27 +54,29 @@ export const AskForAddress: React.StatelessComponent<{
                 <div className="address-input--message">
                     {message}
                 </div>
-                <div className="form-group">
-                    <input
-                        type="text"
-                        name="address"
-                        className="form-control"
-                        onChange={onChange}
-                        value={address}
-                        autoFocus={true}
-                        required={true}
-                        aria-required={true}
-                    />
-                    <label className="form-control-placeholder">{token} address</label>
-                    {tokenDetails && tokenDetails.chain === Chain.Ethereum ? 
-                        <button type="button" className="metamask-logo" onClick={useDefaultAddress}><MetaMask /></button> :
-                        null
-                    }
-                </div>
-                {error ? <span className="red"><br />{error}</span> : null}
-                <div className="popup--buttons">
-                    <button className="button open--confirm" disabled={address === ""} onClick={submit}><span>{error ? "Use anyway" : t("popup.confirm")}</span></button>
-                </div>
+                <form onSubmit={submit}>
+                    <div className="form-group">
+                        <input
+                            type="text"
+                            className="form-control"
+                            onChange={onChange}
+                            value={address}
+                            autoFocus={true}
+                            required={true}
+                            aria-required={true}
+                            ref={inputRef}
+                        />
+                        <label className="form-control-placeholder">{token} address</label>
+                        {tokenDetails && tokenDetails.chain === Chain.Ethereum ?
+                            <button type="button" className="metamask-logo" onClick={useDefaultAddress}><MetaMask /></button> :
+                            null
+                        }
+                    </div>
+                    {error ? <span className="red"><br />{error}</span> : null}
+                    <div className="popup--buttons">
+                        <button className="button open--confirm" disabled={address === ""} type="submit"><span>{error ? "Use anyway" : t("popup.confirm")}</span></button>
+                    </div>
+                </form>
             </div>
         </div>
     </Popup>;
