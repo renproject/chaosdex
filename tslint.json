@@ -76,6 +76,7 @@
         "react-this-binding-issue": true,
         "no-string-based-set-timeout": true,
         "no-unnecessary-type-assertion": true,
+        "no-unnecessary-local-variable": false,
         "only-arrow-functions": true,
 
         // Configured
