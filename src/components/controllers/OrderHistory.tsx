@@ -37,7 +37,7 @@ const OrderHistoryEntry = ({ order, t, inTxPending, outTxPending }: { order: His
             <span className="token--amount">
                 <TokenBalance
                     token={order.orderInputs.dstToken}
-                    amount={order.orderInputs.dstAmount}
+                    amount={order.receivedAmount || order.orderInputs.dstAmount}
                 />{" "}
                 {order.orderInputs.dstToken}
             </span>

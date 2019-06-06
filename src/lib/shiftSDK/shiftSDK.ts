@@ -75,7 +75,7 @@ export class ShiftSDK {
         const responses = await this.darknodeGroup.submitDeposits(chain, this.adapter.address, commitmentHash);
         const first = responses.first(undefined);
         if (first === undefined) {
-            throw new Error(`No response from lightnodes`);
+            throw new Error(`Error submitting to darknodes`);
         }
         return first.messageID;
     }
@@ -86,7 +86,7 @@ export class ShiftSDK {
         const responses = await this.darknodeGroup.submitWithdrawal(chain, to, valueHex);
         const first = responses.first(undefined);
         if (first === undefined) {
-            throw new Error(`No response from lightnodes`);
+            throw new Error(`Error submitting to darknodes`);
         }
         return first.messageID;
     }

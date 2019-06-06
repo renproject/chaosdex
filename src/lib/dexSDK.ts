@@ -216,8 +216,8 @@ export class DexSDK {
         ).send({ from: address, gas: 350000 });
     }
 
-    public submitBurn = async (commitment: Commitment, amountHex: string): Promise<string> => {
-        return this.shiftSDK.burn(tokenToChain(commitment.orderInputs.dstToken), commitment.toAddress, amountHex);
+    public submitBurn = async (commitment: Commitment, receivedAmountHex: string): Promise<string> => {
+        return this.shiftSDK.burn(tokenToChain(commitment.orderInputs.dstToken), commitment.toAddress, receivedAmountHex);
     }
 
     public fetchEthereumTokenBalance = async (token: Token, address: string): Promise<BigNumber> => {
