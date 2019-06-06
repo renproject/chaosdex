@@ -201,17 +201,6 @@ export class ShifterGroup extends DarknodeGroup {
     }
 
     public submitWithdrawal = async (chain: Chain, to: string, valueHex: string): Promise<List<{ messageID: string, lightnode: string }>> => {
-
-        console.log(`Submitting withdrawal!`);
-        // TODO: If one fails, still return the other.
-
-        // const method = chain === Chain.Bitcoin ? "MintZBTC"
-        //     : chain === Chain.ZCash ? "MintZZEC" : undefined;
-
-        // if (!method) {
-        //     throw new Error(`Minting ${chain} not supported`);
-        // }
-
         const results = await this.sendMessage({
             nonce: window.crypto.getRandomValues(new Uint32Array(1))[0],
             to: "Shifter",
