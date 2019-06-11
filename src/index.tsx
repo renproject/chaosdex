@@ -9,10 +9,11 @@ import { Provider } from "unstated";
 
 import { App } from "./components/controllers/App";
 import { history } from "./lib/history";
-import { onLoad } from "./lib/onLoad";
-import "./translate"; // tslint:disable-line: no-import-side-effect
+import { initializeSentry } from "./sentry";
+import { initializeTranslation } from "./translate";
 
-onLoad("DEX Demo");
+initializeSentry();
+initializeTranslation();
 
 ReactDOM.render(
     <Provider>

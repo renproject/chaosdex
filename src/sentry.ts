@@ -1,9 +1,9 @@
 import * as Sentry from "@sentry/browser";
 
-import { environment, NETWORK, SENTRY_DSN, SOURCE_VERSION } from "./environmentVariables";
-import { pageLoadedAt } from "./errors";
+import { environment, SENTRY_DSN, SOURCE_VERSION } from "./lib/environmentVariables";
+import { pageLoadedAt } from "./lib/errors";
 
-export const onLoad = (title: string) => {
+export const initializeSentry = () => {
 
     // Initialize Sentry error logging
     Sentry.init({
@@ -37,14 +37,4 @@ export const onLoad = (title: string) => {
 
         scope.setExtra("pageLoadedAt", pageLoadedAt());
     });
-
-    // Update document title to show network
-    if (NETWORK !== "mainnet") {
-        document.title = `${title} (${NETWORK})`;
-    } else {
-        document.title = title; // Also set in index.html
-    }
-
-    // tslint:disable-next-line: no-console
-    console.debug(`${title} version hash: ${SOURCE_VERSION}`);
 };
