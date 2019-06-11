@@ -5,9 +5,8 @@ import { PromiEvent } from "web3-core";
 import { AbiItem } from "web3-utils";
 
 import { ShiftedInResponse, ShiftedOutResponse } from "../shiftSDK/darknode/darknodeGroup";
-import { isERC20, NULL_BYTES32 } from "../shiftSDK/eth/eth";
 import { Chain, ShiftSDK, UTXO } from "../shiftSDK/shiftSDK";
-import { MarketPair, Token, Tokens } from "../state/generalTypes";
+import { isERC20, MarketPair, Token, Tokens } from "../state/generalTypes";
 import { tokenAddresses } from "./contractAddresses";
 import { ERC20DetailedWeb3 } from "./contracts/erc20";
 import { RenExWeb3 } from "./contracts/ren_ex";
@@ -19,6 +18,8 @@ import { getReadonlyWeb3, getWeb3 } from "./getWeb3";
 const ERC20ABI = require("./contracts/erc20_abi.json");
 const RenExABI = require("./contracts/ren_ex_abi.json");
 const RenExAdapterABI = require("./contracts/ren_ex_adapter_abi.json");
+
+const NULL_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 export interface OrderInputs {
     srcToken: Token;

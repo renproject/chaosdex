@@ -1,38 +1,14 @@
 import * as React from "react";
 
-import { FeedbackButton } from "@renex/react-components";
-import { Route, RouteComponentProps, withRouter } from "react-router-dom";
 import createPersistedState from "use-persisted-state";
 
 import { _catchBackgroundErr_ } from "../../lib/errors";
 import { AppContainer } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
 import { HeaderController } from "../views/HeaderController";
-import { _catch_ } from "./ErrorBoundary";
 import { Exchange } from "./Exchange";
 
 const useLoggedInState = createPersistedState("web3-logged-in");
-
-// Scroll restoration based on https://reacttraining.com/react-router/web/guides/scroll-restoration
-const ScrollToTop = withRouter(
-    // tslint:disable-next-line:no-any
-    class ScrollToTopWithoutRouter extends React.Component<RouteComponentProps<any>> {
-        // tslint:disable-next-line:no-any
-        public componentDidUpdate(prevProps: Readonly<RouteComponentProps<any>>): void {
-            if (this.props.location !== prevProps.location) {
-                window.scrollTo(0, 0);
-            }
-        }
-
-        /**
-         * The main render function.
-         * @dev Should have minimal computation, loops and anonymous functions.
-         */
-        public render(): React.ReactNode {
-            return <></>;
-        }
-    }
-);
 
 /**
  * App is the main visual component responsible for displaying different routes
@@ -74,16 +50,11 @@ export const App = connect<Props>([AppContainer])(
             }
         }, [initialized, appContainer]);
 
-        return <main className="app">
-            <ScrollToTop />
-
-            {_catch_(
-                <React.Suspense fallback={null/*<Loading />*/}>
-                    <HeaderController handleLogin={login} handleLogout={logout} />
-                </React.Suspense>
-            )}
-            <Route path="/" exact={true} component={Exchange} />
-            {_catch_(<FeedbackButton url="https://docs.google.com/forms/d/e/1FAIpQLScDqffrmK-CtAOvL9dM0SUJq8_No6lTMmjnfH8s7a4bIbrJvA/viewform" />)}
+        return <main>
+            <React.Suspense fallback={null}>
+                <HeaderController handleLogin={login} handleLogout={logout} />
+            </React.Suspense>
+            <Exchange />
         </main>;
     }
 );

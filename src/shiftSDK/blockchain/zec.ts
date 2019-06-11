@@ -5,7 +5,7 @@ import { masterPKH } from "../darknode/masterKey";
 import { createAddress } from "./common";
 import { getUTXOs } from "./mercury";
 
-export const createZECAddress = createAddress(Networks, Opcode, Script);
+const createZECAddress = createAddress(Networks, Opcode, Script);
 
 const testnetMercury = "https://ren-mercury.herokuapp.com/zec-testnet";
 

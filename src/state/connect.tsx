@@ -3,7 +3,7 @@ import * as React from "react";
 
 import { Container, Subscribe } from "unstated";
 
-export interface AnyConnectedProps {
+interface AnyConnectedProps {
     containers: Array<Container<any>>;
 }
 export interface ConnectedProps<Containers extends any[]> {

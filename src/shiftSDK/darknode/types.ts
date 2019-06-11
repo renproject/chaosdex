@@ -10,9 +10,9 @@ interface PublicParam {
     value: string;
 }
 
-export type Param = PrivateParam | PublicParam;
+type Param = PrivateParam | PublicParam;
 
-export interface Payload {
+interface Payload {
     method: string;
     // tslint:disable-next-line: no-any
     args: any; // Param[];
@@ -92,6 +92,6 @@ export type ReceiveMessageResponse = JSONRPCResponse<{
     result: Param[];
 }>;
 
-export type RenVMReceiveMessageResponse = JSONRPCResponse<{
-    values: [PublicParam];
-}>;
+// type RenVMReceiveMessageResponse = JSONRPCResponse<{
+//     values: [PublicParam];
+// }>;

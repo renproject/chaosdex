@@ -11,7 +11,7 @@ import {
 
 // tslint:enable: no-unused-variable
 
-export const NewMultiAddress = (multiAddress: string) => multiAddress;
+const NewMultiAddress = (multiAddress: string) => multiAddress;
 
 const _localNode = [
     NewMultiAddress("/ip4/0.0.0.0/tcp/18515/ren/8MJF6WEFR5SM7g652Uj52LH5GAfgGE"),
@@ -67,7 +67,7 @@ export interface ShiftedOutResponse {
     txHash: string;
 }
 
-export type ShifterResponse = JSONRPCResponse<{
+type ShifterResponse = JSONRPCResponse<{
     values: [
         {
             "type": "public",

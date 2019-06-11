@@ -7,23 +7,6 @@ import {
     lightnodes, ShiftedInResponse, ShiftedOutResponse, ShifterGroup,
 } from "./darknode/darknodeGroup";
 
-// export type Commitment = number | string | Buffer | Array<string | number | Buffer>;
-// const commitmentToBuffer = (commitment: Commitment): Buffer => {
-//     if (typeof commitment === "string") {
-//         return Buffer.from(strip0x(commitment), "hex");
-//     } else if (typeof commitment === "number") {
-//         return intToBuffer(commitment);
-//     } else if (Buffer.isBuffer(commitment)) {
-//         return commitment;
-//     } else if (Array.isArray(commitment)) {
-//         // TODO: Use RLP encoding
-//         return Buffer.concat(commitment.map(commitmentToBuffer));
-//     }
-//     throw new Error("Unable to serialize commitment for hashing. Supported formats: hex string, buffer or array of primitives.");
-// };
-// const hashCommitment = (commitment: Commitment) =>
-//     keccak256(commitmentToBuffer(commitment).toString("hex"));
-
 export type UTXO = { chain: Chain.Bitcoin, utxo: BitcoinUTXO } | { chain: Chain.ZCash, utxo: ZcashUTXO };
 
 export enum Chain {

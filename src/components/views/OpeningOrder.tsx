@@ -3,9 +3,9 @@ import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
-import { isERC20, isEthereumBased } from "../../shiftSDK/eth/eth";
 import { AppContainer, HistoryEvent } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
+import { isERC20, isEthereumBased } from "../../state/generalTypes";
 import { AskForAddress } from "./popups/AskForAddress";
 import { ConfirmTradeDetails } from "./popups/ConfirmTradeDetails";
 import { DepositReceived } from "./popups/DepositReceived";

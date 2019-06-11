@@ -2,7 +2,7 @@ import * as qs from "query-string";
 import * as React from "react";
 
 import { Loading } from "@renex/react-components";
-import { RouteComponentProps } from "react-router";
+import { RouteComponentProps, withRouter } from "react-router";
 import createPersistedState from "use-persisted-state";
 
 import { _catchInteractionErr_ } from "../../lib/errors";
@@ -11,7 +11,6 @@ import { connect, ConnectedProps } from "../../state/connect";
 import { Token } from "../../state/generalTypes";
 import { NewOrder } from "../views/NewOrder";
 import { OrderHistory } from "../views/OrderHistory";
-import { _catch_ } from "./ErrorBoundary";
 
 const useOrderHistoryState = createPersistedState("order-history-v3");
 
@@ -22,7 +21,7 @@ interface StoredHistory {
 /**
  * Exchange is the main token-swapping page.
  */
-export const Exchange = connect<RouteComponentProps & ConnectedProps<[AppContainer]>>([AppContainer])(
+export const Exchange = withRouter(connect<RouteComponentProps & ConnectedProps<[AppContainer]>>([AppContainer])(
     ({ containers: [appContainer], location }) => {
         const [orderHistory, setOrderHistory] = useOrderHistoryState({} as unknown as StoredHistory);
 
@@ -73,14 +72,12 @@ export const Exchange = connect<RouteComponentProps & ConnectedProps<[AppContain
         return <div className="exchange">
             <div className="content container exchange-inner">
                 <div className="exchange--center">
-                    {_catch_(
-                        <React.Suspense fallback={<Loading />}>
-                            <NewOrder swapSubmitted={swapSubmitted} />
-                            <OrderHistory orders={orders} pendingTXs={appContainer.state.pendingTXs} />
-                        </React.Suspense>
-                    )}
+                    <React.Suspense fallback={<Loading />}>
+                        <NewOrder swapSubmitted={swapSubmitted} />
+                        <OrderHistory orders={orders} pendingTXs={appContainer.state.pendingTXs} />
+                    </React.Suspense>
                 </div>
             </div>
         </div>;
     }
-);
+));

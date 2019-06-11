@@ -16,9 +16,8 @@ import { getMarket, getTokenPricesInCurrencies } from "../lib/market";
 import { btcAddressToHex } from "../shiftSDK/blockchain/btc";
 import { strip0x } from "../shiftSDK/blockchain/common";
 import { ShiftedInResponse, ShiftedOutResponse } from "../shiftSDK/darknode/darknodeGroup";
-import { isERC20, isEthereumBased } from "../shiftSDK/eth/eth";
 import { Chain, UTXO } from "../shiftSDK/shiftSDK";
-import { MarketPair, Token, Tokens } from "./generalTypes";
+import { isERC20, isEthereumBased, MarketPair, Token, Tokens } from "./generalTypes";
 
 // const transferEvent = [{
 //     "indexed": true,
@@ -92,8 +91,6 @@ const initialState = {
     receivedAmount: null as BigNumber | null,
     receivedAmountHex: null as string | null,
 };
-
-export type OrderData = typeof initialState.orderInputs;
 
 export class AppContainer extends Container<typeof initialState> {
     public state = initialState;

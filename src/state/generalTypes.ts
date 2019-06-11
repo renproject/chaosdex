@@ -32,6 +32,16 @@ export const Tokens = Map<Token, TokenDetails>()
     .set(Token.ZEC, { symbol: Token.ZEC, name: "Zcash", decimals: 8, priority: 201, chain: Chain.ZCash, validator: zecValidator })
     ;
 
+export const isEthereumBased = (token: Token) => {
+    const details = Tokens.get(token);
+    if (!details) {
+        return false;
+    }
+    return details.chain === Chain.Ethereum;
+};
+
+export const isERC20 = (token: Token) => isEthereumBased(token) && token !== Token.ETH;
+
 export interface TokenDetails {
     name: string;
     symbol: Token;
@@ -42,6 +52,3 @@ export interface TokenDetails {
 }
 
 export type TokenPrices = Map<Token, Map<Currency, number>>;
-
-// tslint:disable-next-line: ban-types
-export type PopupID = Symbol;

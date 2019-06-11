@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { currencies, CurrencyIcon, Dropdown, Header } from "@renex/react-components";
 import { useTranslation } from "react-i18next";
-import { Link, RouteComponentProps, withRouter } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import { AppContainer } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
@@ -29,7 +29,7 @@ const logo = <Link className="no-underline" to="/">
     <h1>DEX Demo</h1>
 </Link>;
 
-interface Props extends RouteComponentProps, ConnectedProps<[AppContainer]> {
+interface Props extends ConnectedProps<[AppContainer]> {
     handleLogin: () => {};
     handleLogout: () => {};
 }
@@ -37,7 +37,7 @@ interface Props extends RouteComponentProps, ConnectedProps<[AppContainer]> {
 /**
  * HeaderController is a visual component providing page branding and navigation.
  */
-export const HeaderController = (withRouter(connect<Props>([AppContainer])(
+export const HeaderController = (connect<Props>([AppContainer])(
     ({ handleLogout, handleLogin, containers: [appContainer] }) => {
         const { t, i18n } = useTranslation();
 
@@ -90,4 +90,4 @@ export const HeaderController = (withRouter(connect<Props>([AppContainer])(
         />;
 
     }
-)));
+));

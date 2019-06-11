@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { _catchInteractionErr_ } from "../../../lib/errors";
 import { Chain } from "../../../shiftSDK/shiftSDK";
 import { Token, Tokens } from "../../../state/generalTypes";
-import { ReactComponent as MetaMask } from "../../styles/images/metamask.svg";
+import { ReactComponent as MetaMask } from "../../../styles/images/metamask.svg";
 import { Popup } from "./Popup";
 
 export const AskForAddress: React.StatelessComponent<{
