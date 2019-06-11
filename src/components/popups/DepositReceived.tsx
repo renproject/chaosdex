@@ -34,8 +34,8 @@ export const DepositReceived: React.StatelessComponent<{
         <div className="deposit-address">
             <div className="popup--body">
                 {token ? <TokenIcon className="token-icon" token={token} /> : null}
-                {waiting ? <Loading /> : null}
                 <h2>Submit to darknodes</h2>
+                {waiting ? <Loading /> : null}
                 {error ? <span className="red">{`${error.message || error}`}</span> : null}
                 {waiting ? <div className="address-input--message">
                     <>Submitting order to RenVM... {messageID ? <InfoLabel>Message ID: {messageID}</InfoLabel> : null}</>

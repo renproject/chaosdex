@@ -14,17 +14,26 @@ import { NewOrder } from "../controllers/NewOrder";
 import { OrderHistory } from "../controllers/OrderHistory";
 import { _catch_ } from "../views/ErrorBoundary";
 
-const useOrderHistoryState = createPersistedState("order-history-v2");
+const useOrderHistoryState = createPersistedState("order-history-v3");
+
+interface StoredHistory {
+    [outTx: string]: HistoryEvent;
+}
 
 /**
  * Exchange is the main token-swapping page.
  */
 export const Exchange = connect<RouteComponentProps & ConnectedProps<[AppContainer]>>([AppContainer])(
     ({ containers: [appContainer], location }) => {
-        const [orderHistory, setOrderHistory] = useOrderHistoryState([] as HistoryEvent[]);
+        const [orderHistory, setOrderHistory] = useOrderHistoryState({} as unknown as StoredHistory);
 
         const swapSubmitted = (historyEvent: HistoryEvent) => {
-            setOrderHistory((hist: HistoryEvent[]) => [historyEvent, ...hist]);
+            setOrderHistory((hist: StoredHistory) => {
+                return {
+                    ...hist,
+                    [historyEvent.inTx.hash]: historyEvent,
+                };
+            });
         };
 
         // useEffect replaces `componentDidMount` and `componentDidUpdate`.
@@ -60,13 +69,17 @@ export const Exchange = connect<RouteComponentProps & ConnectedProps<[AppContain
             }
         }, [initialized, location.search, appContainer]);
 
+        const orders = Object.values(orderHistory as StoredHistory).sort((a, b) => {
+            return b.time - a.time;
+        });
+
         return <div className="exchange">
             <div className="content container exchange-inner">
                 <div className="exchange--center">
                     {_catch_(
                         <React.Suspense fallback={<Loading />}>
                             <NewOrder swapSubmitted={swapSubmitted} />
-                            <OrderHistory orders={orderHistory as HistoryEvent[]} pendingTXs={appContainer.state.pendingTXs} />
+                            <OrderHistory orders={orders} pendingTXs={appContainer.state.pendingTXs} />
                         </React.Suspense>
                     )}
                 </div>

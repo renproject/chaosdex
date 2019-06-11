@@ -2,6 +2,7 @@ import { Currency } from "@renex/react-components";
 import BigNumber from "bignumber.js";
 import { List, Map, OrderedMap } from "immutable";
 import { Container } from "unstated";
+import { TransactionReceipt } from "web3-core";
 
 import { tokenAddresses } from "../../lib/contractAddresses";
 import {
@@ -49,6 +50,7 @@ export interface HistoryEvent {
     time: number; // Seconds since Unix epoch
     inTx: Tx;
     outTx: Tx;
+    receivedAmount: string;
     orderInputs: OrderInputs;
     complete: boolean;
 }
@@ -85,7 +87,8 @@ const initialState = {
     signature: null as ShiftedInResponse | ShiftedOutResponse | null,
     inTx: null as Tx | null,
     outTx: null as Tx | null,
-    amountHex: null as string | null,
+    receivedAmount: null as BigNumber | null,
+    receivedAmountHex: null as string | null,
 };
 
 export type OrderData = typeof initialState.orderInputs;
@@ -228,11 +231,12 @@ export class AppContainer extends Container<typeof initialState> {
     }
 
     public submitBurn = async () => {
-        const { dexSDK, commitment, amountHex } = this.state;
-        if (!commitment || !amountHex) {
+        const { dexSDK, commitment, receivedAmountHex } = this.state;
+        if (!commitment || !receivedAmountHex) {
+            console.error(`commitment: ${commitment}, receivedAmountHex: ${receivedAmountHex}`);
             throw new Error(`Invalid values required to submit burn`);
         }
-        const messageID = await dexSDK.submitBurn(commitment, amountHex);
+        const messageID = await dexSDK.submitBurn(commitment, receivedAmountHex);
         this.setState({ messageID }).catch(_catchBackgroundErr_);
     }
 
@@ -247,82 +251,81 @@ export class AppContainer extends Container<typeof initialState> {
         const promiEvent = dexSDK.submitSwap(address, commitment, signature);
         const transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve).catch(reject));
 
-        if (isEthereumBased(commitment.orderInputs.dstToken)) {
-            this.setState({ outTx: EthereumTx(transactionHash), pendingTXs: this.state.pendingTXs.set(transactionHash, 0) }).catch(_catchInteractionErr_);
-            promiEvent.on("confirmation", async (confirmations) => {
-                // TODO: Use an environment variable for # of confirmations
-                // required.
-                if (confirmations >= 1) {
-                    this.setState({ pendingTXs: this.state.pendingTXs.remove(transactionHash) }).catch(_catchInteractionErr_);
-                } else {
-                    this.setState({ pendingTXs: this.state.pendingTXs.set(transactionHash, confirmations) }).catch(_catchInteractionErr_);
-                }
-            });
-            return;
-        }
+        const rcvAmount = await new Promise<BigNumber>((resolve, reject) => promiEvent.once("confirmation", (confirmations: number, receipt: TransactionReceipt) => {
+            if (isEthereumBased(commitment.orderInputs.dstToken)) {
+                this.setState({ outTx: EthereumTx(transactionHash), pendingTXs: this.state.pendingTXs.set(transactionHash, 0) }).catch(_catchInteractionErr_);
+                this.setState({ pendingTXs: this.state.pendingTXs.remove(transactionHash) }).catch(_catchInteractionErr_);
 
-        await new Promise((resolve, reject) => {
-            let submitted = false;
-            promiEvent.on("confirmation", async () => {
-                if (!submitted) {
-                    submitted = true;
-
-                    try {
-                        const receipt = await dexSDK.web3.eth.getTransactionReceipt(transactionHash);
-
-                        /*
-                        // Example log:
-                        {
-                            address: "",
-                            blockHash: "0xf45bb29e86499cb9270fac41a522e2229d135e64facdb41c5f206bda6cd11a10",
-                            blockNumber: 11354259,
-                            data: "0x00000000000000000000000000000000000000000000000000000000000003ca",
-                            id: "log_0xcb6de4ec665873cd9782fca0a23b686b9ccb68c775ef27746d83af0c7ba0be5e",
-                            logIndex: 7,
-                            removed: false,
-                            topics: [
-                                "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-                                "0x0000000000000000000000008cfbf788757e767392e707aca1ec18ce26e570fc",
-                                "0x0000000000000000000000000000000000000000000000000000000000000000",
-                            ],
-                            transactionHash: "0x9d489c404e39326da77a7a2252c2bcfc4ec66140cc32064f0d5eb141a87bf29f",
-                            transactionIndex: 0,
-                            transactionLogIndex: "0x7",
-                            type: "mined",
-                        }
-                        */
-
-                        // Loop through logs to find burn log
-                        for (const log of receipt.logs) {
-                            if (
-                                log.address.toLowerCase() === tokenAddresses(Token.BTC, NETWORK || "").toLowerCase() &&
-                                log.topics[0] === "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef".toLowerCase() &&
-                                log.topics[1] === `0x000000000000000000000000${strip0x(RENEX_ADAPTER_ADDRESS)}`.toLowerCase() &&
-                                log.topics[2] === "0x0000000000000000000000000000000000000000000000000000000000000000".toLowerCase()
-                            ) {
-                                const amountHex = parseInt(log.data, 16).toString(16); // TODO: create "strip" function
-                                this.setState({ amountHex }).catch(_catchInteractionErr_);
-                                resolve();
-                            }
-                        }
-                    } catch (error) {
-                        reject(error);
+                // Loop through logs to find burn log
+                for (const log of receipt.logs) {
+                    if (
+                        log.address.toLowerCase() === tokenAddresses(commitment.orderInputs.dstToken, NETWORK || "").toLowerCase() &&
+                        log.topics[0] === "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef".toLowerCase() &&
+                        // log.topics[1] === `0x000000000000000000000000${strip0x(reserve_address)}`.toLowerCase() &&
+                        log.topics[2] === `0x000000000000000000000000${strip0x(commitment.toAddress)}`.toLowerCase()
+                    ) {
+                        const dstTokenDetails = Tokens.get(commitment.orderInputs.dstToken);
+                        const decimals = dstTokenDetails ? dstTokenDetails.decimals : 8;
+                        const receivedAmount = new BigNumber(log.data, 16).dividedBy(new BigNumber(10).exponentiatedBy(decimals));
+                        resolve(receivedAmount);
                     }
                 }
-            });
-        });
+                reject();
+            } else {
+                /*
+                // Example log:
+                {
+                    address: "",
+                    blockHash: "0xf45bb29e86499cb9270fac41a522e2229d135e64facdb41c5f206bda6cd11a10",
+                    blockNumber: 11354259,
+                    data: "0x00000000000000000000000000000000000000000000000000000000000003ca",
+                    id: "log_0xcb6de4ec665873cd9782fca0a23b686b9ccb68c775ef27746d83af0c7ba0be5e",
+                    logIndex: 7,
+                    removed: false,
+                    topics: [
+                        "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+                        "0x0000000000000000000000008cfbf788757e767392e707aca1ec18ce26e570fc",
+                        "0x0000000000000000000000000000000000000000000000000000000000000000",
+                    ],
+                    transactionHash: "0x9d489c404e39326da77a7a2252c2bcfc4ec66140cc32064f0d5eb141a87bf29f",
+                    transactionIndex: 0,
+                    transactionLogIndex: "0x7",
+                    type: "mined",
+                }
+                */
 
-        this.setState({ inTx: EthereumTx(transactionHash) }).catch(_catchInteractionErr_);
+                // Loop through logs to find burn log
+                for (const log of receipt.logs) {
+                    if (
+                        log.address.toLowerCase() === tokenAddresses(commitment.orderInputs.dstToken, NETWORK || "").toLowerCase() &&
+                        log.topics[0] === "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef".toLowerCase() &&
+                        log.topics[1] === `0x000000000000000000000000${strip0x(RENEX_ADAPTER_ADDRESS)}`.toLowerCase() &&
+                        log.topics[2] === "0x0000000000000000000000000000000000000000000000000000000000000000".toLowerCase()
+                    ) {
+                        const dstTokenDetails = Tokens.get(commitment.orderInputs.dstToken);
+                        const decimals = dstTokenDetails ? dstTokenDetails.decimals : 8;
+                        const receivedAmountHex = parseInt(log.data, 16).toString(16);
+                        const receivedAmount = new BigNumber(log.data, 16).dividedBy(new BigNumber(10).exponentiatedBy(decimals));
+                        this.setState({ receivedAmount, receivedAmountHex }).catch(_catchInteractionErr_);
+                        resolve(receivedAmount);
+                    }
+                }
+                this.setState({ inTx: EthereumTx(transactionHash) }).catch(_catchInteractionErr_);
+
+                reject();
+            }
+        }).catch(reject));
     }
 
     public getHistoryEvent = async () => {
-        const { inTx, outTx, commitment } = this.state;
+        const { inTx, outTx, commitment, receivedAmount } = this.state;
         if (!commitment || !inTx || !outTx) {
             throw new Error(`Invalid values passed to getHistoryEvent`);
         }
         const historyItem: HistoryEvent = {
             inTx,
             outTx,
+            receivedAmount: receivedAmount ? receivedAmount.toFixed() : commitment.orderInputs.dstAmount,
             orderInputs: commitment.orderInputs,
             time: Date.now() / 1000,
             complete: false,
@@ -363,7 +366,6 @@ export class AppContainer extends Container<typeof initialState> {
     }
 
     public resetTrade = async () => {
-        console.log(`Clearing commitment!!!`);
         await this.setState({
             confirmedTrade: false,
             submitting: false,
@@ -378,7 +380,8 @@ export class AppContainer extends Container<typeof initialState> {
             erc20Approved: false,
             inTx: null,
             outTx: null,
-            amountHex: null,
+            receivedAmount: null,
+            receivedAmountHex: null,
         });
     }
 
