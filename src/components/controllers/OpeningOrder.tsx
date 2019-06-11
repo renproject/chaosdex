@@ -52,8 +52,8 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     public render(): React.ReactNode {
         const {
             orderInputs: orderInput, toAddress, refundAddress, depositAddress,
-            utxos, messageID, signature: messageResponse, confirmedOrderInputs,
-            erc20Approved, confirmedTrade, inTx, outTx, address
+            utxos, messageID, confirmedOrderInputs, erc20Approved,
+            confirmedTrade, inTx, outTx, address,
         } = this.appContainer.state;
 
         // The confirmed order inputs should always be available

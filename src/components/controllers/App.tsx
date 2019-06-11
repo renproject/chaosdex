@@ -1,8 +1,8 @@
 import * as React from "react";
 
-import createPersistedState from "use-persisted-state";
 import { FeedbackButton } from "@renex/react-components";
 import { Route, RouteComponentProps, withRouter } from "react-router-dom";
+import createPersistedState from "use-persisted-state";
 
 import { _catchBackgroundErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";

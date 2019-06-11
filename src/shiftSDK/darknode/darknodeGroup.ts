@@ -236,11 +236,12 @@ export class ShifterGroup extends DarknodeGroup {
                     // Success:
                     // (TODO)
                     if (response.result && response.result.values) {
-                        let ret: any = {};
+                        // tslint:disable-next-line: no-any
+                        let ret = {};
                         for (const value of response.result.values) {
                             ret = { ...ret, [value.name]: value.value };
                         }
-                        return ret;
+                        return ret as ShiftedInResponse | ShiftedOutResponse;
                     } else if (response.error) {
                         throw response.error;
                     }

@@ -226,7 +226,9 @@ export class AppContainer extends Container<typeof initialState> {
         if (!commitment || !depositAddressToken || !utxos || utxos.size === 0) {
             throw new Error(`Invalid values required to submit deposit`);
         }
-        const messageID = await dexSDK.submitDeposit(depositAddressToken, utxos.get(0)!, commitment);
+        /* We know that utxos is non-empty. */ // tslint:disable-next-line: no-non-null-assertion no-unnecessary-type-assertion
+        const utxo: UTXO = utxos.get(0)!;
+        const messageID = await dexSDK.submitDeposit(depositAddressToken, utxo, commitment);
         await this.setState({ messageID });
     }
 
@@ -251,7 +253,7 @@ export class AppContainer extends Container<typeof initialState> {
         const promiEvent = dexSDK.submitSwap(address, commitment, signature);
         const transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve).catch(reject));
 
-        const rcvAmount = await new Promise<BigNumber>((resolve, reject) => promiEvent.once("confirmation", (confirmations: number, receipt: TransactionReceipt) => {
+        await new Promise<BigNumber>((resolve, reject) => promiEvent.once("confirmation", (confirmations: number, receipt: TransactionReceipt) => {
             if (isEthereumBased(commitment.orderInputs.dstToken)) {
                 this.setState({ outTx: EthereumTx(transactionHash), pendingTXs: this.state.pendingTXs.set(transactionHash, 0) }).catch(_catchInteractionErr_);
                 this.setState({ pendingTXs: this.state.pendingTXs.remove(transactionHash) }).catch(_catchInteractionErr_);
