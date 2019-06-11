@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { OrderInputs } from "../../../lib/dexSDK";
 import { _catchInteractionErr_ } from "../../../lib/errors";
 import { Token, TokenPrices } from "../../../state/generalTypes";
-import { ReactComponent as Arrow } from "../../styles/images/arrow-right.svg";
+import { ReactComponent as Arrow } from "../../../styles/images/arrow-right.svg";
 import { TokenBalance } from "../TokenBalance";
 import { Popup } from "./Popup";
 
