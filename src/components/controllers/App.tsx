@@ -7,9 +7,9 @@ import createPersistedState from "use-persisted-state";
 import { _catchBackgroundErr_ } from "../../lib/errors";
 import { AppContainer } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
-import { Exchange } from "../pages/Exchange";
-import { _catch_ } from "../views/ErrorBoundary";
-import { HeaderController } from "./HeaderController";
+import { HeaderController } from "../views/HeaderController";
+import { _catch_ } from "./ErrorBoundary";
+import { Exchange } from "./Exchange";
 
 const useLoggedInState = createPersistedState("web3-logged-in");
 

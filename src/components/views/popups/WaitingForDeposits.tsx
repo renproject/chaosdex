@@ -1,7 +1,7 @@
 import * as React from "react";
 
-import { _catchInteractionErr_ } from "../../lib/errors";
-import { Token } from "../../state/generalTypes";
+import { _catchInteractionErr_ } from "../../../lib/errors";
+import { Token } from "../../../state/generalTypes";
 import { Popup } from "./Popup";
 
 export const WaitingForDeposits: React.StatelessComponent<{

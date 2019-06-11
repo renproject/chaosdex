@@ -12,7 +12,7 @@ import { HistoryEvent, Tx } from "../../state/appContainer";
 import { ReactComponent as Arrow } from "../../styles/images/arrow-right.svg";
 import { ReactComponent as Next } from "../../styles/images/next.svg";
 import { ReactComponent as Previous } from "../../styles/images/previous.svg";
-import { TokenBalance } from "../views/TokenBalance";
+import { TokenBalance } from "./TokenBalance";
 
 const txUrl = (tx: Tx | null): string => {
     if (!tx) { return ""; }

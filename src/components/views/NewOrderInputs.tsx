@@ -9,8 +9,8 @@ import { _catchInteractionErr_ } from "../../lib/errors";
 import { AppContainer } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
 import arrow from "../../styles/images/arrow.svg";
-import { TokenBalance } from "../views/TokenBalance";
 import { SelectMarketWrapper } from "./SelectMarketWrapper";
+import { TokenBalance } from "./TokenBalance";
 
 export const normalizeDecimals = (inputIn: string | null): string | null => {
     return inputIn === null ? inputIn : new BigNumber(inputIn).decimalPlaces(8).toFixed();

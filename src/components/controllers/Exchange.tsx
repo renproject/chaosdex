@@ -9,9 +9,9 @@ import { _catchInteractionErr_ } from "../../lib/errors";
 import { AppContainer, HistoryEvent } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
 import { Token } from "../../state/generalTypes";
-import { NewOrder } from "../controllers/NewOrder";
-import { OrderHistory } from "../controllers/OrderHistory";
-import { _catch_ } from "../views/ErrorBoundary";
+import { NewOrder } from "../views/NewOrder";
+import { OrderHistory } from "../views/OrderHistory";
+import { _catch_ } from "./ErrorBoundary";
 
 const useOrderHistoryState = createPersistedState("order-history-v3");
 
@@ -68,9 +68,7 @@ export const Exchange = connect<RouteComponentProps & ConnectedProps<[AppContain
             }
         }, [initialized, location.search, appContainer]);
 
-        const orders = Object.values(orderHistory as StoredHistory).sort((a, b) => {
-            return b.time - a.time;
-        });
+        const orders = Object.values(orderHistory as StoredHistory).sort((a, b) => b.time - a.time);
 
         return <div className="exchange">
             <div className="content container exchange-inner">

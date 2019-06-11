@@ -6,12 +6,12 @@ import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
 import { isERC20, isEthereumBased } from "../../shiftSDK/eth/eth";
 import { AppContainer, HistoryEvent } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
-import { AskForAddress } from "../popups/AskForAddress";
-import { ConfirmTradeDetails } from "../popups/ConfirmTradeDetails";
-import { DepositReceived } from "../popups/DepositReceived";
-import { ShowDepositAddress } from "../popups/ShowDepositAddress";
-import { SubmitToEthereum } from "../popups/SubmitToEthereum";
-import { TokenAllowance } from "../popups/TokenAllowance";
+import { AskForAddress } from "./popups/AskForAddress";
+import { ConfirmTradeDetails } from "./popups/ConfirmTradeDetails";
+import { DepositReceived } from "./popups/DepositReceived";
+import { ShowDepositAddress } from "./popups/ShowDepositAddress";
+import { SubmitToEthereum } from "./popups/SubmitToEthereum";
+import { TokenAllowance } from "./popups/TokenAllowance";
 
 const defaultState = { // Entries must be immutable
 };

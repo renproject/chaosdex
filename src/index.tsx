@@ -12,7 +12,7 @@ import { Router } from "react-router";
 import { Provider } from "unstated";
 
 import { App } from "./components/controllers/App";
-import { _catch_ } from "./components/views/ErrorBoundary";
+import { _catch_ } from "./components/controllers/ErrorBoundary";
 import { _catchInteractionErr_ } from "./lib/errors";
 import { history } from "./lib/history";
 import { onLoad } from "./lib/onLoad";
