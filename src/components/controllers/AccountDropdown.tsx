@@ -3,8 +3,8 @@ import * as React from "react";
 import { Blocky } from "@renex/react-components";
 import { WithTranslation, withTranslation } from "react-i18next";
 
+import { AppContainer } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
-import { AppContainer } from "../../state/containers";
 
 const defaultState = { // Entries must be immutable
     shown: false,

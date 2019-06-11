@@ -4,9 +4,8 @@ import { withTranslation, WithTranslation } from "react-i18next";
 
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
 import { isERC20, isEthereumBased } from "../../shiftSDK/eth/eth";
+import { AppContainer, HistoryEvent } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
-import { AppContainer, OptionsContainer } from "../../state/containers";
-import { HistoryEvent } from "../../state/containers/appContainer";
 import { AskForAddress } from "../popups/AskForAddress";
 import { ConfirmTradeDetails } from "../popups/ConfirmTradeDetails";
 import { DepositReceived } from "../popups/DepositReceived";
@@ -21,8 +20,6 @@ const defaultState = { // Entries must be immutable
  * OpeningOrder is a visual component for allowing users to open new orders
  */
 class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
-    private readonly appContainer: AppContainer;
-    private readonly optionsContainer: OptionsContainer;
     private _depositTimer: NodeJS.Timeout | undefined;
     private _responseTimer: NodeJS.Timeout | undefined;
     private _returned = false;
@@ -30,7 +27,6 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
 
     constructor(props: Props) {
         super(props);
-        [this.appContainer, this.optionsContainer] = this.props.containers;
         this.state = defaultState;
         this._mounted = true;
         this.updateDeposits().catch(_catchBackgroundErr_);
@@ -50,11 +46,12 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
      * @dev Should have minimal computation, loops and anonymous functions.
      */
     public render(): React.ReactNode {
+        const [appContainer] = this.props.containers;
         const {
             orderInputs: orderInput, toAddress, refundAddress, depositAddress,
             utxos, messageID, confirmedOrderInputs, erc20Approved,
             confirmedTrade, inTx, outTx, address,
-        } = this.appContainer.state;
+        } = appContainer.state;
 
         // The confirmed order inputs should always be available
         if (!confirmedOrderInputs) {
@@ -65,10 +62,10 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
         if (!confirmedTrade) {
             return <ConfirmTradeDetails
                 orderInputs={confirmedOrderInputs}
-                done={this.appContainer.onConfirmedTrade}
+                done={this.props.containers[0].onConfirmedTrade}
                 cancel={this.cancel}
-                quoteCurrency={this.optionsContainer.state.preferredCurrency}
-                tokenPrices={this.appContainer.state.tokenPrices}
+                quoteCurrency={this.props.containers[0].state.preferredCurrency}
+                tokenPrices={this.props.containers[0].state.tokenPrices}
             />;
         }
 
@@ -103,7 +100,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
             // address.
             if (isEthereumBased(orderInput.srcToken)) {
                 if (isERC20(orderInput.srcToken) && !erc20Approved) {
-                    return <TokenAllowance token={orderInput.srcToken} amount={confirmedOrderInputs.srcAmount} submit={this.appContainer.setAllowance} />;
+                    return <TokenAllowance token={orderInput.srcToken} amount={confirmedOrderInputs.srcAmount} submit={this.props.containers[0].setAllowance} />;
                 }
 
                 // Submit the trade to Ethereum
@@ -140,9 +137,9 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     private readonly updateDeposits = async () => {
         if (!this._mounted) { return; }
         let timeout = 500; // Half a second
-        if (this.appContainer.state.depositAddress) {
+        if (this.props.containers[0].state.depositAddress) {
             try {
-                await this.appContainer.updateDeposits();
+                await this.props.containers[0].updateDeposits();
                 timeout = 5000; // 5 seconds
             } catch (error) {
                 _catchBackgroundErr_(error);
@@ -155,9 +152,9 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     private readonly updateResponse = async () => {
         if (!this._mounted) { return; }
         let timeout = 5000; // 5 seconds
-        if (this.appContainer.state.messageID) {
+        if (this.props.containers[0].state.messageID) {
             try {
-                await this.appContainer.updateMessageStatus();
+                await this.props.containers[0].updateMessageStatus();
                 timeout = 5000; // 5 seconds
             } catch (error) {
                 _catchBackgroundErr_(error);
@@ -168,15 +165,15 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     }
 
     private readonly submitDeposit = async () => {
-        await this.appContainer.submitDeposit();
+        await this.props.containers[0].submitDeposit();
     }
 
     private readonly submitSwap = async () => {
-        await this.appContainer.submitSwap();
+        await this.props.containers[0].submitSwap();
     }
 
     private readonly submitBurn = async () => {
-        await this.appContainer.submitBurn();
+        await this.props.containers[0].submitBurn();
     }
 
     private readonly onDone = async () => {
@@ -184,7 +181,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
             return;
         }
         this._returned = true;
-        const historyItem = await this.appContainer.getHistoryEvent();
+        const historyItem = await this.props.containers[0].getHistoryEvent();
         if (!historyItem || !this.props.swapSubmitted) {
             return;
         }
@@ -192,28 +189,28 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     }
 
     private readonly ontoAddress = (toAddress: string) => {
-        this.appContainer.updateToAddress(toAddress).catch(_catchInteractionErr_);
+        this.props.containers[0].updateToAddress(toAddress).catch(_catchInteractionErr_);
     }
 
     private readonly onRefundAddress = async (refundAddress: string) => {
-        await this.appContainer.updateRefundAddress(refundAddress).catch(_catchInteractionErr_);
+        await this.props.containers[0].updateRefundAddress(refundAddress).catch(_catchInteractionErr_);
         this.generateAddress().catch(_catchInteractionErr_);
     }
 
     private readonly generateAddress = async () => {
-        await this.appContainer.updateCommitment();
+        await this.props.containers[0].updateCommitment();
     }
 
     private readonly cancel = () => {
-        this.appContainer.resetTrade().catch(_catchInteractionErr_);
+        this.props.containers[0].resetTrade().catch(_catchInteractionErr_);
         this.props.cancel();
     }
 }
 
-interface Props extends ConnectedProps<[AppContainer, OptionsContainer]>, WithTranslation {
+interface Props extends ConnectedProps<[AppContainer]>, WithTranslation {
     cancel: () => void;
     done: () => void;
     swapSubmitted?: (h: HistoryEvent) => void;
 }
 
-export const OpeningOrder = withTranslation()(connect<Props>([AppContainer, OptionsContainer])(OpeningOrderClass));
+export const OpeningOrder = withTranslation()(connect<Props>([AppContainer])(OpeningOrderClass));

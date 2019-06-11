@@ -4,8 +4,8 @@ import { SelectMarket } from "@renex/react-components";
 
 import { _catchInteractionErr_ } from "../../lib/errors";
 import { getMarket } from "../../lib/market";
+import { AppContainer } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
-import { AppContainer } from "../../state/containers";
 import { Token, TokenDetails, Tokens } from "../../state/generalTypes";
 
 /**

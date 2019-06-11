@@ -4,21 +4,21 @@ import { List, Map, OrderedMap } from "immutable";
 import { Container } from "unstated";
 import { TransactionReceipt } from "web3-core";
 
-import { tokenAddresses } from "../../lib/contractAddresses";
+import { tokenAddresses } from "../lib/contractAddresses";
 import {
     Commitment, DexSDK, OrderInputs, RENEX_ADAPTER_ADDRESS, ReserveBalances,
-} from "../../lib/dexSDK";
-import { NETWORK } from "../../lib/environmentVariables";
-import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
-import { estimatePrice } from "../../lib/estimatePrice";
-import { history } from "../../lib/history";
-import { getMarket, getTokenPricesInCurrencies } from "../../lib/market";
-import { btcAddressToHex } from "../../shiftSDK/blockchain/btc";
-import { strip0x } from "../../shiftSDK/blockchain/common";
-import { ShiftedInResponse, ShiftedOutResponse } from "../../shiftSDK/darknode/darknodeGroup";
-import { isERC20, isEthereumBased } from "../../shiftSDK/eth/eth";
-import { Chain, UTXO } from "../../shiftSDK/shiftSDK";
-import { MarketPair, Token, Tokens } from "../generalTypes";
+} from "../lib/dexSDK";
+import { NETWORK } from "../lib/environmentVariables";
+import { _catchBackgroundErr_, _catchInteractionErr_ } from "../lib/errors";
+import { estimatePrice } from "../lib/estimatePrice";
+import { history } from "../lib/history";
+import { getMarket, getTokenPricesInCurrencies } from "../lib/market";
+import { btcAddressToHex } from "../shiftSDK/blockchain/btc";
+import { strip0x } from "../shiftSDK/blockchain/common";
+import { ShiftedInResponse, ShiftedOutResponse } from "../shiftSDK/darknode/darknodeGroup";
+import { isERC20, isEthereumBased } from "../shiftSDK/eth/eth";
+import { Chain, UTXO } from "../shiftSDK/shiftSDK";
+import { MarketPair, Token, Tokens } from "./generalTypes";
 
 // const transferEvent = [{
 //     "indexed": true,
@@ -63,6 +63,8 @@ const initialOrder: OrderInputs = {
 };
 
 const initialState = {
+    preferredCurrency: Currency.USD,
+
     address: null as string | null,
     tokenPrices: Map<Token, Map<Currency, number>>(),
     accountBalances: Map<Token, BigNumber>(),
@@ -110,6 +112,10 @@ export class AppContainer extends Container<typeof initialState> {
     }
 
     // Token prices ////////////////////////////////////////////////////////////
+
+    public setCurrency = async (preferredCurrency: Currency) => {
+        await this.setState({ preferredCurrency });
+    }
 
     public updateTokenPrices = async (): Promise<void> => {
         const tokenPrices = await getTokenPricesInCurrencies();

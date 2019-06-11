@@ -5,9 +5,8 @@ import { withTranslation, WithTranslation } from "react-i18next";
 
 import { _catchBackgroundErr_ } from "../../lib/errors";
 import { getMarket } from "../../lib/market";
+import { AppContainer, HistoryEvent } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
-import { AppContainer } from "../../state/containers";
-import { HistoryEvent } from "../../state/containers/appContainer";
 import { NewOrderInputs } from "./NewOrderInputs";
 import { OpeningOrder } from "./OpeningOrder";
 

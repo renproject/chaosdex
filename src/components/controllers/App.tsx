@@ -5,8 +5,8 @@ import { Route, RouteComponentProps, withRouter } from "react-router-dom";
 import createPersistedState from "use-persisted-state";
 
 import { _catchBackgroundErr_ } from "../../lib/errors";
+import { AppContainer } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
-import { AppContainer, OptionsContainer } from "../../state/containers";
 import { Exchange } from "../pages/Exchange";
 import { _catch_ } from "../views/ErrorBoundary";
 import { HeaderController } from "./HeaderController";
@@ -38,10 +38,10 @@ const ScrollToTop = withRouter(
  * App is the main visual component responsible for displaying different routes
  * and running background app loops
  */
-type Props = ConnectedProps<[AppContainer, OptionsContainer]>;
-export const App = connect<Props>([AppContainer, OptionsContainer])(
+type Props = ConnectedProps<[AppContainer]>;
+export const App = connect<Props>([AppContainer])(
     (props) => {
-        const { containers: [appContainer, optionsContainer] } = props;
+        const { containers: [appContainer] } = props;
         const [loggedIn, setLoggedIn] = useLoggedInState(false);
 
         const login = async () => {
@@ -74,7 +74,7 @@ export const App = connect<Props>([AppContainer, OptionsContainer])(
             }
         }, [initialized, appContainer]);
 
-        return <main className={`app ${optionsContainer.state.theme}`}>
+        return <main className="app">
             <ScrollToTop />
 
             {_catch_(

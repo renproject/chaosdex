@@ -6,9 +6,8 @@ import { RouteComponentProps } from "react-router";
 import createPersistedState from "use-persisted-state";
 
 import { _catchInteractionErr_ } from "../../lib/errors";
+import { AppContainer, HistoryEvent } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
-import { AppContainer } from "../../state/containers";
-import { HistoryEvent } from "../../state/containers/appContainer";
 import { Token } from "../../state/generalTypes";
 import { NewOrder } from "../controllers/NewOrder";
 import { OrderHistory } from "../controllers/OrderHistory";

@@ -6,8 +6,8 @@ import { withTranslation, WithTranslation } from "react-i18next";
 import { debounce } from "throttle-debounce";
 
 import { _catchInteractionErr_ } from "../../lib/errors";
+import { AppContainer } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
-import { AppContainer, OptionsContainer } from "../../state/containers";
 import arrow from "../../styles/images/arrow.svg";
 import { TokenBalance } from "../views/TokenBalance";
 import { SelectMarketWrapper } from "./SelectMarketWrapper";
@@ -25,17 +25,13 @@ const defaultState = {
 };
 
 class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
-    private readonly appContainer: AppContainer;
-    private readonly optionsContainer: OptionsContainer;
-
     constructor(props: Props) {
         super(props);
-        [this.appContainer, this.optionsContainer] = this.props.containers;
-        this.state = { ...defaultState, srcAmountState: this.appContainer.state.orderInputs.srcAmount };
+        this.state = { ...defaultState, srcAmountState: props.containers[0].state.orderInputs.srcAmount };
     }
 
     public render(): React.ReactNode {
-        const { t } = this.props;
+        const { t, containers: [appContainer] } = this.props;
         const { flipped } = this.state;
 
         const toggle = <div className="order--tabs">
@@ -47,8 +43,8 @@ class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
             </span>
         </div>;
 
-        const quoteCurrency = this.optionsContainer.state.preferredCurrency;
-        const orderInputs = this.appContainer.state.orderInputs;
+        const quoteCurrency = appContainer.state.preferredCurrency;
+        const orderInputs = appContainer.state.orderInputs;
 
         const firstSubtext = <>
             {"~ "}
@@ -57,7 +53,7 @@ class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
             <TokenBalance
                 token={orderInputs.srcToken}
                 convertTo={quoteCurrency}
-                tokenPrices={this.appContainer.state.tokenPrices}
+                tokenPrices={appContainer.state.tokenPrices}
                 amount={orderInputs.srcAmount || "0"}
             />
         </>;
@@ -106,16 +102,16 @@ class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
      */
     private readonly debouncedVolumeChange = async (value: string) =>
         debounce(100, false, async () =>
-            this.appContainer.updateSrcAmount(value).catch(_catchInteractionErr_)
+            this.props.containers[0].updateSrcAmount(value).catch(_catchInteractionErr_)
         )()
 
     private readonly toggleSide = async () => {
-        await this.appContainer.flipSendReceive();
+        await this.props.containers[0].flipSendReceive();
     }
 }
 
-interface Props extends ConnectedProps<[AppContainer, OptionsContainer]>, WithTranslation {
+interface Props extends ConnectedProps<[AppContainer, AppContainer]>, WithTranslation {
     marketPrice: number;
 }
 
-export const NewOrderInputs = withTranslation()(connect<Props>([AppContainer, OptionsContainer])(NewOrderInputsClass));
+export const NewOrderInputs = withTranslation()(connect<Props>([AppContainer, AppContainer])(NewOrderInputsClass));

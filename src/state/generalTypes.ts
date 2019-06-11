@@ -41,11 +41,6 @@ export interface TokenDetails {
     validator: (address: string) => boolean;
 }
 
-export enum UITheme {
-    Light = "theme-light", // light theme's CSS class
-    Dark = "theme-dark", // dark theme's CSS class
-}
-
 export type TokenPrices = Map<Token, Map<Currency, number>>;
 
 // tslint:disable-next-line: ban-types

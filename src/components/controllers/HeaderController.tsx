@@ -4,8 +4,8 @@ import { currencies, CurrencyIcon, Dropdown, Header } from "@renex/react-compone
 import { useTranslation } from "react-i18next";
 import { Link, RouteComponentProps, withRouter } from "react-router-dom";
 
+import { AppContainer } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
-import { OptionsContainer } from "../../state/containers";
 import { ReactComponent as Logo } from "../../styles/images/logo.svg";
 import { ReactComponent as German } from "../../styles/images/rp-flag-de.svg";
 import { ReactComponent as English } from "../../styles/images/rp-flag-uk.svg";
@@ -29,7 +29,7 @@ const logo = <Link className="no-underline" to="/">
     <h1>DEX Demo</h1>
 </Link>;
 
-interface Props extends RouteComponentProps, ConnectedProps<[OptionsContainer]> {
+interface Props extends RouteComponentProps, ConnectedProps<[AppContainer]> {
     handleLogin: () => {};
     handleLogout: () => {};
 }
@@ -37,8 +37,8 @@ interface Props extends RouteComponentProps, ConnectedProps<[OptionsContainer]> 
 /**
  * HeaderController is a visual component providing page branding and navigation.
  */
-export const HeaderController = (withRouter(connect<Props>([OptionsContainer])(
-    ({ handleLogout, handleLogin, containers: [optionsContainer] }) => {
+export const HeaderController = (withRouter(connect<Props>([AppContainer])(
+    ({ handleLogout, handleLogin, containers: [appContainer] }) => {
         const { t, i18n } = useTranslation();
 
         const [currentLanguage, setCurrentLanguage] = React.useState(i18n.language);
@@ -64,7 +64,7 @@ export const HeaderController = (withRouter(connect<Props>([OptionsContainer])(
             setValue={setLanguage}
         />;
 
-        const quoteCurrency = optionsContainer.state.preferredCurrency;
+        const quoteCurrency = appContainer.state.preferredCurrency;
         const currencyDropdown = <Dropdown
             key="currencyDropdown"
             selected={{
@@ -75,7 +75,7 @@ export const HeaderController = (withRouter(connect<Props>([OptionsContainer])(
                 </>
             }}
             options={currencyOptions}
-            setValue={optionsContainer.setCurrency}
+            setValue={appContainer.setCurrency}
         />;
 
         return <Header
