@@ -3,7 +3,7 @@ import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
-import { isERC20, isEthereumBased } from "../../lib/shiftSDK/eth/eth";
+import { isERC20, isEthereumBased } from "../../shiftSDK/eth/eth";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AppContainer, OptionsContainer } from "../../state/containers";
 import { HistoryEvent } from "../../state/containers/appContainer";

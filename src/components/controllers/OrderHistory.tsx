@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 
 import { naturalTime } from "../../lib/conversion";
 import { ETHERSCAN } from "../../lib/environmentVariables";
-import { Chain } from "../../lib/shiftSDK/shiftSDK";
+import { Chain } from "../../shiftSDK/shiftSDK";
 import { HistoryEvent, Tx } from "../../state/containers/appContainer";
 import { ReactComponent as Arrow } from "../../styles/images/arrow-right.svg";
 import { ReactComponent as Next } from "../../styles/images/next.svg";

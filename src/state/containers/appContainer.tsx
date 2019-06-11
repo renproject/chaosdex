@@ -13,11 +13,11 @@ import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
 import { estimatePrice } from "../../lib/estimatePrice";
 import { history } from "../../lib/history";
 import { getMarket, getTokenPricesInCurrencies } from "../../lib/market";
-import { btcAddressToHex } from "../../lib/shiftSDK/blockchain/btc";
-import { strip0x } from "../../lib/shiftSDK/blockchain/common";
-import { ShiftedInResponse, ShiftedOutResponse } from "../../lib/shiftSDK/darknode/darknodeGroup";
-import { isERC20, isEthereumBased } from "../../lib/shiftSDK/eth/eth";
-import { Chain, UTXO } from "../../lib/shiftSDK/shiftSDK";
+import { btcAddressToHex } from "../../shiftSDK/blockchain/btc";
+import { strip0x } from "../../shiftSDK/blockchain/common";
+import { ShiftedInResponse, ShiftedOutResponse } from "../../shiftSDK/darknode/darknodeGroup";
+import { isERC20, isEthereumBased } from "../../shiftSDK/eth/eth";
+import { Chain, UTXO } from "../../shiftSDK/shiftSDK";
 import { MarketPair, Token, Tokens } from "../generalTypes";
 
 // const transferEvent = [{

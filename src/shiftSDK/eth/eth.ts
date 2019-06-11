@@ -4,10 +4,11 @@ import Web3 from "web3";
 import { Contract } from "web3-eth-contract/types";
 import { AbiItem } from "web3-utils";
 
-import { Token, Tokens } from "../../../state/generalTypes";
+import { Token, Tokens } from "../../state/generalTypes";
 import { Chain } from "../shiftSDK";
-import BridgedTokenABI from "./BridgedTokenABI.json";
-import DarknodeRegistryABI from "./DarknodeRegistryABI.json";
+
+const BridgedTokenABI = require("./BridgedTokenABI.json");
+const DarknodeRegistryABI = require("./DarknodeRegistryABI.json");
 
 export const NULL = "0x0000000000000000000000000000000000000000";
 export const NULL_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000";

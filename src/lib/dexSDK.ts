@@ -4,6 +4,9 @@ import Web3 from "web3";
 import { PromiEvent } from "web3-core";
 import { AbiItem } from "web3-utils";
 
+import { ShiftedInResponse, ShiftedOutResponse } from "../shiftSDK/darknode/darknodeGroup";
+import { isERC20, NULL_BYTES32 } from "../shiftSDK/eth/eth";
+import { Chain, ShiftSDK, UTXO } from "../shiftSDK/shiftSDK";
 import { MarketPair, Token, Tokens } from "../state/generalTypes";
 import { tokenAddresses } from "./contractAddresses";
 import { ERC20DetailedWeb3 } from "./contracts/erc20";
@@ -12,9 +15,6 @@ import { RenExAdapterWeb3, Transaction } from "./contracts/ren_ex_adapter";
 import { NETWORK } from "./environmentVariables";
 import { _catchInteractionErr_ } from "./errors";
 import { getReadonlyWeb3, getWeb3 } from "./getWeb3";
-import { ShiftedInResponse, ShiftedOutResponse } from "./shiftSDK/darknode/darknodeGroup";
-import { isERC20, NULL_BYTES32 } from "./shiftSDK/eth/eth";
-import { Chain, ShiftSDK, UTXO } from "./shiftSDK/shiftSDK";
 
 const ERC20ABI = require("./contracts/erc20_abi.json");
 const RenExABI = require("./contracts/ren_ex_abi.json");

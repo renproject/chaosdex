@@ -2,7 +2,8 @@
     "extends": [
         "tslint:recommended",
         "tslint-react",
-        "tslint-microsoft-contrib/latest"
+        "tslint-microsoft-contrib/latest",
+        "tslint-react-hooks"
     ],
     "rulesDirectory": [
         "node_modules/tslint-microsoft-contrib"
@@ -78,6 +79,7 @@
         "no-unnecessary-type-assertion": true,
         "no-unnecessary-local-variable": false,
         "only-arrow-functions": true,
+        "react-hooks-nesting": "error",
 
         // Configured
         "no-unused-variable": [true, {

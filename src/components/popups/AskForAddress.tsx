@@ -4,7 +4,7 @@ import { TokenIcon } from "@renex/react-components";
 import { useTranslation } from "react-i18next";
 
 import { _catchInteractionErr_ } from "../../lib/errors";
-import { Chain } from "../../lib/shiftSDK/shiftSDK";
+import { Chain } from "../../shiftSDK/shiftSDK";
 import { Token, Tokens } from "../../state/generalTypes";
 import { ReactComponent as MetaMask } from "../../styles/images/metamask.svg";
 import { Popup } from "./Popup";
