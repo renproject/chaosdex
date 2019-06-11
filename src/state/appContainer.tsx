@@ -256,9 +256,12 @@ export class AppContainer extends Container<typeof initialState> {
         const promiEvent = dexSDK.submitSwap(address, commitment, signature);
         const transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve).catch(reject));
 
-        await new Promise<BigNumber>((resolve, reject) => promiEvent.once("confirmation", (confirmations: number, receipt: TransactionReceipt) => {
+        if (isEthereumBased(commitment.orderInputs.dstToken)) {
+            await this.setState({ pendingTXs: this.state.pendingTXs.set(transactionHash, 0) });
+        }
+
+        const receivedAmount = await new Promise<BigNumber>((resolve, reject) => promiEvent.once("confirmation", (confirmations: number, receipt: TransactionReceipt) => {
             if (isEthereumBased(commitment.orderInputs.dstToken)) {
-                this.setState({ outTx: EthereumTx(transactionHash), pendingTXs: this.state.pendingTXs.set(transactionHash, 0) }).catch(_catchInteractionErr_);
                 this.setState({ pendingTXs: this.state.pendingTXs.remove(transactionHash) }).catch(_catchInteractionErr_);
 
                 // Loop through logs to find burn log
@@ -271,8 +274,8 @@ export class AppContainer extends Container<typeof initialState> {
                     ) {
                         const dstTokenDetails = Tokens.get(commitment.orderInputs.dstToken);
                         const decimals = dstTokenDetails ? dstTokenDetails.decimals : 8;
-                        const receivedAmount = new BigNumber(log.data, 16).dividedBy(new BigNumber(10).exponentiatedBy(decimals));
-                        resolve(receivedAmount);
+                        const rcv = new BigNumber(log.data, 16).dividedBy(new BigNumber(10).exponentiatedBy(decimals));
+                        resolve(rcv);
                     }
                 }
                 reject();
@@ -310,27 +313,31 @@ export class AppContainer extends Container<typeof initialState> {
                         const dstTokenDetails = Tokens.get(commitment.orderInputs.dstToken);
                         const decimals = dstTokenDetails ? dstTokenDetails.decimals : 8;
                         const receivedAmountHex = parseInt(log.data, 16).toString(16);
-                        const receivedAmount = new BigNumber(log.data, 16).dividedBy(new BigNumber(10).exponentiatedBy(decimals));
-                        this.setState({ receivedAmount, receivedAmountHex }).catch(_catchInteractionErr_);
-                        resolve(receivedAmount);
+                        const rcv = new BigNumber(log.data, 16).dividedBy(new BigNumber(10).exponentiatedBy(decimals));
+                        this.setState({ receivedAmountHex }).catch(_catchInteractionErr_);
+                        resolve(rcv);
                     }
                 }
-                this.setState({ inTx: EthereumTx(transactionHash) }).catch(_catchInteractionErr_);
-
                 reject();
             }
         }).catch(reject));
+
+        if (isEthereumBased(commitment.orderInputs.dstToken)) {
+            await this.setState({ receivedAmount, outTx: EthereumTx(transactionHash) });
+        } else {
+            await this.setState({ receivedAmount, inTx: EthereumTx(transactionHash) });
+        }
     }
 
     public getHistoryEvent = async () => {
         const { inTx, outTx, commitment, receivedAmount } = this.state;
-        if (!commitment || !inTx || !outTx) {
+        if (!commitment || !inTx || !outTx || !receivedAmount) {
             throw new Error(`Invalid values passed to getHistoryEvent`);
         }
         const historyItem: HistoryEvent = {
             inTx,
             outTx,
-            receivedAmount: receivedAmount ? receivedAmount.toFixed() : commitment.orderInputs.dstAmount,
+            receivedAmount: receivedAmount.toFixed(),
             orderInputs: commitment.orderInputs,
             time: Date.now() / 1000,
             complete: false,
