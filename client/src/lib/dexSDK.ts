@@ -1,25 +1,27 @@
 import { testnet as kovanAddresses } from "@renex/contracts";
 import BigNumber from "bignumber.js";
 import Web3 from "web3";
-import { PromiEvent } from "web3-core";
+import { Log, PromiEvent, TransactionReceipt } from "web3-core";
 import { AbiItem } from "web3-utils";
 
+import { ERC20Detailed } from "../contracts/ERC20Detailed";
+import { RenEx } from "../contracts/RenEx";
+import { RenExAdapter } from "../contracts/RenExAdapter";
 import { ShiftedInResponse, ShiftedOutResponse } from "../shiftSDK/darknode/darknodeGroup";
 import { Chain, ShiftSDK, UTXO } from "../shiftSDK/shiftSDK";
 import { isERC20, MarketPair, Token, Tokens } from "../state/generalTypes";
 import { tokenAddresses } from "./contractAddresses";
-import { ERC20DetailedWeb3 } from "./contracts/erc20";
-import { RenExWeb3 } from "./contracts/ren_ex";
-import { RenExAdapterWeb3, Transaction } from "./contracts/ren_ex_adapter";
 import { NETWORK } from "./environmentVariables";
 import { _catchInteractionErr_ } from "./errors";
 import { getReadonlyWeb3, getWeb3 } from "./getWeb3";
 
-const ERC20ABI = require("./contracts/erc20_abi.json");
-const RenExABI = require("./contracts/ren_ex_abi.json");
-const RenExAdapterABI = require("./contracts/ren_ex_adapter_abi.json");
+const ERC20ABI = require("../contracts/ERC20.json").abi;
+const RenExABI = require("../contracts/RenEx.json").abi;
+const RenExAdapterABI = require("../contracts/RenExAdapter.json").abi;
 
 const NULL_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000";
+
+interface Transaction { receipt: TransactionReceipt; tx: string; logs: Log[]; }
 
 export interface OrderInputs {
     srcToken: Token;
@@ -75,11 +77,11 @@ const tokenToChain = (token: Token): Chain => {
 
 /// Initialize Web3 and contracts
 
-const getExchange = (web3: Web3): RenExWeb3 =>
-    new (web3.eth.Contract)(RenExABI as AbiItem[], RENEX_ADDRESS);
-const getERC20 = (web3: Web3, tokenAddress: string): ERC20DetailedWeb3 =>
+const getExchange = (web3: Web3): RenEx =>
+    new web3.eth.Contract(RenExABI as AbiItem[], RENEX_ADDRESS);
+const getERC20 = (web3: Web3, tokenAddress: string): ERC20Detailed =>
     new (web3.eth.Contract)(ERC20ABI as AbiItem[], tokenAddress);
-const getAdapter = (web3: Web3): RenExAdapterWeb3 =>
+const getAdapter = (web3: Web3): RenExAdapter =>
     new (web3.eth.Contract)(RenExAdapterABI as AbiItem[], RENEX_ADAPTER_ADDRESS);
 
 /**
@@ -214,7 +216,8 @@ export class DexSDK {
 
         return getAdapter(this.web3).methods.trade(
             ...params,
-        ).send({ from: address, gas: 350000 });
+        // tslint:disable-next-line:no-any
+        ).send({ from: address, gas: 350000 } as any);
     }
 
     public submitBurn = async (commitment: Commitment, receivedAmountHex: string): Promise<string> => {
@@ -258,7 +261,8 @@ export class DexSDK {
         const promiEvent = tokenInstance.methods.approve(
             getAdapter(this.web3).address,
             amount.toString()
-        ).send({ from: address });
+        // tslint:disable-next-line:no-any
+        ).send({ from: address } as any);
         let transactionHash: string | undefined;
         transactionHash = await new Promise((resolve, reject) => promiEvent.on("transactionHash", resolve));
         return amount;
