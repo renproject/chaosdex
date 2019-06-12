@@ -4,13 +4,13 @@ import Web3 from "web3";
 import { Log, PromiEvent, TransactionReceipt } from "web3-core";
 import { AbiItem } from "web3-utils";
 
-import { ERC20Detailed } from "../contracts/ERC20Detailed";
-import { RenEx } from "../contracts/RenEx";
-import { RenExAdapter } from "../contracts/RenExAdapter";
 import { ShiftedInResponse, ShiftedOutResponse } from "../shiftSDK/darknode/darknodeGroup";
 import { Chain, ShiftSDK, UTXO } from "../shiftSDK/shiftSDK";
 import { isERC20, MarketPair, Token, Tokens } from "../state/generalTypes";
 import { tokenAddresses } from "./contractAddresses";
+import { ERC20Detailed } from "./contracts/ERC20Detailed";
+import { RenEx } from "./contracts/RenEx";
+import { RenExAdapter } from "./contracts/RenExAdapter";
 import { NETWORK } from "./environmentVariables";
 import { _catchInteractionErr_ } from "./errors";
 import { getReadonlyWeb3, getWeb3 } from "./getWeb3";

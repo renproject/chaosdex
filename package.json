@@ -1,12 +1,16 @@
 {
   "name": "renshift-sol",
   "version": "0.1.0",
+  "config": {
+    "truffleBuildPath": "client/src/contracts"
+  },
   "scripts": {
-    "generate": "truffle compile && typechain --target truffle './build/**/*.json'",
+    "generate": "truffle compile && yarn run typings --target truffle",
+    "typings": "typechain $npm_package_config_truffleBuildPath'/**/*.json'",
     "coverage": "yarn run generate && solidity-coverage",
     "coveralls": "cat ./coverage/lcov.info | coveralls",
     "test": "yarn run generate && truffle test",
-    "bindings:ts": "truffle compile && typechain --target web3-1.0.0 --outDir './client/src/contracts' './client/src/contracts/**/*.json'",
+    "bindings:ts": "truffle compile && yarn run typings --target web3-1.0.0 --outDir './client/src/lib/contracts'",
     "bindings:go": "solc --allow-paths . --combined-json bin,abi,userdoc,devdoc,metadata $(find contracts -type f -name '*.sol') | abigen -pkg bindings --out bindings.go --abi -",
     "deploy": "truffle migrate --skipDryRun --network $NETWORK",
     "verify": "truffle run verify --network $NETWORK",

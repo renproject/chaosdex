@@ -8,7 +8,10 @@ node_modules
 
 # production
 /client/build
+# ABI location
 /client/src/contracts
+# Contract typings
+/client/src/lib/contracts
 
 # misc
 .DS_Store

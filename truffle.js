@@ -1,4 +1,5 @@
 const path = require("path");
+const packageJSON = require("./package.json");
 require("ts-node/register");
 require("dotenv").config();
 
@@ -53,5 +54,5 @@ module.exports = {
   api_keys: {
     etherscan: process.env.ETHERSCAN_KEY,
   },
-  contracts_build_directory: path.join(__dirname, "client/src/contracts"),
+  contracts_build_directory: path.join(__dirname, packageJSON.config.truffleBuildPath),
 };
