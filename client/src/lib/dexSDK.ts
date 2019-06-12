@@ -216,8 +216,7 @@ export class DexSDK {
 
         return getAdapter(this.web3).methods.trade(
             ...params,
-        // tslint:disable-next-line:no-any
-        ).send({ from: address, gas: 350000 } as any);
+        ).send({ from: address, gas: 350000 });
     }
 
     public submitBurn = async (commitment: Commitment, receivedAmountHex: string): Promise<string> => {
@@ -261,8 +260,7 @@ export class DexSDK {
         const promiEvent = tokenInstance.methods.approve(
             getAdapter(this.web3).address,
             amount.toString()
-        // tslint:disable-next-line:no-any
-        ).send({ from: address } as any);
+        ).send({ from: address });
         let transactionHash: string | undefined;
         transactionHash = await new Promise((resolve, reject) => promiEvent.on("transactionHash", resolve));
         return amount;
