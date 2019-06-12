@@ -8,6 +8,7 @@ node_modules
 
 # production
 /client/build
+/client/src/contracts
 
 # misc
 .DS_Store
