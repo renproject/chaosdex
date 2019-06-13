@@ -8,3 +8,6 @@ contract TestToken is ERC20, ERC20Detailed {
         _mint(msg.sender, 1000000000000000000000000000);
     }
 }
+
+contract RenToken is TestToken("Republic Token", "REN", 18) {}
+contract DaiToken is TestToken("MakerDAO", "DAI", 18) {}

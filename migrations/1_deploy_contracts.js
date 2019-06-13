@@ -5,7 +5,8 @@ const RenShift = artifacts.require("RenShift");
 const RenExReserve = artifacts.require("RenExReserve");
 const RenExAdapter = artifacts.require("RenExAdapter");
 const RenEx = artifacts.require("RenEx");
-const TestToken = artifacts.require("TestToken");
+const DaiToken = artifacts.require("DaiToken");
+const RenToken = artifacts.require("RenToken");
 
 let owner, vault, renShiftFees, renExFees;
 let btc, zec, dai, ren;
@@ -36,10 +37,10 @@ module.exports = async function (deployer, network, accounts) {
 
         btc = "";
         zec = "";
-        await deployer.deploy(TestToken, "DAI", "DAI", 18);
-        dai = TestToken.address;
-        await deployer.deploy(TestToken, "REN", "REN", 18);
-        ren = TestToken.address;
+        await deployer.deploy(DaiToken);
+        dai = DaiToken.address;
+        await deployer.deploy(RenToken);
+        ren = RenToken.address;
 
         RenShift.address = "";
         RenExAdapter.address = "";
