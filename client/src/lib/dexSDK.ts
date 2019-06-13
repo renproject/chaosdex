@@ -1,4 +1,3 @@
-import { testnet as kovanAddresses } from "@renex/contracts";
 import BigNumber from "bignumber.js";
 import Web3 from "web3";
 import { Log, PromiEvent, TransactionReceipt } from "web3-core";
@@ -7,7 +6,7 @@ import { AbiItem } from "web3-utils";
 import { ShiftedInResponse, ShiftedOutResponse } from "../shiftSDK/darknode/darknodeGroup";
 import { Chain, ShiftSDK, UTXO } from "../shiftSDK/shiftSDK";
 import { isERC20, MarketPair, Token, Tokens } from "../state/generalTypes";
-import { tokenAddresses } from "./contractAddresses";
+import { getRenExAdapterAddress, getRenExAddress, getTokenAddress, getTokenDecimals } from "./contractAddresses";
 import { ERC20Detailed } from "./contracts/ERC20Detailed";
 import { RenEx } from "./contracts/RenEx";
 import { RenExAdapter } from "./contracts/RenExAdapter";
@@ -64,9 +63,6 @@ export interface Commitment {
 
 export type ReserveBalances = Map<Token, BigNumber>;
 
-const RENEX_ADDRESS = "0x0dF3510a4128c0cA11518465f670dB970E9302B7";
-export const RENEX_ADAPTER_ADDRESS = "0x8cFbF788757e767392e707ACA1Ec18cE26e570fc";
-
 const tokenToChain = (token: Token): Chain => {
     const tokenDetails = Tokens.get(token, undefined);
     if (!tokenDetails) {
@@ -78,11 +74,11 @@ const tokenToChain = (token: Token): Chain => {
 /// Initialize Web3 and contracts
 
 const getExchange = (web3: Web3): RenEx =>
-    new web3.eth.Contract(RenExABI as AbiItem[], RENEX_ADDRESS);
+    new web3.eth.Contract(RenExABI as AbiItem[], getRenExAddress());
 const getERC20 = (web3: Web3, tokenAddress: string): ERC20Detailed =>
     new (web3.eth.Contract)(ERC20ABI as AbiItem[], tokenAddress);
 const getAdapter = (web3: Web3): RenExAdapter =>
-    new (web3.eth.Contract)(RenExAdapterABI as AbiItem[], RENEX_ADAPTER_ADDRESS);
+    new (web3.eth.Contract)(RenExAdapterABI as AbiItem[], getRenExAdapterAddress());
 
 /**
  * The ShiftSDK defines how to interact with the rest of this file
@@ -96,13 +92,13 @@ export class DexSDK {
 
     constructor(web3?: Web3) {
         this.web3 = web3 || getReadonlyWeb3();
-        this.shiftSDK = new ShiftSDK(this.web3, RENEX_ADAPTER_ADDRESS);
+        this.shiftSDK = new ShiftSDK(this.web3, getRenExAdapterAddress());
     }
 
     public connect = async () => {
         this.web3 = await getWeb3();
         this.connected = true;
-        this.shiftSDK = new ShiftSDK(this.web3, RENEX_ADAPTER_ADDRESS);
+        this.shiftSDK = new ShiftSDK(this.web3, getRenExAdapterAddress());
     }
 
     /**
@@ -112,27 +108,33 @@ export class DexSDK {
      */
     public getReserveBalance = async (marketPairs: MarketPair[]): Promise<ReserveBalances[]> => {
         const exchange = getExchange(this.web3);
+        console.log(`exchange: ${exchange.address}`);
 
         const balance = async (token: Token, address: string): Promise<BigNumber> => {
             if (token === Token.ETH) {
                 return new BigNumber((await this.web3.eth.getBalance(address)).toString());
             }
-            const tokenAddress = kovanAddresses.addresses.tokens[token].address;
+            console.log(`reserve address: ${address}`);
+            const tokenAddress = getTokenAddress(token);
+            console.log(`token: ${token} address: ${tokenAddress}`);
             const tokenInstance = getERC20(this.web3, tokenAddress);
-            const decimals = kovanAddresses.addresses.tokens[token].decimals;
+            const decimals = getTokenDecimals(token);
             const rawBalance = new BigNumber((await tokenInstance.methods.balanceOf(address).call()).toString());
             return rawBalance.dividedBy(new BigNumber(10).exponentiatedBy(decimals));
         };
 
-        return /*await*/ Promise.all(
+        return Promise.all(
             marketPairs.map(async (_marketPair) => {
                 const [left, right] = _marketPair.split("/") as [Token, Token];
-                const leftAddress = kovanAddresses.addresses.tokens[left].address;
-                const rightAddress = kovanAddresses.addresses.tokens[right].address;
+                const leftAddress = getTokenAddress(left);
+                const rightAddress = getTokenAddress(right);
+                console.log(`leftToken: ${left}, rightToken: ${right}`);
+                console.log(`leftAddress: ${leftAddress}, rightAddress: ${rightAddress}`);
                 const reserve = await exchange.methods.reserve(leftAddress, rightAddress).call();
+                console.log(`reserve: ${reserve}`);
                 const leftBalance = await balance(left, reserve);
                 const rightBalance = await balance(right, reserve);
-                // console.log(`${_marketPair}: ${leftBalance.toString()} ${left} and ${rightBalance.toString()} ${right}`);
+                console.log(`${_marketPair}: ${leftBalance.toString()} ${left} and ${rightBalance.toString()} ${right}`);
                 return new Map().set(left, leftBalance).set(right, rightBalance);
             })
         );
@@ -228,7 +230,7 @@ export class DexSDK {
         if (token === Token.ETH) {
             balance = await this.web3.eth.getBalance(address);
         } else if (isERC20(token)) {
-            const tokenAddress = tokenAddresses(token, NETWORK || "");
+            const tokenAddress = getTokenAddress(token);
             const tokenInstance = getERC20(this.web3, tokenAddress);
             balance = (await tokenInstance.methods.balanceOf(address).call()).toString();
         } else {
@@ -238,7 +240,7 @@ export class DexSDK {
     }
 
     public getTokenAllowance = async (token: Token, address: string): Promise<BigNumber> => {
-        const tokenAddress = tokenAddresses(token, NETWORK || "");
+        const tokenAddress = getTokenAddress(token);
         const tokenInstance = getERC20(this.web3, tokenAddress);
 
         const allowance = await tokenInstance.methods.allowance(address, getAdapter(this.web3).address).call();
@@ -253,7 +255,7 @@ export class DexSDK {
             return allowanceBN;
         }
 
-        const tokenAddress = tokenAddresses(token, NETWORK || "");
+        const tokenAddress = getTokenAddress(token);
         const tokenInstance = getERC20(this.web3, tokenAddress);
 
         // We don't have enough allowance so approve more

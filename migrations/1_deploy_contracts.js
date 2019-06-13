@@ -1,12 +1,14 @@
 /// <reference types="../types/truffle-contracts" />
 
-const ERC20Shifted = artifacts.require("ERC20Shifted");
+const ERC20 = artifacts.require("ERC20");
 const RenShift = artifacts.require("RenShift");
 const RenExReserve = artifacts.require("RenExReserve");
 const RenExAdapter = artifacts.require("RenExAdapter");
 const RenEx = artifacts.require("RenEx");
 const DaiToken = artifacts.require("DaiToken");
 const RenToken = artifacts.require("RenToken");
+const zBTC = artifacts.require("zBTC");
+const zZEC = artifacts.require("zZEC");
 
 let owner, vault, renShiftFees, renExFees;
 let btc, zec, dai, ren;
@@ -66,16 +68,32 @@ module.exports = async function (deployer, network, accounts) {
     const renShift = await RenShift.at(RenShift.address);
 
     if (!btc) {
-        await renShift.newShiftedToken("Shifted Bitcoin", "zBTC", 8);
+        await deployer.deploy(zBTC);
+        const zbtcInstance = await zBTC.at(zBTC.address);
+        await zbtcInstance.mint(accounts[0], "98765432123456789");
+        await zbtcInstance.transferOwnership(RenShift.address);
+        await renShift.setShiftedToken(zBTC.address, "zBTC");
         btc = await renShift.shiftedTokens("zBTC");
         console.log(`[BTC]: ${btc}`);
     }
+    const btcInst = await ERC20.at(btc);
+    const ownerBtcBal = await btcInst.balanceOf(accounts[0]);
+    console.log(`btc owner bal: ${ownerBtcBal.toString()}`);
 
     if (!zec) {
-        await renShift.newShiftedToken("Shifted ZCash", "zZEC", 8);
+        await deployer.deploy(zZEC);
+        const zzecInstance = await zZEC.at(zZEC.address);
+        await zzecInstance.mint(accounts[0], "98765432123456789");
+        await zzecInstance.transferOwnership(RenShift.address);
+        await renShift.setShiftedToken(zZEC.address, "zZEC");
+        // await renShift.newShiftedToken("Shifted ZCash", "zZEC", 8);
         zec = await renShift.shiftedTokens("zZEC");
         console.log(`[ZEC]: ${zec}`);
     }
+    const zecInst = await ERC20.at(zec);
+    const ownerZecBal = await zecInst.balanceOf(accounts[0]);
+    console.log(`Zec owner bal: ${ownerZecBal.toString()}`);
+
 
     if (!RenEx.address) {
         await deployer.deploy(
@@ -111,7 +129,25 @@ module.exports = async function (deployer, network, accounts) {
                     RenExReserve,
                     RenShift.address,
                 );
+                if (tokenMap[tokens[i]] !== eth) {
+                    const ercInstanceI = await ERC20.at(tokenMap[tokens[i]]);
+                    const ownerBalI = await ercInstanceI.balanceOf(accounts[0]);
+                    console.log(`owner balance of ${tokens[i]}: ${ownerBalI.toString()}`);
+                    await ercInstanceI.transfer(RenExReserve.address, "3000000000000000");
+                    const ercBalanceI = await ercInstanceI.balanceOf(RenExReserve.address);
+                    console.log(`balance of ${tokens[i]}: ${ercBalanceI.toString()}`);
+                }
+                if (tokenMap[tokens[j]] !== eth) {
+                    const ercInstanceJ = await ERC20.at(tokenMap[tokens[j]]);
+                    const ownerBalJ = await ercInstanceJ.balanceOf(accounts[0]);
+                    console.log(`owner balance of ${tokens[i]}: ${ownerBalJ.toString()}`);
+                    await ercInstanceJ.transfer(RenExReserve.address, "3000000000000000");
+                    const ercBalanceJ = await ercInstanceJ.balanceOf(RenExReserve.address);
+                    console.log(`balance of ${tokens[j]}: ${ercBalanceJ.toString()}`);
+                }
                 console.log(`[${tokens[i]}, ${tokens[j]}]: ${RenExReserve.address}`);
+                console.log(`[${tokenMap[tokens[i]]}, ${tokenMap[tokens[j]]}]`);
+                console.log(RenExReserve.address);
                 await renEx.registerReserve(tokenMap[tokens[i]], tokenMap[tokens[j]], RenExReserve.address);
             } else {
                 console.log(`\nUsing existing reserve for [${tokens[i]}, ${tokens[j]}]: ${current}\n`);

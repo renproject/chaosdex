@@ -4,11 +4,10 @@ import { List, Map, OrderedMap } from "immutable";
 import { Container } from "unstated";
 import { TransactionReceipt } from "web3-core";
 
-import { tokenAddresses } from "../lib/contractAddresses";
+import { getRenExAdapterAddress, getTokenAddress } from "../lib/contractAddresses";
 import {
-    Commitment, DexSDK, OrderInputs, RENEX_ADAPTER_ADDRESS, ReserveBalances,
+    Commitment, DexSDK, OrderInputs, ReserveBalances,
 } from "../lib/dexSDK";
-import { NETWORK } from "../lib/environmentVariables";
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../lib/errors";
 import { estimatePrice } from "../lib/estimatePrice";
 import { history } from "../lib/history";
@@ -195,8 +194,8 @@ export class AppContainer extends Container<typeof initialState> {
             hexToAddress = btcAddressToHex(toAddress);
         }
         const commitment: Commitment = {
-            srcToken: tokenAddresses(order.srcToken, "testnet"),
-            dstToken: tokenAddresses(order.dstToken, "testnet"),
+            srcToken: getTokenAddress(order.srcToken),
+            dstToken: getTokenAddress(order.dstToken),
             minDestinationAmount: new BigNumber(0),
             srcAmount: new BigNumber(order.srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals)),
             toAddress: hexToAddress,
@@ -267,7 +266,7 @@ export class AppContainer extends Container<typeof initialState> {
                 // Loop through logs to find burn log
                 for (const log of receipt.logs) {
                     if (
-                        log.address.toLowerCase() === tokenAddresses(commitment.orderInputs.dstToken, NETWORK || "").toLowerCase() &&
+                        log.address.toLowerCase() === getTokenAddress(commitment.orderInputs.dstToken).toLowerCase() &&
                         log.topics[0] === "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef".toLowerCase() &&
                         // log.topics[1] === `0x000000000000000000000000${strip0x(reserve_address)}`.toLowerCase() &&
                         log.topics[2] === `0x000000000000000000000000${strip0x(commitment.toAddress)}`.toLowerCase()
@@ -305,9 +304,9 @@ export class AppContainer extends Container<typeof initialState> {
                 // Loop through logs to find burn log
                 for (const log of receipt.logs) {
                     if (
-                        log.address.toLowerCase() === tokenAddresses(commitment.orderInputs.dstToken, NETWORK || "").toLowerCase() &&
+                        log.address.toLowerCase() === getTokenAddress(commitment.orderInputs.dstToken).toLowerCase() &&
                         log.topics[0] === "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef".toLowerCase() &&
-                        log.topics[1] === `0x000000000000000000000000${strip0x(RENEX_ADAPTER_ADDRESS)}`.toLowerCase() &&
+                        log.topics[1] === `0x000000000000000000000000${strip0x(getRenExAdapterAddress())}`.toLowerCase() &&
                         log.topics[2] === "0x0000000000000000000000000000000000000000000000000000000000000000".toLowerCase()
                     ) {
                         const dstTokenDetails = Tokens.get(commitment.orderInputs.dstToken);
