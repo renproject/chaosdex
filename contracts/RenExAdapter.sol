@@ -2,7 +2,6 @@ pragma solidity 0.5.8;
 
 import "./RenEx.sol";
 import "darknode-sol/contracts/RenShift/Shifter.sol";
-import "darknode-sol/contracts/RenShift/ERC20Shifted.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
