@@ -1,7 +1,11 @@
 /// <reference types="../types/truffle-contracts" />
 
-const ERC20Shifted = artifacts.require("ERC20Shifted");
-const Shifter = artifacts.require("Shifter");
+const NULL = "0x0000000000000000000000000000000000000000";
+
+const zBTC = artifacts.require("zBTC");
+const zZEC = artifacts.require("zZEC");
+const BTCShifter = artifacts.require("BTCShifter");
+const ZECShifter = artifacts.require("ZECShifter");
 const RenExReserve = artifacts.require("RenExReserve");
 const RenExAdapter = artifacts.require("RenExAdapter");
 const RenEx = artifacts.require("RenEx");
@@ -26,7 +30,6 @@ module.exports = async function (deployer, network, accounts) {
         dai = "0xc4375b7de8af5a38a93548eb8453a498222c4ff2";
         ren = "0x2cd647668494c1b15743ab283a0f980d90a87394";
 
-        Shifter.address = "";
         RenExAdapter.address = "";
         RenEx.address = "";
     } else if (network.match("development") || network.match("develop")) {
@@ -42,7 +45,8 @@ module.exports = async function (deployer, network, accounts) {
         await deployer.deploy(RenToken);
         ren = RenToken.address;
 
-        Shifter.address = "";
+        BTCShifter.address = "";
+        ZECShifter.address = "";
         RenExAdapter.address = "";
         RenEx.address = "";
     } else {
@@ -55,27 +59,36 @@ module.exports = async function (deployer, network, accounts) {
     // }
     // return;
 
-    if (!Shifter.address) {
+    if (!btc) {
+        await deployer.deploy(zBTC)
+        btc = (await zBTC.at(zBTC.address)).address;
+        console.log(`[BTC]: ${btc}`);
+    }
+    if (!BTCShifter.address) {
         await deployer.deploy(
-            Shifter,
+            BTCShifter,
             NULL,
+            btc,
             owner, // address _owner
             vault, // address _vault
             renShiftFees, // uint16 _fee
         );
     }
-    const renShift = await Shifter.at(Shifter.address);
-
-    if (!btc) {
-        await renShift.newShiftedToken("Shifted Bitcoin", "zBTC", 8);
-        btc = await renShift.shiftedTokens("zBTC");
-        console.log(`[BTC]: ${btc}`);
-    }
 
     if (!zec) {
-        await renShift.newShiftedToken("Shifted ZCash", "zZEC", 8);
-        zec = await renShift.shiftedTokens("zZEC");
+        await deployer.deploy(zZEC);
+        zec = (await zZEC.at(zZEC.address)).address;
         console.log(`[ZEC]: ${zec}`);
+    }
+    if (!ZECShifter.address) {
+        await deployer.deploy(
+            ZECShifter,
+            NULL,
+            zec,
+            owner, // address _owner
+            vault, // address _vault
+            renShiftFees, // uint16 _fee
+        );
     }
 
     if (!RenEx.address) {
@@ -90,7 +103,6 @@ module.exports = async function (deployer, network, accounts) {
         await deployer.deploy(
             RenExAdapter,
             RenEx.address, // RenEx _renex
-            Shifter.address, // Shifter _renshift
         );
     }
 
@@ -101,22 +113,35 @@ module.exports = async function (deployer, network, accounts) {
         eth,
         ren
     };
+    const shifterMap = {
+        btc: BTCShifter.address,
+        zec: ZECShifter.address,
+    }
     const tokens = ["btc", "zec", "dai", "eth", "ren"]
     console.log(`Deploying reserves:`);
     for (let i = 0; i < tokens.length - 1; i++) {
         for (let j = i + 1; j < tokens.length; j++) {
             console.log(`[${tokens[i]}, ${tokens[j]}]`);
+            console.log(tokenMap[tokens[i]]);
+            console.log(tokenMap[tokens[j]]);
+
             const current = await renEx.reserve(tokenMap[tokens[i]], tokenMap[tokens[j]]);
             if (current === "0x0000000000000000000000000000000000000000") {
                 await deployer.deploy(
-                    RenExReserve,
-                    Shifter.address,
+                    RenExReserve
                 );
+                const res = await RenExReserve.at(RenExReserve.address);
+                for (tok in [tokens[i], tokens[j]]) {
+                    if (Object.keys(shifterMap).includes(tok)) {
+                        res.setShifter(tokenMap[tok], shifterMap[tok]);
+                    }
+                }
                 console.log(`[${tokens[i]}, ${tokens[j]}]: ${RenExReserve.address}`);
                 await renEx.registerReserve(tokenMap[tokens[i]], tokenMap[tokens[j]], RenExReserve.address);
             } else {
                 console.log(`\nUsing existing reserve for [${tokens[i]}, ${tokens[j]}]: ${current}\n`);
             }
+
         }
     }
 }
