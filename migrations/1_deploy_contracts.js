@@ -1,7 +1,7 @@
 /// <reference types="../types/truffle-contracts" />
 
 const ERC20Shifted = artifacts.require("ERC20Shifted");
-const RenShift = artifacts.require("RenShift");
+const Shifter = artifacts.require("Shifter");
 const RenExReserve = artifacts.require("RenExReserve");
 const RenExAdapter = artifacts.require("RenExAdapter");
 const RenEx = artifacts.require("RenEx");
@@ -26,7 +26,7 @@ module.exports = async function (deployer, network, accounts) {
         dai = "0xc4375b7de8af5a38a93548eb8453a498222c4ff2";
         ren = "0x2cd647668494c1b15743ab283a0f980d90a87394";
 
-        RenShift.address = "";
+        Shifter.address = "";
         RenExAdapter.address = "";
         RenEx.address = "";
     } else if (network.match("development") || network.match("develop")) {
@@ -42,7 +42,7 @@ module.exports = async function (deployer, network, accounts) {
         await deployer.deploy(RenToken);
         ren = RenToken.address;
 
-        RenShift.address = "";
+        Shifter.address = "";
         RenExAdapter.address = "";
         RenEx.address = "";
     } else {
@@ -55,15 +55,16 @@ module.exports = async function (deployer, network, accounts) {
     // }
     // return;
 
-    if (!RenShift.address) {
+    if (!Shifter.address) {
         await deployer.deploy(
-            RenShift,
+            Shifter,
+            NULL,
             owner, // address _owner
             vault, // address _vault
             renShiftFees, // uint16 _fee
         );
     }
-    const renShift = await RenShift.at(RenShift.address);
+    const renShift = await Shifter.at(Shifter.address);
 
     if (!btc) {
         await renShift.newShiftedToken("Shifted Bitcoin", "zBTC", 8);
@@ -89,7 +90,7 @@ module.exports = async function (deployer, network, accounts) {
         await deployer.deploy(
             RenExAdapter,
             RenEx.address, // RenEx _renex
-            RenShift.address, // RenShift _renshift
+            Shifter.address, // Shifter _renshift
         );
     }
 
@@ -109,7 +110,7 @@ module.exports = async function (deployer, network, accounts) {
             if (current === "0x0000000000000000000000000000000000000000") {
                 await deployer.deploy(
                     RenExReserve,
-                    RenShift.address,
+                    Shifter.address,
                 );
                 console.log(`[${tokens[i]}, ${tokens[j]}]: ${RenExReserve.address}`);
                 await renEx.registerReserve(tokenMap[tokens[i]], tokenMap[tokens[j]], RenExReserve.address);
