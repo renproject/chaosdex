@@ -35,7 +35,7 @@ contract RenExAdapter is Ownable {
         // Handle refunds if the refund block number has passed
         if (block.number > _refundBN) {
             if (RenExReserve(renex.reserve(_src, _dst)).isShifted(address(_src))) {
-                RenExReserve(renex.reserve(_src, _dst)).shifters(address(_src)).shiftOut(_refundAddress, transferredAmt);
+                RenExReserve(renex.reserve(_src, _dst)).getShifter(address(_src)).shiftOut(_refundAddress, transferredAmt);
             }
             // FIXME: Also handle the refunds for non-shifted tokens
             return;
@@ -73,7 +73,7 @@ contract RenExAdapter is Ownable {
 
         require(recvAmt > _minDstAmt, "invalid receive amount");
         if (reserve.isShifted(address(_dst))) {
-            reserve.shifters(address(_dst)).shiftOut(_to, recvAmt);
+            reserve.getShifter(address(_dst)).shiftOut(_to, recvAmt);
         }
         emit LogTransferOut(_dst, recvAmt);
     }
@@ -82,7 +82,7 @@ contract RenExAdapter is Ownable {
         RenExReserve reserve = RenExReserve(renex.reserve(_src, _dst));
 
         if (reserve.isShifted(address(_src))) {
-            return reserve.shifters(address(_src)).shiftIn(address(this), _amount, _hash, _commitment, _sig);
+            return reserve.getShifter(address(_src)).shiftIn(address(this), _amount, _hash, _commitment, _sig);
         } else if (_src == renex.ethereum()) {
             require(msg.value >= _amount, "insufficient eth amount");
             return msg.value;

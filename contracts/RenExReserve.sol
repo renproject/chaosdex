@@ -7,7 +7,7 @@ import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 contract RenExReserve is Ownable {
     ERC20 public ethereum = ERC20(0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee);
 
-    mapping (address => Shifter) public shifters;
+    mapping (address => Shifter) public getShifter;
     mapping (address => bool) public isShifted;
     mapping (address=>uint256) public approvals;
 
@@ -25,7 +25,7 @@ contract RenExReserve is Ownable {
 
     function setShifter(ERC20 _token, Shifter _renshift) external onlyOwner {
         isShifted[address(_token)] = true;
-        shifters[address(_token)] = _renshift;
+        getShifter[address(_token)] = _renshift;
     }
 
     function transfer(address payable _to, uint256 _value) external {
@@ -39,7 +39,7 @@ contract RenExReserve is Ownable {
             bytesToAddress(_to).transfer(_amount);
         } else {
             if (isShifted[address(_token)]) {
-                shifters[address(_token)].shiftOut(_to, _amount);
+                getShifter[address(_token)].shiftOut(_to, _amount);
             } else {
                 _token.transfer(bytesToAddress(_to), _amount);
             }
