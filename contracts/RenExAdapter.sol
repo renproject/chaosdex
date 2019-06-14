@@ -1,7 +1,7 @@
 pragma solidity 0.5.8;
 
 import "./RenEx.sol";
-import "darknode-sol/contracts/RenShift/Shifter.sol";
+import "./RenExReserve.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
@@ -28,14 +28,19 @@ contract RenExAdapter is Ownable {
         uint256 _refundBN, bytes calldata _refundAddress,
         uint256 _amount, bytes32 _hash, bytes calldata _sig
     ) external payable {
-        Shifter shifter = getShifter(_src, _dst);
         bytes32 commit = commitment(_src, _dst, _minDstAmt, _to, _refundBN, _refundAddress);
         uint256 transferredAmt = transferIn(_src, _dst, _amount, _hash, commit, _sig);
         emit LogTransferIn(_src, _amount);
-        if (block.number > _refundBN && address(shifter.token) == address(_src)) {
-            shifter.shiftOut(_refundAddress, transferredAmt);
+
+        // Handle refunds if the refund block number has passed
+        if (block.number > _refundBN) {
+            if (RenExReserve(renex.reserve(_src, _dst)).isShifted(address(_src))) {
+                RenExReserve(renex.reserve(_src, _dst)).shifters(address(_src)).shiftOut(_refundAddress, transferredAmt);
+            }
+            // FIXME: Also handle the refunds for non-shifted tokens
             return;
         }
+
         doTrade(_src, _dst, _minDstAmt, _to, transferredAmt);
     }
 
@@ -51,9 +56,9 @@ contract RenExAdapter is Ownable {
     ) internal {
         uint256 recvAmt;
         address payable to;
-        Shifter renshift = getShifter(_src, _dst);
+        RenExReserve reserve = RenExReserve(renex.reserve(_src, _dst));
 
-        if (address(renshift.token) == address(_dst)) {
+        if (reserve.isShifted(address(_dst))) {
             to = address(this);
         } else {
             to = bytesToAddress(_to);
@@ -67,17 +72,17 @@ contract RenExAdapter is Ownable {
         }
 
         require(recvAmt > _minDstAmt, "invalid receive amount");
-        if (address(renshift.token) == address(_dst)) {
-            renshift.shiftOut(_to, recvAmt);
+        if (reserve.isShifted(address(_dst))) {
+            reserve.shifters(address(_dst)).shiftOut(_to, recvAmt);
         }
         emit LogTransferOut(_dst, recvAmt);
     }
 
     function transferIn(ERC20 _src, ERC20 _dst, uint256 _amount, bytes32 _hash, bytes32 _commitment, bytes memory _sig) internal returns (uint256) {
-        Shifter renshift = getShifter(_src, _dst);
+        RenExReserve reserve = RenExReserve(renex.reserve(_src, _dst));
 
-        if (address(renshift.token) == address(_src)) {
-            return renshift.shiftIn(address(this), _amount, _hash, _commitment, _sig);
+        if (reserve.isShifted(address(_src))) {
+            return reserve.shifters(address(_src)).shiftIn(address(this), _amount, _hash, _commitment, _sig);
         } else if (_src == renex.ethereum()) {
             require(msg.value >= _amount, "insufficient eth amount");
             return msg.value;
@@ -94,9 +99,5 @@ contract RenExAdapter is Ownable {
             addr := mload(add(_addr, 20))
         }
         return addr;
-    }
-
-    function getShifter(ERC20 _src, ERC20 _dst) internal view returns (Shifter) {
-        return RenExReserve(renex.reserve(_src, _dst)).renshift();
     }
 }
