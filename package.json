@@ -17,7 +17,7 @@
     "prepare": "patch-package"
   },
   "dependencies": {
-    "darknode-sol": "github:renproject/darknode-sol#646055c391df04ffb90846ca3151f4061d581252",
+    "darknode-sol": "github:renproject/darknode-sol#964fcbfbea7aa6f9d9ff573b9c12d3ac6a8d3388",
     "openzeppelin-solidity": "2.3.0",
     "truffle-typings": "^1.0.6",
     "ts-node": "^8.2.0"
