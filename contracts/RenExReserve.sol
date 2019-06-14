@@ -1,16 +1,16 @@
 pragma solidity 0.5.8;
 
-import "darknode-sol/contracts/RenShift/RenShift.sol";
+import "darknode-sol/contracts/RenShift/Shifter.sol";
 import "darknode-sol/contracts/RenShift/ERC20Shifted.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 
 contract RenExReserve is Ownable {
-    RenShift public renshift;
+    Shifter public renshift;
     ERC20 public ethereum = ERC20(0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee);
     mapping (address=>uint256) public approvals;
 
-    constructor(RenShift _renshift) public {
+    constructor(Shifter _renshift) public {
         renshift = _renshift;
     }
 
@@ -26,7 +26,7 @@ contract RenExReserve is Ownable {
         }
     }
 
-    function updateRenShift(RenShift _renshift) external onlyOwner {
+    function updateShifter(Shifter _renshift) external onlyOwner {
         renshift = _renshift;
     }
 
@@ -40,8 +40,8 @@ contract RenExReserve is Ownable {
         if (_token == ethereum) {
             bytesToAddress(_to).transfer(_amount);
         } else {
-            if (renshift.isShiftedToken(address(_token))) {
-                renshift.shiftOut(ERC20Shifted(address(_token)), _to, _amount);
+            if (address(renshift.token) == address(_token)) {
+                renshift.shiftOut(_to, _amount);
             } else {
                 _token.transfer(bytesToAddress(_to), _amount);
             }
