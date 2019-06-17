@@ -48,7 +48,7 @@ export const App = connect<Props>([AppContainer])(
                 appContainer.updateAccountBalances().catch(_catchBackgroundErr_);
                 setInitialized(true);
             }
-        }, [initialized, appContainer]);
+        }, [initialized, loggedIn, appContainer]);
 
         return <main>
             <React.Suspense fallback={null}>
