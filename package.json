@@ -1,12 +1,12 @@
 {
-  "name": "renshift-sol",
+  "name": "shifter-sol",
   "version": "0.1.0",
   "config": {
     "truffleBuildPath": "client/src/contracts"
   },
   "scripts": {
     "generate": "truffle compile && yarn run typings --target truffle",
-    "typings": "typechain $npm_package_config_truffleBuildPath'/**/*.json'",
+    "typings": "echo $npm_package_config_truffleBuildPath'/**/*.json' && typechain $npm_package_config_truffleBuildPath'/**/*.json'",
     "coverage": "yarn run generate && solidity-coverage",
     "coveralls": "cat ./coverage/lcov.info | coveralls",
     "test": "yarn run generate && truffle test",
@@ -17,7 +17,7 @@
     "prepare": "patch-package"
   },
   "dependencies": {
-    "darknode-sol": "github:renproject/darknode-sol#aba92b64670b3f16d9168f46eea729cc88f31727",
+    "darknode-sol": "https://github.com/renproject/darknode-sol#shifter",
     "openzeppelin-solidity": "2.3.0",
     "truffle-typings": "^1.0.6",
     "ts-node": "^8.2.0"

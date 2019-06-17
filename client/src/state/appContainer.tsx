@@ -5,9 +5,7 @@ import { Container } from "unstated";
 import { TransactionReceipt } from "web3-core";
 
 import { getRenExAdapterAddress, getTokenAddress } from "../lib/contractAddresses";
-import {
-    Commitment, DexSDK, OrderInputs, ReserveBalances,
-} from "../lib/dexSDK";
+import { Commitment, DexSDK, OrderInputs, ReserveBalances } from "../lib/dexSDK";
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../lib/errors";
 import { estimatePrice } from "../lib/estimatePrice";
 import { history } from "../lib/history";
@@ -98,8 +96,11 @@ export class AppContainer extends Container<typeof initialState> {
         const { dexSDK } = this.state;
         await dexSDK.connect();
 
-        const addresses = await dexSDK.web3.eth.getAccounts();
-        await this.setState({ address: addresses.length > 0 ? addresses[0] : null });
+        if (dexSDK.web3) {
+            const addresses = await dexSDK.web3.eth.getAccounts();
+            await this.setState({ address: addresses.length > 0 ? addresses[0] : null });
+        }
+
         await this.updateAccountBalances();
     }
 
@@ -184,6 +185,9 @@ export class AppContainer extends Container<typeof initialState> {
         if (!toAddress || !refundAddress || !srcTokenDetails) {
             throw new Error(`Required info is undefined (${toAddress}, ${refundAddress}, ${srcTokenDetails})`);
         }
+        if (!dexSDK.web3) {
+            throw new Error("Not ready yet...");
+        }
         const blockNumber = await dexSDK.web3.eth.getBlockNumber();
         let hexRefundAddress = refundAddress;
         if (order.srcToken === Token.BTC) {
@@ -194,8 +198,8 @@ export class AppContainer extends Container<typeof initialState> {
             hexToAddress = btcAddressToHex(toAddress);
         }
         const commitment: Commitment = {
-            srcToken: getTokenAddress(order.srcToken),
-            dstToken: getTokenAddress(order.dstToken),
+            srcToken: await getTokenAddress(order.srcToken),
+            dstToken: await getTokenAddress(order.dstToken),
             minDestinationAmount: new BigNumber(0),
             srcAmount: new BigNumber(order.srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals)),
             toAddress: hexToAddress,
@@ -252,21 +256,21 @@ export class AppContainer extends Container<typeof initialState> {
             throw new Error(`Invalid values required for swap`);
         }
 
-        const promiEvent = dexSDK.submitSwap(address, commitment, signature);
+        const promiEvent = dexSDK.submitSwap(address, commitment, await getRenExAdapterAddress(), signature);
         const transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve).catch(reject));
 
         if (isEthereumBased(commitment.orderInputs.dstToken)) {
             await this.setState({ pendingTXs: this.state.pendingTXs.set(transactionHash, 0) });
         }
 
-        const receivedAmount = await new Promise<BigNumber>((resolve, reject) => promiEvent.once("confirmation", (confirmations: number, receipt: TransactionReceipt) => {
+        const receivedAmount = await new Promise<BigNumber>((resolve, reject) => promiEvent.once("confirmation", async (confirmations: number, receipt: TransactionReceipt) => {
             if (isEthereumBased(commitment.orderInputs.dstToken)) {
                 this.setState({ pendingTXs: this.state.pendingTXs.remove(transactionHash) }).catch(_catchInteractionErr_);
 
                 // Loop through logs to find burn log
                 for (const log of receipt.logs) {
                     if (
-                        log.address.toLowerCase() === getTokenAddress(commitment.orderInputs.dstToken).toLowerCase() &&
+                        log.address.toLowerCase() === (await getTokenAddress(commitment.orderInputs.dstToken)).toLowerCase() &&
                         log.topics[0] === "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef".toLowerCase() &&
                         // log.topics[1] === `0x000000000000000000000000${strip0x(reserve_address)}`.toLowerCase() &&
                         log.topics[2] === `0x000000000000000000000000${strip0x(commitment.toAddress)}`.toLowerCase()
@@ -279,34 +283,12 @@ export class AppContainer extends Container<typeof initialState> {
                 }
                 reject();
             } else {
-                /*
-                // Example log:
-                {
-                    address: "",
-                    blockHash: "0xf45bb29e86499cb9270fac41a522e2229d135e64facdb41c5f206bda6cd11a10",
-                    blockNumber: 11354259,
-                    data: "0x00000000000000000000000000000000000000000000000000000000000003ca",
-                    id: "log_0xcb6de4ec665873cd9782fca0a23b686b9ccb68c775ef27746d83af0c7ba0be5e",
-                    logIndex: 7,
-                    removed: false,
-                    topics: [
-                        "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-                        "0x0000000000000000000000008cfbf788757e767392e707aca1ec18ce26e570fc",
-                        "0x0000000000000000000000000000000000000000000000000000000000000000",
-                    ],
-                    transactionHash: "0x9d489c404e39326da77a7a2252c2bcfc4ec66140cc32064f0d5eb141a87bf29f",
-                    transactionIndex: 0,
-                    transactionLogIndex: "0x7",
-                    type: "mined",
-                }
-                */
-
                 // Loop through logs to find burn log
                 for (const log of receipt.logs) {
                     if (
-                        log.address.toLowerCase() === getTokenAddress(commitment.orderInputs.dstToken).toLowerCase() &&
+                        log.address.toLowerCase() === (await getTokenAddress(commitment.orderInputs.dstToken)).toLowerCase() &&
                         log.topics[0] === "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef".toLowerCase() &&
-                        log.topics[1] === `0x000000000000000000000000${strip0x(getRenExAdapterAddress())}`.toLowerCase() &&
+                        log.topics[1] === `0x000000000000000000000000${strip0x(await getRenExAdapterAddress())}`.toLowerCase() &&
                         log.topics[2] === "0x0000000000000000000000000000000000000000000000000000000000000000".toLowerCase()
                     ) {
                         const dstTokenDetails = Tokens.get(commitment.orderInputs.dstToken);
@@ -438,7 +420,7 @@ export class AppContainer extends Container<typeof initialState> {
             return;
         }
         let accountBalances = this.state.accountBalances;
-        const ethTokens = [Token.ETH, Token.DAI, Token.REN];
+        const ethTokens = [Token.ETH, Token.DAI]; // , Token.REN];
         const promises = ethTokens.map(token => dexSDK.fetchEthereumTokenBalance(token, address));
         const balances = await Promise.all(promises);
         balances.forEach((bal, index) => {

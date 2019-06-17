@@ -8,8 +8,6 @@ import { connect, ConnectedProps } from "../../state/connect";
 import { HeaderController } from "../views/HeaderController";
 import { Exchange } from "./Exchange";
 
-const useLoggedInState = createPersistedState("web3-logged-in");
-
 /**
  * App is the main visual component responsible for displaying different routes
  * and running background app loops
@@ -18,18 +16,13 @@ type Props = ConnectedProps<[AppContainer]>;
 export const App = connect<Props>([AppContainer])(
     (props) => {
         const { containers: [appContainer] } = props;
-        const [loggedIn, setLoggedIn] = useLoggedInState(false);
 
         const login = async () => {
             await appContainer.connect();
-            if (appContainer.state.address !== null) {
-                setLoggedIn(true);
-            }
         };
 
         const logout = async () => {
             await appContainer.clearAddress();
-            setLoggedIn(false);
         };
 
         // useEffect replaces `componentDidMount` and `componentDidUpdate`.
@@ -40,15 +33,13 @@ export const App = connect<Props>([AppContainer])(
                 setInterval(() => appContainer.updateTokenPrices().catch(_catchBackgroundErr_), 30 * 1000);
                 setInterval(() => appContainer.updateBalanceReserves().catch(_catchBackgroundErr_), 30 * 1000);
                 setInterval(() => appContainer.updateAccountBalances().catch(_catchBackgroundErr_), 30 * 1000);
-                if (loggedIn) {
-                    appContainer.connect().catch(_catchBackgroundErr_);
-                }
+                appContainer.connect().catch(_catchBackgroundErr_);
                 appContainer.updateTokenPrices().catch(_catchBackgroundErr_);
                 appContainer.updateBalanceReserves().catch(_catchBackgroundErr_);
                 appContainer.updateAccountBalances().catch(_catchBackgroundErr_);
                 setInitialized(true);
             }
-        }, [initialized, loggedIn, appContainer]);
+        }, [initialized, appContainer]);
 
         return <main>
             <React.Suspense fallback={null}>

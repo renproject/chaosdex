@@ -1,7 +1,7 @@
 [{
     "constant": true,
     "inputs": [],
-    "name": "renshift",
+    "name": "shifter",
     "outputs": [{
         "name": "",
         "type": "address"
@@ -128,10 +128,10 @@
 }, {
     "constant": false,
     "inputs": [{
-        "name": "_renshift",
+        "name": "_shifter",
         "type": "address"
     }],
-    "name": "updateRenShift",
+    "name": "updateShifter",
     "outputs": [],
     "payable": false,
     "stateMutability": "nonpayable",
@@ -152,7 +152,7 @@
         "name": "_renex",
         "type": "address"
     }, {
-        "name": "_renshift",
+        "name": "_shifter",
         "type": "address"
     }],
     "payable": false,

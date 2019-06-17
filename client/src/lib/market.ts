@@ -7,7 +7,7 @@ const CoinGeckoIDs = Map<Token, string>()
     .set(Token.DAI, "dai")
     .set(Token.BTC, "bitcoin")
     .set(Token.ETH, "ethereum")
-    .set(Token.REN, "republic-protocol")
+    // .set(Token.REN, "republic-protocol")
     .set(Token.ZEC, "zcash");
 
 /**

@@ -6,12 +6,13 @@ import { AbiItem } from "web3-utils";
 import { ShiftedInResponse, ShiftedOutResponse } from "../shiftSDK/darknode/darknodeGroup";
 import { Chain, ShiftSDK, UTXO } from "../shiftSDK/shiftSDK";
 import { isERC20, MarketPair, Token, Tokens } from "../state/generalTypes";
-import { getRenExAdapterAddress, getRenExAddress, getTokenAddress, getTokenDecimals } from "./contractAddresses";
+import {
+    getRenExAdapterAddress, getRenExAddress, getTokenAddress, getTokenDecimals,
+} from "./contractAddresses";
 import { ERC20Detailed } from "./contracts/ERC20Detailed";
 import { RenEx } from "./contracts/RenEx";
 import { RenExAdapter } from "./contracts/RenExAdapter";
-import { NETWORK } from "./environmentVariables";
-import { getReadonlyWeb3, getWeb3 } from "./getWeb3";
+import { getWeb3 } from "./getWeb3";
 
 const ERC20ABI = require("../contracts/ERC20.json").abi;
 const RenExABI = require("../contracts/RenEx.json").abi;
@@ -72,12 +73,14 @@ const tokenToChain = (token: Token): Chain => {
 
 /// Initialize Web3 and contracts
 
-const getExchange = (web3: Web3): RenEx =>
-    new web3.eth.Contract(RenExABI as AbiItem[], getRenExAddress());
+const getExchange = async (web3: Web3): Promise<RenEx> =>
+    new web3.eth.Contract(RenExABI as AbiItem[], await getRenExAddress());
 const getERC20 = (web3: Web3, tokenAddress: string): ERC20Detailed =>
     new (web3.eth.Contract)(ERC20ABI as AbiItem[], tokenAddress);
-const getAdapter = (web3: Web3): RenExAdapter =>
-    new (web3.eth.Contract)(RenExAdapterABI as AbiItem[], getRenExAdapterAddress());
+const getAdapter = async (web3: Web3): Promise<RenExAdapter> =>
+    new (web3.eth.Contract)(RenExAdapterABI as AbiItem[], await getRenExAdapterAddress());
+const syncGetAdapter = (web3: Web3, address: string): RenExAdapter =>
+    new (web3.eth.Contract)(RenExAdapterABI as AbiItem[], address);
 
 /**
  * The ShiftSDK defines how to interact with the rest of this file
@@ -86,18 +89,13 @@ const getAdapter = (web3: Web3): RenExAdapter =>
  */
 export class DexSDK {
     public connected: boolean = false;
-    public web3: Web3;
-    public shiftSDK: ShiftSDK;
-
-    constructor(web3?: Web3) {
-        this.web3 = web3 || getReadonlyWeb3();
-        this.shiftSDK = new ShiftSDK(this.web3, getRenExAdapterAddress());
-    }
+    public web3?: Web3;
+    public shiftSDK?: ShiftSDK;
 
     public connect = async () => {
         this.web3 = await getWeb3();
         this.connected = true;
-        this.shiftSDK = new ShiftSDK(this.web3, getRenExAdapterAddress());
+        this.shiftSDK = new ShiftSDK(this.web3, await getRenExAdapterAddress());
     }
 
     /**
@@ -106,27 +104,29 @@ export class DexSDK {
      * @param dstToken The destination token being received
      */
     public getReserveBalance = async (marketPairs: MarketPair[]): Promise<ReserveBalances[]> => {
-        const exchange = getExchange(this.web3);
+        const web3 = this.web3;
+        if (!web3) { throw new Error("Not ready..."); };
+        const exchange = await getExchange(web3);
         console.log(`exchange: ${exchange.address}`);
 
-        const balance = async (token: Token, address: string): Promise<BigNumber> => {
+        const balance = async (token: Token, reserve: string): Promise<BigNumber> => {
             if (token === Token.ETH) {
-                return new BigNumber((await this.web3.eth.getBalance(address)).toString());
+                return new BigNumber((await web3.eth.getBalance(reserve)).toString());
             }
-            console.log(`reserve address: ${address}`);
-            const tokenAddress = getTokenAddress(token);
+            console.log(`reserve address: ${reserve}`);
+            const tokenAddress = await getTokenAddress(token);
             console.log(`token: ${token} address: ${tokenAddress}`);
-            const tokenInstance = getERC20(this.web3, tokenAddress);
+            const tokenInstance = getERC20(web3, tokenAddress);
             const decimals = getTokenDecimals(token);
-            const rawBalance = new BigNumber((await tokenInstance.methods.balanceOf(address).call()).toString());
+            const rawBalance = new BigNumber((await tokenInstance.methods.balanceOf(reserve).call()).toString());
             return rawBalance.dividedBy(new BigNumber(10).exponentiatedBy(decimals));
         };
 
         return Promise.all(
             marketPairs.map(async (_marketPair) => {
                 const [left, right] = _marketPair.split("/") as [Token, Token];
-                const leftAddress = getTokenAddress(left);
-                const rightAddress = getTokenAddress(right);
+                const leftAddress = await getTokenAddress(left);
+                const rightAddress = await getTokenAddress(right);
                 console.log(`leftToken: ${left}, rightToken: ${right}`);
                 console.log(`leftAddress: ${leftAddress}, rightAddress: ${rightAddress}`);
                 const reserve = await exchange.methods.reserve(leftAddress, rightAddress).call();
@@ -140,7 +140,8 @@ export class DexSDK {
     }
 
     public hashCommitment = async (commitment: Commitment): Promise<string> => {
-        const hash = await getAdapter(this.web3).methods.commitment(
+        if (!this.web3) { throw new Error("Not ready..."); };
+        const hash = await (await getAdapter(this.web3)).methods.commitment(
             commitment.srcToken,
             commitment.dstToken,
             commitment.minDestinationAmount.toNumber(),
@@ -165,22 +166,26 @@ export class DexSDK {
     // Takes a commitment as bytes or an array of primitive types and returns
     // the deposit address
     public generateAddress = async (token: Token, commitment: Commitment): Promise<string> => {
+        if (!this.shiftSDK) { throw new Error("Not ready..."); };
         const commitmentHash = await this.hashCommitment(commitment);
         return this.shiftSDK.generateAddress(tokenToChain(token), commitmentHash);
     }
 
     // Retrieves unspent deposits at the provided address
     public retrieveDeposits = async (token: Token, depositAddress: string, limit = 10, confirmations = 0): Promise<UTXO[]> => {
+        if (!this.shiftSDK) { throw new Error("Not ready..."); };
         return this.shiftSDK.retrieveDeposits(tokenToChain(token), depositAddress, limit, confirmations);
     }
 
     // Submits the commitment and transaction to the darknodes, and then submits
     // the signature to the adapter address
     public submitDeposit = async (token: Token, transaction: UTXO, commitment: Commitment): Promise<string> => {
+        if (!this.shiftSDK) { throw new Error("Not ready..."); };
         return this.shiftSDK.shift(tokenToChain(token), transaction, await this.hashCommitment(commitment));
     }
 
-    public submitSwap = (address: string, commitment: Commitment, signatureIn?: ShiftedInResponse | ShiftedOutResponse | null): PromiEvent<Transaction> => { // Promise<string> => new Promise<string>(async (resolve, reject) => {
+    public submitSwap = (address: string, commitment: Commitment, adapterAddress: string, signatureIn?: ShiftedInResponse | ShiftedOutResponse | null): PromiEvent<Transaction> => { // Promise<string> => new Promise<string>(async (resolve, reject) => {
+        if (!this.web3) { throw new Error("Not ready..."); };
         let amount = commitment.srcAmount.toString();
         let txHash = NULL_BYTES32;
         let signatureBytes = NULL_BYTES32;
@@ -215,21 +220,25 @@ export class DexSDK {
         // console.table(params);
         // console.groupEnd();
 
-        return getAdapter(this.web3).methods.trade(
+        return (syncGetAdapter(this.web3, adapterAddress)).methods.trade(
             ...params,
         ).send({ from: address, gas: 350000 });
     }
 
     public submitBurn = async (commitment: Commitment, receivedAmountHex: string): Promise<string> => {
+        if (!this.shiftSDK) { throw new Error("Not ready..."); };
+
         return this.shiftSDK.burn(tokenToChain(commitment.orderInputs.dstToken), commitment.toAddress, receivedAmountHex);
     }
 
     public fetchEthereumTokenBalance = async (token: Token, address: string): Promise<BigNumber> => {
+        if (!this.web3) { throw new Error("Not ready..."); };
+
         let balance: string;
         if (token === Token.ETH) {
             balance = await this.web3.eth.getBalance(address);
         } else if (isERC20(token)) {
-            const tokenAddress = getTokenAddress(token);
+            const tokenAddress = await getTokenAddress(token);
             const tokenInstance = getERC20(this.web3, tokenAddress);
             balance = (await tokenInstance.methods.balanceOf(address).call()).toString();
         } else {
@@ -239,27 +248,31 @@ export class DexSDK {
     }
 
     public getTokenAllowance = async (token: Token, address: string): Promise<BigNumber> => {
-        const tokenAddress = getTokenAddress(token);
+        if (!this.web3) { throw new Error("Not ready..."); };
+
+        const tokenAddress = await getTokenAddress(token);
         const tokenInstance = getERC20(this.web3, tokenAddress);
 
-        const allowance = await tokenInstance.methods.allowance(address, getAdapter(this.web3).address).call();
+        const allowance = await tokenInstance.methods.allowance(address, (await getAdapter(this.web3)).address).call();
 
         return new BigNumber(allowance.toString());
     }
 
     public setTokenAllowance = async (amount: BigNumber, token: Token, address: string): Promise<BigNumber> => {
+        if (!this.web3) { throw new Error("Not ready..."); };
+
         const allowanceBN = await this.getTokenAllowance(token, address);
 
         if (allowanceBN.gte(amount)) {
             return allowanceBN;
         }
 
-        const tokenAddress = getTokenAddress(token);
+        const tokenAddress = await getTokenAddress(token);
         const tokenInstance = getERC20(this.web3, tokenAddress);
 
         // We don't have enough allowance so approve more
         const promiEvent = tokenInstance.methods.approve(
-            getAdapter(this.web3).address,
+            (await getAdapter(this.web3)).address,
             amount.toString()
         ).send({ from: address });
         await new Promise((resolve, reject) => promiEvent.on("transactionHash", resolve));
@@ -268,6 +281,8 @@ export class DexSDK {
 
     // Retrieves the current progress of the shift
     public shiftStatus = async (commitmentHash: string): Promise<ShiftedInResponse | ShiftedOutResponse> => {
+        if (!this.shiftSDK) { throw new Error("Not ready..."); };
+
         return this.shiftSDK.shiftStatus(commitmentHash);
     }
 }

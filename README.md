@@ -1,7 +1,7 @@
-# RenShift Smart Contracts
+# Shifter Smart Contracts
 
-[![Build Status](https://travis-ci.org/republicprotocol/renshift-sol.svg?branch=master)](https://travis-ci.org/republicprotocol/renshift-sol)
-[![Coverage Status](https://coveralls.io/repos/github/republicprotocol/renshift-sol/badge.svg?branch=master)](https://coveralls.io/github/republicprotocol/renshift-sol?branch=master)
+[![Build Status](https://travis-ci.org/republicprotocol/shifter-sol.svg?branch=master)](https://travis-ci.org/republicprotocol/shifter-sol)
+[![Coverage Status](https://coveralls.io/repos/github/republicprotocol/shifter-sol/badge.svg?branch=master)](https://coveralls.io/github/republicprotocol/shifter-sol?branch=master)
 
 ## Tests
 

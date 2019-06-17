@@ -5,7 +5,6 @@ export const INGRESS = process.env.REACT_APP_INGRESS;
 export const ETHERSCAN = process.env.REACT_APP_ETHERSCAN;
 export const ETH_NETWORK = process.env.REACT_APP_ETH_NETWORK;
 export const ETH_NETWORK_LABEL = process.env.REACT_APP_ETH_NETWORK_LABEL;
-export const ETH_NETWORK_ID = parseInt(process.env.REACT_APP_ETH_NETWORK_ID || "1", 10);
 
 export const SOURCE_VERSION = process.env.REACT_APP_SOURCE_VERSION;
 
