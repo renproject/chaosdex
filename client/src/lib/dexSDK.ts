@@ -11,7 +11,6 @@ import { ERC20Detailed } from "./contracts/ERC20Detailed";
 import { RenEx } from "./contracts/RenEx";
 import { RenExAdapter } from "./contracts/RenExAdapter";
 import { NETWORK } from "./environmentVariables";
-import { _catchInteractionErr_ } from "./errors";
 import { getReadonlyWeb3, getWeb3 } from "./getWeb3";
 
 const ERC20ABI = require("../contracts/ERC20.json").abi;
@@ -263,8 +262,7 @@ export class DexSDK {
             getAdapter(this.web3).address,
             amount.toString()
         ).send({ from: address });
-        let transactionHash: string | undefined;
-        transactionHash = await new Promise((resolve, reject) => promiEvent.on("transactionHash", resolve));
+        await new Promise((resolve, reject) => promiEvent.on("transactionHash", resolve));
         return amount;
     }
 
