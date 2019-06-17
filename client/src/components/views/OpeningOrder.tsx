@@ -1,7 +1,5 @@
 import * as React from "react";
 
-import { withTranslation, WithTranslation } from "react-i18next";
-
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
 import { AppContainer, HistoryEvent } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
@@ -207,10 +205,10 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     }
 }
 
-interface Props extends ConnectedProps<[AppContainer]>, WithTranslation {
+interface Props extends ConnectedProps<[AppContainer]> {
     cancel: () => void;
     done: () => void;
     swapSubmitted?: (h: HistoryEvent) => void;
 }
 
-export const OpeningOrder = withTranslation()(connect<Props>([AppContainer])(OpeningOrderClass));
+export const OpeningOrder = connect<Props>([AppContainer])(OpeningOrderClass);

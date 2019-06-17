@@ -1,7 +1,6 @@
 import * as React from "react";
 
 import { TokenIcon } from "@renex/react-components";
-import { useTranslation } from "react-i18next";
 
 import { Chain } from "../../../shiftSDK/shiftSDK";
 import { Token, Tokens } from "../../../state/generalTypes";
@@ -15,7 +14,6 @@ export const AskForAddress: React.StatelessComponent<{
     onAddress(address: string): void;
     cancel(): void;
 }> = ({ token, message, defaultAddress, onAddress, cancel }) => {
-    const { t } = useTranslation();
     const [address, updateAddress] = React.useState("");
     const [error, updateError] = React.useState(null as string | null);
     const inputRef = React.useRef<HTMLInputElement | null>() as React.MutableRefObject<HTMLInputElement | null>;
@@ -48,7 +46,7 @@ export const AskForAddress: React.StatelessComponent<{
         <div className="address-input">
             <div className="popup--body">
                 <TokenIcon className="token-icon" token={token} />
-                <h2>{token} {t("popup.address")}</h2>
+                <h2>{token} address</h2>
                 <div role="button" className="popup--header--x" onClick={cancel} />
                 <div className="address-input--message">
                     {message}
@@ -73,7 +71,7 @@ export const AskForAddress: React.StatelessComponent<{
                     </div>
                     {error ? <span className="red"><br />{error}</span> : null}
                     <div className="popup--buttons">
-                        <button className="button open--confirm" disabled={address === ""} type="submit"><span>{error ? "Use anyway" : t("popup.confirm")}</span></button>
+                        <button className="button open--confirm" disabled={address === ""} type="submit"><span>{error ? "Use anyway" : "Confirm"}</span></button>
                     </div>
                 </form>
             </div>

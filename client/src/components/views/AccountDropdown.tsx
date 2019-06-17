@@ -1,7 +1,6 @@
 import * as React from "react";
 
 import { Blocky } from "@renex/react-components";
-import { WithTranslation, withTranslation } from "react-i18next";
 
 import { AppContainer } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
@@ -20,7 +19,7 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
     }
 
     public render = () => {
-        const { t, containers: [appContainer] } = this.props;
+        const { containers: [appContainer] } = this.props;
         const { address } = appContainer.state;
         const { copied, shown } = this.state;
 
@@ -39,7 +38,7 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
                     <div className="header--account--type">
                         {address ?
                             <>{address.substring(0, 8)}...{address.slice(-5)}</> :
-                            <>{t("header.not_connected")}</>
+                            <>Not Connected</>
                         }
                     </div>
                 </div>
@@ -51,9 +50,9 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
                                 <li role="button" onClick={this.copyToClipboard} className="header--dropdown--option">
                                     <span data-addr={address}>
                                         {copied ?
-                                            <span>{t("header.copied")}</span>
+                                            <span>Copied</span>
                                             :
-                                            <span>{t("header.copy_to_clipboard")}</span>
+                                            <span>Copy to clipboard</span>
                                         }
                                     </span>
                                 </li>
@@ -62,7 +61,7 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
                                     onClick={this.props.handleLogout}
                                     className="header--dropdown--option"
                                 >
-                                    {t("header.log_out")}
+                                    Log out
                                 </li>
                             </> :
                                 <li
@@ -70,7 +69,7 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
                                     onClick={this.props.handleLogin}
                                     className="header--dropdown--option header--dropdown--highlight"
                                 >
-                                    {t("header.log_in")}
+                                    Log in
                                 </li>
                             }
                         </ul>
@@ -118,9 +117,9 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
     }
 }
 
-interface Props extends WithTranslation, ConnectedProps<[AppContainer]> {
+interface Props extends ConnectedProps<[AppContainer]> {
     handleLogin: () => {};
     handleLogout: () => {};
 }
 
-export const AccountDropdown = withTranslation()(connect<Props>([AppContainer])(AccountDropdownClass));
+export const AccountDropdown = connect<Props>([AppContainer])(AccountDropdownClass);

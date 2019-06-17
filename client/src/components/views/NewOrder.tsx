@@ -1,7 +1,6 @@
 import * as React from "react";
 
 import { Loading } from "@renex/react-components";
-import { withTranslation, WithTranslation } from "react-i18next";
 
 import { _catchBackgroundErr_ } from "../../lib/errors";
 import { getMarket } from "../../lib/market";
@@ -20,7 +19,7 @@ class NewOrderClass extends React.Component<Props> {
      * @dev Should have minimal computation, loops and anonymous functions.
      */
     public render(): React.ReactNode {
-        const { t, containers: [appContainer] } = this.props;
+        const { containers: [appContainer] } = this.props;
         const orderInput = appContainer.state.orderInputs;
         const market = getMarket(orderInput.srcToken, orderInput.dstToken);
 
@@ -44,14 +43,14 @@ class NewOrderClass extends React.Component<Props> {
                                 className={`button submit-swap ${disabled ? "disabled" : ""}`}
                             >
                                 {appContainer.state.submitting ? <Loading alt={true} /> :
-                                    !loggedIn ? t("new_order.connect_to_trade") :
-                                        !sufficientBalance ? t("new_order.insufficient_balance") :
-                                            !validVolume ? t("new_order.invalid_volume") :
-                                                t("new_order.trade")
+                                    !loggedIn ? <>Connect to trade</> :
+                                        !sufficientBalance ? <>Insufficient balance</> :
+                                            !validVolume ? <>Volume too low</> :
+                                                <>Trade</>
                                 }
                             </button> :
                             <button disabled={true} className="button submit-swap">
-                                {t("new_order.unsupported_token_pair")}
+                                <>Token pair not supported</>
                             </button>
                     }
                 </div>
@@ -70,8 +69,8 @@ class NewOrderClass extends React.Component<Props> {
     }
 }
 
-interface Props extends ConnectedProps<[AppContainer]>, WithTranslation {
+interface Props extends ConnectedProps<[AppContainer]> {
     swapSubmitted: (h: HistoryEvent) => void;
 }
 
-export const NewOrder = withTranslation()(connect<Props>([AppContainer])(NewOrderClass));
+export const NewOrder = connect<Props>([AppContainer])(NewOrderClass);

@@ -2,7 +2,6 @@ import * as React from "react";
 
 import { CurrencyIcon, TokenValueInput } from "@renex/react-components";
 import BigNumber from "bignumber.js";
-import { withTranslation, WithTranslation } from "react-i18next";
 import { debounce } from "throttle-debounce";
 
 import { _catchInteractionErr_ } from "../../lib/errors";
@@ -31,7 +30,7 @@ class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
     }
 
     public render(): React.ReactNode {
-        const { t, containers: [appContainer] } = this.props;
+        const { containers: [appContainer] } = this.props;
         const { flipped } = this.state;
 
         const toggle = <div className="order--tabs">
@@ -59,7 +58,7 @@ class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
         </>;
 
         const first = <TokenValueInput
-            title={t("new_order.spend")}
+            title={"Spend"}
             value={this.state.srcAmountState}
             subtext={firstSubtext}
             hint={null}
@@ -70,10 +69,10 @@ class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
         </TokenValueInput >;
 
         const second = <TokenValueInput
-            title={t("new_order.receive")}
+            title={"Receive"}
             value={normalizeDecimals(orderInputs.dstAmount)}
             subtext={<></>}
-            hint={t<string>("new_order.based_on_market_price")}
+            hint={"Based on market price."}
             error={false}
             onChange={null}
             className="order-inputs--second"
@@ -110,8 +109,8 @@ class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
     }
 }
 
-interface Props extends ConnectedProps<[AppContainer, AppContainer]>, WithTranslation {
+interface Props extends ConnectedProps<[AppContainer, AppContainer]> {
     marketPrice: number;
 }
 
-export const NewOrderInputs = withTranslation()(connect<Props>([AppContainer, AppContainer])(NewOrderInputsClass));
+export const NewOrderInputs = connect<Props>([AppContainer, AppContainer])(NewOrderInputsClass);
