@@ -164,7 +164,7 @@ export class ShifterGroup extends DarknodeGroup {
         // this.getHealth();
     }
 
-    public submitDeposits = async (chain: Chain, address: string, commitmentHash: string): Promise<List<{ messageID: string, lightnode: string }>> => {
+    public submitDeposits = async (chain: Chain, adapterAddress: string, commitmentHash: string): Promise<List<{ messageID: string, lightnode: string }>> => {
         // TODO: If one fails, still return the other.
 
         const method = chain === Chain.Bitcoin ? "MintZBTC"
@@ -182,7 +182,7 @@ export class ShifterGroup extends DarknodeGroup {
                 method: `ShiftIn${chain.toUpperCase()}`,
                 args: [
                     // Adapter address
-                    { name: "uid", type: "public", value: strip0x(address) },
+                    { name: "uid", type: "public", value: strip0x(adapterAddress) },
                     { name: "commitment", type: "public", value: strip0x(commitmentHash) },
                 ],
             },
