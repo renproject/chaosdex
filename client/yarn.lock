@@ -1225,13 +1225,6 @@
   resolved "https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
-"@renex/contracts@0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@renex/contracts/-/contracts-0.2.1.tgz#d6107b9a6bfc254334e52317d43e5a71a3368e99"
-  integrity sha512-bqWc1ryfRo/b2tOaQVA3U6YFQF62d+iVCSqb0MJRnknVQ+Iii1bGepz0EAgC551UGXLCIAW4FDSTtFT9ZuTfCA==
-  dependencies:
-    web3-utils "^1.0.0-beta.55"
-
 "@renex/fonts@^1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@renex/fonts/-/fonts-1.0.1.tgz#7967434b343d5cd31c575b633997677f33f6856c"

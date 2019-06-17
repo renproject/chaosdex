@@ -1,7 +1,7 @@
 import Web3 from "web3";
 import { HttpProvider } from "web3-providers";
 
-import { INFURA_URL } from "./environmentVariables";
+import { ETHEREUM_NODE } from "./environmentVariables";
 
 interface InjectedEthereum extends HttpProvider {
     enable: () => Promise<void>;
@@ -37,4 +37,4 @@ export const getWeb3 = async () => new Promise<Web3>(async (resolve, reject) => 
     }
 });
 
-export const getReadonlyWeb3 = () => new Web3(INFURA_URL);
+export const getReadonlyWeb3 = () => new Web3(ETHEREUM_NODE);
