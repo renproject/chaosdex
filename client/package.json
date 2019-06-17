@@ -5,7 +5,6 @@
   "homepage": "https://testnet.ren.exchange/",
   "dependencies": {
     "@renex/contracts": "0.2.1",
-    "@renex/fonts": "^1.0.1",
     "@renex/react-components": "1.0.21",
     "@types/bn.js": "^4.11.5",
     "@types/bs58": "^4.0.0",
