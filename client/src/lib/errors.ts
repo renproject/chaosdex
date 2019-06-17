@@ -1,14 +1,10 @@
 // tslint:disable: no-any
 
-import * as Sentry from "@sentry/browser";
-
 import { naturalTime } from "./conversion";
-import { environment } from "./environmentVariables";
 
 interface Details {
     description?: string;
     category?: string;
-    level?: Sentry.Severity;
     ignoreNetwork?: boolean;
 }
 
@@ -89,59 +85,7 @@ const _catchErr_ = <X extends Details>(error: any, details: X) => {
     if (error._noCapture_) {
         return;
     }
-
-    Sentry.withScope(scope => {
-        // How long ago the page was loaded at
-        scope.setExtra("pageLoadedAt", pageLoadedAt());
-
-        // Category
-        if (details.category) {
-            scope.setTag("category", details.category);
-        }
-
-        // Level
-        if (details.level) {
-            scope.setLevel(details.level);
-        }
-
-        // Extra information
-        Object.keys(details)
-            .forEach(key => {
-                scope.setExtra(key, details[key]);
-            });
-
-        if (error && error.response) {
-            scope.setExtra("responseData", error.response.data);
-            scope.setExtra("responseStatus", error.response.status);
-        }
-
-        scope.setExtra("caught", true);
-        scope.setExtra("zRawError", rawError(error));
-
-        // tslint:disable-next-line: no-console
-        console.error(error);
-
-        if (environment !== "mainnet") {
-            if (typeof error === "string") {
-                // tslint:disable-next-line: no-parameter-reassignment
-                error = `[${environment.toUpperCase()}] ${error}`;
-            } else {
-                try {
-                    error.message = `[${environment.toUpperCase()}] ${error.message || error}`;
-                } catch {
-                    // Ignore: Unable to overwrite message (may be read-only)
-                }
-            }
-        }
-
-        // Check if we should ignore the error
-        if (details.ignoreNetwork && isNetworkError(error)) {
-            return;
-        }
-
-        Sentry.captureException(error);
-
-    });
+    console.error(error);
 };
 
 // Background exceptions are thrown in background loops and actions

@@ -9,9 +9,6 @@ import { Provider } from "unstated";
 
 import { App } from "./components/controllers/App";
 import { history } from "./lib/history";
-import { initializeSentry } from "./sentry";
-
-initializeSentry();
 
 ReactDOM.render(
     <Provider>
