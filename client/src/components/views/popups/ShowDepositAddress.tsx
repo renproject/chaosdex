@@ -3,7 +3,6 @@ import * as React from "react";
 import { Loading, TokenIcon } from "@renex/react-components";
 import CopyToClipboard from "react-copy-to-clipboard";
 
-import { _catchInteractionErr_ } from "../../../lib/errors";
 import { Token } from "../../../state/generalTypes";
 import { ReactComponent as Copy } from "../../../styles/images/copy.svg";
 import { Popup } from "./Popup";
@@ -32,7 +31,7 @@ export const ShowDepositAddress: React.StatelessComponent<{
             });
             setInitialized(true);
         }
-    }, [initialized]);
+    }, [initialized, generateAddress]);
 
     const onClick = () => {
         setUnderstood(true);
