@@ -1,4 +1,4 @@
-pragma solidity 0.5.8;
+pragma solidity ^0.5.8;
 
 import "./RenEx.sol";
 import "./RenExReserve.sol";
@@ -29,8 +29,8 @@ contract RenExAdapter is Ownable {
         uint256 _relayerFee, ERC20 _src, ERC20 _dst, uint256 _minDstAmt, bytes calldata _to,
         uint256 _refundBN, bytes calldata _refundAddress
     ) external payable {
-        bytes32 commit = commitment(_relayerFee, _src, _dst, _minDstAmt, _to, _refundBN, _refundAddress);
-        uint256 transferredAmt = transferIn(_relayerFee, _src, _dst, _amount, _nHash, commit, _sig);
+        bytes32 pHash = hashPayload(_relayerFee, _src, _dst, _minDstAmt, _to, _refundBN, _refundAddress);
+        uint256 transferredAmt = transferIn(_relayerFee, _src, _dst, _amount, _nHash, pHash, _sig);
         emit LogTransferIn(_src, _amount);
 
         // Handle refunds if the refund block number has passed
@@ -45,11 +45,11 @@ contract RenExAdapter is Ownable {
         doTrade(_src, _dst, _minDstAmt, _to, transferredAmt);
     }
 
-    function commitment(
-        ERC20 _src, ERC20 _dst, uint256 _minDstAmt, bytes memory _to,
+    function hashPayload(
+        uint256 _relayerFee, ERC20 _src, ERC20 _dst, uint256 _minDstAmt, bytes memory _to,
         uint256 _refundBN, bytes memory _refundAddress
     ) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_src, _dst, _minDstAmt, _to, _refundBN, _refundAddress));
+        return keccak256(abi.encode(_src, _dst, _minDstAmt, _to, _refundBN, _refundAddress));
     }
 
     function doTrade(
@@ -79,11 +79,14 @@ contract RenExAdapter is Ownable {
         emit LogTransferOut(_dst, recvAmt);
     }
 
-    function transferIn(uint256 _relayerFee, ERC20 _src, ERC20 _dst, uint256 _amount, bytes32 _nHash, bytes32 _commitment, bytes memory _sig) internal returns (uint256) {
+    function transferIn(
+        uint256 _relayerFee, ERC20 _src, ERC20 _dst, uint256 _amount,
+        bytes32 _nHash, bytes32 _pHash, bytes memory _sig
+    ) internal returns (uint256) {
         RenExReserve reserve = RenExReserve(renex.reserve(_src, _dst));
 
         if (reserve.isShifted(address(_src))) {
-            return reserve.getShifter(address(_src)).shiftIn(_amount, _nHash, _commitment, _sig);
+            return reserve.getShifter(address(_src)).shiftIn(_amount, _nHash, _pHash, _sig);
         } else if (_src == renex.ethereum()) {
             require(msg.value >= _amount, "insufficient eth amount");
             return msg.value;

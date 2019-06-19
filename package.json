@@ -37,7 +37,7 @@
     "coveralls": "^3.0.4",
     "dotenv": "^8.0.0",
     "elliptic": "^6.4.1",
-    "eth-gas-reporter": "^0.2.0",
+    "eth-gas-reporter": "^0.2.1",
     "ethereumjs-util": "^6.1.0",
     "ganache-cli": "^6.4.4",
     "patch-package": "^6.1.2",
