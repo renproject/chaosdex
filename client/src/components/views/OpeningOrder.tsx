@@ -29,7 +29,6 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
         super(props);
         this.state = defaultState;
         this._mounted = true;
-        this.updateDeposits().catch(_catchBackgroundErr_);
         this.updateResponse().catch(_catchBackgroundErr_);
     }
 
@@ -132,21 +131,6 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
 
         this.onDone().catch(_catchInteractionErr_);
         return <></>;
-    }
-
-    private readonly updateDeposits = async () => {
-        if (!this._mounted) { return; }
-        let timeout = 500; // Half a second
-        if (this.props.containers[0].state.depositAddress) {
-            try {
-                await this.props.containers[0].updateDeposits();
-                timeout = 5000; // 5 seconds
-            } catch (error) {
-                _catchBackgroundErr_(error);
-            }
-        }
-        if (this._depositTimer) { clearTimeout(this._depositTimer); }
-        this._depositTimer = setTimeout(this.updateDeposits, timeout);
     }
 
     private readonly updateResponse = async () => {

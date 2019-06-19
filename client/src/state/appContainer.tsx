@@ -205,17 +205,6 @@ export class AppContainer extends Container<typeof initialState> {
         }
     }
 
-    public updateDeposits = async () => {
-        const { dexSDK, depositAddress, depositAddressToken } = this.state;
-        if (!depositAddressToken || !depositAddress || !dexSDK) {
-            return;
-        }
-        const utxos = await dexSDK.retrieveDeposits(depositAddressToken, depositAddress);
-        if (!this.state.utxos || (utxos.length >= this.state.utxos.size)) {
-            await this.setState({ utxos: List(utxos) });
-        }
-    }
-
     public submitDeposit = async () => {
         const { dexSDK, commitment, utxos, depositAddressToken } = this.state;
         if (!dexSDK || !commitment || !depositAddressToken || !utxos || utxos.size === 0) {
@@ -232,8 +221,9 @@ export class AppContainer extends Container<typeof initialState> {
         if (!dexSDK || !commitment || !receivedAmountHex) {
             throw new Error(`Invalid values required to submit burn`);
         }
-        const messageID = await dexSDK.submitBurn(commitment, receivedAmountHex);
-        this.setState({ messageID }).catch(_catchBackgroundErr_);
+        // TODO: Implement burning!
+        // const messageID = await dexSDK.submitBurn(commitment, receivedAmountHex);
+        // this.setState({ messageID }).catch(_catchBackgroundErr_);
     }
 
     public submitSwap = async () => {

@@ -85,7 +85,7 @@
   dependencies:
     "@types/node" "*"
 
-"@types/elliptic@^6.4.8":
+"@types/elliptic@^6.4.9":
   version "6.4.9"
   resolved "https://registry.yarnpkg.com/@types/elliptic/-/elliptic-6.4.9.tgz#e24874622535dd022778cf56e7421799375108d8"
   integrity sha512-Mn+OyENd6YHwJKgUSyCTUDunEDFMaFpCXt52JCA00sxtzEa1ji6H0doZHL3iXhqMTo1Ob53X+Dv0s4PAJ+IVlA==
@@ -111,7 +111,7 @@
   resolved "https://registry.yarnpkg.com/@types/mocha/-/mocha-5.2.7.tgz#315d570ccb56c53452ff8638738df60726d5b6ea"
   integrity sha512-NYrtPht0wGzhwe9+/idPaBB+TqkY9AhTvOLMkThm0IoEfLaiVQZwBwyJ5puCkO3AUCWrmcoePjp2mbFocKy4SQ==
 
-"@types/node@*", "@types/node@^12.0.7":
+"@types/node@*", "@types/node@^12.0.8":
   version "12.0.8"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.0.8.tgz#551466be11b2adc3f3d47156758f610bd9f6b1d8"
   integrity sha512-b8bbUOTwzIY3V5vDTY1fIJ+ePKDUBqt2hC2woVGotdQQhG/2Sh62HOKHrT7ab+VerXAcPyAiTEipPu/FsreUtg==
@@ -1134,9 +1134,10 @@ d@1:
 
 "darknode-sol@https://github.com/renproject/darknode-sol#shifter":
   version "0.0.3"
-  resolved "https://github.com/renproject/darknode-sol#b512e7a957653b18cc4a57a8cb4cec451f840540"
+  resolved "https://github.com/renproject/darknode-sol#256cb5b628e046a53b29eecf7459b4ce3c781023"
   dependencies:
     openzeppelin-solidity "2.3.0"
+    truffle-typings "^1.0.8"
     zos "^2.3.1"
 
 dashdash@^1.12.0:
@@ -2095,7 +2096,7 @@ function-bind@^1.0.2, function-bind@^1.1.1:
   resolved "https://registry.yarnpkg.com/function-bind/-/function-bind-1.1.1.tgz#a56899d3ea3c9bab874bb9773b7c5ede92f4895d"
   integrity sha512-yIovAzMX49sF8Yl58fSCWJ5svSLuaibPxXQJFLmBObTuCr0Mf1KiPopGM9NiFjiYBCbfaa2Fh6breQ6ANVTI0A==
 
-ganache-cli@^6.4.3:
+ganache-cli@^6.4.4:
   version "6.4.4"
   resolved "https://registry.yarnpkg.com/ganache-cli/-/ganache-cli-6.4.4.tgz#9772bba8585d6e2049bd85adf24369c1cc165170"
   integrity sha512-JWygbyZuM2GQl2ZvU7tBkjpgJaKE/XEtB99ech17XTouuqLU5rBcyO3sMb/L83wAtzr0gBnTgenIBl+OeREpJw==
@@ -4551,10 +4552,10 @@ sol-merger@^0.1.4:
     fs-extra "^7.0.1"
     glob "^7.1.2"
 
-solc@0.5.8:
-  version "0.5.8"
-  resolved "https://registry.yarnpkg.com/solc/-/solc-0.5.8.tgz#a0aa2714082fc406926f5cb384376d7408080611"
-  integrity sha512-RQ2SlwPBOBSV7ktNQJkvbiQks3t+3V9dsqD014EdstxnJzSxBuOvbt3P5QXpNPYW1DsEmF7dhOaT3JL7yEae/A==
+solc@0.5.9:
+  version "0.5.9"
+  resolved "https://registry.yarnpkg.com/solc/-/solc-0.5.9.tgz#ec513bbbbb8b46b4b4d1a6a2764c50f34877fffc"
+  integrity sha512-IyCEXnSbpb3ii8FkgNu0QDtCtnvyGCtYNQejOaIZi6/9/CLJ2ozDHN2oNG26HfGZ8op9yDgqC+5SHziFvkRZuA==
   dependencies:
     command-exists "^1.2.8"
     fs-extra "^0.30.0"
@@ -5038,7 +5039,7 @@ truffle-interface-adapter@^0.1.6:
     bn.js "^4.11.8"
     web3 "1.0.0-beta.37"
 
-truffle-plugin-verify@^0.2.1:
+truffle-plugin-verify@^0.2.2:
   version "0.2.2"
   resolved "https://registry.yarnpkg.com/truffle-plugin-verify/-/truffle-plugin-verify-0.2.2.tgz#9df10d8fe46f3648660093e2b8e781f20416bc3a"
   integrity sha512-qs+pn+8fnVqPC96hTmij8fTbb6TP/pcaE7v3PGxRfRtXEvr9MTLf6A11P94PMTUYguj02YRCHIL1LDu78g7T+g==
@@ -5057,7 +5058,7 @@ truffle-provider@^0.1.2:
     truffle-interface-adapter "^0.1.6"
     web3 "1.0.0-beta.37"
 
-truffle-typings@^1.0.6:
+truffle-typings@^1.0.8:
   version "1.0.8"
   resolved "https://registry.yarnpkg.com/truffle-typings/-/truffle-typings-1.0.8.tgz#0b92d86a86a77c43771cdbce2544b67a25e3f2e2"
   integrity sha512-75yFYNt0ws1TTehrGxhOqH3tutvBCAs+RG2SrhVIqQvU72kLAb4ercl32dES8yKbXBVHjzv3OXNg5gsbak+3Dg==
@@ -5095,7 +5096,7 @@ ts-generator@^0.0.8:
     resolve "^1.8.1"
     ts-essentials "^1.0.0"
 
-ts-node@^8.2.0:
+ts-node@^8.3.0:
   version "8.3.0"
   resolved "https://registry.yarnpkg.com/ts-node/-/ts-node-8.3.0.tgz#e4059618411371924a1fb5f3b125915f324efb57"
   integrity sha512-dyNS/RqyVTDcmNM4NIBAeDMpsAdaQ+ojdf0GOLqE6nwJOgzEkdRNzJywhDfwnuvB10oa6NLVG1rUJQCpRN7qoQ==
@@ -5179,10 +5180,10 @@ type@^1.0.1:
   resolved "https://registry.yarnpkg.com/type/-/type-1.0.1.tgz#084c9a17fcc9151a2cdb1459905c2e45e4bb7d61"
   integrity sha512-MAM5dBMJCJNKs9E7JXo4CXRAansRfG0nlJxW7Wf6GZzSOvH31zClSaHdIMWLehe/EGMBkqeC55rrkaOr5Oo7Nw==
 
-typechain@^0.3.14:
-  version "0.3.14"
-  resolved "https://registry.yarnpkg.com/typechain/-/typechain-0.3.14.tgz#c58df17b20494ad08dff311cf6984bf7a2accb78"
-  integrity sha512-nOg7n7LngcA4Sx53q+4jjSpIEulEayZYnCMfyItnyxCX3nTCWVg8QXZppMDYNfITkJHex0v5dTgklOQzSbfUkw==
+typechain@^0.3.17:
+  version "0.3.17"
+  resolved "https://registry.yarnpkg.com/typechain/-/typechain-0.3.17.tgz#aae21d14a9b7aa2a985e25e9f89bea8f54223d4c"
+  integrity sha512-JydKdW/xdpsp3uLz8y8WlfGX6a8/3BLAKAAmVWI4NvsJED2/BgJ5Du36OjSvlMMZDahP1AdbU+B/NsCiUqLRZg==
   dependencies:
     command-line-args "^4.0.7"
     debug "^3.0.1"
@@ -5201,7 +5202,7 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-typescript@^3.5.1:
+typescript@^3.5.2:
   version "3.5.2"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.5.2.tgz#a09e1dc69bc9551cadf17dba10ee42cf55e5d56c"
   integrity sha512-7KxJovlYhTX5RaRbUdkAXN1KUZ8PwWlTzQdHV6xNqvuFOs7+WBo10TQUqT19Q/Jz2hk5v9TQDIhyLhhJY4p5AA==

@@ -24,12 +24,13 @@ contract RenExAdapter is Ownable {
     }
 
     function trade(
-        ERC20 _src, ERC20 _dst, uint256 _minDstAmt, bytes calldata _to,
-        uint256 _refundBN, bytes calldata _refundAddress,
-        uint256 _amount, bytes32 _hash, bytes calldata _sig
+        uint256 _amount, bytes32 _nHash, bytes calldata _sig,
+        // Payload
+        uint256 _relayerFee, ERC20 _src, ERC20 _dst, uint256 _minDstAmt, bytes calldata _to,
+        uint256 _refundBN, bytes calldata _refundAddress
     ) external payable {
-        bytes32 commit = commitment(_src, _dst, _minDstAmt, _to, _refundBN, _refundAddress);
-        uint256 transferredAmt = transferIn(_src, _dst, _amount, _hash, commit, _sig);
+        bytes32 commit = commitment(_relayerFee, _src, _dst, _minDstAmt, _to, _refundBN, _refundAddress);
+        uint256 transferredAmt = transferIn(_relayerFee, _src, _dst, _amount, _nHash, commit, _sig);
         emit LogTransferIn(_src, _amount);
 
         // Handle refunds if the refund block number has passed
@@ -78,11 +79,11 @@ contract RenExAdapter is Ownable {
         emit LogTransferOut(_dst, recvAmt);
     }
 
-    function transferIn(ERC20 _src, ERC20 _dst, uint256 _amount, bytes32 _hash, bytes32 _commitment, bytes memory _sig) internal returns (uint256) {
+    function transferIn(uint256 _relayerFee, ERC20 _src, ERC20 _dst, uint256 _amount, bytes32 _nHash, bytes32 _commitment, bytes memory _sig) internal returns (uint256) {
         RenExReserve reserve = RenExReserve(renex.reserve(_src, _dst));
 
         if (reserve.isShifted(address(_src))) {
-            return reserve.getShifter(address(_src)).shiftIn(address(this), _amount, _hash, _commitment, _sig);
+            return reserve.getShifter(address(_src)).shiftIn(_amount, _nHash, _commitment, _sig);
         } else if (_src == renex.ethereum()) {
             require(msg.value >= _amount, "insufficient eth amount");
             return msg.value;

@@ -1,8 +1,10 @@
-import RenSDK, { Chain, ShiftedInResponse, ShiftedOutResponse, UTXO } from "@renproject/ren";
+import RenSDK, {
+    Chain, Shift, ShiftActions, ShiftedInResponse, ShiftedOutResponse, Submit, UTXO, Wait,
+} from "@renproject/ren";
 import BigNumber from "bignumber.js";
 import Web3 from "web3";
 import { Log, PromiEvent, TransactionReceipt } from "web3-core";
-import { AbiItem, soliditySha3 } from "web3-utils";
+import { AbiItem } from "web3-utils";
 
 import { isERC20, MarketPair, Token, Tokens } from "../state/generalTypes";
 import {
@@ -57,19 +59,23 @@ const getERC20 = (web3: Web3, tokenAddress: string): ERC20Detailed =>
     new (web3.eth.Contract)(ERC20ABI as AbiItem[], tokenAddress);
 const getAdapter = (web3: Web3, networkID: number): RenExAdapter =>
     new (web3.eth.Contract)(RenExAdapterABI as AbiItem[], syncGetRenExAdapterAddress(networkID));
-const syncGetAdapter = (web3: Web3, address: string): RenExAdapter =>
-    new (web3.eth.Contract)(RenExAdapterABI as AbiItem[], address);
 
 export class DexSDK {
     public connected: boolean = false;
     public web3: Web3;
     public networkID: number;
     public renSDK: RenSDK;
+    public adapterAddress: string;
+
+    private shiftStep1: Shift | undefined;
+    private shiftStep2: Wait | undefined;
+    private shiftStep3: Submit | undefined;
 
     constructor(web3: Web3, networkID: number) {
         this.web3 = web3;
         this.networkID = networkID;
-        this.renSDK = new RenSDK(this.web3, syncGetRenExAdapterAddress(networkID));
+        this.adapterAddress = syncGetRenExAdapterAddress(networkID);
+        this.renSDK = new RenSDK();
     }
 
     /**
@@ -105,71 +111,55 @@ export class DexSDK {
         );
     }
 
-    public hashCommitment = async (commitment: Commitment): Promise<string> => {
-        return soliditySha3(
-            { type: "address", value: commitment.srcToken }, // _src
-            { type: "address", value: commitment.dstToken }, // _dst
-            { type: "uint256", value: commitment.minDestinationAmount.toFixed() }, // _minDstAmt
-            { type: "bytes", value: commitment.toAddress }, // ,
-            { type: "uint256", value: commitment.refundBlockNumber.toString() }, // _refundBN
-            { type: "bytes", value: commitment.refundAddress }, // _refundAddress
-        );
-    }
+    public zipPayload = (commitment: Commitment) => [
+        { type: "address", value: commitment.srcToken },
+        { type: "address", value: commitment.dstToken },
+        { type: "uint256", value: commitment.minDestinationAmount.toFixed() },
+        { type: "bytes", value: commitment.toAddress },
+        { type: "uint256", value: commitment.refundBlockNumber.toString() },
+        { type: "bytes", value: commitment.refundAddress },
+    ]
+
+    public hashPayload = (commitment: Commitment): string => this.renSDK.hashPayload(this.zipPayload(commitment));
 
     // Takes a commitment as bytes or an array of primitive types and returns
     // the deposit address
     public generateAddress = async (token: Token, commitment: Commitment): Promise<string> => {
-        const commitmentHash = await this.hashCommitment(commitment);
-        return this.renSDK.generateAddress(tokenToChain(token), commitmentHash);
+        const amount = "0";
+        const nonce = "0";
+
+        this.shiftStep1 = this.renSDK.shift(ShiftActions[token].Btc2Eth, this.adapterAddress, amount, nonce, this.zipPayload(commitment));
+        return this.shiftStep1.addr();
     }
 
     // Retrieves unspent deposits at the provided address
-    public retrieveDeposits = async (token: Token, depositAddress: string, limit = 10, confirmations = 0): Promise<UTXO[]> => {
-        return this.renSDK.retrieveDeposits(tokenToChain(token), depositAddress, limit, confirmations);
+    public retrieveDeposits = async (limit = 10, confirmations = 0) => {
+        if (!this.shiftStep1) {
+            throw new Error("Must have generated address first");
+        }
+        this.shiftStep2 = await this.shiftStep1.wait(confirmations);
     }
 
     // Submits the commitment and transaction to the darknodes, and then submits
     // the signature to the adapter address
     public submitDeposit = async (token: Token, transaction: UTXO, commitment: Commitment): Promise<string> => {
-        return this.renSDK.shift(tokenToChain(token), transaction, await this.hashCommitment(commitment));
-    }
-
-    public submitSwap = (address: string, commitment: Commitment, adapterAddress: string, signatureIn?: ShiftedInResponse | ShiftedOutResponse | null): PromiEvent<Transaction> => { // Promise<string> => new Promise<string>(async (resolve, reject) => {
-        let amount = commitment.srcAmount.toString();
-        let txHash = NULL_BYTES32;
-        let signatureBytes = NULL_BYTES32;
-
-        if (signatureIn) {
-            const signature: ShiftedInResponse = signatureIn as ShiftedInResponse;
-            amount = `0x${signature.amount}`; // _amount: BigNumber
-            txHash = `0x${signature.txHash}`; // _hash: string
-            if (signature.v === "") {
-                signature.v = "0";
-            }
-            const v = ((parseInt(signature.v, 10) + 27) || 27).toString(16);
-            signatureBytes = `0x${signature.r}${signature.s}${v}`;
+        if (!this.shiftStep2) {
+            throw new Error("Must have retrieved deposits first");
         }
-
-        const params: [string, string, number, string, number, string, string, string, string] = [
-            commitment.srcToken, // _src: string
-            commitment.dstToken, // _dst: string
-            commitment.minDestinationAmount.toNumber(), // _minDstAmt: BigNumber
-            commitment.toAddress, // _to: string
-            commitment.refundBlockNumber, // _refundBN: BigNumber
-            commitment.refundAddress, // _refundAddress: string
-            amount, // _amount: BigNumber
-            txHash, // _hash: string
-            signatureBytes, // _sig: string
-        ];
-
-        return (syncGetAdapter(this.web3, adapterAddress)).methods.trade(
-            ...params,
-        ).send({ from: address, gas: 350000 });
+        this.shiftStep3 = this.shiftStep2.submit();
+        return await this.shiftStep3.onMessageID();
     }
 
-    public submitBurn = async (commitment: Commitment, receivedAmountHex: string): Promise<string> => {
-        return this.renSDK.burn(tokenToChain(commitment.orderInputs.dstToken), commitment.toAddress, receivedAmountHex);
+    public submitSwap = async (address: string, commitment: Commitment, adapterAddress: string, signatureIn?: ShiftedInResponse | ShiftedOutResponse | null) => {
+        if (!this.shiftStep3) {
+            throw new Error("Must have submitted deposit first");
+        }
+        await this.shiftStep3;
     }
+
+    // public submitBurn = async (commitment: Commitment, receivedAmountHex: string): Promise<string> => {
+    //     return this.renSDK.burn(tokenToChain(commitment.orderInputs.dstToken), commitment.toAddress, receivedAmountHex);
+    // }
 
     public fetchEthereumTokenBalance = async (token: Token, address: string): Promise<BigNumber> => {
         let balance: string;
@@ -211,10 +201,5 @@ export class DexSDK {
         ).send({ from: address });
         await new Promise((resolve, reject) => promiEvent.on("transactionHash", resolve));
         return amount;
-    }
-
-    // Retrieves the current progress of the shift
-    public shiftStatus = async (commitmentHash: string): Promise<ShiftedInResponse | ShiftedOutResponse> => {
-        return this.renSDK.shiftStatus(commitmentHash);
     }
 }
