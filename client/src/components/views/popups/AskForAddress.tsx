@@ -1,9 +1,9 @@
 import * as React from "react";
 
 import { TokenIcon } from "@renex/react-components";
+import { Chain } from "@renproject/ren";
 import { useTranslation } from "react-i18next";
 
-import { Chain } from "../../../shiftSDK/shiftSDK";
 import { Token, Tokens } from "../../../state/generalTypes";
 import { ReactComponent as MetaMask } from "../../../styles/images/metamask.svg";
 import { Popup } from "./Popup";

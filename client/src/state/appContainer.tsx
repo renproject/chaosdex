@@ -1,37 +1,22 @@
 import { Currency } from "@renex/react-components";
+import {
+    btcAddressToHex, Chain, ShiftedInResponse, ShiftedOutResponse, strip0x, UTXO,
+} from "@renproject/ren";
 import BigNumber from "bignumber.js";
 import { List, Map, OrderedMap } from "immutable";
 import { Container } from "unstated";
 import { TransactionReceipt } from "web3-core";
 
-import { getRenExAdapterAddress, getTokenAddress } from "../lib/contractAddresses";
+import {
+    getRenExAdapterAddress, getTokenAddress, syncGetRenExAdapterAddress,
+} from "../lib/contractAddresses";
 import { Commitment, DexSDK, OrderInputs, ReserveBalances } from "../lib/dexSDK";
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../lib/errors";
 import { estimatePrice } from "../lib/estimatePrice";
+import { getWeb3 } from "../lib/getWeb3";
 import { history } from "../lib/history";
 import { getMarket, getTokenPricesInCurrencies } from "../lib/market";
-import { btcAddressToHex } from "../shiftSDK/blockchain/btc";
-import { strip0x } from "../shiftSDK/blockchain/common";
-import { ShiftedInResponse, ShiftedOutResponse } from "../shiftSDK/darknode/darknodeGroup";
-import { Chain, UTXO } from "../shiftSDK/shiftSDK";
 import { isERC20, isEthereumBased, MarketPair, Token, Tokens } from "./generalTypes";
-
-// const transferEvent = [{
-//     "indexed": true,
-//     "name": "from",
-//     "type": "address"
-// },
-// {
-//     "indexed": true,
-//     "name": "to",
-//     "type": "address"
-// },
-// {
-//     "indexed": false,
-//     "name": "tokens",
-//     "type": "uint256"
-// }
-// ];
 
 export interface Tx {
     hash: string;
@@ -65,7 +50,7 @@ const initialState = {
     tokenPrices: Map<Token, Map<Currency, number>>(),
     accountBalances: Map<Token, BigNumber>(),
     balanceReserves: Map<MarketPair, ReserveBalances>(),
-    dexSDK: new DexSDK(),
+    dexSDK: null as null | DexSDK,
 
     orderInputs: initialOrder,
     confirmedOrderInputs: null as null | OrderInputs,
@@ -93,14 +78,15 @@ export class AppContainer extends Container<typeof initialState> {
     public state = initialState;
 
     public connect = async (): Promise<void> => {
-        const { dexSDK } = this.state;
-        await dexSDK.connect();
 
-        if (dexSDK.web3) {
-            const addresses = await dexSDK.web3.eth.getAccounts();
-            await this.setState({ address: addresses.length > 0 ? addresses[0] : null });
-        }
+        const web3 = await getWeb3();
+        const networkID = await web3.eth.net.getId();
 
+        const dexSDK = new DexSDK(web3, networkID);
+        await this.setState({ dexSDK });
+
+        const addresses = await web3.eth.getAccounts();
+        await this.setState({ address: addresses.length > 0 ? addresses[0] : null });
         await this.updateAccountBalances();
     }
 
@@ -120,8 +106,9 @@ export class AppContainer extends Container<typeof initialState> {
     }
 
     public updateBalanceReserves = async (): Promise<void> => {
-        const { balanceReserves,
-            dexSDK } = this.state;
+        const { balanceReserves, dexSDK } = this.state;
+        if (!dexSDK) { return; }
+
         let newBalanceReserves = balanceReserves;
         // const marketPairs = [MarketPair.DAI_BTC, MarketPair.ETH_BTC, MarketPair.REN_BTC, MarketPair.ZEC_BTC];
         const marketPairs = [MarketPair.DAI_BTC];
@@ -181,6 +168,8 @@ export class AppContainer extends Container<typeof initialState> {
 
     public updateCommitment = async () => {
         const { orderInputs: order, dexSDK, toAddress, refundAddress } = this.state;
+        if (!dexSDK) { return; }
+
         const srcTokenDetails = Tokens.get(order.srcToken);
         if (!toAddress || !refundAddress || !srcTokenDetails) {
             throw new Error(`Required info is undefined (${toAddress}, ${refundAddress}, ${srcTokenDetails})`);
@@ -218,7 +207,7 @@ export class AppContainer extends Container<typeof initialState> {
 
     public updateDeposits = async () => {
         const { dexSDK, depositAddress, depositAddressToken } = this.state;
-        if (!depositAddressToken || !depositAddress) {
+        if (!depositAddressToken || !depositAddress || !dexSDK) {
             return;
         }
         const utxos = await dexSDK.retrieveDeposits(depositAddressToken, depositAddress);
@@ -229,7 +218,7 @@ export class AppContainer extends Container<typeof initialState> {
 
     public submitDeposit = async () => {
         const { dexSDK, commitment, utxos, depositAddressToken } = this.state;
-        if (!commitment || !depositAddressToken || !utxos || utxos.size === 0) {
+        if (!dexSDK || !commitment || !depositAddressToken || !utxos || utxos.size === 0) {
             throw new Error(`Invalid values required to submit deposit`);
         }
         /* We know that utxos is non-empty. */ // tslint:disable-next-line: no-non-null-assertion no-unnecessary-type-assertion
@@ -240,8 +229,7 @@ export class AppContainer extends Container<typeof initialState> {
 
     public submitBurn = async () => {
         const { dexSDK, commitment, receivedAmountHex } = this.state;
-        if (!commitment || !receivedAmountHex) {
-            console.error(`commitment: ${commitment}, receivedAmountHex: ${receivedAmountHex}`);
+        if (!dexSDK || !commitment || !receivedAmountHex) {
             throw new Error(`Invalid values required to submit burn`);
         }
         const messageID = await dexSDK.submitBurn(commitment, receivedAmountHex);
@@ -250,9 +238,7 @@ export class AppContainer extends Container<typeof initialState> {
 
     public submitSwap = async () => {
         const { address, dexSDK, commitment, signature } = this.state;
-        if (!address || !commitment) {
-            console.error(`address: ${address}`);
-            console.error(`commitment: ${commitment}`);
+        if (!dexSDK || !address || !commitment) {
             throw new Error(`Invalid values required for swap`);
         }
 
@@ -330,7 +316,7 @@ export class AppContainer extends Container<typeof initialState> {
 
     public updateMessageStatus = async () => {
         const { dexSDK, messageID, commitment } = this.state;
-        if (!messageID || !commitment) {
+        if (!dexSDK || !messageID || !commitment) {
             throw new Error(`Invalid values passed to updateMessageStatus`);
         }
         try {
@@ -347,7 +333,7 @@ export class AppContainer extends Container<typeof initialState> {
             if (`${error}`.match("Signature not available")) {
                 return;
             }
-            console.error(error);
+            _catchBackgroundErr_(error);
         }
     }
 
@@ -416,7 +402,7 @@ export class AppContainer extends Container<typeof initialState> {
 
     public updateAccountBalances = async (): Promise<void> => {
         const { dexSDK, address } = this.state;
-        if (!address) {
+        if (!dexSDK || !address) {
             return;
         }
         let accountBalances = this.state.accountBalances;
@@ -433,7 +419,7 @@ export class AppContainer extends Container<typeof initialState> {
     public getAllowance = async () => {
         const { orderInputs: { srcToken, srcAmount }, dexSDK, address } = this.state;
         const srcTokenDetails = Tokens.get(srcToken);
-        if (!address || !srcTokenDetails) {
+        if (!dexSDK || !address || !srcTokenDetails) {
             this.setState({ erc20Approved: false }).catch(_catchBackgroundErr_);
             return;
         }
@@ -445,7 +431,7 @@ export class AppContainer extends Container<typeof initialState> {
     public setAllowance = async () => {
         const { orderInputs: { srcToken, srcAmount }, dexSDK, address } = this.state;
         const srcTokenDetails = Tokens.get(srcToken);
-        if (!address || !srcTokenDetails) {
+        if (!dexSDK || !address || !srcTokenDetails) {
             this.setState({ erc20Approved: false }).catch(_catchBackgroundErr_);
             return;
         }

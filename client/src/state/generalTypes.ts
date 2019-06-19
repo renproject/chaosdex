@@ -1,8 +1,7 @@
 import { Currency } from "@renex/react-components";
 import { Map } from "immutable";
 import { validate } from "wallet-address-validator";
-
-import { Chain } from "../shiftSDK/shiftSDK";
+import { Chain } from "@renproject/ren";
 
 export enum Token {
     DAI = "DAI",

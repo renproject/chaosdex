@@ -133,7 +133,7 @@ declare module "bitcore-lib" {
     export namespace encoding {
         class Base58 {
             constructor(data?: { buf: Buffer } | string);
-            set(data: { buf: Buffer } | string);
+            set(data: { buf: Buffer } | string): void;
 
             validCharacters: Function;
             encode: Function;
@@ -145,15 +145,14 @@ declare module "bitcore-lib" {
             decode: Function;
             checksum: Function;
             encode: Function;
-        };
+        }
 
-        BufferReader: Function;
         class BufferWriter {
             varintBufNum: Function;
             varintBufBN: Function
-        };
-        BufferReader: () => BufferWriter;
-        Varint: Function;
+        }
+        const BufferReader: () => BufferWriter;
+        const Varint: Function
     }
 
     export namespace crypto {
@@ -427,8 +426,8 @@ declare module "bitcore-lib" {
         readonly hashBuffer: Buffer;
         readonly network: Networks.Network;
         readonly type: string;
-        readonly toString(): string;
-        readonly toBuffer(): Buffer;
+        toString(): string;
+        toBuffer(): Buffer;
 
         constructor(data: Buffer | Uint8Array | string | object, network?: Networks.Network, type?: string);
     }
@@ -575,7 +574,7 @@ declare module "bitcore-lib-zcash" {
     export namespace encoding {
         class Base58 {
             constructor(data?: { buf: Buffer } | string);
-            set(data: { buf: Buffer } | string);
+            set(data: { buf: Buffer } | string): void;
 
             validCharacters: Function;
             encode: Function;
@@ -587,15 +586,14 @@ declare module "bitcore-lib-zcash" {
             decode: Function;
             checksum: Function;
             encode: Function;
-        };
+        }
 
-        BufferReader: Function;
         class BufferWriter {
             varintBufNum: Function;
             varintBufBN: Function
-        };
-        BufferReader: () => BufferWriter;
-        Varint: Function;
+        }
+        const BufferReader: () => BufferWriter;
+        const Varint: Function;
     }
 
     export namespace crypto {
@@ -869,8 +867,8 @@ declare module "bitcore-lib-zcash" {
         readonly hashBuffer: Buffer;
         readonly network: Networks.Network;
         readonly type: string;
-        readonly toString(): string;
-        readonly toBuffer(): Buffer;
+        toString(): string;
+        toBuffer(): Buffer;
 
         constructor(data: Buffer | Uint8Array | string | object, network?: Networks.Network, type?: string);
     }

@@ -30,14 +30,15 @@ export const App = connect<Props>([AppContainer])(
         const [initialized, setInitialized] = React.useState(false);
         React.useEffect(() => {
             if (!initialized) {
-                setInterval(() => appContainer.updateTokenPrices().catch(_catchBackgroundErr_), 30 * 1000);
-                setInterval(() => appContainer.updateBalanceReserves().catch(_catchBackgroundErr_), 30 * 1000);
-                setInterval(() => appContainer.updateAccountBalances().catch(_catchBackgroundErr_), 30 * 1000);
-                appContainer.connect().catch(_catchBackgroundErr_);
-                appContainer.updateTokenPrices().catch(_catchBackgroundErr_);
-                appContainer.updateBalanceReserves().catch(_catchBackgroundErr_);
-                appContainer.updateAccountBalances().catch(_catchBackgroundErr_);
-                setInitialized(true);
+                setInterval(() => appContainer.updateTokenPrices().catch(_catchBackgroundErr_), 10 * 1000);
+                setInterval(() => appContainer.updateBalanceReserves().catch(_catchBackgroundErr_), 10 * 1000);
+                setInterval(() => appContainer.updateAccountBalances().catch(_catchBackgroundErr_), 10 * 1000);
+                appContainer.connect().then(() => {
+                    appContainer.updateTokenPrices().catch(_catchBackgroundErr_);
+                    appContainer.updateBalanceReserves().catch(_catchBackgroundErr_);
+                    appContainer.updateAccountBalances().catch(_catchBackgroundErr_);
+                    setInitialized(true);
+                }).catch(_catchBackgroundErr_);
             }
         }, [initialized, appContainer]);
 

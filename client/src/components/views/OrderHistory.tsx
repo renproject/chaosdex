@@ -1,13 +1,13 @@
 import * as React from "react";
 
 import { TokenIcon } from "@renex/react-components";
+import { Chain } from "@renproject/ren";
 import i18next from "i18next";
 import { OrderedMap } from "immutable";
 import { useTranslation } from "react-i18next";
 
 import { naturalTime } from "../../lib/conversion";
 import { ETHERSCAN } from "../../lib/environmentVariables";
-import { Chain } from "../../shiftSDK/shiftSDK";
 import { HistoryEvent, Tx } from "../../state/appContainer";
 import { ReactComponent as Arrow } from "../../styles/images/arrow-right.svg";
 import { ReactComponent as Next } from "../../styles/images/next.svg";
