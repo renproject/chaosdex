@@ -7,10 +7,9 @@ import { Token } from "../../../state/generalTypes";
 import { Popup } from "./Popup";
 
 export const DepositReceived: React.StatelessComponent<{
-    messageID: string | null;
     token?: Token;
     submitDeposit?: () => Promise<void>;
-}> = ({ messageID, token, submitDeposit }) => {
+}> = ({ token, submitDeposit }) => {
     const [submitted, setSubmitted] = React.useState(false);
     const [error, setError] = React.useState(null as Error | null);
 
@@ -38,7 +37,7 @@ export const DepositReceived: React.StatelessComponent<{
                 {waiting ? <Loading /> : null}
                 {error ? <span className="red">{`${error.message || error}`}</span> : null}
                 {waiting ? <div className="address-input--message">
-                    <>Submitting order to RenVM... {messageID ? <InfoLabel>Message ID: {messageID}</InfoLabel> : null}</>
+                    <>Submitting order to RenVM...</>
                 </div> : <div className="popup--buttons">
                         <button className="button open--confirm" onClick={onClick}>Submit to darknodes</button>
                     </div>

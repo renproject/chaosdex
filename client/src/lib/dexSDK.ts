@@ -112,28 +112,32 @@ export class DexSDK {
     }
 
     public zipPayload = (commitment: Commitment) => [
-        { type: "address", value: commitment.srcToken },
-        { type: "address", value: commitment.dstToken },
-        { type: "uint256", value: commitment.minDestinationAmount.toFixed() },
-        { type: "bytes", value: commitment.toAddress },
-        { type: "uint256", value: commitment.refundBlockNumber.toString() },
-        { type: "bytes", value: commitment.refundAddress },
+        { name: "srcToken", type: "address", value: commitment.srcToken },
+        { name: "dstToken", type: "address", value: commitment.dstToken },
+        { name: "minDestinationAmount", type: "uint256", value: commitment.minDestinationAmount.toFixed() },
+        { name: "toAddress", type: "bytes", value: commitment.toAddress },
+        { name: "refundBlockNumber", type: "uint256", value: commitment.refundBlockNumber.toString() },
+        { name: "refundAddress", type: "bytes", value: commitment.refundAddress },
     ]
-
-    public hashPayload = (commitment: Commitment): string => this.renSDK.hashPayload(this.zipPayload(commitment));
 
     // Takes a commitment as bytes or an array of primitive types and returns
     // the deposit address
     public generateAddress = async (token: Token, commitment: Commitment): Promise<string> => {
-        const amount = "0";
+        const amount = 0;
         const nonce = "0";
 
-        this.shiftStep1 = this.renSDK.shift(ShiftActions[token].Btc2Eth, this.adapterAddress, amount, nonce, this.zipPayload(commitment));
+        this.shiftStep1 = this.renSDK.shift(
+            ShiftActions[token].Btc2Eth,
+            this.adapterAddress,
+            amount,
+            nonce,
+            this.zipPayload(commitment),
+        );
         return this.shiftStep1.addr();
     }
 
     // Retrieves unspent deposits at the provided address
-    public retrieveDeposits = async (limit = 10, confirmations = 0) => {
+    public waitForDeposit = async (limit = 10, confirmations = 0) => {
         if (!this.shiftStep1) {
             throw new Error("Must have generated address first");
         }
@@ -142,19 +146,18 @@ export class DexSDK {
 
     // Submits the commitment and transaction to the darknodes, and then submits
     // the signature to the adapter address
-    public submitDeposit = async (token: Token, transaction: UTXO, commitment: Commitment): Promise<string> => {
+    public submitDeposit = async (): Promise<void> => {
         if (!this.shiftStep2) {
             throw new Error("Must have retrieved deposits first");
         }
-        this.shiftStep3 = this.shiftStep2.submit();
-        return await this.shiftStep3.onMessageID();
+        this.shiftStep3 = await this.shiftStep2.submit();
     }
 
-    public submitSwap = async (address: string, commitment: Commitment, adapterAddress: string, signatureIn?: ShiftedInResponse | ShiftedOutResponse | null) => {
+    public submitSwap = (address: string, commitment: Commitment, adapterAddress: string, signatureIn?: ShiftedInResponse | ShiftedOutResponse | null) => {
         if (!this.shiftStep3) {
             throw new Error("Must have submitted deposit first");
         }
-        await this.shiftStep3;
+        return this.shiftStep3.signAndSubmit(this.web3, "trade", address);
     }
 
     // public submitBurn = async (commitment: Commitment, receivedAmountHex: string): Promise<string> => {

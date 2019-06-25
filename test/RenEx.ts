@@ -86,10 +86,10 @@ contract("RenEx", (accounts) => {
         const value = new BN(200000000000);
         const nHash = `0x${randomBytes(32).toString("hex")}`;
         const pHash = `0x${randomBytes(32).toString("hex")}`;
-        const hash = await shifter.hashForSignature(accounts[0], value.toNumber(), nHash, pHash);
+        const hash = await shifter.hashForSignature(pHash, value.toNumber(), accounts[0], nHash);
         const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
         const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
-        await shifter.shiftIn(value.toNumber(), nHash, sigString, pHash, { from: accounts[0] });
+        await shifter.shiftIn(pHash, value.toNumber(), nHash, sigString, { from: accounts[0] });
         await token.transfer(reserve.address, removeFee(value, 10));
     };
 
@@ -132,14 +132,15 @@ contract("RenEx", (accounts) => {
             token1.address, token2.address, 0, "0x002200220022",
             100000, "0x010101010101",
         );
-        const hash = await shifter1.hashForSignature(renexAdapter.address, value.toNumber(), nHash, commitment);
+        const hash = await shifter1.hashForSignature(commitment, value.toNumber(), renexAdapter.address, nHash);
         const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
         const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
         await renexAdapter.trade(
-            value.toNumber(), nHash, sigString,
             // Payload
             token1.address, token2.address, 0, "0x002200220022", 100000,
             "0x010101010101",
+            // Required
+            value.toNumber(), nHash, sigString,
         );
     });
 
@@ -150,14 +151,15 @@ contract("RenEx", (accounts) => {
             token2.address, token1.address, 0, "0x002200220022",
             100000, "0x010101010101",
         );
-        const hash = await shifter2.hashForSignature(renexAdapter.address, value.toNumber(), nHash, commitment);
+        const hash = await shifter2.hashForSignature(commitment, value.toNumber(), renexAdapter.address, nHash);
         const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
         const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
         await renexAdapter.trade(
-            value.toNumber(), nHash, sigString,
             // Payload:
             token2.address, token1.address, 0, "0x002200220022", 100000,
             "0x010101010101",
+            // Required
+            value.toNumber(), nHash, sigString,
         );
     });
 
@@ -166,10 +168,11 @@ contract("RenEx", (accounts) => {
         const nHash = `0x${randomBytes(32).toString("hex")}`;
         const pHash = `0x${randomBytes(32).toString("hex")}`;
         await renexAdapter.trade(
-            value.toNumber(), nHash, pHash,
             // Payload:
             ETHEREUM_TOKEN_ADDRESS, token1.address, 0, "0x002200220022", 100000,
             "0x010101010101",
+            // Required
+            value.toNumber(), nHash, pHash,
             { from: accounts[3], value },
         );
     });
@@ -179,10 +182,11 @@ contract("RenEx", (accounts) => {
         const nHash = `0x${randomBytes(32).toString("hex")}`;
         const pHash = `0x${randomBytes(32).toString("hex")}`;
         await renexAdapter.trade(
-            value.toNumber(), nHash, pHash,
             // Payload:
             ETHEREUM_TOKEN_ADDRESS, token2.address, 0, "0x002200220022",
             100000, "0x010101010101",
+            // Required
+            value.toNumber(), nHash, pHash,
             { from: accounts[3], value },
         );
     });
@@ -192,10 +196,11 @@ contract("RenEx", (accounts) => {
         const nHash = `0x${randomBytes(32).toString("hex")}`;
         const pHash = `0x${randomBytes(32).toString("hex")}`;
         await renexAdapter.trade(
-            value.toNumber(), nHash, pHash,
             // Payload:
             ETHEREUM_TOKEN_ADDRESS, token3.address, 0, accounts[3],
             100000, accounts[3],
+            // Required
+            value.toNumber(), nHash, pHash,
             { from: accounts[3], value },
         );
     });
@@ -207,14 +212,15 @@ contract("RenEx", (accounts) => {
             token1.address, ETHEREUM_TOKEN_ADDRESS, 0, accounts[3],
             100000, "0x010101010101",
         );
-        const hash = await shifter1.hashForSignature(renexAdapter.address, value.toNumber(), nHash, commitment);
+        const hash = await shifter1.hashForSignature(commitment, value.toNumber(), renexAdapter.address, nHash);
         const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
         const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
         await renexAdapter.trade(
-            value.toNumber(), nHash, sigString,
             // Payload:
             token1.address, ETHEREUM_TOKEN_ADDRESS, 0, accounts[3],
             100000, "0x010101010101",
+            // Required
+            value.toNumber(), nHash, sigString,
         );
     });
 
@@ -225,14 +231,15 @@ contract("RenEx", (accounts) => {
             token2.address, ETHEREUM_TOKEN_ADDRESS, 0, accounts[3],
             100000, "0x010101010101",
         );
-        const hash = await shifter2.hashForSignature(renexAdapter.address, value.toNumber(), nHash, commitment);
+        const hash = await shifter2.hashForSignature(commitment, value.toNumber(), renexAdapter.address, nHash);
         const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
         const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
         await renexAdapter.trade(
-            value.toNumber(), nHash, sigString,
             // Payload:
             token2.address, ETHEREUM_TOKEN_ADDRESS, 0, accounts[3],
             100000, "0x010101010101",
+            // Required
+            value.toNumber(), nHash, sigString,
         );
     });
 
@@ -243,14 +250,15 @@ contract("RenEx", (accounts) => {
             token1.address, token3.address, 0, accounts[3],
             100000, "0x010101010101",
         );
-        const hash = await shifter1.hashForSignature(renexAdapter.address, value.toNumber(), nHash, commitment);
+        const hash = await shifter1.hashForSignature(commitment, value.toNumber(), renexAdapter.address, nHash);
         const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
         const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
         await renexAdapter.trade(
-            value.toNumber(), nHash, sigString,
             // Payload:
             token1.address, token3.address, 0, accounts[3], 100000,
             "0x010101010101",
+            // Required
+            value.toNumber(), nHash, sigString,
         );
     });
 
@@ -261,14 +269,15 @@ contract("RenEx", (accounts) => {
             token2.address, token3.address, 0, accounts[3],
             100000, "0x010101010101",
         );
-        const hash = await shifter2.hashForSignature(renexAdapter.address, value.toNumber(), nHash, commitment);
+        const hash = await shifter2.hashForSignature(commitment, value.toNumber(), renexAdapter.address, nHash);
         const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
         const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
         await renexAdapter.trade(
-            value.toNumber(), nHash, sigString,
             // Payload:
             token2.address, token3.address, 0, accounts[3], 100000,
             "0x010101010101",
+            // Required
+            value.toNumber(), nHash, sigString,
         );
     });
 });

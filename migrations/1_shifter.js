@@ -113,22 +113,22 @@ module.exports = async function (deployer, network, accounts) {
         );
         const res = await RenExReserve.at(RenExReserve.address);
         res.setShifter(zBTC.address, BTCShifter.address);
-        console.log(`[${"BTC"}, ${"DAI"}]: ${RenExReserve.address}`);
-        console.log(`[${zBTC.address}, ${DaiToken.address}]`);
-        console.log(RenExReserve.address);
+        deployer.logger.log(`[${"BTC"}, ${"DAI"}]: ${RenExReserve.address}`);
+        deployer.logger.log(`[${zBTC.address}, ${DaiToken.address}]`);
+        deployer.logger.log(RenExReserve.address);
         await renEx.registerReserve(zBTC.address, DaiToken.address, RenExReserve.address);
         await zbtc.transfer(RenExReserve.address, "10000000000");
         const dai = await DaiToken.at(DaiToken.address);
         await dai.transfer(RenExReserve.address, "100000000000000000000");
     } else {
-        console.log(`\nUsing existing reserve for [${"BTC"}, ${"DAI"}]: ${current}\n`);
+        deployer.logger.log(`\nUsing existing reserve for [${"BTC"}, ${"DAI"}]: ${current}\n`);
     }
 
     await web3.eth.sendTransaction({ to: "0x797522Fb74d42bB9fbF6b76dEa24D01A538d5D66", from: accounts[0], value: web3.utils.toWei("1", "ether") });
 
     /** LOG *******************************************************************/
 
-    console.log({
+    deployer.logger.log(JSON.stringify({
         BTCShifter: BTCShifter.address,
         ZECShifter: ZECShifter.address,
         zBTC: zBTC.address,
@@ -136,5 +136,5 @@ module.exports = async function (deployer, network, accounts) {
         RenEx: RenEx.address,
         RenExAdapter: RenExAdapter.address,
         BTCDAIReserve: RenExReserve.address,
-    });
+    }, undefined, "    "));
 }

@@ -13,11 +13,16 @@ export const ShowDepositAddress: React.StatelessComponent<{
     amount: string,
     cancel(): void;
     generateAddress(): Promise<void>;
-}> = ({ amount, token, depositAddress, cancel, generateAddress }) => {
+    waitForDeposit(): Promise<void>;
+    done(): void;
+}> = ({ amount, token, depositAddress, cancel, generateAddress, waitForDeposit, done }) => {
     // Defaults for demo
     const [understood, setUnderstood] = React.useState(false);
     const [copied, setCopied] = React.useState(false);
-    const [showSpinner, setShowSpinner] = React.useState(false);
+
+    // tslint:disable-next-line: prefer-const
+    let [showSpinner, setShowSpinner] = React.useState(false);
+
     const [timer, setTimer] = React.useState<NodeJS.Timeout | null>(null);
     const [failed, setFailed] = React.useState(null as Error | null);
 
@@ -45,7 +50,14 @@ export const ShowDepositAddress: React.StatelessComponent<{
         setTimer(setTimeout(() => {
             setCopied(false);
             if (!showSpinner) {
+                showSpinner = true;
                 setShowSpinner(true);
+                waitForDeposit().then(() => {
+                    done();
+                }).catch(() => {
+                    showSpinner = false;
+                    setShowSpinner(false);
+                });
             }
         }, 5000)
         );

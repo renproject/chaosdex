@@ -65,7 +65,6 @@ const initialState = {
     depositAddress: null as string | null,
     depositAddressToken: null as Token | null,
     utxos: null as List<UTXO> | null,
-    messageID: null as string | null,
     erc20Approved: false,
     signature: null as ShiftedInResponse | ShiftedOutResponse | null,
     inTx: null as Tx | null,
@@ -166,6 +165,13 @@ export class AppContainer extends Container<typeof initialState> {
         await this.setState({ refundAddress });
     }
 
+    public waitForDeposits = async () => {
+        const { dexSDK } = this.state;
+        if (!dexSDK) { return; }
+
+        await dexSDK.waitForDeposit();
+    }
+
     public updateCommitment = async () => {
         const { orderInputs: order, dexSDK, toAddress, refundAddress } = this.state;
         if (!dexSDK) { return; }
@@ -206,14 +212,11 @@ export class AppContainer extends Container<typeof initialState> {
     }
 
     public submitDeposit = async () => {
-        const { dexSDK, commitment, utxos, depositAddressToken } = this.state;
-        if (!dexSDK || !commitment || !depositAddressToken || !utxos || utxos.size === 0) {
+        const { dexSDK } = this.state;
+        if (!dexSDK) {
             throw new Error(`Invalid values required to submit deposit`);
         }
-        /* We know that utxos is non-empty. */ // tslint:disable-next-line: no-non-null-assertion no-unnecessary-type-assertion
-        const utxo: UTXO = utxos.get(0)!;
-        const messageID = await dexSDK.submitDeposit(depositAddressToken, utxo, commitment);
-        await this.setState({ messageID });
+        await dexSDK.submitDeposit();
     }
 
     public submitBurn = async () => {
@@ -222,8 +225,6 @@ export class AppContainer extends Container<typeof initialState> {
             throw new Error(`Invalid values required to submit burn`);
         }
         // TODO: Implement burning!
-        // const messageID = await dexSDK.submitBurn(commitment, receivedAmountHex);
-        // this.setState({ messageID }).catch(_catchBackgroundErr_);
     }
 
     public submitSwap = async () => {
@@ -239,7 +240,13 @@ export class AppContainer extends Container<typeof initialState> {
             await this.setState({ pendingTXs: this.state.pendingTXs.set(transactionHash, 0) });
         }
 
-        const receivedAmount = await new Promise<BigNumber>((resolve, reject) => promiEvent.once("confirmation", async (confirmations: number, receipt: TransactionReceipt) => {
+        const receivedAmount = await new Promise<BigNumber>((resolve, reject) => promiEvent.once("confirmation", async (confirmation: string | Error | TransactionReceipt) => {
+            console.log(`confirmation:`);
+            console.log(confirmation);
+            if (!confirmation.hasOwnProperty("logs")) {
+                reject(confirmation);
+            }
+            const receipt = confirmation as TransactionReceipt;
             if (isEthereumBased(commitment.orderInputs.dstToken)) {
                 this.setState({ pendingTXs: this.state.pendingTXs.remove(transactionHash) }).catch(_catchInteractionErr_);
 
@@ -304,29 +311,6 @@ export class AppContainer extends Container<typeof initialState> {
         return historyItem;
     }
 
-    public updateMessageStatus = async () => {
-        const { dexSDK, messageID, commitment } = this.state;
-        if (!dexSDK || !messageID || !commitment) {
-            throw new Error(`Invalid values passed to updateMessageStatus`);
-        }
-        try {
-            const messageResponse = await dexSDK.shiftStatus(messageID);
-            await this.setState({ signature: messageResponse });
-
-            if (isEthereumBased(commitment.orderInputs.dstToken)) {
-                this.setState({ inTx: BitcoinTx(messageResponse.txHash) }).catch(_catchInteractionErr_);
-            } else {
-                this.setState({ outTx: BitcoinTx(messageResponse.txHash) }).catch(_catchInteractionErr_);
-            }
-
-        } catch (error) {
-            if (`${error}`.match("Signature not available")) {
-                return;
-            }
-            _catchBackgroundErr_(error);
-        }
-    }
-
     public setSubmitting = async (submitting: boolean) => {
         await this.setState({
             submitting,
@@ -344,7 +328,6 @@ export class AppContainer extends Container<typeof initialState> {
             depositAddress: null,
             depositAddressToken: null,
             utxos: null,
-            messageID: null,
             signature: null,
             erc20Approved: false,
             inTx: null,

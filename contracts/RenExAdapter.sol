@@ -28,13 +28,14 @@ contract RenExAdapter is Ownable {
     bytes32 pHash;
 
     function trade(
-        uint256 _amount, bytes32 _nHash, bytes calldata _sig,
         // Payload
         /*uint256 _relayerFee,*/ ERC20 _src, ERC20 _dst, uint256 _minDstAmt, bytes calldata _to,
-        uint256 _refundBN, bytes calldata _refundAddress
+        uint256 _refundBN, bytes calldata _refundAddress,
+        // Required
+        uint256 _amount, bytes32 _nHash, bytes calldata _sig
     ) external payable {
         pHash = hashPayload(_src, _dst, _minDstAmt, _to, _refundBN, _refundAddress);
-        transferredAmt = transferIn(_src, _dst, _amount, _nHash, pHash, _sig);
+        transferredAmt = _transferIn(_src, _dst, _amount, _nHash, pHash, _sig);
         emit LogTransferIn(_src, _amount);
 
         // Handle refunds if the refund block number has passed
@@ -46,7 +47,7 @@ contract RenExAdapter is Ownable {
             return;
         }
 
-        doTrade(_src, _dst, _minDstAmt, _to, transferredAmt);
+        _doTrade(_src, _dst, _minDstAmt, _to, transferredAmt);
     }
 
     function hashPayload(
@@ -56,7 +57,7 @@ contract RenExAdapter is Ownable {
         return keccak256(abi.encode(_src, _dst, _minDstAmt, _to, _refundBN, _refundAddress));
     }
 
-    function doTrade(
+    function _doTrade(
         ERC20 _src, ERC20 _dst, uint256 _minDstAmt, bytes memory _to, uint256 _amount
     ) internal {
         uint256 recvAmt;
@@ -66,7 +67,7 @@ contract RenExAdapter is Ownable {
         if (reserve.isShifted(address(_dst))) {
             to = address(this);
         } else {
-            to = bytesToAddress(_to);
+            to = _bytesToAddress(_to);
         }
 
         if (_src == renex.ethereum()) {
@@ -83,14 +84,14 @@ contract RenExAdapter is Ownable {
         emit LogTransferOut(_dst, recvAmt);
     }
 
-    function transferIn(
+    function _transferIn(
         /*uint256 _relayerFee,*/ ERC20 _src, ERC20 _dst, uint256 _amount,
         bytes32 _nHash, bytes32 _pHash, bytes memory _sig
     ) internal returns (uint256) {
         RenExReserve reserve = RenExReserve(renex.reserve(_src, _dst));
 
         if (reserve.isShifted(address(_src))) {
-            return reserve.getShifter(address(_src)).shiftIn(_amount, _nHash, _sig, _pHash);
+            return reserve.getShifter(address(_src)).shiftIn(_pHash, _amount, _nHash, _sig);
         } else if (_src == renex.ethereum()) {
             require(msg.value >= _amount, "insufficient eth amount");
             return msg.value;
@@ -100,7 +101,7 @@ contract RenExAdapter is Ownable {
         }
     }
 
-    function bytesToAddress(bytes memory _addr) internal pure returns (address payable) {
+    function _bytesToAddress(bytes memory _addr) internal pure returns (address payable) {
         address payable addr;
         /* solhint-disable-next-line */ /* solium-disable-next-line */
         assembly {
