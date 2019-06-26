@@ -5,12 +5,14 @@ import { Loading } from "@renex/react-components";
 import { RouteComponentProps, withRouter } from "react-router";
 import createPersistedState from "use-persisted-state";
 
-import { _catchInteractionErr_ } from "../../lib/errors";
+import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
 import { AppContainer, HistoryEvent } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
 import { Token } from "../../state/generalTypes";
 import { NewOrder } from "../views/NewOrder";
 import { OrderHistory } from "../views/OrderHistory";
+import { OpeningOrder } from "./OpeningOrder";
+import { PromptDetails } from "./PromptDetails";
 
 const useOrderHistoryState = createPersistedState("order-history-v3");
 
@@ -24,6 +26,10 @@ interface StoredHistory {
 export const Exchange = withRouter(connect<RouteComponentProps & ConnectedProps<[AppContainer]>>([AppContainer])(
     ({ containers: [appContainer], location }) => {
         const [orderHistory, setOrderHistory] = useOrderHistoryState({} as unknown as StoredHistory);
+
+        const cancel = () => {
+            appContainer.setSubmitting(false).catch(_catchBackgroundErr_);
+        };
 
         const swapSubmitted = (historyEvent: HistoryEvent) => {
             setOrderHistory((hist: StoredHistory) => {
@@ -73,8 +79,14 @@ export const Exchange = withRouter(connect<RouteComponentProps & ConnectedProps<
             <div className="content container exchange-inner">
                 <div className="exchange--center">
                     <React.Suspense fallback={<Loading />}>
-                        <NewOrder swapSubmitted={swapSubmitted} />
+                        <NewOrder />
                         <OrderHistory orders={orders} pendingTXs={appContainer.state.pendingTXs} />
+                        {appContainer.state.submitting ?
+                            appContainer.state.refundAddress ?
+                                <OpeningOrder cancel={cancel} swapSubmitted={swapSubmitted} />
+                                : <PromptDetails cancel={cancel} />
+                            : <></>
+                        }
                     </React.Suspense>
                 </div>
             </div>

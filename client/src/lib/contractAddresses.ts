@@ -9,18 +9,18 @@ export const syncGetTokenAddress = (networkID: number, token: Token): string => 
     // eslint-disable-next-line
     switch (token) {
         case Token.DAI:
-            const deployedDaiNetworks = require(`../contracts/devnet/DaiToken.json`).networks;
+            const deployedDaiNetworks = require(`../contracts/testnet/DaiToken.json`).networks;
             return deployedDaiNetworks[networkID].address;
         case Token.ETH:
             return "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
         case Token.BTC:
-            const deployedBtcNetworks = require(`../contracts/devnet/zBTC.json`).networks;
+            const deployedBtcNetworks = require(`../contracts/testnet/zBTC.json`).networks;
             return deployedBtcNetworks[networkID].address;
         case Token.ZEC:
-            const deployedZecNetworks = require(`../contracts/devnet/zZEC.json`).networks;
+            const deployedZecNetworks = require(`../contracts/testnet/zZEC.json`).networks;
             return deployedZecNetworks[networkID].address;
         // case Token.REN:
-        //     const deployedRenNetworks = require(`../contracts/devnet/RenToken.json`).networks;
+        //     const deployedRenNetworks = require(`../contracts/testnet/RenToken.json`).networks;
         //     return deployedRenNetworks[networkID].address;
     }
 };
@@ -32,7 +32,7 @@ export const getTokenAddress = async (token: Token): Promise<string> => {
 };
 
 export const syncGetRenExAddress = (networkID: number): string => {
-    const renExNetworks = require(`../contracts/devnet/RenEx.json`).networks;
+    const renExNetworks = require(`../contracts/testnet/RenEx.json`).networks;
     return renExNetworks[networkID].address;
 };
 
@@ -43,7 +43,7 @@ export const getRenExAddress = async (): Promise<string> => {
 };
 
 export const syncGetRenExAdapterAddress = (networkID: number): string => {
-    const renExNetworks = require(`../contracts/devnet/RenExAdapter.json`).networks;
+    const renExNetworks = require(`../contracts/testnet/RenExAdapter.json`).networks;
     return renExNetworks[networkID].address;
 };
 

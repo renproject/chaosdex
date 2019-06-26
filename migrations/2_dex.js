@@ -57,6 +57,8 @@ module.exports = async function (deployer, network, accounts) {
         deployer.logger.log(`[${zBTC.address}, ${DaiToken.address}]`);
         deployer.logger.log(RenExReserve.address);
         await renEx.registerReserve(zBTC.address, DaiToken.address, RenExReserve.address);
+        await res.approve(zBTC.address, renEx.address, "115792089237316195423570985008687907853269984665640564039457584007913129639935");
+        await res.approve(DaiToken.address, renEx.address, "115792089237316195423570985008687907853269984665640564039457584007913129639935");
         // const dai = await DaiToken.at(DaiToken.address);
         // await dai.transfer(RenExReserve.address, "100000000000000000000");
     } else {

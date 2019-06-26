@@ -1,7 +1,7 @@
 import { Currency } from "@renex/react-components";
 import {
     btcAddressToHex, Chain, ShiftedInResponse, ShiftedOutResponse, strip0x, UTXO,
-} from "@renproject/ren";
+} from "@ren-project/ren";
 import BigNumber from "bignumber.js";
 import { List, Map, OrderedMap } from "immutable";
 import { Container } from "unstated";
@@ -219,18 +219,54 @@ export class AppContainer extends Container<typeof initialState> {
         await dexSDK.submitDeposit();
     }
 
-    public submitBurn = async () => {
-        const { dexSDK, commitment, receivedAmountHex } = this.state;
-        if (!dexSDK || !commitment || !receivedAmountHex) {
-            throw new Error(`Invalid values required to submit burn`);
+    public checkBurnStatus = async () => {
+        const { dexSDK, inTx, commitment } = this.state;
+        if (!dexSDK || !inTx || !commitment) {
+            throw new Error(`Invalid values required to submit deposit`);
         }
-        // TODO: Implement burning!
+        const response = await dexSDK.checkBurnStatus(commitment.orderInputs.dstToken, inTx.hash);
+        const receivedAmount = new BigNumber(response.amount).dividedBy(new BigNumber(10).exponentiatedBy(8));
+        await this.setState({ receivedAmount, outTx: BitcoinTx(response.to) });
+    }
+
+    public submitBurn = async () => {
+        await this.updateCommitment();
+        const { address, dexSDK, commitment } = this.state;
+        if (!dexSDK || !address || !commitment) {
+            throw new Error(`Invalid values required for swap (dexSDK: ${!!dexSDK}, address: ${!!address}, commitment: ${!!commitment})`);
+        }
+
+        const promiEvent = dexSDK.submitBurn(address, commitment);
+        const transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve).catch(reject));
+
+        const receivedAmount = await new Promise<BigNumber>((resolve, reject) => (promiEvent.once as any)("confirmation", async (confirmations: number, receipt: TransactionReceipt) => {
+            // Loop through logs to find burn log
+            for (const log of receipt.logs) {
+                if (
+                    log.address.toLowerCase() === (await getTokenAddress(commitment.orderInputs.dstToken)).toLowerCase() &&
+                    log.topics[0] === "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef".toLowerCase() &&
+                    log.topics[1] === `0x000000000000000000000000${strip0x(await getRenExAdapterAddress())}`.toLowerCase() &&
+                    log.topics[2] === "0x0000000000000000000000000000000000000000000000000000000000000000".toLowerCase()
+                ) {
+                    const dstTokenDetails = Tokens.get(commitment.orderInputs.dstToken);
+                    const decimals = dstTokenDetails ? dstTokenDetails.decimals : 8;
+                    const receivedAmountHex = parseInt(log.data, 16).toString(16);
+                    const rcv = new BigNumber(log.data, 16).dividedBy(new BigNumber(10).exponentiatedBy(decimals));
+                    this.setState({ receivedAmountHex }).catch(_catchInteractionErr_);
+                    resolve(rcv);
+                }
+            }
+            reject();
+        }).catch(reject));
+
+        await this.setState({ receivedAmount, inTx: EthereumTx(transactionHash) });
     }
 
     public submitSwap = async () => {
+        await this.updateCommitment();
         const { address, dexSDK, commitment, signature } = this.state;
         if (!dexSDK || !address || !commitment) {
-            throw new Error(`Invalid values required for swap`);
+            throw new Error(`Invalid values required for swap (dexSDK: ${!!dexSDK}, address: ${!!address}, commitment: ${!!commitment})`);
         }
 
         const promiEvent = dexSDK.submitSwap(address, commitment, await getRenExAdapterAddress(), signature);

@@ -40,7 +40,7 @@ export const DepositReceived: React.StatelessComponent<{
                 {waiting ? <Loading /> : null}
                 {error ? <span className="red">{`${error.message || error}`}</span> : null}
                 {waiting ? <div className="address-input--message">
-                    <>Submitting order to RenVM... (<span onClick={onClick}>Retry</span>) <InfoLabel>{depositAddress}</InfoLabel></>
+                    <>Submitting order to RenVM... {/*(<span onClick={onClick}>Retry</span>) */}<InfoLabel>{depositAddress}</InfoLabel></>
                 </div> : <div className="popup--buttons">
                         <button className="button open--confirm" onClick={onClick}>Submit to darknodes</button>
                     </div>

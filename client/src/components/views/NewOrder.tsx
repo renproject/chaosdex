@@ -5,10 +5,9 @@ import { withTranslation, WithTranslation } from "react-i18next";
 
 import { _catchBackgroundErr_ } from "../../lib/errors";
 import { getMarket } from "../../lib/market";
-import { AppContainer, HistoryEvent } from "../../state/appContainer";
+import { AppContainer } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
 import { NewOrderInputs } from "./NewOrderInputs";
-import { OpeningOrder } from "./OpeningOrder";
 
 /**
  * NewOrder is a visual component for allowing users to open new orders
@@ -57,12 +56,7 @@ class NewOrderClass extends React.Component<Props> {
                 </div>
             </div>
             {/*<div className="order--error red">{orderInputs.inputError.error}</div>*/}
-            {appContainer.state.submitting ? <OpeningOrder cancel={this.cancel} done={this.cancel} swapSubmitted={this.props.swapSubmitted} /> : <></>}
         </>;
-    }
-
-    private readonly cancel = () => {
-        this.props.containers[0].setSubmitting(false).catch(_catchBackgroundErr_);
     }
 
     private readonly openOrder = async () => {
@@ -71,7 +65,6 @@ class NewOrderClass extends React.Component<Props> {
 }
 
 interface Props extends ConnectedProps<[AppContainer]>, WithTranslation {
-    swapSubmitted: (h: HistoryEvent) => void;
 }
 
 export const NewOrder = withTranslation()(connect<Props>([AppContainer])(NewOrderClass));

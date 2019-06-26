@@ -4,6 +4,7 @@
   "private": true,
   "homepage": "https://testnet.ren.exchange/",
   "dependencies": {
+    "@ren-project/ren": "^0.0.0",
     "@renex/fonts": "^1.0.1",
     "@renex/react-components": "1.0.21",
     "@sentry/browser": "^5.4.3",

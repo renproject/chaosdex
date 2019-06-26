@@ -1,10 +1,10 @@
 import RenSDK, {
-    Chain, NetworkDevnet, Shift, ShiftedInResponse, ShiftedOutResponse, Submit,
+    Chain, NetworkTestnet, Shift, ShiftedInResponse, ShiftedOutResponse, Submit,
     Tokens as ShiftActions, Wait,
-} from "@renproject/ren";
+} from "@ren-project/ren";
 import BigNumber from "bignumber.js";
 import Web3 from "web3";
-import { Log, TransactionReceipt } from "web3-core";
+import { Log, PromiEvent, TransactionReceipt } from "web3-core";
 import { AbiItem } from "web3-utils";
 
 import { isERC20, MarketPair, Token, Tokens } from "../state/generalTypes";
@@ -18,9 +18,9 @@ import { RenExAdapter } from "./contracts/RenExAdapter";
 import { NETWORK } from "./environmentVariables";
 
 // tslint:disable: non-literal-require
-const ERC20ABI = require(`../contracts/devnet/ERC20.json`).abi;
-const RenExABI = require(`../contracts/devnet/RenEx.json`).abi;
-const RenExAdapterABI = require(`../contracts/devnet/RenExAdapter.json`).abi;
+const ERC20ABI = require(`../contracts/development/ERC20.json`).abi;
+const RenExABI = require(`../contracts/testnet/RenEx.json`).abi;
+const RenExAdapterABI = require(`../contracts/testnet/RenExAdapter.json`).abi;
 
 const NULL_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
@@ -78,7 +78,7 @@ export class DexSDK {
         this.web3 = web3;
         this.networkID = networkID;
         this.adapterAddress = syncGetRenExAdapterAddress(networkID);
-        this.renSDK = new RenSDK(NetworkDevnet);
+        this.renSDK = new RenSDK(NetworkTestnet);
     }
 
     /**
@@ -166,11 +166,37 @@ export class DexSDK {
         this.shiftStep3 = await this.shiftStep2.submit();
     }
 
+    public checkBurnStatus = async (token: Token, txHash: string) => {
+        return await this.renSDK.burnDetails({ web3: this.web3, sendToken: ShiftActions[token].Eth2Btc, txHash });
+    }
+
     public submitSwap = (address: string, commitment: Commitment, adapterAddress: string, signatureIn?: ShiftedInResponse | ShiftedOutResponse | null) => {
         if (!this.shiftStep3) {
             throw new Error("Must have submitted deposit first");
         }
         return this.shiftStep3.signAndSubmit(this.web3, address);
+    }
+
+    public submitBurn = (address: string, commitment: Commitment): PromiEvent<Transaction> => { // Promise<string> => new Promise<string>(async (resolve, reject) => {
+        const amount = commitment.srcAmount.toString();
+        const txHash = NULL_BYTES32;
+        const signatureBytes = NULL_BYTES32;
+
+        const params: [string, string, number, string, number, string, string, string, string] = [
+            commitment.srcToken, // _src: string
+            commitment.dstToken, // _dst: string
+            commitment.minDestinationAmount.toNumber(), // _minDstAmt: BigNumber
+            commitment.toAddress, // _to: string
+            commitment.refundBlockNumber, // _refundBN: BigNumber
+            commitment.refundAddress, // _refundAddress: string
+            amount, // _amount: BigNumber
+            txHash, // _hash: string
+            signatureBytes, // _sig: string
+        ];
+
+        return getAdapter(this.web3, this.networkID).methods.trade(
+            ...params,
+        ).send({ from: address, gas: 350000 });
     }
 
     // public submitBurn = async (commitment: Commitment, receivedAmountHex: string): Promise<string> => {
