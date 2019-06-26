@@ -16,6 +16,7 @@ contract RenEx {
 
     function trade(address payable _to, ERC20 _src, ERC20 _dst, uint256 _sendAmount) public payable returns (uint256) {
         address payable reserve = reserve(_src, _dst);
+        require(reserve != address(0x0), "unsupported token pair");
         uint256 recvAmount = calculateReceiveAmount(_src, _dst, _sendAmount);
 
         if (_src != ethereum) {

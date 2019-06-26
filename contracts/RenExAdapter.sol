@@ -57,6 +57,13 @@ contract RenExAdapter is Ownable {
         return keccak256(abi.encode(_src, _dst, _minDstAmt, _to, _refundBN, _refundAddress));
     }
 
+    function encodePayload(
+        /*uint256 _relayerFee,*/ ERC20 _src, ERC20 _dst, uint256 _minDstAmt, bytes memory _to,
+        uint256 _refundBN, bytes memory _refundAddress
+    ) public pure returns (bytes memory) {
+        return abi.encode(_src, _dst, _minDstAmt, _to, _refundBN, _refundAddress);
+    }
+
     function _doTrade(
         ERC20 _src, ERC20 _dst, uint256 _minDstAmt, bytes memory _to, uint256 _amount
     ) internal {

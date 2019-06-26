@@ -26,7 +26,12 @@ const txUrl = (tx: Tx | null): string => {
     }
 };
 
-const OrderHistoryEntry = ({ order, t, inTxPending, outTxPending }: { order: HistoryEvent, t: i18next.TFunction, inTxPending: boolean, outTxPending: boolean }) => {
+const OrderHistoryEntry = ({ order, t, outTxPending }: {
+    order: HistoryEvent,
+    t: i18next.TFunction,
+    // inTxPending: boolean,
+    outTxPending: boolean,
+}) => {
     return <div className="swap--history--entry">
         <div className="token--info">
             <TokenIcon className="token-icon" token={order.orderInputs.dstToken} />
@@ -41,9 +46,9 @@ const OrderHistoryEntry = ({ order, t, inTxPending, outTxPending }: { order: His
         </div>
         <div className="history--txs">
             <span className="swap--time">{naturalTime(order.time, { message: "Just now", suffix: "ago", countDown: false, abbreviate: true })}</span>
-            <a target="_blank" className={`tx-in ${inTxPending ? "tx-pending" : ""}`} rel="noopener noreferrer" href={txUrl(order.inTx)}>
+            {/*<a target="_blank" className={`tx-in ${inTxPending ? "tx-pending" : ""}`} rel="noopener noreferrer" href={txUrl(order.inTx)}>
                 <Arrow />
-            </a>
+            </a>*/}
             <a target="_blank" className={`tx-out ${outTxPending ? "tx-pending" : ""}`} rel="noopener noreferrer" href={txUrl(order.outTx)}>
                 <Arrow />
             </a>
@@ -73,9 +78,9 @@ export const OrderHistory = ({ orders, pendingTXs }: Props) => {
                 {orders.slice(start, start + 5).map(historyEvent => {
                     return <OrderHistoryEntry
                         t={t}
-                        key={historyEvent.inTx ? historyEvent.inTx.hash : historyEvent.outTx ? historyEvent.outTx.hash : historyEvent.time}
+                        key={historyEvent.outTx ? historyEvent.outTx.hash : historyEvent.time}
                         order={historyEvent}
-                        inTxPending={pendingTXs.has(historyEvent.inTx.hash)}
+                        // inTxPending={pendingTXs.has(historyEvent.inTx.hash)}
                         outTxPending={pendingTXs.has(historyEvent.outTx.hash)}
                     />;
                 })}

@@ -1,5 +1,7 @@
 pragma solidity >=0.4.22 <0.6.0;
 
+import "darknode-sol/contracts/Shifter/ShifterRegistry.sol";
+
 contract Migrations {
   address public owner;
   uint public last_completed_migration;

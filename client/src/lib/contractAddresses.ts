@@ -1,24 +1,26 @@
 import { AbiItem } from "web3-utils";
 
 import { Token } from "../state/generalTypes";
+import { NETWORK } from "./environmentVariables";
 import { getWeb3 } from "./getWeb3";
 
+// tslint:disable: non-literal-require
 export const syncGetTokenAddress = (networkID: number, token: Token): string => {
     // eslint-disable-next-line
     switch (token) {
         case Token.DAI:
-            const deployedDaiNetworks = require("../contracts/DaiToken.json").networks;
+            const deployedDaiNetworks = require(`../contracts/devnet/DaiToken.json`).networks;
             return deployedDaiNetworks[networkID].address;
         case Token.ETH:
             return "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
         case Token.BTC:
-            const deployedBtcNetworks = require("../contracts/zBTC.json").networks;
+            const deployedBtcNetworks = require(`../contracts/devnet/zBTC.json`).networks;
             return deployedBtcNetworks[networkID].address;
         case Token.ZEC:
-            const deployedZecNetworks = require("../contracts/zZEC.json").networks;
+            const deployedZecNetworks = require(`../contracts/devnet/zZEC.json`).networks;
             return deployedZecNetworks[networkID].address;
         // case Token.REN:
-        //     const deployedRenNetworks = require("../contracts/RenToken.json").networks;
+        //     const deployedRenNetworks = require(`../contracts/devnet/RenToken.json`).networks;
         //     return deployedRenNetworks[networkID].address;
     }
 };
@@ -30,7 +32,7 @@ export const getTokenAddress = async (token: Token): Promise<string> => {
 };
 
 export const syncGetRenExAddress = (networkID: number): string => {
-    const renExNetworks = require("../contracts/RenEx.json").networks;
+    const renExNetworks = require(`../contracts/devnet/RenEx.json`).networks;
     return renExNetworks[networkID].address;
 };
 
@@ -41,7 +43,7 @@ export const getRenExAddress = async (): Promise<string> => {
 };
 
 export const syncGetRenExAdapterAddress = (networkID: number): string => {
-    const renExNetworks = require("../contracts/RenExAdapter.json").networks;
+    const renExNetworks = require(`../contracts/devnet/RenExAdapter.json`).networks;
     return renExNetworks[networkID].address;
 };
 

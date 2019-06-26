@@ -137,6 +137,13 @@
             margin-top: 10px;
             margin-left: -30px;
             background: white;
+
+            &:first-of-type {
+                width: 17px;
+                height: 17px;
+                margin-left: -52px;
+                background: white;
+            }
         }
 
         .copied-text {

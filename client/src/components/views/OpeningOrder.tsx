@@ -15,6 +15,7 @@ import { TokenAllowance } from "./popups/TokenAllowance";
 
 const defaultState = { // Entries must be immutable
     depositReceived: false,
+    depositSubmitted: false,
 };
 
 /**
@@ -44,7 +45,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
      */
     public render(): React.ReactNode {
         const [appContainer] = this.props.containers;
-        const { depositReceived } = this.state;
+        const { depositReceived, depositSubmitted } = this.state;
         const {
             orderInputs: orderInput, toAddress, refundAddress, depositAddress,
             utxos, confirmedOrderInputs, erc20Approved, confirmedTrade, inTx,
@@ -92,7 +93,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
             />;
         }
 
-        if (!inTx) {
+        if (!depositSubmitted) {
             // // If `srcToken` is Ethereum-based they can submit to the contract
             // // directly, otherwise they must deposit `srcToken` to a generated
             // // address.
@@ -117,7 +118,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
                 />;
             }
 
-            return <DepositReceived submitDeposit={this.submitDeposit} />;
+            return <DepositReceived depositAddress={depositAddress} submitDeposit={this.submitDeposit} done={this.onDepositSubmitted} />;
             // }
         }
 
@@ -134,7 +135,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
         return <></>;
     }
 
-    private readonly onDeposit = async () => {
+    private readonly onDeposit = () => {
         this.setState({ depositReceived: true });
     }
 
@@ -144,6 +145,10 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
 
     private readonly submitDeposit = async () => {
         await this.props.containers[0].submitDeposit();
+    }
+
+    private readonly onDepositSubmitted = () => {
+        this.setState({ depositSubmitted: true });
     }
 
     private readonly submitSwap = async () => {
@@ -172,7 +177,6 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
 
     private readonly onRefundAddress = async (refundAddress: string) => {
         await this.props.containers[0].updateRefundAddress(refundAddress).catch(_catchInteractionErr_);
-        this.generateAddress().catch(_catchInteractionErr_);
     }
 
     private readonly generateAddress = async () => {

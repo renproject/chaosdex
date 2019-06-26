@@ -1,10 +1,12 @@
 import * as React from "react";
 
 import { Loading, TokenIcon } from "@renex/react-components";
+import QRCode from "qrcode.react";
 import CopyToClipboard from "react-copy-to-clipboard";
 
 import { Token } from "../../../state/generalTypes";
 import { ReactComponent as Copy } from "../../../styles/images/copy.svg";
+import { ReactComponent as QR } from "../../../styles/images/qr.svg";
 import { Popup } from "./Popup";
 
 export const ShowDepositAddress: React.StatelessComponent<{
@@ -17,11 +19,13 @@ export const ShowDepositAddress: React.StatelessComponent<{
     done(): void;
 }> = ({ amount, token, depositAddress, cancel, generateAddress, waitForDeposit, done }) => {
     // Defaults for demo
-    const [understood, setUnderstood] = React.useState(false);
-    const [copied, setCopied] = React.useState(false);
 
     // tslint:disable-next-line: prefer-const
-    let [showSpinner, setShowSpinner] = React.useState(false);
+    let [understood, setUnderstood] = React.useState(false);
+    const [copied, setCopied] = React.useState(false);
+    const [showQR, setShowQR] = React.useState(false);
+
+    const [showSpinner, setShowSpinner] = React.useState(false);
 
     const [timer, setTimer] = React.useState<NodeJS.Timeout | null>(null);
     const [failed, setFailed] = React.useState(null as Error | null);
@@ -39,7 +43,18 @@ export const ShowDepositAddress: React.StatelessComponent<{
     }, [initialized, generateAddress]);
 
     const onClick = () => {
+        setTimer(setTimeout(() => {
+            setShowSpinner(true);
+        }, 5000)
+        );
         setUnderstood(true);
+        understood = true;
+        waitForDeposit().then(() => {
+            done();
+        }).catch(() => {
+            setUnderstood(false);
+            understood = false;
+        });
     };
 
     const onClickAddress = () => {
@@ -50,17 +65,14 @@ export const ShowDepositAddress: React.StatelessComponent<{
         setTimer(setTimeout(() => {
             setCopied(false);
             if (!showSpinner) {
-                showSpinner = true;
                 setShowSpinner(true);
-                waitForDeposit().then(() => {
-                    done();
-                }).catch(() => {
-                    showSpinner = false;
-                    setShowSpinner(false);
-                });
             }
         }, 5000)
         );
+    };
+
+    const toggleQR = () => {
+        setShowQR(!showQR);
     };
 
     return <Popup cancel={cancel}>
@@ -93,13 +105,14 @@ export const ShowDepositAddress: React.StatelessComponent<{
                                     aria-required={true}
                                 />
                                 <label className="copied-text">Copied</label>
+                                <QR className="qr" onClick={toggleQR} />
                                 <Copy />
                             </div>
                         </CopyToClipboard>
                         {showSpinner ? <div className="spinner">
                             <Loading />{" "}<span>Scanning for {token.toUpperCase()} deposits</span>
-                        </div> : null
-                        }
+                        </div> : null}
+                        {showQR ? <QRCode value={`bitcoin:${depositAddress}?amount=${amount}`} /> : null}
                     </> :
                     <>
                         {failed ? <div className="red">{`${failed.message || failed}`}</div> : ""}

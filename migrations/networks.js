@@ -6,8 +6,8 @@ const config = {
     MINIMUM_POD_SIZE: 3, // 24 in production
     MINIMUM_EPOCH_INTERVAL: 2, // 14400 in production
     DARKNODE_PAYMENT_CYCLE_DURATION_SECONDS: 300, // 300 for testnet (5 minutes in seconds), 86400 in mainnet testing (1 day), 2628000 in production (1 month in seconds)
-    owner: "0xe02cabac3a62655335b1227dfdecfff27b5f6111", // Darknode public key
-    shifterFees: 0,
+    mintAuthority: "0x723eb4380E03dF6a6f98Cc1338b00cfBE5E45218", // Darknode public key
+    shifterFees: 10,
     renExFees: 0,
 }
 
@@ -26,12 +26,13 @@ module.exports = {
 
         BTCShifter: "",
         ZECShifter: "",
+        ShifterRegistry: "",
         zZEC: "",
         zBTC: "",
 
         config: {
             ...config,
-            owner: "TODO",
+            mintAuthority: "TODO",
         },
     },
     testnet: {
@@ -46,37 +47,39 @@ module.exports = {
             ETH: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
         },
 
-        BTCShifter: "",
-        ZECShifter: "",
-        zZEC: "",
-        zBTC: "",
+        BTCShifter: "0x8a0E8dfC2389726DF1c0bAB874dd2C9A6031b28f",
+        ZECShifter: "0xEeC88ec22E6582409631530F44E48057E7Ed9bBa",
+        zBTC: "0x1aFf7F90Bab456637a17d666D647Ea441A189F2d",
+        zZEC: "0x51f41985134842Aa009CACdD28B2C69fA97C4738",
+        ShifterRegistry: "0x40C605FF27411d3a2ea5A114D365a314cb7AC5f2",
 
         config: {
             ...config,
-            owner: "0xe02cabac3a62655335b1227dfdecfff27b5f6111",
+            mintAuthority: "0x44Bb4eF43408072bC888Afd1a5986ba0Ce35Cb54",
         },
     },
 
     devnet: {
-        RenToken: '0x2cd647668494c1b15743ab283a0f980d90a87394',
-        DarknodeSlasher: '0xCEC09904D3471B837E81DaC03E66Dd90888FD9c3',
-        DarknodeRegistry: '0xb820735fd5d3a772eDC31e1f90E369eC25839AEb',
-        DarknodeRegistryStore: '0x6357b8f3eFADCd3Dc1cC767999BDfD147AAd6A9D',
-        DarknodePaymentStore: '0x5bF40Ca61310B43F360Ce0cf1F787151eBFDb50f',
-        DarknodePayment: '0x800D25a54f0c8325eAA411584EE7B577070D2e29',
+        RenToken: "0x2cd647668494c1b15743ab283a0f980d90a87394",
+        DarknodeSlasher: "0xfe48363206E1849a2F53f5214af932354c35FD89",
+        DarknodeRegistry: "0x6E1a6b85f05bfec5c24C7a26E302cB28e639651c",
+        DarknodeRegistryStore: "0xC126a308dd07Adfa4a445686dcF7CbC423185593",
+        DarknodePaymentStore: "0x6341DF1012E862f766Fcd72e0fCAAc5a3839CFef",
+        DarknodePayment: "0x1f1b1d015Fc31d425C616cC35E39e31686DA69A8",
         tokens: {
             DAI: "0xc4375b7de8af5a38a93548eb8453a498222c4ff2",
             ETH: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
         },
 
-        BTCShifter: '0x69c29D3Dd348B678D6ed739CD61d3bD8BB587890',
-        ZECShifter: '0x5574Cb447afaFB92dadf801d6F46b4E6FE4043A1',
-        zBTC: '0x9b2B31FBC4D48727460b2966092d6B55cA7C4Be3',
-        zZEC: '0xF575cD19d62Fe2f49ffCD3eCE36E4b46D9F38d52',
+        BTCShifter: "0x7a40fE9FB464510215C41Eae1216973514eeEBB1",
+        ZECShifter: "0x5345425363A49904De0746E7c991B05380E42E27",
+        zBTC: "0x4eB1403f565c3e3145Afc3634F16e2F092545C2a",
+        zZEC: "0x92E9aC7c07bb40eD9DAF1DbD88E7Dd77f5754529",
+        ShifterRegistry: "0x7E1E8698bDB429D63B492D7795af039926006386",
 
         config: {
             ...config,
-            owner: "0x26507602c1d904a2d330819bfb624014067a179a",
+            mintAuthority: "0x723eb4380E03dF6a6f98Cc1338b00cfBE5E45218",
         },
     },
     config,

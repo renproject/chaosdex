@@ -29,7 +29,7 @@ const EthereumTx = (hash: string) => ({ hash, chain: Chain.Ethereum });
 
 export interface HistoryEvent {
     time: number; // Seconds since Unix epoch
-    inTx: Tx;
+    // inTx: Tx;
     outTx: Tx;
     receivedAmount: string;
     orderInputs: OrderInputs;
@@ -39,7 +39,7 @@ export interface HistoryEvent {
 const initialOrder: OrderInputs = {
     srcToken: Token.BTC,
     dstToken: Token.DAI,
-    srcAmount: "0.01",
+    srcAmount: "0.000225",
     dstAmount: "0",
 };
 
@@ -240,13 +240,7 @@ export class AppContainer extends Container<typeof initialState> {
             await this.setState({ pendingTXs: this.state.pendingTXs.set(transactionHash, 0) });
         }
 
-        const receivedAmount = await new Promise<BigNumber>((resolve, reject) => promiEvent.once("confirmation", async (confirmation: string | Error | TransactionReceipt) => {
-            console.log(`confirmation:`);
-            console.log(confirmation);
-            if (!confirmation.hasOwnProperty("logs")) {
-                reject(confirmation);
-            }
-            const receipt = confirmation as TransactionReceipt;
+        const receivedAmount = await new Promise<BigNumber>((resolve, reject) => (promiEvent.once as any)("confirmation", async (confirmations: number, receipt: TransactionReceipt) => {
             if (isEthereumBased(commitment.orderInputs.dstToken)) {
                 this.setState({ pendingTXs: this.state.pendingTXs.remove(transactionHash) }).catch(_catchInteractionErr_);
 
@@ -295,11 +289,11 @@ export class AppContainer extends Container<typeof initialState> {
 
     public getHistoryEvent = async () => {
         const { inTx, outTx, commitment, receivedAmount } = this.state;
-        if (!commitment || !inTx || !outTx || !receivedAmount) {
+        if (!commitment || !outTx || !receivedAmount) {
             throw new Error(`Invalid values passed to getHistoryEvent`);
         }
         const historyItem: HistoryEvent = {
-            inTx,
+            // inTx,
             outTx,
             receivedAmount: receivedAmount.toFixed(),
             orderInputs: commitment.orderInputs,

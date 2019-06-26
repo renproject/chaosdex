@@ -1,23 +1,26 @@
 import RenSDK, {
-    Chain, Shift, ShiftActions, ShiftedInResponse, ShiftedOutResponse, Submit, UTXO, Wait,
+    Chain, NetworkDevnet, Shift, ShiftedInResponse, ShiftedOutResponse, Submit,
+    Tokens as ShiftActions, Wait,
 } from "@renproject/ren";
 import BigNumber from "bignumber.js";
 import Web3 from "web3";
-import { Log, PromiEvent, TransactionReceipt } from "web3-core";
+import { Log, TransactionReceipt } from "web3-core";
 import { AbiItem } from "web3-utils";
 
 import { isERC20, MarketPair, Token, Tokens } from "../state/generalTypes";
 import {
-    getTokenAddress, getTokenDecimals, syncGetRenExAdapterAddress, syncGetRenExAddress,
-    syncGetTokenAddress,
+    getRenExAdapterAddress, getTokenAddress, getTokenDecimals, syncGetRenExAdapterAddress,
+    syncGetRenExAddress, syncGetTokenAddress,
 } from "./contractAddresses";
 import { ERC20Detailed } from "./contracts/ERC20Detailed";
 import { RenEx } from "./contracts/RenEx";
 import { RenExAdapter } from "./contracts/RenExAdapter";
+import { NETWORK } from "./environmentVariables";
 
-const ERC20ABI = require("../contracts/ERC20.json").abi;
-const RenExABI = require("../contracts/RenEx.json").abi;
-const RenExAdapterABI = require("../contracts/RenExAdapter.json").abi;
+// tslint:disable: non-literal-require
+const ERC20ABI = require(`../contracts/devnet/ERC20.json`).abi;
+const RenExABI = require(`../contracts/devnet/RenEx.json`).abi;
+const RenExAdapterABI = require(`../contracts/devnet/RenExAdapter.json`).abi;
 
 const NULL_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
@@ -75,7 +78,7 @@ export class DexSDK {
         this.web3 = web3;
         this.networkID = networkID;
         this.adapterAddress = syncGetRenExAdapterAddress(networkID);
-        this.renSDK = new RenSDK();
+        this.renSDK = new RenSDK(NetworkDevnet);
     }
 
     /**
@@ -106,6 +109,7 @@ export class DexSDK {
                 const reserve = await exchange.methods.reserve(leftAddress, rightAddress).call();
                 const leftBalance = await balance(left, reserve);
                 const rightBalance = await balance(right, reserve);
+                console.log(`${_marketPair}: ${leftBalance.toFixed()} and ${rightBalance.toFixed()}`);
                 return new Map().set(left, leftBalance).set(right, rightBalance);
             })
         );
@@ -116,23 +120,32 @@ export class DexSDK {
         { name: "dstToken", type: "address", value: commitment.dstToken },
         { name: "minDestinationAmount", type: "uint256", value: commitment.minDestinationAmount.toFixed() },
         { name: "toAddress", type: "bytes", value: commitment.toAddress },
-        { name: "refundBlockNumber", type: "uint256", value: commitment.refundBlockNumber.toString() },
+        { name: "refundBlockNumber", type: "uint256", value: commitment.refundBlockNumber },
         { name: "refundAddress", type: "bytes", value: commitment.refundAddress },
     ]
+
+    public randomNonce = () => {
+        // Browser only
+
+        // Generate 32 bytes
+        const buffer = new Uint8Array(32);
+        window.crypto.getRandomValues(buffer);
+
+        // Join into hex string
+        return "0x" + Array.prototype.map.call(new Uint8Array(buffer), x => ("00" + x.toString(16)).slice(-2)).join("");
+    }
 
     // Takes a commitment as bytes or an array of primitive types and returns
     // the deposit address
     public generateAddress = async (token: Token, commitment: Commitment): Promise<string> => {
-        const amount = 0;
-        const nonce = "0";
-
-        this.shiftStep1 = this.renSDK.shift(
-            ShiftActions[token].Btc2Eth,
-            this.adapterAddress,
-            amount,
-            nonce,
-            this.zipPayload(commitment),
-        );
+        this.shiftStep1 = this.renSDK.shift({
+            sendToken: ShiftActions[token].Btc2Eth,
+            sendTo: this.adapterAddress,
+            sendAmount: commitment.srcAmount.toNumber(),
+            contractFn: "trade",
+            contractParams: this.zipPayload(commitment),
+            nonce: this.randomNonce(),
+        });
         return this.shiftStep1.addr();
     }
 
@@ -157,7 +170,7 @@ export class DexSDK {
         if (!this.shiftStep3) {
             throw new Error("Must have submitted deposit first");
         }
-        return this.shiftStep3.signAndSubmit(this.web3, "trade", address);
+        return this.shiftStep3.signAndSubmit(this.web3, address);
     }
 
     // public submitBurn = async (commitment: Commitment, receivedAmountHex: string): Promise<string> => {
