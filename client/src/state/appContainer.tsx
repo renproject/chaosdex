@@ -1,15 +1,14 @@
 import { Currency } from "@renex/react-components";
 import {
     btcAddressToHex, Chain, ShiftedInResponse, ShiftedOutResponse, strip0x, UTXO,
-} from "@ren-project/ren";
+} from "@renproject/ren";
 import BigNumber from "bignumber.js";
+import bs58 from "bs58";
 import { List, Map, OrderedMap } from "immutable";
 import { Container } from "unstated";
 import { TransactionReceipt } from "web3-core";
 
-import {
-    getRenExAdapterAddress, getTokenAddress, syncGetRenExAdapterAddress,
-} from "../lib/contractAddresses";
+import { getRenExAdapterAddress, getTokenAddress } from "../lib/contractAddresses";
 import { Commitment, DexSDK, OrderInputs, ReserveBalances } from "../lib/dexSDK";
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../lib/errors";
 import { estimatePrice } from "../lib/estimatePrice";
@@ -69,6 +68,7 @@ const initialState = {
     signature: null as ShiftedInResponse | ShiftedOutResponse | null,
     inTx: null as Tx | null,
     outTx: null as Tx | null,
+    messageID: null as string | null,
     receivedAmount: null as BigNumber | null,
     receivedAmountHex: null as string | null,
 };
@@ -216,7 +216,8 @@ export class AppContainer extends Container<typeof initialState> {
         if (!dexSDK) {
             throw new Error(`Invalid values required to submit deposit`);
         }
-        await dexSDK.submitDeposit();
+        const onMessageID = (messageID: string) => this.setState({ messageID });
+        await dexSDK.submitDeposit(onMessageID);
     }
 
     public checkBurnStatus = async () => {
@@ -224,9 +225,10 @@ export class AppContainer extends Container<typeof initialState> {
         if (!dexSDK || !inTx || !commitment) {
             throw new Error(`Invalid values required to submit deposit`);
         }
-        const response = await dexSDK.checkBurnStatus(commitment.orderInputs.dstToken, inTx.hash);
+        const response = await dexSDK.checkBurnStatus(commitment.orderInputs.dstToken, inTx.hash)
+            .on("messageID", (messageID: string) => this.setState({ messageID }));
         const receivedAmount = new BigNumber(response.amount).dividedBy(new BigNumber(10).exponentiatedBy(8));
-        await this.setState({ receivedAmount, outTx: BitcoinTx(response.to) });
+        await this.setState({ receivedAmount, outTx: BitcoinTx(bs58.encode(Buffer.from(strip0x(response.to), "hex"))) });
     }
 
     public submitBurn = async () => {

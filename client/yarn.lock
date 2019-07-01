@@ -1225,29 +1225,6 @@
   resolved "https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
-"@ren-project/ren@^0.0.0":
-  version "0.0.0"
-  resolved "https://registry.yarnpkg.com/@ren-project/ren/-/ren-0.0.0.tgz#7fdd32c4f0bc45a2ad60c7e98a5d532ecbfb36b0"
-  integrity sha512-0IR70DRe1hJl3RJKUV8ZA8PNuFupOKSfh9YjE+Uetx5VGIpdIV8yDz11cRvAlxRM5DQ7Rzd7EtExYcGDE4PbfQ==
-  dependencies:
-    "@types/bitcore-lib" "^0.15.1"
-    "@types/bn.js" "^4.11.5"
-    "@types/bs58" "^4.0.0"
-    "@types/ethereumjs-util" "^5.2.0"
-    "@types/node" "^12.0.8"
-    axios "^0.19.0"
-    bignumber.js "^9.0.0"
-    bitcore-lib "^8.3.4"
-    bitcore-lib-zcash zcash-hackworks/bitcore-lib-zcash
-    bn.js "^4.11.8"
-    bs58 "^4.0.1"
-    ethereumjs-util "^6.1.0"
-    immutable "^4.0.0-rc.12"
-    wallet-address-validator "^0.2.4"
-    web3 "^1.0.0-beta.55"
-    web3-core "^1.0.0-beta.55"
-    web3-eth-abi "^1.0.0-beta.55"
-
 "@renex/fonts@^1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@renex/fonts/-/fonts-1.0.1.tgz#7967434b343d5cd31c575b633997677f33f6856c"
@@ -1269,6 +1246,29 @@
     react-router "^5.0.0"
     react-router-dom "^5.0.0"
     react-select "^2.4.3"
+
+"@renproject/ren@0.0.3":
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/@renproject/ren/-/ren-0.0.3.tgz#e35c315a543f25c9e33ea873ad2b1d64f508b0d7"
+  integrity sha512-ObX6kjxwuIeeAdypPyG6BWvGi1oMqI/8aHPF4znyITSdvznhUHNvqY1L/w5eWBGblIVvnG8ccI2cxzTMCInsqw==
+  dependencies:
+    "@types/bitcore-lib" "^0.15.1"
+    "@types/bn.js" "^4.11.5"
+    "@types/bs58" "^4.0.0"
+    "@types/ethereumjs-util" "^5.2.0"
+    "@types/node" "^12.0.8"
+    axios "^0.19.0"
+    bignumber.js "^9.0.0"
+    bitcore-lib "^8.3.4"
+    bitcore-lib-zcash zcash-hackworks/bitcore-lib-zcash
+    bn.js "^4.11.8"
+    bs58 "^4.0.1"
+    ethereumjs-util "^6.1.0"
+    immutable "^4.0.0-rc.12"
+    wallet-address-validator "^0.2.4"
+    web3 "^1.0.0-beta.55"
+    web3-core "^1.0.0-beta.55"
+    web3-eth-abi "^1.0.0-beta.55"
 
 "@sentry/browser@^5.4.3":
   version "5.4.3"
@@ -1557,6 +1557,13 @@
   version "1.5.2"
   resolved "https://registry.yarnpkg.com/@types/q/-/q-1.5.2.tgz#690a1475b84f2a884fd07cd797c00f5f31356ea8"
   integrity sha512-ce5d3q03Ex0sy4R14722Rmt6MT07Ua+k4FwDfdcToYJcMKNtRVQvJ6JCAPdAmAnbRb6CsX6aYb9m96NGod9uTw==
+
+"@types/qrcode.react@^0.8.2":
+  version "0.8.2"
+  resolved "https://registry.yarnpkg.com/@types/qrcode.react/-/qrcode.react-0.8.2.tgz#35f6e2e454970b6a8404a834c9e1edc2e7f1c105"
+  integrity sha512-nxGOQzQBV3Ny1g7uMGa3jTAi7SNHUUJ91K7EMO1FEQtb38A4vwq3pZvz0QcfIN7ypP4xTwl7G6NIQMCZZQoXIQ==
+  dependencies:
+    "@types/react" "*"
 
 "@types/query-string@^6.3.0":
   version "6.3.0"
@@ -9671,6 +9678,19 @@ q@^1.1.2:
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/q/-/q-1.5.1.tgz#7e32f75b41381291d04611f1bf14109ac00651d7"
   integrity sha1-fjL3W0E4EpHQRhHxvxQQmsAGUdc=
+
+qr.js@0.0.0:
+  version "0.0.0"
+  resolved "https://registry.yarnpkg.com/qr.js/-/qr.js-0.0.0.tgz#cace86386f59a0db8050fa90d9b6b0e88a1e364f"
+  integrity sha1-ys6GOG9ZoNuAUPqQ2baw6IoeNk8=
+
+qrcode.react@^0.9.3:
+  version "0.9.3"
+  resolved "https://registry.yarnpkg.com/qrcode.react/-/qrcode.react-0.9.3.tgz#91de1287912bdc5ccfb3b091737b828d6ced60c5"
+  integrity sha512-gGd30Ez7cmrKxyN2M3nueaNLk/f9J7NDRgaD5fVgxGpPLsYGWMn9UQ+XnDpv95cfszTQTdaf4QGLNMf3xU0hmw==
+  dependencies:
+    prop-types "^15.6.0"
+    qr.js "0.0.0"
 
 qs@6.7.0:
   version "6.7.0"

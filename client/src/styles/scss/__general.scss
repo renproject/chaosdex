@@ -261,3 +261,8 @@ button {
     overflow-x: hidden;
     text-overflow: ellipsis;
 }
+
+.label--message {
+    word-break: break-all;
+    width: 100%;
+}

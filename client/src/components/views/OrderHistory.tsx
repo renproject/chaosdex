@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { TokenIcon } from "@renex/react-components";
-import { Chain } from "@ren-project/ren";
+import { Chain } from "@renproject/ren";
 import i18next from "i18next";
 import { OrderedMap } from "immutable";
 import { useTranslation } from "react-i18next";
@@ -20,8 +20,8 @@ const txUrl = (tx: Tx | null): string => {
         case Chain.Ethereum:
             return `${ETHERSCAN}/tx/${tx.hash}`;
         case Chain.Bitcoin:
-            return `https://live.blockcypher.com/btc-testnet/tx/${tx.hash}`;
-        case Chain.ZCash:
+            return `https://live.blockcypher.com/btc-testnet/address/${tx.hash}`;
+        case Chain.Zcash:
             return `https://chain.so/tx/ZEC/${tx.hash}`;
     }
 };

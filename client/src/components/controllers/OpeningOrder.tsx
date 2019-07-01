@@ -35,7 +35,8 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
         const [appContainer] = this.props.containers;
         const { depositReceived, depositSubmitted } = this.state;
         const {
-            orderInputs: orderInput, depositAddress, confirmedOrderInputs, outTx,
+            orderInputs: orderInput, depositAddress, confirmedOrderInputs,
+            outTx, messageID,
         } = appContainer.state;
 
         if (!confirmedOrderInputs) {
@@ -55,7 +56,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
                     done={this.onDeposit}
                 />;
             }
-            return <DepositReceived depositAddress={depositAddress} submitDeposit={this.submitDeposit} done={this.onDepositSubmitted} />;
+            return <DepositReceived messageID={messageID} submitDeposit={this.submitDeposit} done={this.onDepositSubmitted} />;
         }
 
         if (!outTx) {
@@ -73,7 +74,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
         const [appContainer] = this.props.containers;
         const {
             orderInputs: orderInput, confirmedOrderInputs, erc20Approved, outTx,
-            inTx,
+            inTx, messageID,
         } = appContainer.state;
 
         if (!confirmedOrderInputs) {
@@ -93,7 +94,7 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
         }
 
         if (!outTx) {
-            return <DepositReceived depositAddress={""} submitDeposit={this.checkBurnStatus} done={this.onDepositSubmitted} />;
+            return <DepositReceived messageID={messageID} submitDeposit={this.checkBurnStatus} done={this.onDepositSubmitted} />;
         }
 
         this.onDone().catch(_catchInteractionErr_);

@@ -8,10 +8,10 @@ import { Popup } from "./Popup";
 
 export const DepositReceived: React.StatelessComponent<{
     token?: Token;
-    depositAddress: string | null;
+    messageID: string | null;
     submitDeposit?: () => Promise<void>;
     done: () => void;
-}> = ({ token, depositAddress, submitDeposit, done }) => {
+}> = ({ token, messageID, submitDeposit, done }) => {
     const [submitted, setSubmitted] = React.useState(false);
     const [error, setError] = React.useState(null as Error | null);
 
@@ -40,7 +40,7 @@ export const DepositReceived: React.StatelessComponent<{
                 {waiting ? <Loading /> : null}
                 {error ? <span className="red">{`${error.message || error}`}</span> : null}
                 {waiting ? <div className="address-input--message">
-                    <>Submitting order to RenVM... {/*(<span onClick={onClick}>Retry</span>) */}<InfoLabel>{depositAddress}</InfoLabel></>
+                    <>Submitting order to RenVM... {/*(<span onClick={onClick}>Retry</span>) */}<InfoLabel>{messageID}</InfoLabel></>
                 </div> : <div className="popup--buttons">
                         <button className="button open--confirm" onClick={onClick}>Submit to darknodes</button>
                     </div>

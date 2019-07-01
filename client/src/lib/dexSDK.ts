@@ -1,7 +1,7 @@
 import RenSDK, {
-    Chain, NetworkTestnet, Shift, ShiftedInResponse, ShiftedOutResponse, Submit,
-    Tokens as ShiftActions, Wait,
-} from "@ren-project/ren";
+    Chain, NetworkTestnet, ShiftedInResponse, ShiftedOutResponse, ShiftObject, Signature,
+    Tokens as ShiftActions,
+} from "@renproject/ren";
 import BigNumber from "bignumber.js";
 import Web3 from "web3";
 import { Log, PromiEvent, TransactionReceipt } from "web3-core";
@@ -18,7 +18,7 @@ import { RenExAdapter } from "./contracts/RenExAdapter";
 import { NETWORK } from "./environmentVariables";
 
 // tslint:disable: non-literal-require
-const ERC20ABI = require(`../contracts/development/ERC20.json`).abi;
+const ERC20ABI = require(`../contracts/testnet/ERC20.json`).abi;
 const RenExABI = require(`../contracts/testnet/RenEx.json`).abi;
 const RenExAdapterABI = require(`../contracts/testnet/RenExAdapter.json`).abi;
 
@@ -70,9 +70,9 @@ export class DexSDK {
     public renSDK: RenSDK;
     public adapterAddress: string;
 
-    private shiftStep1: Shift | undefined;
-    private shiftStep2: Wait | undefined;
-    private shiftStep3: Submit | undefined;
+    private shiftStep1: ShiftObject | undefined;
+    private shiftStep2: ShiftObject | undefined;
+    private shiftStep3: Signature | undefined;
 
     constructor(web3: Web3, networkID: number) {
         this.web3 = web3;
@@ -159,15 +159,15 @@ export class DexSDK {
 
     // Submits the commitment and transaction to the darknodes, and then submits
     // the signature to the adapter address
-    public submitDeposit = async (): Promise<void> => {
+    public submitDeposit = async (onMessageID: (messageID: string) => void): Promise<void> => {
         if (!this.shiftStep2) {
             throw new Error("Must have retrieved deposits first");
         }
-        this.shiftStep3 = await this.shiftStep2.submit();
+        this.shiftStep3 = await this.shiftStep2.submit().on("messageID", onMessageID);
     }
 
-    public checkBurnStatus = async (token: Token, txHash: string) => {
-        return await this.renSDK.burnDetails({ web3: this.web3, sendToken: ShiftActions[token].Eth2Btc, txHash });
+    public checkBurnStatus = (token: Token, txHash: string) => {
+        return this.renSDK.burnDetails({ web3: this.web3, sendToken: ShiftActions[token].Eth2Btc, txHash });
     }
 
     public submitSwap = (address: string, commitment: Commitment, adapterAddress: string, signatureIn?: ShiftedInResponse | ShiftedOutResponse | null) => {
@@ -182,7 +182,7 @@ export class DexSDK {
         const txHash = NULL_BYTES32;
         const signatureBytes = NULL_BYTES32;
 
-        const params: [string, string, number, string, number, string, string, string, string] = [
+        return getAdapter(this.web3, this.networkID).methods.trade(
             commitment.srcToken, // _src: string
             commitment.dstToken, // _dst: string
             commitment.minDestinationAmount.toNumber(), // _minDstAmt: BigNumber
@@ -192,10 +192,6 @@ export class DexSDK {
             amount, // _amount: BigNumber
             txHash, // _hash: string
             signatureBytes, // _sig: string
-        ];
-
-        return getAdapter(this.web3, this.networkID).methods.trade(
-            ...params,
         ).send({ from: address, gas: 350000 });
     }
 
@@ -241,7 +237,7 @@ export class DexSDK {
             (getAdapter(this.web3, this.networkID)).address,
             amount.toString()
         ).send({ from: address });
-        await new Promise((resolve, reject) => promiEvent.on("transactionHash", resolve));
+        await new Promise((resolve, reject) => promiEvent.on("transactionHash", resolve).catch(reject));
         return amount;
     }
 }

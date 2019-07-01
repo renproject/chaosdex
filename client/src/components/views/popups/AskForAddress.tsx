@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { TokenIcon } from "@renex/react-components";
-import { Chain } from "@ren-project/ren";
+import { Chain } from "@renproject/ren";
 import { useTranslation } from "react-i18next";
 
 import { Token, Tokens } from "../../../state/generalTypes";
