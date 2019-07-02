@@ -1,5 +1,4 @@
 import { Token } from "../state/generalTypes";
-import { getWeb3 } from "./getWeb3";
 
 // tslint:disable: non-literal-require
 export const syncGetTokenAddress = (networkID: number, token: Token): string => {
@@ -22,32 +21,14 @@ export const syncGetTokenAddress = (networkID: number, token: Token): string => 
     }
 };
 
-export const getTokenAddress = async (token: Token): Promise<string> => {
-    const web3 = await getWeb3();
-    const networkID = await web3.eth.net.getId();
-    return syncGetTokenAddress(networkID, token);
-};
-
-export const syncGetRenExAddress = (networkID: number): string => {
-    const renExNetworks = require(`../contracts/testnet/RenEx.json`).networks;
+export const syncGetDEXAddress = (networkID: number): string => {
+    const renExNetworks = require(`../contracts/testnet/DEX.json`).networks;
     return renExNetworks[networkID].address;
 };
 
-export const getRenExAddress = async (): Promise<string> => {
-    const web3 = await getWeb3();
-    const networkID = await web3.eth.net.getId();
-    return syncGetRenExAddress(networkID);
-};
-
-export const syncGetRenExAdapterAddress = (networkID: number): string => {
-    const renExNetworks = require(`../contracts/testnet/RenExAdapter.json`).networks;
+export const syncGetDEXAdapterAddress = (networkID: number): string => {
+    const renExNetworks = require(`../contracts/testnet/DEXAdapter.json`).networks;
     return renExNetworks[networkID].address;
-};
-
-export const getRenExAdapterAddress = async (): Promise<string> => {
-    const web3 = await getWeb3();
-    const networkID = await web3.eth.net.getId();
-    return syncGetRenExAdapterAddress(networkID);
 };
 
 export const getTokenDecimals = (token: Token): number => {

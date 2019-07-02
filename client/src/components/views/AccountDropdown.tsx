@@ -3,8 +3,8 @@ import * as React from "react";
 import { Blocky } from "@renex/react-components";
 import { WithTranslation, withTranslation } from "react-i18next";
 
-import { AppContainer } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
+import { SDKContainer } from "../../state/sdkContainer";
 
 const defaultState = { // Entries must be immutable
     shown: false,
@@ -118,9 +118,9 @@ class AccountDropdownClass extends React.Component<Props, typeof defaultState> {
     }
 }
 
-interface Props extends WithTranslation, ConnectedProps<[AppContainer]> {
+interface Props extends WithTranslation, ConnectedProps<[SDKContainer]> {
     handleLogin: () => {};
     handleLogout: () => {};
 }
 
-export const AccountDropdown = withTranslation()(connect<Props>([AppContainer])(AccountDropdownClass));
+export const AccountDropdown = withTranslation()(connect<Props>([SDKContainer])(AccountDropdownClass));

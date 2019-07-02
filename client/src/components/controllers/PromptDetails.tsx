@@ -3,34 +3,15 @@ import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 
 import { _catchInteractionErr_ } from "../../lib/errors";
-import { AppContainer } from "../../state/appContainer";
+import { SDKContainer } from "../../state/sdkContainer";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AskForAddress } from "../views/popups/AskForAddress";
 import { ConfirmTradeDetails } from "../views/popups/ConfirmTradeDetails";
 
-const defaultState = { // Entries must be immutable
-};
-
 /**
  * PromptDetails is a visual component for allowing users to open new orders
  */
-class PromptDetailsClass extends React.Component<Props, typeof defaultState> {
-    private _returned = false;
-    private _mounted: boolean;
-
-    constructor(props: Props) {
-        super(props);
-        this.state = defaultState;
-        this._mounted = true;
-    }
-
-    public componentDidMount = () => {
-        this._returned = false;
-    }
-
-    public componentWillUnmount = () => {
-        this._mounted = false;
-    }
+class PromptDetailsClass extends React.Component<Props> {
 
     /**
      * The main render function.
@@ -97,8 +78,8 @@ class PromptDetailsClass extends React.Component<Props, typeof defaultState> {
     }
 }
 
-interface Props extends ConnectedProps<[AppContainer]>, WithTranslation {
+interface Props extends ConnectedProps<[SDKContainer]>, WithTranslation {
     cancel: () => void;
 }
 
-export const PromptDetails = withTranslation()(connect<Props>([AppContainer])(PromptDetailsClass));
+export const PromptDetails = withTranslation()(connect<Props>([SDKContainer])(PromptDetailsClass));

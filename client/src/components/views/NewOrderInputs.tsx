@@ -6,13 +6,13 @@ import { withTranslation, WithTranslation } from "react-i18next";
 import { debounce } from "throttle-debounce";
 
 import { _catchInteractionErr_ } from "../../lib/errors";
-import { AppContainer } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
+import { SDKContainer } from "../../state/sdkContainer";
 import arrow from "../../styles/images/arrow.svg";
 import { SelectMarketWrapper } from "./SelectMarketWrapper";
 import { TokenBalance } from "./TokenBalance";
 
-export const normalizeDecimals = (inputIn: string | null): string | null => {
+const normalizeDecimals = (inputIn: string | null): string | null => {
     return inputIn === null ? inputIn : new BigNumber(inputIn).decimalPlaces(8).toFixed();
 };
 
@@ -110,8 +110,8 @@ class NewOrderInputsClass extends React.Component<Props, typeof defaultState> {
     }
 }
 
-interface Props extends ConnectedProps<[AppContainer, AppContainer]>, WithTranslation {
+interface Props extends ConnectedProps<[SDKContainer, SDKContainer]>, WithTranslation {
     marketPrice: number;
 }
 
-export const NewOrderInputs = withTranslation()(connect<Props>([AppContainer, AppContainer])(NewOrderInputsClass));
+export const NewOrderInputs = withTranslation()(connect<Props>([SDKContainer, SDKContainer])(NewOrderInputsClass));

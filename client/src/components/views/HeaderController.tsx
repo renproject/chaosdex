@@ -4,8 +4,8 @@ import { currencies, CurrencyIcon, Dropdown, Header } from "@renex/react-compone
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
-import { AppContainer } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
+import { SDKContainer } from "../../state/sdkContainer";
 import { ReactComponent as Logo } from "../../styles/images/logo.svg";
 import { ReactComponent as German } from "../../styles/images/rp-flag-de.svg";
 import { ReactComponent as English } from "../../styles/images/rp-flag-uk.svg";
@@ -29,7 +29,7 @@ const logo = <Link className="no-underline" to="/">
     <h1>DEX Demo</h1>
 </Link>;
 
-interface Props extends ConnectedProps<[AppContainer]> {
+interface Props extends ConnectedProps<[SDKContainer]> {
     handleLogin: () => {};
     handleLogout: () => {};
 }
@@ -37,7 +37,7 @@ interface Props extends ConnectedProps<[AppContainer]> {
 /**
  * HeaderController is a visual component providing page branding and navigation.
  */
-export const HeaderController = (connect<Props>([AppContainer])(
+export const HeaderController = (connect<Props>([SDKContainer])(
     ({ handleLogout, handleLogin, containers: [appContainer] }) => {
         const { t, i18n } = useTranslation();
 

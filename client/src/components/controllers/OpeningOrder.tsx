@@ -3,7 +3,7 @@ import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 
 import { _catchInteractionErr_ } from "../../lib/errors";
-import { AppContainer, HistoryEvent } from "../../state/appContainer";
+import { SDKContainer, HistoryEvent } from "../../state/sdkContainer";
 import { connect, ConnectedProps } from "../../state/connect";
 import { isERC20, isEthereumBased } from "../../state/generalTypes";
 import { DepositReceived } from "../views/popups/DepositReceived";
@@ -174,9 +174,9 @@ class OpeningOrderClass extends React.Component<Props, typeof defaultState> {
     }
 }
 
-interface Props extends ConnectedProps<[AppContainer]>, WithTranslation {
+interface Props extends ConnectedProps<[SDKContainer]>, WithTranslation {
     cancel: () => void;
     swapSubmitted?: (h: HistoryEvent) => void;
 }
 
-export const OpeningOrder = withTranslation()(connect<Props>([AppContainer])(OpeningOrderClass));
+export const OpeningOrder = withTranslation()(connect<Props>([SDKContainer])(OpeningOrderClass));

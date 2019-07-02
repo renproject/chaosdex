@@ -42,7 +42,7 @@ export const ShowDepositAddress: React.StatelessComponent<{
         }
     }, [initialized, generateAddress]);
 
-    const onClick = () => {
+    const showDepositAddress = () => {
         setTimer(setTimeout(() => {
             setShowSpinner(true);
         }, 5000)
@@ -117,7 +117,7 @@ export const ShowDepositAddress: React.StatelessComponent<{
                     <>
                         {failed ? <div className="red">{`${failed.message || failed}`}</div> : ""}
                         <div className="popup--buttons">
-                            <button className="button open--confirm" disabled={depositAddress === null || failed !== null} onClick={onClick}>{failed ? "Unable to generate address" : "Show deposit address"}</button>
+                            <button className="button open--confirm" disabled={depositAddress === null || failed !== null} onClick={showDepositAddress}>{failed ? "Unable to generate address" : "Show deposit address"}</button>
                         </div>
                     </>
                 }

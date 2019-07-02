@@ -3,8 +3,8 @@ import * as React from "react";
 import { Currency, CurrencyIcon, InfoLabel, TokenIcon } from "@renex/react-components";
 import { useTranslation } from "react-i18next";
 
-import { OrderInputs } from "../../../lib/dexSDK";
 import { Token, TokenPrices } from "../../../state/generalTypes";
+import { OrderInputs } from "../../../state/sdkContainer";
 import { ReactComponent as Arrow } from "../../../styles/images/arrow-right.svg";
 import { TokenBalance } from "../TokenBalance";
 import { Popup } from "./Popup";

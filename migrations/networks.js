@@ -8,7 +8,7 @@ const config = {
     DARKNODE_PAYMENT_CYCLE_DURATION_SECONDS: 300, // 300 for testnet (5 minutes in seconds), 86400 in mainnet testing (1 day), 2628000 in production (1 month in seconds)
     mintAuthority: "0x723eb4380E03dF6a6f98Cc1338b00cfBE5E45218", // Darknode public key
     shifterFees: 10,
-    renExFees: 0,
+    dexFees: 0,
 }
 
 module.exports = {

@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 
 import { naturalTime } from "../../lib/conversion";
 import { ETHERSCAN } from "../../lib/environmentVariables";
-import { HistoryEvent, Tx } from "../../state/appContainer";
+import { HistoryEvent, Tx } from "../../state/sdkContainer";
 import { ReactComponent as Arrow } from "../../styles/images/arrow-right.svg";
 import { ReactComponent as Next } from "../../styles/images/next.svg";
 import { ReactComponent as Previous } from "../../styles/images/previous.svg";
@@ -20,9 +20,9 @@ const txUrl = (tx: Tx | null): string => {
         case Chain.Ethereum:
             return `${ETHERSCAN}/tx/${tx.hash}`;
         case Chain.Bitcoin:
-            return `https://live.blockcypher.com/btc-testnet/address/${tx.hash}`;
+            return `https://chain.so/address/BTCTEST/${tx.hash}`;
         case Chain.Zcash:
-            return `https://chain.so/tx/ZEC/${tx.hash}`;
+            return `https://chain.so/address/ZECTEST/${tx.hash}`;
     }
 };
 

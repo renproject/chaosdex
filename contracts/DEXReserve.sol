@@ -4,7 +4,7 @@ import "darknode-sol/contracts/Shifter/Shifter.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 
-contract RenExReserve is Ownable {
+contract DEXReserve is Ownable {
     ERC20 public ethereum = ERC20(0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee);
 
     mapping (address => Shifter) public getShifter;

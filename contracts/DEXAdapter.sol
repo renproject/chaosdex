@@ -1,26 +1,22 @@
 pragma solidity ^0.5.8;
 
-import "./RenEx.sol";
-import "./RenExReserve.sol";
+import "./DEX.sol";
+import "./DEXReserve.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
-contract RenExAdapter is Ownable {
-    RenEx public renex;
+contract DEXAdapter is Ownable {
+    DEX public dex;
 
     event LogTransferIn(ERC20 src, uint256 amount);
     event LogTransferOut(ERC20 dst, uint256 amount);
 
-    constructor(RenEx _renex) public {
-        renex = _renex;
+    constructor(DEX _dex) public {
+        dex = _dex;
     }
 
     // solhint-disable-next-line no-empty-blocks
     function() external payable {
-    }
-
-    function updateRenEx(RenEx _renex) external onlyOwner {
-        renex = _renex;
     }
 
     // TODO: Fix "Stack too deep" error!
@@ -40,8 +36,8 @@ contract RenExAdapter is Ownable {
 
         // Handle refunds if the refund block number has passed
         if (block.number > _refundBN) {
-            if (RenExReserve(renex.reserve(_src, _dst)).isShifted(address(_src))) {
-                RenExReserve(renex.reserve(_src, _dst)).getShifter(address(_src)).shiftOut(_refundAddress, transferredAmt);
+            if (DEXReserve(dex.reserve(_src, _dst)).isShifted(address(_src))) {
+                DEXReserve(dex.reserve(_src, _dst)).getShifter(address(_src)).shiftOut(_refundAddress, transferredAmt);
             }
             // FIXME: Also handle the refunds for non-shifted tokens
             return;
@@ -69,7 +65,7 @@ contract RenExAdapter is Ownable {
     ) internal {
         uint256 recvAmt;
         address payable to;
-        RenExReserve reserve = RenExReserve(renex.reserve(_src, _dst));
+        DEXReserve reserve = DEXReserve(dex.reserve(_src, _dst));
 
         if (reserve.isShifted(address(_dst))) {
             to = address(this);
@@ -77,11 +73,11 @@ contract RenExAdapter is Ownable {
             to = _bytesToAddress(_to);
         }
 
-        if (_src == renex.ethereum()) {
-            recvAmt = renex.trade.value(msg.value)(to, _src, _dst, _amount);
+        if (_src == dex.ethereum()) {
+            recvAmt = dex.trade.value(msg.value)(to, _src, _dst, _amount);
         } else {
-            _src.approve(address(renex), _amount);
-            recvAmt = renex.trade(to, _src, _dst, _amount);
+            _src.approve(address(dex), _amount);
+            recvAmt = dex.trade(to, _src, _dst, _amount);
         }
 
         require(recvAmt > _minDstAmt, "invalid receive amount");
@@ -95,11 +91,11 @@ contract RenExAdapter is Ownable {
         /*uint256 _relayerFee,*/ ERC20 _src, ERC20 _dst, uint256 _amount,
         bytes32 _nHash, bytes32 _pHash, bytes memory _sig
     ) internal returns (uint256) {
-        RenExReserve reserve = RenExReserve(renex.reserve(_src, _dst));
+        DEXReserve reserve = DEXReserve(dex.reserve(_src, _dst));
 
         if (reserve.isShifted(address(_src))) {
             return reserve.getShifter(address(_src)).shiftIn(_pHash, _amount, _nHash, _sig);
-        } else if (_src == renex.ethereum()) {
+        } else if (_src == dex.ethereum()) {
             require(msg.value >= _amount, "insufficient eth amount");
             return msg.value;
         } else {

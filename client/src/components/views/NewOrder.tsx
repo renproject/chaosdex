@@ -5,8 +5,8 @@ import { withTranslation, WithTranslation } from "react-i18next";
 
 import { _catchBackgroundErr_ } from "../../lib/errors";
 import { getMarket } from "../../lib/market";
-import { AppContainer } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
+import { SDKContainer } from "../../state/sdkContainer";
 import { NewOrderInputs } from "./NewOrderInputs";
 
 /**
@@ -64,7 +64,7 @@ class NewOrderClass extends React.Component<Props> {
     }
 }
 
-interface Props extends ConnectedProps<[AppContainer]>, WithTranslation {
+interface Props extends ConnectedProps<[SDKContainer]>, WithTranslation {
 }
 
-export const NewOrder = withTranslation()(connect<Props>([AppContainer])(NewOrderClass));
+export const NewOrder = withTranslation()(connect<Props>([SDKContainer])(NewOrderClass));

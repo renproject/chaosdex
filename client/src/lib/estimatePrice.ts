@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 
 import { Token } from "../state/generalTypes";
-import { ReserveBalances } from "./dexSDK";
+import { ReserveBalances } from "../state/sdkContainer";
 
 export const estimatePrice = async (srcToken: Token, dstToken: Token, amount: string, reserves: ReserveBalances | undefined): Promise<BigNumber> => {
     if (!reserves) {

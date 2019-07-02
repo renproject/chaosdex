@@ -6,9 +6,9 @@ const zBTC = artifacts.require("zBTC");
 const ZECShifter = artifacts.require("ZECShifter");
 const zZEC = artifacts.require("zZEC");
 
-const RenExReserve = artifacts.require("RenExReserve");
-const RenExAdapter = artifacts.require("RenExAdapter");
-const RenEx = artifacts.require("RenEx");
+const DEXReserve = artifacts.require("DEXReserve");
+const DEXAdapter = artifacts.require("DEXAdapter");
+const DEX = artifacts.require("DEX");
 const DaiToken = artifacts.require("DaiToken");
 
 const networks = require("./networks.js");
@@ -23,44 +23,44 @@ module.exports = async function (deployer, network, accounts) {
     ZECShifter.address = addresses.ZECShifter || ZECShifter.address;
     zZEC.address = addresses.zZEC || zBTC.address;
     zBTC.address = addresses.zBTC || zBTC.address;
-    RenEx.address = addresses.RenEx || "";
-    RenExAdapter.address = addresses.RenExAdapter || "";
+    DEX.address = addresses.DEX || "";
+    DEXAdapter.address = addresses.DEXAdapter || "";
     DaiToken.address = (addresses.tokens || {}).DAI || "";
 
     if (!DaiToken.address) {
         await deployer.deploy(DaiToken)
     }
 
-    if (!RenEx.address) {
+    if (!DEX.address) {
         await deployer.deploy(
-            RenEx,
-            config.renExFees, // uint256 _feeinBIPs
+            DEX,
+            config.dexFees, // uint256 _feeinBIPs
         );
     }
-    const renEx = await RenEx.at(RenEx.address);
+    const dex = await DEX.at(DEX.address);
 
-    if (!RenExAdapter.address) {
+    if (!DEXAdapter.address) {
         await deployer.deploy(
-            RenExAdapter,
-            RenEx.address, // RenEx _renex
+            DEXAdapter,
+            DEX.address,
         );
     }
 
-    const current = await renEx.reserve(zBTC.address, DaiToken.address);
+    const current = await dex.reserve(zBTC.address, DaiToken.address);
     if (current === "0x0000000000000000000000000000000000000000") {
         await deployer.deploy(
-            RenExReserve
+            DEXReserve
         );
-        const res = await RenExReserve.at(RenExReserve.address);
+        const res = await DEXReserve.at(DEXReserve.address);
         res.setShifter(zBTC.address, BTCShifter.address);
-        deployer.logger.log(`[${"BTC"}, ${"DAI"}]: ${RenExReserve.address}`);
+        deployer.logger.log(`[${"BTC"}, ${"DAI"}]: ${DEXReserve.address}`);
         deployer.logger.log(`[${zBTC.address}, ${DaiToken.address}]`);
-        deployer.logger.log(RenExReserve.address);
-        await renEx.registerReserve(zBTC.address, DaiToken.address, RenExReserve.address);
-        await res.approve(zBTC.address, renEx.address, "115792089237316195423570985008687907853269984665640564039457584007913129639935");
-        await res.approve(DaiToken.address, renEx.address, "115792089237316195423570985008687907853269984665640564039457584007913129639935");
+        deployer.logger.log(DEXReserve.address);
+        await dex.registerReserve(zBTC.address, DaiToken.address, DEXReserve.address);
+        await res.approve(zBTC.address, dex.address, "115792089237316195423570985008687907853269984665640564039457584007913129639935");
+        await res.approve(DaiToken.address, dex.address, "115792089237316195423570985008687907853269984665640564039457584007913129639935");
         // const dai = await DaiToken.at(DaiToken.address);
-        // await dai.transfer(RenExReserve.address, "100000000000000000000");
+        // await dai.transfer(DEXReserve.address, "100000000000000000000");
     } else {
         deployer.logger.log(`\nUsing existing reserve for [${"BTC"}, ${"DAI"}]: ${current}\n`);
     }
@@ -70,8 +70,8 @@ module.exports = async function (deployer, network, accounts) {
     /** LOG *******************************************************************/
 
     deployer.logger.log(JSON.stringify({
-        RenEx: RenEx.address,
-        RenExAdapter: RenExAdapter.address,
-        BTCDAIReserve: RenExReserve.address,
+        DEX: DEX.address,
+        DEXAdapter: DEXAdapter.address,
+        BTCDAIReserve: DEXReserve.address,
     }, undefined, "    "));
 }

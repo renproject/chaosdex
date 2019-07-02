@@ -4,9 +4,9 @@ import { SelectMarket } from "@renex/react-components";
 
 import { _catchInteractionErr_ } from "../../lib/errors";
 import { getMarket } from "../../lib/market";
-import { AppContainer } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
 import { Token, TokenDetails, Tokens } from "../../state/generalTypes";
+import { SDKContainer } from "../../state/sdkContainer";
 
 /**
  * SelectMarket allows the user to select a market from two token dropdowns
@@ -32,10 +32,10 @@ const SelectMarketWrapperClass: React.StatelessComponent<Props> = ({ containers:
 };
 
 // tslint:disable: react-unused-props-and-state
-interface Props extends ConnectedProps<[AppContainer]> {
+interface Props extends ConnectedProps<[SDKContainer]> {
     top: boolean;
     thisToken: Token;
     otherToken: Token;
 }
 
-export const SelectMarketWrapper = connect<Props>([AppContainer])(SelectMarketWrapperClass);
+export const SelectMarketWrapper = connect<Props>([SDKContainer])(SelectMarketWrapperClass);

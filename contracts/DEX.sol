@@ -1,9 +1,9 @@
 pragma solidity ^0.5.8;
 
-import "./RenExReserve.sol";
+import "./DEXReserve.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 
-contract RenEx {
+contract DEX {
     mapping (bytes32=>address payable) public reserves;
     ERC20 public ethereum = ERC20(0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee);
 
@@ -29,7 +29,7 @@ contract RenEx {
         if (_dst != ethereum) {
             require(_dst.transferFrom(reserve, _to, recvAmount), "destination token transfer failed");
         } else {
-            RenExReserve(reserve).transfer(_to, recvAmount);
+            DEXReserve(reserve).transfer(_to, recvAmount);
         }
 
         emit LogTrade(_src, _dst, _sendAmount, recvAmount);
