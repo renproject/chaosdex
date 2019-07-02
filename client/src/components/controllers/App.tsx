@@ -1,7 +1,5 @@
 import * as React from "react";
 
-import createPersistedState from "use-persisted-state";
-
 import { _catchBackgroundErr_ } from "../../lib/errors";
 import { AppContainer } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";

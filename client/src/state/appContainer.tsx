@@ -241,7 +241,7 @@ export class AppContainer extends Container<typeof initialState> {
         const promiEvent = dexSDK.submitBurn(address, commitment);
         const transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve).catch(reject));
 
-        const receivedAmount = await new Promise<BigNumber>((resolve, reject) => (promiEvent.once as any)("confirmation", async (confirmations: number, receipt: TransactionReceipt) => {
+        const receivedAmount = await new Promise<BigNumber>((resolve, reject) => promiEvent.once("confirmation", async (confirmations: number, receipt: TransactionReceipt) => {
             // Loop through logs to find burn log
             for (const log of receipt.logs) {
                 if (
@@ -278,7 +278,7 @@ export class AppContainer extends Container<typeof initialState> {
             await this.setState({ pendingTXs: this.state.pendingTXs.set(transactionHash, 0) });
         }
 
-        const receivedAmount = await new Promise<BigNumber>((resolve, reject) => (promiEvent.once as any)("confirmation", async (confirmations: number, receipt: TransactionReceipt) => {
+        const receivedAmount = await new Promise<BigNumber>((resolve, reject) => promiEvent.once("confirmation", async (confirmations: number, receipt: TransactionReceipt) => {
             if (isEthereumBased(commitment.orderInputs.dstToken)) {
                 this.setState({ pendingTXs: this.state.pendingTXs.remove(transactionHash) }).catch(_catchInteractionErr_);
 
@@ -326,7 +326,7 @@ export class AppContainer extends Container<typeof initialState> {
     }
 
     public getHistoryEvent = async () => {
-        const { inTx, outTx, commitment, receivedAmount } = this.state;
+        const { outTx, commitment, receivedAmount } = this.state;
         if (!commitment || !outTx || !receivedAmount) {
             throw new Error(`Invalid values passed to getHistoryEvent`);
         }

@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { withTranslation, WithTranslation } from "react-i18next";
 
-import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
+import { _catchInteractionErr_ } from "../../lib/errors";
 import { AppContainer } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
 import { AskForAddress } from "../views/popups/AskForAddress";
@@ -39,7 +39,7 @@ class PromptDetailsClass extends React.Component<Props, typeof defaultState> {
     public render(): React.ReactNode {
         const [appContainer] = this.props.containers;
         const {
-            toAddress, refundAddress, confirmedOrderInputs, confirmedTrade,
+            toAddress, confirmedOrderInputs, confirmedTrade,
             address,
         } = appContainer.state;
 

@@ -1,7 +1,4 @@
-import { AbiItem } from "web3-utils";
-
 import { Token } from "../state/generalTypes";
-import { NETWORK } from "./environmentVariables";
 import { getWeb3 } from "./getWeb3";
 
 // tslint:disable: non-literal-require
@@ -52,24 +49,6 @@ export const getRenExAdapterAddress = async (): Promise<string> => {
     const networkID = await web3.eth.net.getId();
     return syncGetRenExAdapterAddress(networkID);
 };
-
-interface AbiJson {
-    abi: AbiItem[];
-    network: {
-        [network: string]: {
-            address: string;
-        }
-    };
-}
-
-// export const getContractInstance = async (web3: Web3, contractPath: string) => {
-//     const web3 = await getWeb3();
-//     const networkID = await web3.eth.net.getId();
-
-//     // tslint:disable-next-line:non-literal-require
-//     const contract: AbiJson = require(contractPath);
-//     return new web3.eth.Contract(contract.abi, contract.network[networkID].address);
-// };
 
 export const getTokenDecimals = (token: Token): number => {
     switch (token) {

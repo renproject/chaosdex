@@ -1,5 +1,5 @@
 import RenSDK, {
-    Chain, NetworkTestnet, ShiftedInResponse, ShiftedOutResponse, ShiftObject, Signature,
+    NetworkTestnet, ShiftedInResponse, ShiftedOutResponse, ShiftObject, Signature,
     Tokens as ShiftActions,
 } from "@renproject/ren";
 import BigNumber from "bignumber.js";
@@ -7,15 +7,14 @@ import Web3 from "web3";
 import { Log, PromiEvent, TransactionReceipt } from "web3-core";
 import { AbiItem } from "web3-utils";
 
-import { isERC20, MarketPair, Token, Tokens } from "../state/generalTypes";
+import { isERC20, MarketPair, Token } from "../state/generalTypes";
 import {
-    getRenExAdapterAddress, getTokenAddress, getTokenDecimals, syncGetRenExAdapterAddress,
-    syncGetRenExAddress, syncGetTokenAddress,
+    getTokenAddress, getTokenDecimals, syncGetRenExAdapterAddress, syncGetRenExAddress,
+    syncGetTokenAddress,
 } from "./contractAddresses";
 import { ERC20Detailed } from "./contracts/ERC20Detailed";
 import { RenEx } from "./contracts/RenEx";
 import { RenExAdapter } from "./contracts/RenExAdapter";
-import { NETWORK } from "./environmentVariables";
 
 // tslint:disable: non-literal-require
 const ERC20ABI = require(`../contracts/testnet/ERC20.json`).abi;
@@ -46,14 +45,6 @@ export interface Commitment {
 }
 
 export type ReserveBalances = Map<Token, BigNumber>;
-
-const tokenToChain = (token: Token): Chain => {
-    const tokenDetails = Tokens.get(token, undefined);
-    if (!tokenDetails) {
-        throw new Error(`Unable to retrieve details of token ${token}`);
-    }
-    return tokenDetails.chain;
-};
 
 /// Initialize Web3 and contracts
 const getExchange = (web3: Web3, networkID: number): RenEx =>
@@ -124,17 +115,6 @@ export class DexSDK {
         { name: "refundAddress", type: "bytes", value: commitment.refundAddress },
     ]
 
-    public randomNonce = () => {
-        // Browser only
-
-        // Generate 32 bytes
-        const buffer = new Uint8Array(32);
-        window.crypto.getRandomValues(buffer);
-
-        // Join into hex string
-        return "0x" + Array.prototype.map.call(new Uint8Array(buffer), x => ("00" + x.toString(16)).slice(-2)).join("");
-    }
-
     // Takes a commitment as bytes or an array of primitive types and returns
     // the deposit address
     public generateAddress = async (token: Token, commitment: Commitment): Promise<string> => {
@@ -144,7 +124,6 @@ export class DexSDK {
             sendAmount: commitment.srcAmount.toNumber(),
             contractFn: "trade",
             contractParams: this.zipPayload(commitment),
-            nonce: this.randomNonce(),
         });
         return this.shiftStep1.addr();
     }
@@ -194,10 +173,6 @@ export class DexSDK {
             signatureBytes, // _sig: string
         ).send({ from: address, gas: 350000 });
     }
-
-    // public submitBurn = async (commitment: Commitment, receivedAmountHex: string): Promise<string> => {
-    //     return this.renSDK.burn(tokenToChain(commitment.orderInputs.dstToken), commitment.toAddress, receivedAmountHex);
-    // }
 
     public fetchEthereumTokenBalance = async (token: Token, address: string): Promise<BigNumber> => {
         let balance: string;

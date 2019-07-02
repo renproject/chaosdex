@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { withTranslation, WithTranslation } from "react-i18next";
 
-import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
+import { _catchInteractionErr_ } from "../../lib/errors";
 import { AppContainer, HistoryEvent } from "../../state/appContainer";
 import { connect, ConnectedProps } from "../../state/connect";
 import { isERC20, isEthereumBased } from "../../state/generalTypes";
