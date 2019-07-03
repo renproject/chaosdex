@@ -8,7 +8,9 @@ import { List, Map, OrderedMap } from "immutable";
 import { Container } from "unstated";
 import { TransactionReceipt } from "web3-core";
 
-import { getRenExAdapterAddress, getTokenAddress } from "../lib/contractAddresses";
+import {
+    getDEXAdapterAddress, getTokenAddress, syncGetDEXAdapterAddress, syncGetTokenAddress,
+} from "../lib/contractAddresses";
 import { Commitment, DexSDK, OrderInputs, ReserveBalances } from "../lib/dexSDK";
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../lib/errors";
 import { estimatePrice } from "../lib/estimatePrice";
@@ -193,8 +195,8 @@ export class AppContainer extends Container<typeof initialState> {
             hexToAddress = btcAddressToHex(toAddress);
         }
         const commitment: Commitment = {
-            srcToken: await getTokenAddress(order.srcToken),
-            dstToken: await getTokenAddress(order.dstToken),
+            srcToken: syncGetTokenAddress(dexSDK.networkID, order.srcToken),
+            dstToken: syncGetTokenAddress(dexSDK.networkID, order.dstToken),
             minDestinationAmount: new BigNumber(0),
             srcAmount: new BigNumber(order.srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals)),
             toAddress: hexToAddress,
@@ -225,7 +227,8 @@ export class AppContainer extends Container<typeof initialState> {
         if (!dexSDK || !inTx || !commitment) {
             throw new Error(`Invalid values required to submit deposit`);
         }
-        const response = await dexSDK.checkBurnStatus(commitment.orderInputs.dstToken, inTx.hash)
+        const shiftOutObject = await dexSDK.createShiftOutObject(commitment.orderInputs.dstToken, inTx.hash);
+        const response = await shiftOutObject.submitToRenVM()
             .on("messageID", (messageID: string) => this.setState({ messageID }));
         const receivedAmount = new BigNumber(response.amount).dividedBy(new BigNumber(10).exponentiatedBy(8));
         await this.setState({ receivedAmount, outTx: BitcoinTx(bs58.encode(Buffer.from(strip0x(response.to), "hex"))) });
@@ -245,9 +248,9 @@ export class AppContainer extends Container<typeof initialState> {
             // Loop through logs to find burn log
             for (const log of receipt.logs) {
                 if (
-                    log.address.toLowerCase() === (await getTokenAddress(commitment.orderInputs.dstToken)).toLowerCase() &&
+                    log.address.toLowerCase() === (syncGetTokenAddress(dexSDK.networkID, commitment.orderInputs.dstToken)).toLowerCase() &&
                     log.topics[0] === "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef".toLowerCase() &&
-                    log.topics[1] === `0x000000000000000000000000${strip0x(await getRenExAdapterAddress())}`.toLowerCase() &&
+                    log.topics[1] === `0x000000000000000000000000${strip0x(syncGetDEXAdapterAddress(dexSDK.networkID))}`.toLowerCase() &&
                     log.topics[2] === "0x0000000000000000000000000000000000000000000000000000000000000000".toLowerCase()
                 ) {
                     const dstTokenDetails = Tokens.get(commitment.orderInputs.dstToken);
@@ -271,7 +274,7 @@ export class AppContainer extends Container<typeof initialState> {
             throw new Error(`Invalid values required for swap (dexSDK: ${!!dexSDK}, address: ${!!address}, commitment: ${!!commitment})`);
         }
 
-        const promiEvent = dexSDK.submitSwap(address, commitment, await getRenExAdapterAddress(), signature);
+        const promiEvent = dexSDK.submitSwap(address, commitment, syncGetDEXAdapterAddress(dexSDK.networkID), signature);
         const transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve).catch(reject));
 
         if (isEthereumBased(commitment.orderInputs.dstToken)) {
@@ -285,7 +288,7 @@ export class AppContainer extends Container<typeof initialState> {
                 // Loop through logs to find burn log
                 for (const log of receipt.logs) {
                     if (
-                        log.address.toLowerCase() === (await getTokenAddress(commitment.orderInputs.dstToken)).toLowerCase() &&
+                        log.address.toLowerCase() === (syncGetTokenAddress(dexSDK.networkID, commitment.orderInputs.dstToken)).toLowerCase() &&
                         log.topics[0] === "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef".toLowerCase() &&
                         // log.topics[1] === `0x000000000000000000000000${strip0x(reserve_address)}`.toLowerCase() &&
                         log.topics[2] === `0x000000000000000000000000${strip0x(commitment.toAddress)}`.toLowerCase()
@@ -301,9 +304,9 @@ export class AppContainer extends Container<typeof initialState> {
                 // Loop through logs to find burn log
                 for (const log of receipt.logs) {
                     if (
-                        log.address.toLowerCase() === (await getTokenAddress(commitment.orderInputs.dstToken)).toLowerCase() &&
+                        log.address.toLowerCase() === (syncGetTokenAddress(dexSDK.networkID, commitment.orderInputs.dstToken)).toLowerCase() &&
                         log.topics[0] === "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef".toLowerCase() &&
-                        log.topics[1] === `0x000000000000000000000000${strip0x(await getRenExAdapterAddress())}`.toLowerCase() &&
+                        log.topics[1] === `0x000000000000000000000000${strip0x(syncGetDEXAdapterAddress(dexSDK.networkID))}`.toLowerCase() &&
                         log.topics[2] === "0x0000000000000000000000000000000000000000000000000000000000000000".toLowerCase()
                     ) {
                         const dstTokenDetails = Tokens.get(commitment.orderInputs.dstToken);

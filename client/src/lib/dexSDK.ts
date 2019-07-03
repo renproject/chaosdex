@@ -1,5 +1,5 @@
 import RenSDK, {
-    NetworkTestnet, ShiftedInResponse, ShiftedOutResponse, ShiftObject, Signature,
+    NetworkTestnet, ShiftedInResponse, ShiftedOutResponse, ShiftInObject, Signature,
     Tokens as ShiftActions,
 } from "@renproject/ren";
 import BigNumber from "bignumber.js";
@@ -9,17 +9,17 @@ import { AbiItem } from "web3-utils";
 
 import { isERC20, MarketPair, Token } from "../state/generalTypes";
 import {
-    getTokenAddress, getTokenDecimals, syncGetRenExAdapterAddress, syncGetRenExAddress,
+    getTokenAddress, getTokenDecimals, syncGetDEXAdapterAddress, syncGetDEXAddress,
     syncGetTokenAddress,
 } from "./contractAddresses";
+import { DEX } from "./contracts/DEX";
+import { DEXAdapter } from "./contracts/DEXAdapter";
 import { ERC20Detailed } from "./contracts/ERC20Detailed";
-import { RenEx } from "./contracts/RenEx";
-import { RenExAdapter } from "./contracts/RenExAdapter";
 
 // tslint:disable: non-literal-require
 const ERC20ABI = require(`../contracts/testnet/ERC20.json`).abi;
-const RenExABI = require(`../contracts/testnet/RenEx.json`).abi;
-const RenExAdapterABI = require(`../contracts/testnet/RenExAdapter.json`).abi;
+const DEXABI = require(`../contracts/testnet/DEX.json`).abi;
+const DEXAdapterABI = require(`../contracts/testnet/DEXAdapter.json`).abi;
 
 const NULL_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
@@ -47,12 +47,12 @@ export interface Commitment {
 export type ReserveBalances = Map<Token, BigNumber>;
 
 /// Initialize Web3 and contracts
-const getExchange = (web3: Web3, networkID: number): RenEx =>
-    new web3.eth.Contract(RenExABI as AbiItem[], syncGetRenExAddress(networkID));
+const getExchange = (web3: Web3, networkID: number): DEX =>
+    new web3.eth.Contract(DEXABI as AbiItem[], syncGetDEXAddress(networkID));
 const getERC20 = (web3: Web3, tokenAddress: string): ERC20Detailed =>
     new (web3.eth.Contract)(ERC20ABI as AbiItem[], tokenAddress);
-const getAdapter = (web3: Web3, networkID: number): RenExAdapter =>
-    new (web3.eth.Contract)(RenExAdapterABI as AbiItem[], syncGetRenExAdapterAddress(networkID));
+const getAdapter = (web3: Web3, networkID: number): DEXAdapter =>
+    new (web3.eth.Contract)(DEXAdapterABI as AbiItem[], syncGetDEXAdapterAddress(networkID));
 
 export class DexSDK {
     public connected: boolean = false;
@@ -61,14 +61,14 @@ export class DexSDK {
     public renSDK: RenSDK;
     public adapterAddress: string;
 
-    private shiftStep1: ShiftObject | undefined;
-    private shiftStep2: ShiftObject | undefined;
+    private shiftStep1: ShiftInObject | undefined;
+    private shiftStep2: ShiftInObject | undefined;
     private shiftStep3: Signature | undefined;
 
     constructor(web3: Web3, networkID: number) {
         this.web3 = web3;
         this.networkID = networkID;
-        this.adapterAddress = syncGetRenExAdapterAddress(networkID);
+        this.adapterAddress = syncGetDEXAdapterAddress(networkID);
         this.renSDK = new RenSDK(NetworkTestnet);
     }
 
@@ -118,7 +118,7 @@ export class DexSDK {
     // Takes a commitment as bytes or an array of primitive types and returns
     // the deposit address
     public generateAddress = async (token: Token, commitment: Commitment): Promise<string> => {
-        this.shiftStep1 = this.renSDK.shift({
+        this.shiftStep1 = this.renSDK.shiftIn({
             sendToken: ShiftActions[token].Btc2Eth,
             sendTo: this.adapterAddress,
             sendAmount: commitment.srcAmount.toNumber(),
@@ -133,7 +133,7 @@ export class DexSDK {
         if (!this.shiftStep1) {
             throw new Error("Must have generated address first");
         }
-        this.shiftStep2 = await this.shiftStep1.wait(confirmations);
+        this.shiftStep2 = await this.shiftStep1.waitForDeposit(confirmations);
     }
 
     // Submits the commitment and transaction to the darknodes, and then submits
@@ -142,18 +142,18 @@ export class DexSDK {
         if (!this.shiftStep2) {
             throw new Error("Must have retrieved deposits first");
         }
-        this.shiftStep3 = await this.shiftStep2.submit().on("messageID", onMessageID);
+        this.shiftStep3 = await this.shiftStep2.submitToRenVM().on("messageID", onMessageID);
     }
 
-    public checkBurnStatus = (token: Token, txHash: string) => {
-        return this.renSDK.burnDetails({ web3: this.web3, sendToken: ShiftActions[token].Eth2Btc, txHash });
+    public createShiftOutObject = (token: Token, txHash: string) => {
+        return this.renSDK.shiftOut({ web3Provider: this.web3.currentProvider, sendToken: ShiftActions[token].Eth2Btc, txHash });
     }
 
     public submitSwap = (address: string, commitment: Commitment, adapterAddress: string, signatureIn?: ShiftedInResponse | ShiftedOutResponse | null) => {
         if (!this.shiftStep3) {
             throw new Error("Must have submitted deposit first");
         }
-        return this.shiftStep3.signAndSubmit(this.web3, address);
+        return this.shiftStep3.submitToEthereum(this.web3.currentProvider, address);
     }
 
     public submitBurn = (address: string, commitment: Commitment): PromiEvent<Transaction> => { // Promise<string> => new Promise<string>(async (resolve, reject) => {
@@ -179,7 +179,7 @@ export class DexSDK {
         if (token === Token.ETH) {
             balance = await this.web3.eth.getBalance(address);
         } else if (isERC20(token)) {
-            const tokenAddress = await getTokenAddress(token);
+            const tokenAddress = syncGetTokenAddress(this.networkID, token);
             const tokenInstance = getERC20(this.web3, tokenAddress);
             balance = (await tokenInstance.methods.balanceOf(address).call()).toString();
         } else {
@@ -189,7 +189,7 @@ export class DexSDK {
     }
 
     public getTokenAllowance = async (token: Token, address: string): Promise<BigNumber> => {
-        const tokenAddress = await getTokenAddress(token);
+        const tokenAddress = syncGetTokenAddress(this.networkID, token);
         const tokenInstance = getERC20(this.web3, tokenAddress);
 
         const allowance = await tokenInstance.methods.allowance(address, (getAdapter(this.web3, this.networkID)).address).call();
@@ -204,7 +204,7 @@ export class DexSDK {
             return allowanceBN;
         }
 
-        const tokenAddress = await getTokenAddress(token);
+        const tokenAddress = syncGetTokenAddress(this.networkID, token);
         const tokenInstance = getERC20(this.web3, tokenAddress);
 
         // We don't have enough allowance so approve more

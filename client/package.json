@@ -6,7 +6,7 @@
   "dependencies": {
     "@renex/fonts": "^1.0.1",
     "@renex/react-components": "1.0.21",
-    "@renproject/ren": "0.0.4",
+    "@renproject/ren": "^0.0.8",
     "@sentry/browser": "^5.4.3",
     "@sentry/core": "^5.4.3",
     "@types/bn.js": "^4.11.5",

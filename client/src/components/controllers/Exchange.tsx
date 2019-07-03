@@ -35,7 +35,7 @@ export const Exchange = withRouter(connect<RouteComponentProps & ConnectedProps<
             setOrderHistory((hist: StoredHistory) => {
                 return {
                     ...hist,
-                    [historyEvent.outTx.hash]: historyEvent,
+                    [historyEvent.time]: historyEvent,
                 };
             });
         };

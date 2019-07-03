@@ -20,7 +20,7 @@ const txUrl = (tx: Tx | null): string => {
         case Chain.Ethereum:
             return `${ETHERSCAN}/tx/${tx.hash}`;
         case Chain.Bitcoin:
-            return `https://live.blockcypher.com/btc-testnet/address/${tx.hash}`;
+            return `https://chain.so/address/BTCTEST/${tx.hash}`;
         case Chain.Zcash:
             return `https://chain.so/tx/ZEC/${tx.hash}`;
     }
@@ -78,7 +78,7 @@ export const OrderHistory = ({ orders, pendingTXs }: Props) => {
                 {orders.slice(start, start + 5).map(historyEvent => {
                     return <OrderHistoryEntry
                         t={t}
-                        key={historyEvent.outTx ? historyEvent.outTx.hash : historyEvent.time}
+                        key={historyEvent.time}
                         order={historyEvent}
                         // inTxPending={pendingTXs.has(historyEvent.inTx.hash)}
                         outTxPending={pendingTXs.has(historyEvent.outTx.hash)}

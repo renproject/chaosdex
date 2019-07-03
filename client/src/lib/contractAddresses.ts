@@ -28,26 +28,26 @@ export const getTokenAddress = async (token: Token): Promise<string> => {
     return syncGetTokenAddress(networkID, token);
 };
 
-export const syncGetRenExAddress = (networkID: number): string => {
-    const renExNetworks = require(`../contracts/testnet/RenEx.json`).networks;
+export const syncGetDEXAddress = (networkID: number): string => {
+    const renExNetworks = require(`../contracts/testnet/DEX.json`).networks;
     return renExNetworks[networkID].address;
 };
 
-export const getRenExAddress = async (): Promise<string> => {
+export const getDEXAddress = async (): Promise<string> => {
     const web3 = await getWeb3();
     const networkID = await web3.eth.net.getId();
-    return syncGetRenExAddress(networkID);
+    return syncGetDEXAddress(networkID);
 };
 
-export const syncGetRenExAdapterAddress = (networkID: number): string => {
-    const renExNetworks = require(`../contracts/testnet/RenExAdapter.json`).networks;
+export const syncGetDEXAdapterAddress = (networkID: number): string => {
+    const renExNetworks = require(`../contracts/testnet/DEXAdapter.json`).networks;
     return renExNetworks[networkID].address;
 };
 
-export const getRenExAdapterAddress = async (): Promise<string> => {
+export const getDEXAdapterAddress = async (): Promise<string> => {
     const web3 = await getWeb3();
     const networkID = await web3.eth.net.getId();
-    return syncGetRenExAdapterAddress(networkID);
+    return syncGetDEXAdapterAddress(networkID);
 };
 
 export const getTokenDecimals = (token: Token): number => {
