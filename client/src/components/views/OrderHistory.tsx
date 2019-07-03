@@ -2,9 +2,7 @@ import * as React from "react";
 
 import { TokenIcon } from "@renex/react-components";
 import { Chain } from "@renproject/ren";
-import i18next from "i18next";
 import { OrderedMap } from "immutable";
-import { useTranslation } from "react-i18next";
 
 import { naturalTime } from "../../lib/conversion";
 import { ETHERSCAN } from "../../lib/environmentVariables";
@@ -26,16 +24,13 @@ const txUrl = (tx: Tx | null): string => {
     }
 };
 
-const OrderHistoryEntry = ({ order, t, outTxPending }: {
+const OrderHistoryEntry = ({ order }: {
     order: HistoryEvent,
-    t: i18next.TFunction,
-    // inTxPending: boolean,
-    outTxPending: boolean,
 }) => {
     return <div className="swap--history--entry">
         <div className="token--info">
             <TokenIcon className="token-icon" token={order.orderInputs.dstToken} />
-            <span className="received--text">{t("history.received")}</span>
+            <span className="received--text">Received</span>
             <span className="token--amount">
                 <TokenBalance
                     token={order.orderInputs.dstToken}
@@ -49,7 +44,7 @@ const OrderHistoryEntry = ({ order, t, outTxPending }: {
             {/*<a target="_blank" className={`tx-in ${inTxPending ? "tx-pending" : ""}`} rel="noopener noreferrer" href={txUrl(order.inTx)}>
                 <Arrow />
             </a>*/}
-            <a target="_blank" className={`tx-out ${outTxPending ? "tx-pending" : ""}`} rel="noopener noreferrer" href={txUrl(order.outTx)}>
+            <a target="_blank" className={`tx-out`} rel="noopener noreferrer" href={txUrl(order.outTx)}>
                 <Arrow />
             </a>
         </div>
@@ -59,8 +54,7 @@ const OrderHistoryEntry = ({ order, t, outTxPending }: {
 /**
  * OrderHistory is a visual component for allowing users to open new orders
  */
-export const OrderHistory = ({ orders, pendingTXs }: Props) => {
-    const { t } = useTranslation();
+export const OrderHistory = ({ orders }: Props) => {
     const [start, setStart] = React.useState(0);
 
     const nextPage = () => { setStart(start + 5); };
@@ -72,16 +66,13 @@ export const OrderHistory = ({ orders, pendingTXs }: Props) => {
     return <>
         <div className="section history">
             <div className="history--banner">
-                <span>{t("history.history")}</span>
+                <span>History</span>
             </div>
             <div className="history--list">
                 {orders.slice(start, start + 5).map(historyEvent => {
                     return <OrderHistoryEntry
-                        t={t}
                         key={historyEvent.outTx ? historyEvent.outTx.hash : historyEvent.time}
                         order={historyEvent}
-                        // inTxPending={pendingTXs.has(historyEvent.inTx.hash)}
-                        outTxPending={pendingTXs.has(historyEvent.outTx.hash)}
                     />;
                 })}
             </div>
@@ -96,5 +87,4 @@ export const OrderHistory = ({ orders, pendingTXs }: Props) => {
 
 interface Props {
     orders: HistoryEvent[];
-    pendingTXs: OrderedMap<string, number>;
 }

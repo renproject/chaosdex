@@ -4,13 +4,15 @@ import { Loading } from "@renex/react-components";
 
 import { _catchInteractionErr_ } from "../../../lib/errors";
 import { Token } from "../../../state/generalTypes";
+import { Commitment } from "../../../state/sdkContainer";
 import { Popup } from "./Popup";
 
 export const TokenAllowance: React.StatelessComponent<{
     token: Token,
     amount: string,
+    commitment: Commitment | null,
     submit: () => Promise<void>,
-}> = ({ token, submit, amount }) => {
+}> = ({ token, submit, amount, commitment }) => {
     const [submitting, setSubmitting] = React.useState(false);
     const onSubmit = () => {
         setSubmitting(true);
@@ -29,7 +31,7 @@ export const TokenAllowance: React.StatelessComponent<{
                     <br />
                 </div>
                 <div className="popup--buttons">
-                    <button className="button open--confirm" disabled={submitting} onClick={onSubmit}>{submitting ? <Loading alt={true} /> : "Approve"}</button>
+                    <button className="button open--confirm" disabled={submitting || commitment === null} onClick={onSubmit}>{submitting ? <Loading alt={true} /> : "Approve"}</button>
                 </div>
             </div>
         </div>

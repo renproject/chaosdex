@@ -4,9 +4,11 @@ import { parse as parseLocation } from "qs";
 import { RouteComponentProps, withRouter } from "react-router-dom";
 
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
+import { getWeb3 } from "../../lib/getWeb3";
 import { connect, ConnectedProps } from "../../state/connect";
 import { Token } from "../../state/generalTypes";
 import { SDKContainer } from "../../state/sdkContainer";
+import { UIContainer } from "../../state/uiContainer";
 import { HeaderController } from "../views/HeaderController";
 import { Exchange } from "./Exchange";
 
@@ -14,15 +16,24 @@ import { Exchange } from "./Exchange";
  * App is the main visual component responsible for displaying different routes
  * and running background app loops
  */
-export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[SDKContainer]>>([SDKContainer])(
-    ({ containers: [appContainer], location }) => {
+export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UIContainer, SDKContainer]>>([UIContainer, SDKContainer])(
+    ({ containers: [uiContainer, sdkContainer], location }) => {
 
         const login = async () => {
-            await appContainer.connect();
+            const web3 = await getWeb3();
+            const networkID = await web3.eth.net.getId();
+            const addresses = await web3.eth.getAccounts();
+            const address = addresses.length > 0 ? addresses[0] : null
+            await uiContainer.connect(web3, address, networkID);
+            await sdkContainer.connect(web3, address, networkID);
+
+            uiContainer.updateTokenPrices().catch(_catchBackgroundErr_);
+            uiContainer.updateBalanceReserves().catch(_catchBackgroundErr_);
+            uiContainer.updateAccountBalances().catch(_catchBackgroundErr_);
         };
 
         const logout = async () => {
-            await appContainer.clearAddress();
+            await uiContainer.clearAddress();
         };
 
         // useEffect replaces `componentDidMount` and `componentDidUpdate`.
@@ -37,13 +48,13 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[SDKC
                 try {
                     const queryParams = parseLocation(location.search.replace(/^\?/, ""));
                     if (queryParams.send && queryParams.receive) {
-                        appContainer.updateBothTokens(queryParams.send as Token, queryParams.receive as Token).catch(_catchInteractionErr_);
+                        uiContainer.updateBothTokens(queryParams.send as Token, queryParams.receive as Token).catch(_catchInteractionErr_);
                     } else {
                         if (queryParams.send) {
-                            appContainer.updateSrcToken(queryParams.send as Token).catch(_catchInteractionErr_);
+                            uiContainer.updateSrcToken(queryParams.send as Token).catch(_catchInteractionErr_);
                         }
                         if (queryParams.receive) {
-                            appContainer.updateDstToken(queryParams.receive as Token).catch(_catchInteractionErr_);
+                            uiContainer.updateDstToken(queryParams.receive as Token).catch(_catchInteractionErr_);
                         }
                     }
                 } catch (error) {
@@ -54,17 +65,14 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[SDKC
                 }
 
                 // Start loops to update prices and balances
-                setInterval(() => appContainer.updateTokenPrices().catch(_catchBackgroundErr_), 10 * 1000);
-                setInterval(() => appContainer.updateBalanceReserves().catch(_catchBackgroundErr_), 10 * 1000);
-                setInterval(() => appContainer.updateAccountBalances().catch(_catchBackgroundErr_), 10 * 1000);
-                appContainer.connect().then(() => {
-                    appContainer.updateTokenPrices().catch(_catchBackgroundErr_);
-                    appContainer.updateBalanceReserves().catch(_catchBackgroundErr_);
-                    appContainer.updateAccountBalances().catch(_catchBackgroundErr_);
+                setInterval(() => uiContainer.updateTokenPrices().catch(_catchBackgroundErr_), 10 * 1000);
+                setInterval(() => uiContainer.updateBalanceReserves().catch(_catchBackgroundErr_), 10 * 1000);
+                setInterval(() => uiContainer.updateAccountBalances().catch(_catchBackgroundErr_), 10 * 1000);
+                login().then(() => {
                     setInitialized(true);
                 }).catch(_catchBackgroundErr_);
             }
-        }, [initialized, appContainer, location.search]);
+        }, [initialized, uiContainer, location.search]);
 
         return <main>
             <React.Suspense fallback={null}>

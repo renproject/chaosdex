@@ -1,12 +1,12 @@
 import * as React from "react";
 
 import { Loading } from "@renex/react-components";
-import { RouteComponentProps, withRouter } from "react-router";
 import createPersistedState from "use-persisted-state";
 
 import { _catchBackgroundErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
 import { HistoryEvent, SDKContainer } from "../../state/sdkContainer";
+import { UIContainer } from "../../state/uiContainer";
 import { NewOrder } from "../views/NewOrder";
 import { OrderHistory } from "../views/OrderHistory";
 import { OpeningOrder } from "./OpeningOrder";
@@ -21,12 +21,12 @@ interface StoredHistory {
 /**
  * Exchange is the main token-swapping page.
  */
-export const Exchange = withRouter(connect<RouteComponentProps & ConnectedProps<[SDKContainer]>>([SDKContainer])(
-    ({ containers: [appContainer], location }) => {
+export const Exchange = connect<ConnectedProps<[UIContainer, SDKContainer]>>([UIContainer, SDKContainer])(
+    ({ containers: [uiContainer, sdkContainer] }) => {
         const [orderHistory, setOrderHistory] = useOrderHistoryState({} as unknown as StoredHistory);
 
         const cancel = () => {
-            appContainer.setSubmitting(false).catch(_catchBackgroundErr_);
+            uiContainer.setSubmitting(false).catch(_catchBackgroundErr_);
         };
 
         const swapSubmitted = (historyEvent: HistoryEvent) => {
@@ -45,9 +45,9 @@ export const Exchange = withRouter(connect<RouteComponentProps & ConnectedProps<
                 <div className="exchange--center">
                     <React.Suspense fallback={<Loading />}>
                         <NewOrder />
-                        <OrderHistory orders={orders} pendingTXs={appContainer.state.pendingTXs} />
-                        {appContainer.state.submitting ?
-                            appContainer.state.refundAddress ?
+                        <OrderHistory orders={orders} />
+                        {uiContainer.state.submitting ?
+                            uiContainer.state.refundAddress ?
                                 <OpeningOrder cancel={cancel} swapSubmitted={swapSubmitted} />
                                 : <PromptDetails cancel={cancel} />
                             : <></>
@@ -57,4 +57,4 @@ export const Exchange = withRouter(connect<RouteComponentProps & ConnectedProps<
             </div>
         </div>;
     }
-));
+);

@@ -1,14 +1,11 @@
 import * as React from "react";
 
 import { currencies, CurrencyIcon, Dropdown, Header } from "@renex/react-components";
-import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 import { connect, ConnectedProps } from "../../state/connect";
-import { SDKContainer } from "../../state/sdkContainer";
+import { UIContainer } from "../../state/uiContainer";
 import { ReactComponent as Logo } from "../../styles/images/logo.svg";
-import { ReactComponent as German } from "../../styles/images/rp-flag-de.svg";
-import { ReactComponent as English } from "../../styles/images/rp-flag-uk.svg";
 import { AccountDropdown } from "./AccountDropdown";
 
 const currencyOptions = (() => {
@@ -29,7 +26,7 @@ const logo = <Link className="no-underline" to="/">
     <h1>DEX Demo</h1>
 </Link>;
 
-interface Props extends ConnectedProps<[SDKContainer]> {
+interface Props extends ConnectedProps<[UIContainer]> {
     handleLogin: () => {};
     handleLogout: () => {};
 }
@@ -37,34 +34,10 @@ interface Props extends ConnectedProps<[SDKContainer]> {
 /**
  * HeaderController is a visual component providing page branding and navigation.
  */
-export const HeaderController = (connect<Props>([SDKContainer])(
-    ({ handleLogout, handleLogin, containers: [appContainer] }) => {
-        const { t, i18n } = useTranslation();
+export const HeaderController = (connect<Props>([UIContainer])(
+    ({ handleLogout, handleLogin, containers: [uiContainer] }) => {
 
-        const [currentLanguage, setCurrentLanguage] = React.useState(i18n.language);
-        const [currentLanguageName, setCurrentLanguageName] = React.useState(t("language.currentLanguageName"));
-
-        const setLanguage = async (language: string): Promise<void> => {
-            await i18n.changeLanguage(language);
-            setCurrentLanguage(language);
-            setCurrentLanguageName(t("language.currentLanguageName"));
-        };
-
-        const languageOptions = new Map()
-            .set("en", <><English /> {t("language.english")}</>)
-            .set("de", <><German /> {t("language.german")}</>);
-
-        const languageDropdown = <Dropdown
-            key="languageDropdown"
-            selected={{
-                value: currentLanguage,
-                render: currentLanguageName,
-            }}
-            options={languageOptions}
-            setValue={setLanguage}
-        />;
-
-        const quoteCurrency = appContainer.state.preferredCurrency;
+        const quoteCurrency = uiContainer.state.preferredCurrency;
         const currencyDropdown = <Dropdown
             key="currencyDropdown"
             selected={{
@@ -75,13 +48,13 @@ export const HeaderController = (connect<Props>([SDKContainer])(
                 </>
             }}
             options={currencyOptions}
-            setValue={appContainer.setCurrency}
+            setValue={uiContainer.setCurrency}
         />;
 
         return <Header
             logo={logo}
             menu={[
-                languageDropdown, currencyDropdown, <AccountDropdown
+                currencyDropdown, <AccountDropdown
                     key="AccountDropdown"
                     handleLogin={handleLogin}
                     handleLogout={handleLogout}

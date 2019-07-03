@@ -1,28 +1,46 @@
 import * as React from "react";
 
-import { withTranslation, WithTranslation } from "react-i18next";
-
 import { _catchInteractionErr_ } from "../../lib/errors";
-import { SDKContainer } from "../../state/sdkContainer";
 import { connect, ConnectedProps } from "../../state/connect";
+import { SDKContainer } from "../../state/sdkContainer";
+import { UIContainer } from "../../state/uiContainer";
 import { AskForAddress } from "../views/popups/AskForAddress";
 import { ConfirmTradeDetails } from "../views/popups/ConfirmTradeDetails";
+
+interface Props {
+    cancel: () => void;
+}
 
 /**
  * PromptDetails is a visual component for allowing users to open new orders
  */
-class PromptDetailsClass extends React.Component<Props> {
+export const PromptDetails = connect<Props & ConnectedProps<[UIContainer, SDKContainer]>>([UIContainer, SDKContainer])(
+    ({ containers: [uiContainer, sdkContainer], cancel }) => {
 
-    /**
-     * The main render function.
-     * @dev Should have minimal computation, loops and anonymous functions.
-     */
-    public render(): React.ReactNode {
-        const [appContainer] = this.props.containers;
         const {
             toAddress, confirmedOrderInputs, confirmedTrade,
             address,
-        } = appContainer.state;
+        } = uiContainer.state;
+
+        const ontoAddress = (newToAddress: string) => {
+            uiContainer.updateToAddress(newToAddress).catch(_catchInteractionErr_);
+        };
+
+        const onRefundAddress = async (refundAddress: string) => {
+            await uiContainer.updateRefundAddress(refundAddress).catch(_catchInteractionErr_);
+            const commitment = await uiContainer.updateCommitment();
+            await sdkContainer.setCommitment(commitment);
+        };
+
+        const onCancel = () => {
+            uiContainer.resetTrade().catch(_catchInteractionErr_);
+            sdkContainer.resetTrade().catch(_catchInteractionErr_);
+            cancel();
+        };
+
+        const onConfirmedTrade = async () => {
+            uiContainer.onConfirmedTrade();
+        };
 
         // The confirmed order inputs should always be available
         if (!confirmedOrderInputs) {
@@ -33,10 +51,10 @@ class PromptDetailsClass extends React.Component<Props> {
         if (!confirmedTrade) {
             return <ConfirmTradeDetails
                 orderInputs={confirmedOrderInputs}
-                done={this.props.containers[0].onConfirmedTrade}
-                cancel={this.cancel}
-                quoteCurrency={this.props.containers[0].state.preferredCurrency}
-                tokenPrices={this.props.containers[0].state.tokenPrices}
+                done={onConfirmedTrade}
+                cancel={onCancel}
+                quoteCurrency={uiContainer.state.preferredCurrency}
+                tokenPrices={uiContainer.state.tokenPrices}
             />;
         }
 
@@ -46,8 +64,8 @@ class PromptDetailsClass extends React.Component<Props> {
                 key={confirmedOrderInputs.dstToken} // Since AskForAddress is used twice
                 token={confirmedOrderInputs.dstToken}
                 message={`Enter the ${confirmedOrderInputs.dstToken} public address you want to receive your tokens to.`}
-                onAddress={this.ontoAddress}
-                cancel={this.cancel}
+                onAddress={ontoAddress}
+                cancel={onCancel}
                 defaultAddress={address || ""}
             />;
         }
@@ -58,28 +76,9 @@ class PromptDetailsClass extends React.Component<Props> {
             key={confirmedOrderInputs.srcToken} // Since AskForAddress is used twice
             token={confirmedOrderInputs.srcToken}
             message={`Enter your ${confirmedOrderInputs.srcToken} refund address in case the trade doesn't go through.`}
-            onAddress={this.onRefundAddress}
-            cancel={this.cancel}
+            onAddress={onRefundAddress}
+            cancel={onCancel}
             defaultAddress={address || ""}
         />;
     }
-
-    private readonly ontoAddress = (toAddress: string) => {
-        this.props.containers[0].updateToAddress(toAddress).catch(_catchInteractionErr_);
-    }
-
-    private readonly onRefundAddress = async (refundAddress: string) => {
-        await this.props.containers[0].updateRefundAddress(refundAddress).catch(_catchInteractionErr_);
-    }
-
-    private readonly cancel = () => {
-        this.props.containers[0].resetTrade().catch(_catchInteractionErr_);
-        this.props.cancel();
-    }
-}
-
-interface Props extends ConnectedProps<[SDKContainer]>, WithTranslation {
-    cancel: () => void;
-}
-
-export const PromptDetails = withTranslation()(connect<Props>([SDKContainer])(PromptDetailsClass));
+);

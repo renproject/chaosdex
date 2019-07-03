@@ -1,10 +1,9 @@
 import * as React from "react";
 
 import { Currency, CurrencyIcon, InfoLabel, TokenIcon } from "@renex/react-components";
-import { useTranslation } from "react-i18next";
 
 import { Token, TokenPrices } from "../../../state/generalTypes";
-import { OrderInputs } from "../../../state/sdkContainer";
+import { OrderInputs } from "../../../state/uiContainer";
 import { ReactComponent as Arrow } from "../../../styles/images/arrow-right.svg";
 import { TokenBalance } from "../TokenBalance";
 import { Popup } from "./Popup";
@@ -16,12 +15,10 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
     done(): void;
     cancel(): void;
 }> = ({ tokenPrices, orderInputs, quoteCurrency, done, cancel }) => {
-    const { t } = useTranslation();
-
     return <Popup cancel={cancel}>
         <div className="swap swap--popup open">
             <div className="popup--header">
-                <h2>{t("popup.confirm_trade")}</h2>
+                <h2>Confirm Trade</h2>
                 <div role="button" className="popup--header--x" onClick={cancel} />
                 <div className="swap-details--icons">
                     <div>
@@ -133,7 +130,7 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
                 </div>
 
                 <div className="popup--buttons">
-                    <button className="button open--confirm" onClick={done}><span>{t("popup.confirm")}</span></button>
+                    <button className="button open--confirm" onClick={done}><span>Confirm</span></button>
                 </div>
 
             </div>

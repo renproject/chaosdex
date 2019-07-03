@@ -1,33 +1,31 @@
 import * as React from "react";
 
 import { Loading } from "@renex/react-components";
-import { withTranslation, WithTranslation } from "react-i18next";
 
 import { _catchBackgroundErr_ } from "../../lib/errors";
 import { getMarket } from "../../lib/market";
 import { connect, ConnectedProps } from "../../state/connect";
-import { SDKContainer } from "../../state/sdkContainer";
+import { UIContainer } from "../../state/uiContainer";
 import { NewOrderInputs } from "./NewOrderInputs";
 
 /**
  * NewOrder is a visual component for allowing users to open new orders
  */
-class NewOrderClass extends React.Component<Props> {
+export const NewOrder = connect<ConnectedProps<[UIContainer]>>([UIContainer])(
+    ({ containers: [uiContainer] }) => {
 
-    /**
-     * The main render function.
-     * @dev Should have minimal computation, loops and anonymous functions.
-     */
-    public render(): React.ReactNode {
-        const { t, containers: [appContainer] } = this.props;
-        const orderInput = appContainer.state.orderInputs;
+        const openOrder = async () => {
+            uiContainer.setSubmitting(true).catch(_catchBackgroundErr_);
+        };
+
+        const orderInput = uiContainer.state.orderInputs;
         const market = getMarket(orderInput.srcToken, orderInput.dstToken);
 
         const marketPrice = 0;
 
-        const loggedIn = appContainer.state.address !== null;
-        const sufficientBalance = appContainer.sufficientBalance();
-        const validVolume = appContainer.validVolume();
+        const loggedIn = uiContainer.state.address !== null;
+        const sufficientBalance = uiContainer.sufficientBalance();
+        const validVolume = uiContainer.validVolume();
         const disabled = !loggedIn || !sufficientBalance || !validVolume;
 
         return <>
@@ -39,32 +37,23 @@ class NewOrderClass extends React.Component<Props> {
                     {
                         market ?
                             <button
-                                onClick={disabled ? appContainer.connect : this.openOrder}
+                                disabled={disabled}
+                                onClick={openOrder}
                                 className={`button submit-swap ${disabled ? "disabled" : ""}`}
                             >
-                                {appContainer.state.submitting ? <Loading alt={true} /> :
-                                    !loggedIn ? t("new_order.connect_to_trade") :
-                                        !sufficientBalance ? t("new_order.insufficient_balance") :
-                                            !validVolume ? t("new_order.invalid_volume") :
-                                                t("new_order.trade")
+                                {uiContainer.state.submitting ? <Loading alt={true} /> :
+                                    !loggedIn ? "Connect to trade" :
+                                        !sufficientBalance ? "Insufficient balance" :
+                                            !validVolume ? "Volume too low" :
+                                                "Trade"
                                 }
                             </button> :
                             <button disabled={true} className="button submit-swap">
-                                {t("new_order.unsupported_token_pair")}
+                                Token pair not supported
                             </button>
                     }
                 </div>
             </div>
-            {/*<div className="order--error red">{orderInputs.inputError.error}</div>*/}
         </>;
     }
-
-    private readonly openOrder = async () => {
-        this.props.containers[0].setSubmitting(true).catch(_catchBackgroundErr_);
-    }
-}
-
-interface Props extends ConnectedProps<[SDKContainer]>, WithTranslation {
-}
-
-export const NewOrder = withTranslation()(connect<Props>([SDKContainer])(NewOrderClass));
+);

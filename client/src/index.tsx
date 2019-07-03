@@ -10,10 +10,8 @@ import { Provider } from "unstated";
 import { App } from "./components/controllers/App";
 import { history } from "./lib/history";
 import { initializeSentry } from "./sentry";
-import { initializeTranslation } from "./translate";
 
 initializeSentry();
-initializeTranslation();
 
 ReactDOM.render(
     <Provider>
