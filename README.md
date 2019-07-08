@@ -1,11 +1,26 @@
 # DEX Demo
 
-A demo exchange built on top of the RenShift protocol.
+A demo exchange built on top RenVM.
 
 ![Preview](./preview.png)
 
-# Documentation
+## Run locally
 
-The code is split up into (1) the `shiftSDK` and (2) the DEX UI.
+### Ethereum Smart Contracts
 
-The `shiftSDK`, which will be in its own repository soon, interfaces with the RenShift contract and other contracts that follow the standard RenShift interface.
+See [Ethereum Contracts README](./ethereum-contracts)
+
+```sh
+cd ethereum-contracts
+yarn install
+yarn run generate
+yarn run bindings:ts
+```
+
+### React Client
+
+```sh
+cd react-client
+yarn install
+yarn start
+```

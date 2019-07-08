@@ -1,0 +1,46 @@
+diff --git a/node_modules/solidity-coverage/lib/truffleConfig.js b/node_modules/solidity-coverage/lib/truffleConfig.js
+index e5eee1f..e6f8bb9 100644
+--- a/node_modules/solidity-coverage/lib/truffleConfig.js
++++ b/node_modules/solidity-coverage/lib/truffleConfig.js
+@@ -1,5 +1,6 @@
+ module.exports = function truffleConfig(port, gasLimit, gasPrice) {
+   return `
++      require("ts-node/register");
+       module.exports = {
+         networks: {
+           development: {
+@@ -12,7 +13,7 @@ module.exports = function truffleConfig(port, gasLimit, gasPrice) {
+         },
+         compilers: {
+           solc: {
+-            version: "0.5.3",
++            version: "0.5.8",
+           }
+         }
+     };`;
+diff --git a/node_modules/solidity-coverage/test/app.js b/node_modules/solidity-coverage/test/app.js
+index 8b56a42..5f98f9e 100644
+--- a/node_modules/solidity-coverage/test/app.js
++++ b/node_modules/solidity-coverage/test/app.js
+@@ -158,7 +158,7 @@ describe('app', () => {
+         },
+         compilers: {
+           solc: {
+-            version: "0.5.3",
++            version: "0.5.8",
+             settings: {
+               evmVersion: "constantinople"
+             }
+diff --git a/node_modules/solidity-coverage/test/util/mockTruffle.js b/node_modules/solidity-coverage/test/util/mockTruffle.js
+index dded226..9fed8ff 100644
+--- a/node_modules/solidity-coverage/test/util/mockTruffle.js
++++ b/node_modules/solidity-coverage/test/util/mockTruffle.js
+@@ -16,7 +16,7 @@ const defaultTruffleJs = `module.exports = {
+     },
+     compilers: {
+       solc: {
+-        version: "0.5.3",
++        version: "0.5.8",
+       }
+     }
+   };`
