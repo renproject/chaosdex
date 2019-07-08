@@ -1,6 +1,6 @@
 # DEX Demo
 
-A demo exchange built on top RenVM.
+A demo exchange built on top of RenVM.
 
 ![Preview](./preview.png)
 
