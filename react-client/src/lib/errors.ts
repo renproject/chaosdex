@@ -86,7 +86,7 @@ const rawError = (errorObject: Error) => {
 };
 
 const _catchErr_ = <X extends Details>(error: any, details: X) => {
-    if (error._noCapture_) {
+    if (!error || error._noCapture_) {
         return;
     }
 

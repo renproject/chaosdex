@@ -4,14 +4,14 @@
 node_modules
 
 # testing
-/client/coverage
+coverage
 
 # production
-/client/build
+build
 # ABI location
-/client/src/contracts
+/react-client/src/contracts
 # Contract typings
-/client/src/lib/contracts
+/react-client/src/lib/contracts
 
 # misc
 .DS_Store

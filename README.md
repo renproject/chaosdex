@@ -1,60 +1,26 @@
-# Shifter Smart Contracts
+# DEX Demo
 
-[![Build Status](https://travis-ci.org/republicprotocol/shifter-sol.svg?branch=master)](https://travis-ci.org/republicprotocol/shifter-sol)
-[![Coverage Status](https://coveralls.io/repos/github/republicprotocol/shifter-sol/badge.svg?branch=master)](https://coveralls.io/github/republicprotocol/shifter-sol?branch=master)
+A demo exchange built on top RenVM.
 
-## Tests
+![Preview](./preview.png)
 
-Install the dependencies.
+## Run locally
 
-```
+### Ethereum Smart Contracts
+
+See [Ethereum Contracts README](./ethereum-contracts)
+
+```sh
+cd ethereum-contracts
 yarn install
+yarn run generate
+yarn run bindings:ts
 ```
 
-Run the `ganache-cli` or an alternate Ethereum test RPC server on port 8545. The `-d` flag will use a deterministic mnemonic for reproducibility.
+### React Client
 
 ```sh
-yarn exec ganache-cli -d
-```
-
-Run the Truffle test suite.
-
-```sh
-yarn test
-```
-
-## Coverage
-
-Install the dependencies.
-
-```
+cd react-client
 yarn install
-```
-
-Run the Truffle test suite with coverage.
-
-```sh
-yarn coverage
-```
-
-## Deploying
-
-Add a `.env`, filling in the mnemonic and Kovan ethereum node (e.g. Infura):
-
-```sh
-MNEMONIC="..."
-KOVAN_ETHEREUM_NODE="..."
-ETHERSCAN_KEY="..."
-```
-
-Deploy to Kovan:
-
-```sh
-NETWORK=kovan yarn run deploy
-```
-
-## Verifying Contract Code
-
-```sh
-NETWORK=kovan yarn run verify YourContractName
+yarn start
 ```

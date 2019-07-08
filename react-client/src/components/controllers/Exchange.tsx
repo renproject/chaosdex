@@ -47,7 +47,7 @@ export const Exchange = connect<ConnectedProps<[UIContainer, SDKContainer]>>([UI
                         <NewOrder />
                         <OrderHistory orders={orders} />
                         {uiContainer.state.submitting ?
-                            uiContainer.state.refundAddress ?
+                            sdkContainer.state.commitment ?
                                 <OpeningOrder cancel={cancel} swapSubmitted={swapSubmitted} />
                                 : <PromptDetails cancel={cancel} />
                             : <></>

@@ -19,7 +19,7 @@ import { Exchange } from "./Exchange";
 export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UIContainer, SDKContainer]>>([UIContainer, SDKContainer])(
     ({ containers: [uiContainer, sdkContainer], location }) => {
 
-        const login = async () => {
+        const login = React.useCallback(async () => {
             const web3 = await getWeb3();
             const networkID = await web3.eth.net.getId();
             const addresses = await web3.eth.getAccounts();
@@ -30,11 +30,11 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
             uiContainer.updateTokenPrices().catch(_catchBackgroundErr_);
             uiContainer.updateBalanceReserves().catch(_catchBackgroundErr_);
             uiContainer.updateAccountBalances().catch(_catchBackgroundErr_);
-        };
+        }, [sdkContainer, uiContainer]);
 
-        const logout = async () => {
+        const logout = React.useCallback(async () => {
             await uiContainer.clearAddress();
-        };
+        }, [uiContainer]);
 
         // useEffect replaces `componentDidMount` and `componentDidUpdate`.
         // To limit it to running once, we use the initialized hook.
@@ -72,7 +72,7 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
                     setInitialized(true);
                 }).catch(_catchBackgroundErr_);
             }
-        }, [initialized, uiContainer, location.search]);
+        }, [initialized, uiContainer, location.search, login]);
 
         return <main>
             <React.Suspense fallback={null}>

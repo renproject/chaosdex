@@ -6,7 +6,7 @@ import { Container } from "unstated";
 import Web3 from "web3";
 
 import { getTokenDecimals, syncGetTokenAddress } from "../lib/contractAddresses";
-import { _catchBackgroundErr_, _catchInteractionErr_ } from "../lib/errors";
+import { _catchBackgroundErr_ } from "../lib/errors";
 import { estimatePrice } from "../lib/estimatePrice";
 import { history } from "../lib/history";
 import { getMarket, getTokenPricesInCurrencies } from "../lib/market";

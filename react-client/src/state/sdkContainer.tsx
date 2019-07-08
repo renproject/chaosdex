@@ -8,7 +8,9 @@ import { Container } from "unstated";
 import Web3 from "web3";
 import { TransactionReceipt } from "web3-core";
 
-import { syncGetDEXAdapterAddress, syncGetTokenAddress } from "../lib/contractAddresses";
+import {
+    syncGetDEXAdapterAddress, syncGetDEXAddress, syncGetTokenAddress,
+} from "../lib/contractAddresses";
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../lib/errors";
 import { getAdapter, getERC20, NULL_BYTES32, Tokens } from "./generalTypes";
 import { OrderInputs } from "./uiContainer";
@@ -71,6 +73,13 @@ const initialState = {
     depositAddress: null as string | null,
 };
 
+/**
+ * The SDKContainer is responsible for talking to the RenVM SDK. It stores the
+ * associated state and exposes functions to interact with the SDK.
+ *
+ * The main two interactions are shifting in (trading BTC to DAI), and shifting
+ * out (trading DAI to BTC).
+ */
 export class SDKContainer extends Container<typeof initialState> {
     public state = initialState;
 
@@ -262,29 +271,33 @@ export class SDKContainer extends Container<typeof initialState> {
             throw new Error(`Invalid values required for swap`);
         }
 
-        const promiEvent = darknodeSignature.submitToEthereum(web3.currentProvider, syncGetDEXAdapterAddress(networkID));
+        const promiEvent = darknodeSignature.submitToEthereum(web3.currentProvider);
         const transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve).catch(reject));
+        // tslint:disable-next-line: no-any
+        const receivedAmount = await new Promise<BigNumber>((resolve, reject) => (promiEvent as any).once("confirmation", async (_confirmations: number, receipt: TransactionReceipt) => {
 
-        const receivedAmount = await new Promise<BigNumber>((resolve, reject) => promiEvent.once("confirmation", async (_confirmations: number, receipt: TransactionReceipt) => {
-            // Loop through logs to find mint log
+            // Loop through logs to find exchange event from the DEX contract.
+            // The event log always has the first topic as "0x8d10c7a1"
+            // TODO: Calculate this instead of hard coding it.
             for (const log of receipt.logs) {
                 if (
-                    log.address.toLowerCase() === (syncGetTokenAddress(networkID, commitment.orderInputs.dstToken)).toLowerCase() &&
-                    log.topics[0] === "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef".toLowerCase() &&
-                    log.topics[1] === `0x000000000000000000000000${strip0x(syncGetDEXAdapterAddress(networkID))}`.toLowerCase() &&
-                    log.topics[2] === "0x0000000000000000000000000000000000000000000000000000000000000000".toLowerCase()
+                    log.address.toLowerCase() === syncGetDEXAddress(networkID).toLowerCase() &&
+                    log.topics[0] === "0x8d10c7a140b316d7362354a44023c657a9c436616f21481cac1cb594aa305458".toLowerCase()
                 ) {
+                    const data = web3.eth.abi.decodeParameters(["address", "address", "uint256", "uint256"], log.data);
                     const dstTokenDetails = Tokens.get(commitment.orderInputs.dstToken);
                     const decimals = dstTokenDetails ? dstTokenDetails.decimals : 8;
-                    const receivedAmountHex = parseInt(log.data, 16).toString(16);
-                    const rcv = new BigNumber(log.data, 16).dividedBy(new BigNumber(10).exponentiatedBy(decimals));
-                    this.setState({ receivedAmountHex }).catch(_catchInteractionErr_);
+                    const receivedAmountBN = new BigNumber(data[3]);
+                    const rcv = receivedAmountBN.dividedBy(new BigNumber(10).exponentiatedBy(decimals));
+                    console.log(`receivedAmountBN: ${receivedAmountBN.toString(16)}`);
+                    this.setState({ receivedAmountHex: receivedAmountBN.toString(16) }).catch(_catchInteractionErr_);
                     resolve(rcv);
+                    return;
                 }
             }
-            reject();
+            reject(new Error("No burn events found in transaction."));
         }).catch(reject));
 
-        await this.setState({ receivedAmount, inTx: EthereumTx(transactionHash) });
+        await this.setState({ receivedAmount, outTx: EthereumTx(transactionHash) });
     }
 }

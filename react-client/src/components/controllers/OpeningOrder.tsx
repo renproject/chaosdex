@@ -54,7 +54,7 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
             onCancel();
         };
 
-        const shiftOut = () => {
+        const shiftIn = () => {
             const {
                 confirmedOrderInputs,
             } = uiContainer.state;
@@ -89,7 +89,7 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
             return <></>;
         };
 
-        const shiftIn = () => {
+        const shiftOut = () => {
             // Burning
 
             const { confirmedOrderInputs } = uiContainer.state;
@@ -120,9 +120,9 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
         };
 
         if (!isEthereumBased(orderInputs.srcToken) && isEthereumBased(orderInputs.dstToken)) {
-            return shiftOut();
-        } else if (isEthereumBased(orderInputs.srcToken) && !isEthereumBased(orderInputs.dstToken)) {
             return shiftIn();
+        } else if (isEthereumBased(orderInputs.srcToken) && !isEthereumBased(orderInputs.dstToken)) {
+            return shiftOut();
         } else {
             return <p>Unsupported token pair.</p>;
         }
