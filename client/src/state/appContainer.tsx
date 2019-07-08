@@ -8,9 +8,7 @@ import { List, Map, OrderedMap } from "immutable";
 import { Container } from "unstated";
 import { TransactionReceipt } from "web3-core";
 
-import {
-    getDEXAdapterAddress, getTokenAddress, syncGetDEXAdapterAddress, syncGetTokenAddress,
-} from "../lib/contractAddresses";
+import { syncGetDEXAdapterAddress, syncGetTokenAddress } from "../lib/contractAddresses";
 import { Commitment, DexSDK, OrderInputs, ReserveBalances } from "../lib/dexSDK";
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../lib/errors";
 import { estimatePrice } from "../lib/estimatePrice";
@@ -82,6 +80,9 @@ export class AppContainer extends Container<typeof initialState> {
 
         const web3 = await getWeb3();
         const networkID = await web3.eth.net.getId();
+        if (networkID !== 42) {
+            alert(`Please switch to Kovan in MetaMask`);
+        }
 
         const dexSDK = new DexSDK(web3, networkID);
         await this.setState({ dexSDK });

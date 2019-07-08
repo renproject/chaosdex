@@ -9,8 +9,7 @@ import { AbiItem } from "web3-utils";
 
 import { isERC20, MarketPair, Token } from "../state/generalTypes";
 import {
-    getTokenAddress, getTokenDecimals, syncGetDEXAdapterAddress, syncGetDEXAddress,
-    syncGetTokenAddress,
+    getTokenDecimals, syncGetDEXAdapterAddress, syncGetDEXAddress, syncGetTokenAddress,
 } from "./contractAddresses";
 import { DEX } from "./contracts/DEX";
 import { DEXAdapter } from "./contracts/DEXAdapter";

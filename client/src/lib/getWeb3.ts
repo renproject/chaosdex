@@ -22,7 +22,6 @@ export const getWeb3 = async () => new Promise<Web3>(async (resolve, reject) => 
             // Request account access if needed
             await window.ethereum.enable();
             resolve(new Web3(window.web3.currentProvider));
-
         } catch (error) {
             reject(error);
         }
