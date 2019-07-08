@@ -25,37 +25,14 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
         let [returned, setReturned] = React.useState(false);
         const [depositReceived, setDepositReceived] = React.useState(false);
         const [depositSubmitted, setDepositSubmitted] = React.useState(false);
-
-        const {
-            orderInputs,
-        } = uiContainer.state;
+        const { orderInputs } = uiContainer.state;
 
         const onDeposit = () => {
             setDepositReceived(true);
         };
 
-        const waitForDeposit = async () => {
-            await sdkContainer.waitForDeposits();
-        };
-
-        const submitDeposit = async () => {
-            await sdkContainer.submitDeposit();
-        };
-
         const onDepositSubmitted = () => {
             setDepositSubmitted(true);
-        };
-
-        const submitSwap = async () => {
-            await sdkContainer.submitSwap();
-        };
-
-        const submitBurn = async () => {
-            await sdkContainer.submitBurn();
-        };
-
-        const checkBurnStatus = async () => {
-            await sdkContainer.checkBurnStatus();
         };
 
         const onCancel = () => {
@@ -71,14 +48,13 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
             returned = true;
             setReturned(true);
             const historyItem = await sdkContainer.getHistoryEvent();
-            if (!historyItem || !swapSubmitted) {
-                return;
+            if (historyItem && swapSubmitted) {
+                swapSubmitted(historyItem);
             }
             onCancel();
-            swapSubmitted(historyItem);
         };
 
-        const mint = () => {
+        const shiftOut = () => {
             const {
                 confirmedOrderInputs,
             } = uiContainer.state;
@@ -96,24 +72,24 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
                         token={orderInputs.srcToken}
                         depositAddress={depositAddress}
                         amount={confirmedOrderInputs.srcAmount}
-                        waitForDeposit={waitForDeposit}
+                        waitForDeposit={sdkContainer.waitForDeposits}
                         cancel={onCancel}
                         done={onDeposit}
                     />;
                 }
-                return <DepositReceived messageID={messageID} submitDeposit={submitDeposit} done={onDepositSubmitted} />;
+                return <DepositReceived messageID={messageID} submitDeposit={sdkContainer.submitMintToRenVM} done={onDepositSubmitted} />;
             }
 
             if (!outTx) {
                 // Submit the trade to Ethereum
-                return <SubmitToEthereum token={orderInputs.dstToken} submit={submitSwap} />;
+                return <SubmitToEthereum token={orderInputs.dstToken} submit={sdkContainer.submitMintToEthereum} />;
             }
 
             onDone().catch(_catchInteractionErr_);
             return <></>;
         };
 
-        const burn = () => {
+        const shiftIn = () => {
             // Burning
 
             const { confirmedOrderInputs } = uiContainer.state;
@@ -128,15 +104,15 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
                 // // directly, otherwise they must deposit `srcToken` to a generated
                 // // address.
                 if (isERC20(orderInputs.srcToken) && !erc20Approved) {
-                    return <TokenAllowance token={orderInputs.srcToken} amount={confirmedOrderInputs.srcAmount} submit={sdkContainer.setAllowance} commitment={sdkContainer.state.commitment} />;
+                    return <TokenAllowance token={orderInputs.srcToken} amount={confirmedOrderInputs.srcAmount} submit={sdkContainer.approveTokenTransfer} commitment={sdkContainer.state.commitment} />;
                 }
 
                 // Submit the trade to Ethereum
-                return <SubmitToEthereum token={orderInputs.dstToken} submit={submitBurn} />;
+                return <SubmitToEthereum token={orderInputs.dstToken} submit={sdkContainer.submitBurnToEthereum} />;
             }
 
             if (!outTx) {
-                return <DepositReceived messageID={messageID} submitDeposit={checkBurnStatus} done={onDepositSubmitted} />;
+                return <DepositReceived messageID={messageID} submitDeposit={sdkContainer.submitBurnToRenVM} done={onDepositSubmitted} />;
             }
 
             onDone().catch(_catchInteractionErr_);
@@ -144,9 +120,9 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
         };
 
         if (!isEthereumBased(orderInputs.srcToken) && isEthereumBased(orderInputs.dstToken)) {
-            return mint();
+            return shiftOut();
         } else if (isEthereumBased(orderInputs.srcToken) && !isEthereumBased(orderInputs.dstToken)) {
-            return burn();
+            return shiftIn();
         } else {
             return <p>Unsupported token pair.</p>;
         }

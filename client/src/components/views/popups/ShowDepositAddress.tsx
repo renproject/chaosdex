@@ -10,9 +10,9 @@ import { ReactComponent as QR } from "../../../styles/images/qr.svg";
 import { Popup } from "./Popup";
 
 interface Props {
-    token: Token,
-    depositAddress: string | null,
-    amount: string,
+    token: Token;
+    depositAddress: string | null;
+    amount: string;
     cancel(): void;
     generateAddress(): Promise<void>;
     waitForDeposit(): Promise<void>;

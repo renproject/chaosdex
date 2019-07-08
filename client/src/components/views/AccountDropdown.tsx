@@ -20,11 +20,11 @@ export const AccountDropdown = connect<Props & ConnectedProps<[UIContainer]>>([U
 
         const copyToClipboard = (e: React.MouseEvent<HTMLElement>): void => {
             const el = e.currentTarget.childNodes[0] as Element;
-            const address = el.getAttribute("data-addr");
-            if (address) {
+            const addressToCopy = el.getAttribute("data-addr");
+            if (addressToCopy) {
                 const dummy = document.createElement("input");
                 document.body.appendChild(dummy);
-                dummy.setAttribute("value", address);
+                dummy.setAttribute("value", addressToCopy);
                 dummy.select();
                 document.execCommand("copy");
                 document.body.removeChild(dummy);

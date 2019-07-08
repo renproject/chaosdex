@@ -2,7 +2,6 @@ import * as React from "react";
 
 import { TokenIcon } from "@renex/react-components";
 import { Chain } from "@renproject/ren";
-import { OrderedMap } from "immutable";
 
 import { naturalTime } from "../../lib/conversion";
 import { ETHERSCAN } from "../../lib/environmentVariables";

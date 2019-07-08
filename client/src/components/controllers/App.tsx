@@ -23,7 +23,7 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
             const web3 = await getWeb3();
             const networkID = await web3.eth.net.getId();
             const addresses = await web3.eth.getAccounts();
-            const address = addresses.length > 0 ? addresses[0] : null
+            const address = addresses.length > 0 ? addresses[0] : null;
             await uiContainer.connect(web3, address, networkID);
             await sdkContainer.connect(web3, address, networkID);
 

@@ -22,10 +22,6 @@ export const PromptDetails = connect<Props & ConnectedProps<[UIContainer, SDKCon
             address,
         } = uiContainer.state;
 
-        const ontoAddress = (newToAddress: string) => {
-            uiContainer.updateToAddress(newToAddress).catch(_catchInteractionErr_);
-        };
-
         const onRefundAddress = async (refundAddress: string) => {
             await uiContainer.updateRefundAddress(refundAddress).catch(_catchInteractionErr_);
             const commitment = await uiContainer.updateCommitment();
@@ -38,10 +34,6 @@ export const PromptDetails = connect<Props & ConnectedProps<[UIContainer, SDKCon
             cancel();
         };
 
-        const onConfirmedTrade = async () => {
-            uiContainer.onConfirmedTrade();
-        };
-
         // The confirmed order inputs should always be available
         if (!confirmedOrderInputs) {
             return <></>;
@@ -51,7 +43,7 @@ export const PromptDetails = connect<Props & ConnectedProps<[UIContainer, SDKCon
         if (!confirmedTrade) {
             return <ConfirmTradeDetails
                 orderInputs={confirmedOrderInputs}
-                done={onConfirmedTrade}
+                done={uiContainer.onConfirmedTrade}
                 cancel={onCancel}
                 quoteCurrency={uiContainer.state.preferredCurrency}
                 tokenPrices={uiContainer.state.tokenPrices}
@@ -64,7 +56,7 @@ export const PromptDetails = connect<Props & ConnectedProps<[UIContainer, SDKCon
                 key={confirmedOrderInputs.dstToken} // Since AskForAddress is used twice
                 token={confirmedOrderInputs.dstToken}
                 message={`Enter the ${confirmedOrderInputs.dstToken} public address you want to receive your tokens to.`}
-                onAddress={ontoAddress}
+                onAddress={uiContainer.updateToAddress}
                 cancel={onCancel}
                 defaultAddress={address || ""}
             />;
