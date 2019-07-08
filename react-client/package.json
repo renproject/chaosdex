@@ -6,7 +6,7 @@
   "dependencies": {
     "@renex/fonts": "^1.0.1",
     "@renex/react-components": "1.0.21",
-    "@renproject/ren": "^0.0.10",
+    "@renproject/ren": "^0.0.11",
     "@sentry/browser": "^5.5.0",
     "@sentry/core": "^5.5.0",
     "@types/bn.js": "^4.11.5",
@@ -44,7 +44,7 @@
     "gh-pages": "^2.0.1",
     "ncu": "^0.2.1",
     "node-sass": "^4.12.0",
-    "npm-check-updates": "^3.1.15",
+    "npm-check-updates": "^3.1.16",
     "react-scripts": "^3.0.1",
     "ts-unused-exports": "^2.0.11",
     "tslint": "^5.18.0",

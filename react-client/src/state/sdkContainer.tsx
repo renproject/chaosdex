@@ -1,4 +1,4 @@
-import RenSDK, {
+import RenVM, {
     Chain, NetworkTestnet, ShiftInObject, Signature, strip0x, Tokens as ShiftActions, UTXO,
 } from "@renproject/ren";
 import BigNumber from "bignumber.js";
@@ -47,7 +47,7 @@ export interface HistoryEvent {
 
 const initialState = {
 
-    renSDK: null as null | RenSDK,
+    renVM: null as null | RenVM,
 
     address: null as string | null,
     connected: false,
@@ -85,8 +85,8 @@ export class SDKContainer extends Container<typeof initialState> {
 
     public connect = async (web3: Web3, address: string | null, networkID: number): Promise<void> => {
         const adapterAddress = syncGetDEXAdapterAddress(networkID);
-        const renSDK = new RenSDK(NetworkTestnet);
-        await this.setState({ web3, networkID, renSDK, address, adapterAddress });
+        const renVM = new RenVM(NetworkTestnet);
+        await this.setState({ web3, networkID, renVM, address, adapterAddress });
     }
 
     public setCommitment = async (commitment: Commitment) => {
@@ -163,8 +163,8 @@ export class SDKContainer extends Container<typeof initialState> {
     }
 
     public submitBurnToEthereum = async () => {
-        const { address, web3, renSDK, commitment, networkID } = this.state;
-        if (!web3 || !renSDK || !address || !commitment) {
+        const { address, web3, renVM, commitment, networkID } = this.state;
+        if (!web3 || !renVM || !address || !commitment) {
             throw new Error(`Invalid values required for swap`);
         }
 
@@ -190,11 +190,11 @@ export class SDKContainer extends Container<typeof initialState> {
     }
 
     public submitBurnToRenVM = async () => {
-        const { web3, renSDK, inTx, commitment } = this.state;
-        if (!web3 || !renSDK || !inTx || !commitment) {
+        const { web3, renVM, inTx, commitment } = this.state;
+        if (!web3 || !renVM || !inTx || !commitment) {
             throw new Error(`Invalid values required to submit deposit`);
         }
-        const shiftOutObject = await renSDK.shiftOut({
+        const shiftOutObject = await renVM.shiftOut({
             web3Provider: web3.currentProvider,
             sendToken: ShiftActions[commitment.orderInputs.dstToken].Eth2Btc,
             txHash: inTx.hash
@@ -227,12 +227,12 @@ export class SDKContainer extends Container<typeof initialState> {
     // Takes a commitment as bytes or an array of primitive types and returns
     // the deposit address
     public generateAddress = async (): Promise<void> => {
-        const { commitment, renSDK, adapterAddress } = this.state;
-        if (!commitment || !renSDK) {
+        const { commitment, renVM, adapterAddress } = this.state;
+        if (!commitment || !renVM) {
             throw new Error("Invalid parameters passed to `generateAddress`");
         }
 
-        const shiftObject = renSDK.shiftIn({
+        const shiftObject = renVM.shiftIn({
             sendToken: ShiftActions[commitment.orderInputs.srcToken].Btc2Eth,
             sendTo: adapterAddress,
             sendAmount: commitment.srcAmount.toNumber(),
