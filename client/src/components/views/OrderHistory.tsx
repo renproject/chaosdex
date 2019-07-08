@@ -71,7 +71,7 @@ export const OrderHistory = ({ orders }: Props) => {
             <div className="history--list">
                 {orders.slice(start, start + 5).map(historyEvent => {
                     return <OrderHistoryEntry
-                        key={historyEvent.outTx ? historyEvent.outTx.hash : historyEvent.time}
+                        key={historyEvent.time}
                         order={historyEvent}
                     />;
                 })}

@@ -33,7 +33,7 @@ export const Exchange = connect<ConnectedProps<[UIContainer, SDKContainer]>>([UI
             setOrderHistory((hist: StoredHistory) => {
                 return {
                     ...hist,
-                    [historyEvent.outTx.hash]: historyEvent,
+                    [historyEvent.time]: historyEvent,
                 };
             });
         };

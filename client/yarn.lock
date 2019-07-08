@@ -1247,16 +1247,16 @@
     react-router-dom "^5.0.0"
     react-select "^2.4.3"
 
-"@renproject/ren@0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@renproject/ren/-/ren-0.0.4.tgz#134299f0e9e32b084c77441a7a141d175e634d91"
-  integrity sha512-JI0vJTY8ssdMuPrvm29/mNe60gOzkVNTWH+tL6G+2bMxD8Uz+0/IUo6MaEqQAxEE5XsvpXxibuCvZ59l/UJqJw==
+"@renproject/ren@^0.0.8":
+  version "0.0.8"
+  resolved "https://registry.yarnpkg.com/@renproject/ren/-/ren-0.0.8.tgz#dda7ba04adfe010a20f52b3aa68e1a98ce27735c"
+  integrity sha512-RFolxFOzp7AHFpfvx996yBcxg46d3jnA28KsIKhoDhYRkA1Gmlw0z2pANgfbdRp01hvcLckJF/heroIExH7wfg==
   dependencies:
     "@types/bitcore-lib" "^0.15.1"
     "@types/bn.js" "^4.11.5"
     "@types/bs58" "^4.0.0"
     "@types/ethereumjs-util" "^5.2.0"
-    "@types/node" "^12.0.8"
+    "@types/node" "^12.0.10"
     axios "^0.19.0"
     bignumber.js "^9.0.0"
     bitcore-lib "^8.3.4"
@@ -1543,7 +1543,7 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.14.9.tgz#2e8d678039d27943ce53a1913386133227fd9066"
   integrity sha512-NelG/dSahlXYtSoVPErrp06tYFrvzj8XLWmKA+X8x0W//4MqbUyZu++giUG/v0bjAT6/Qxa8IjodrfdACyb0Fg==
 
-"@types/node@^12.0.10", "@types/node@^12.0.8":
+"@types/node@^12.0.10":
   version "12.0.10"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.0.10.tgz#51babf9c7deadd5343620055fc8aff7995c8b031"
   integrity sha512-LcsGbPomWsad6wmMNv7nBLw7YYYyfdYcz6xryKYQhx89c3XXan+8Q6AJ43G5XDIaklaVkK3mE4fCb0SBvMiPSQ==

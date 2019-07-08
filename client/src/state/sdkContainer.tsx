@@ -1,5 +1,5 @@
 import RenSDK, {
-    Chain, NetworkTestnet, ShiftObject, Signature, strip0x, Tokens as ShiftActions, UTXO,
+    Chain, NetworkTestnet, ShiftInObject, Signature, strip0x, Tokens as ShiftActions, UTXO,
 } from "@renproject/ren";
 import BigNumber from "bignumber.js";
 import bs58 from "bs58";
@@ -52,8 +52,8 @@ const initialState = {
     web3: null as Web3 | null,
     networkID: 0,
     adapterAddress: "",
-    shiftObject: undefined as ShiftObject | undefined,
-    deposit: undefined as ShiftObject | undefined,
+    shiftObject: undefined as ShiftInObject | undefined,
+    deposit: undefined as ShiftInObject | undefined,
     darknodeSignature: undefined as Signature | undefined,
 
     pendingTXs: OrderedMap<string, number>(),
@@ -87,7 +87,8 @@ export class SDKContainer extends Container<typeof initialState> {
         if (!web3 || !renSDK || !inTx || !commitment) {
             throw new Error(`Invalid values required to submit deposit`);
         }
-        const response = await renSDK.burnDetails({ web3, sendToken: ShiftActions[commitment.orderInputs.dstToken].Eth2Btc, txHash: inTx.hash })
+        const shiftOutObject = await renSDK.shiftOut({ web3Provider: web3.currentProvider, sendToken: ShiftActions[commitment.orderInputs.dstToken].Eth2Btc, txHash: inTx.hash });
+        const response = await shiftOutObject.submitToRenVM()
             .on("messageID", (messageID: string) => this.setState({ messageID }));
         const receivedAmount = new BigNumber(response.amount).dividedBy(new BigNumber(10).exponentiatedBy(8));
         await this.setState({ receivedAmount, outTx: BitcoinTx(bs58.encode(Buffer.from(strip0x(response.to), "hex"))) });
@@ -146,7 +147,7 @@ export class SDKContainer extends Container<typeof initialState> {
             throw new Error(`Invalid values required for swap`);
         }
 
-        const promiEvent = darknodeSignature.signAndSubmit(web3, syncGetDEXAdapterAddress(networkID));
+        const promiEvent = darknodeSignature.submitToEthereum(web3.currentProvider, syncGetDEXAdapterAddress(networkID));
         const transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve).catch(reject));
 
         if (isEthereumBased(commitment.orderInputs.dstToken)) {
@@ -272,7 +273,7 @@ export class SDKContainer extends Container<typeof initialState> {
 
         const token = commitment.orderInputs.srcToken;
 
-        const shiftObject = renSDK.shift({
+        const shiftObject = renSDK.shiftIn({
             sendToken: ShiftActions[token].Btc2Eth,
             sendTo: adapterAddress,
             sendAmount: commitment.srcAmount.toNumber(),
@@ -289,7 +290,7 @@ export class SDKContainer extends Container<typeof initialState> {
         if (!shiftObject) {
             throw new Error("Must have generated address first");
         }
-        const deposit = await shiftObject.wait(confirmations);
+        const deposit = await shiftObject.waitForDeposit(confirmations);
         await this.setState({ deposit });
     }
 
@@ -301,7 +302,7 @@ export class SDKContainer extends Container<typeof initialState> {
             throw new Error("Must have retrieved deposits first");
         }
         const onMessageID = (messageID: string) => this.setState({ messageID });
-        const darknodeSignature = await deposit.submit().on("messageID", onMessageID);
+        const darknodeSignature = await deposit.submitToRenVM().on("messageID", onMessageID);
         await this.setState({ darknodeSignature });
     }
 
