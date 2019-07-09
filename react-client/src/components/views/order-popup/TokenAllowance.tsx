@@ -5,7 +5,7 @@ import { Loading } from "@renproject/react-components";
 import { _catchInteractionErr_ } from "../../../lib/errors";
 import { Token } from "../../../state/generalTypes";
 import { Commitment } from "../../../state/sdkContainer";
-import { Popup } from "./Popup";
+import { Popup } from "../Popup";
 
 export const TokenAllowance: React.StatelessComponent<{
     token: Token,

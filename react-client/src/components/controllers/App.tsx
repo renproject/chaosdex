@@ -2,6 +2,7 @@ import * as React from "react";
 
 import { parse as parseLocation } from "qs";
 import { RouteComponentProps, withRouter } from "react-router-dom";
+import createPersistedState from "use-persisted-state";
 
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
 import { getWeb3 } from "../../lib/getWeb3";
@@ -10,7 +11,10 @@ import { Token } from "../../state/generalTypes";
 import { SDKContainer } from "../../state/sdkContainer";
 import { UIContainer } from "../../state/uiContainer";
 import { HeaderController } from "../views/HeaderController";
+import { Tutorial } from "../views/tutorial-popup/Tutorial";
 import { Exchange } from "./Exchange";
+
+const useTutorialState = createPersistedState("show-tutorial");
 
 /**
  * App is the main visual component responsible for displaying different routes
@@ -18,6 +22,16 @@ import { Exchange } from "./Exchange";
  */
 export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UIContainer, SDKContainer]>>([UIContainer, SDKContainer])(
     ({ containers: [uiContainer, sdkContainer], location }) => {
+
+        const [showingTutorial, setShowTutorial] = useTutorialState(true);
+
+        const hideTutorial = React.useCallback(async () => {
+            setShowTutorial(false);
+        }, [setShowTutorial]);
+
+        const showTutorial = React.useCallback(async () => {
+            setShowTutorial(true);
+        }, [setShowTutorial]);
 
         const login = React.useCallback(async () => {
             const web3 = await getWeb3();
@@ -76,9 +90,10 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
 
         return <main>
             <React.Suspense fallback={null}>
-                <HeaderController handleLogin={login} handleLogout={logout} />
+                <HeaderController showTutorial={showTutorial} handleLogin={login} handleLogout={logout} />
             </React.Suspense>
             <Exchange />
+            {showingTutorial ? <Tutorial cancel={hideTutorial} /> : null}
         </main>;
     }
 ));

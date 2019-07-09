@@ -5,8 +5,8 @@ import { Currency, CurrencyIcon, InfoLabel, TokenIcon } from "@renproject/react-
 import { Token, TokenPrices } from "../../../state/generalTypes";
 import { OrderInputs } from "../../../state/uiContainer";
 import { ReactComponent as Arrow } from "../../../styles/images/arrow-right.svg";
+import { Popup } from "../Popup";
 import { TokenBalance } from "../TokenBalance";
-import { Popup } from "./Popup";
 
 export const ConfirmTradeDetails: React.StatelessComponent<{
     orderInputs: OrderInputs;

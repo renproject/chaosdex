@@ -5,10 +5,10 @@ import { connect, ConnectedProps } from "../../state/connect";
 import { isERC20, isEthereumBased } from "../../state/generalTypes";
 import { HistoryEvent, SDKContainer } from "../../state/sdkContainer";
 import { UIContainer } from "../../state/uiContainer";
-import { DepositReceived } from "../views/popups/DepositReceived";
-import { ShowDepositAddress } from "../views/popups/ShowDepositAddress";
-import { SubmitToEthereum } from "../views/popups/SubmitToEthereum";
-import { TokenAllowance } from "../views/popups/TokenAllowance";
+import { DepositReceived } from "../views/order-popup/DepositReceived";
+import { ShowDepositAddress } from "../views/order-popup/ShowDepositAddress";
+import { SubmitToEthereum } from "../views/order-popup/SubmitToEthereum";
+import { TokenAllowance } from "../views/order-popup/TokenAllowance";
 
 interface Props extends ConnectedProps<[UIContainer, SDKContainer]> {
     cancel: () => void;

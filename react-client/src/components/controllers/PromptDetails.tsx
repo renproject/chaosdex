@@ -4,8 +4,8 @@ import { _catchInteractionErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
 import { SDKContainer } from "../../state/sdkContainer";
 import { UIContainer } from "../../state/uiContainer";
-import { AskForAddress } from "../views/popups/AskForAddress";
-import { ConfirmTradeDetails } from "../views/popups/ConfirmTradeDetails";
+import { AskForAddress } from "../views/order-popup/AskForAddress";
+import { ConfirmTradeDetails } from "../views/order-popup/ConfirmTradeDetails";
 
 interface Props {
     cancel: () => void;

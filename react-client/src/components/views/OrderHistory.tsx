@@ -40,10 +40,10 @@ const OrderHistoryEntry = ({ order }: {
         </div>
         <div className="history--txs">
             <span className="swap--time">{naturalTime(order.time, { message: "Just now", suffix: "ago", countDown: false, abbreviate: true })}</span>
-            {/*<a target="_blank" className={`tx-in ${inTxPending ? "tx-pending" : ""}`} rel="noopener noreferrer" href={txUrl(order.inTx)}>
+            {/*<a className={`tx-in ${inTxPending ? "tx-pending" : ""}`} target="_blank" rel="noopener noreferrer" href={txUrl(order.inTx)}>
                 <Arrow />
             </a>*/}
-            <a target="_blank" className={`tx-out`} rel="noopener noreferrer" href={txUrl(order.outTx)}>
+            <a className={`tx-out`} target="_blank" rel="noopener noreferrer" href={txUrl(order.outTx)}>
                 <Arrow />
             </a>
         </div>

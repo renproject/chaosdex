@@ -5,7 +5,7 @@ import { Chain } from "@renproject/ren";
 
 import { Token, Tokens } from "../../../state/generalTypes";
 import { ReactComponent as MetaMask } from "../../../styles/images/metamask.svg";
-import { Popup } from "./Popup";
+import { Popup } from "../Popup";
 
 export const AskForAddress: React.StatelessComponent<{
     token: Token,
