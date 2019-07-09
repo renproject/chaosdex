@@ -1230,10 +1230,10 @@
   resolved "https://registry.yarnpkg.com/@renproject/fonts/-/fonts-1.0.1.tgz#5eb052638eec862760044b4367f062f8a890c5b8"
   integrity sha512-OWk811Ay63UdPxY5nEg4N99Goz6K9HLaeGfUN2q0uehhQ70hJDqDQq/vYl5rtE07mv7MYX7GYTpj5POlPbZNRg==
 
-"@renproject/react-components@^1.0.23":
-  version "1.0.23"
-  resolved "https://registry.yarnpkg.com/@renproject/react-components/-/react-components-1.0.23.tgz#024a063c42acdd5d3b7c3c3b8e11077ea582c751"
-  integrity sha512-SdKgp7G8iuQisXCVj5zJXSQQ3OBzISDrK1TAGm94O1Om9FBqP/IjMgJoxtE3rM50ozD0tFvkXyF3EB4On6SIFA==
+"@renproject/react-components@^1.0.24":
+  version "1.0.24"
+  resolved "https://registry.yarnpkg.com/@renproject/react-components/-/react-components-1.0.24.tgz#1a2e8ea7eb4e23a5c4ee28b8ec2f734614c21c3f"
+  integrity sha512-M6BfvSj9klibBR4GJ4M+Ejhn3Vp56keadBuniYD5ETYXfJmmQHGxZV4btAfq4KTdPCMFKSL6iXpIu5mRNLZsPw==
   dependencies:
     "@fortawesome/fontawesome-svg-core" "^1.2.18"
     "@fortawesome/free-brands-svg-icons" "^5.8.2"

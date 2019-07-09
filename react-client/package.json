@@ -5,7 +5,7 @@
   "homepage": "https://testnet.ren.exchange/",
   "dependencies": {
     "@renproject/fonts": "^1.0.1",
-    "@renproject/react-components": "^1.0.23",
+    "@renproject/react-components": "^1.0.24",
     "@renproject/ren": "^0.0.11",
     "@sentry/browser": "^5.5.0",
     "@sentry/core": "^5.5.0",
