@@ -1,4 +1,4 @@
-import { Currency } from "@renex/react-components";
+import { Currency } from "@renproject/react-components";
 import { Chain } from "@renproject/ren";
 import { Map } from "immutable";
 import { validate } from "wallet-address-validator";

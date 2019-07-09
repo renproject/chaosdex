@@ -1,4 +1,4 @@
-import { Currency } from "@renex/react-components";
+import { Currency } from "@renproject/react-components";
 import { btcAddressToHex } from "@renproject/ren";
 import BigNumber from "bignumber.js";
 import { Map as ImmutableMap } from "immutable";

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { Blocky } from "@renex/react-components";
+import { Blocky } from "@renproject/react-components";
 
 import { connect, ConnectedProps } from "../../state/connect";
 import { UIContainer } from "../../state/uiContainer";

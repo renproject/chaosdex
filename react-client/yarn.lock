@@ -1225,20 +1225,20 @@
   resolved "https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
-"@renex/fonts@^1.0.1":
+"@renproject/fonts@^1.0.1":
   version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@renex/fonts/-/fonts-1.0.1.tgz#7967434b343d5cd31c575b633997677f33f6856c"
-  integrity sha512-MXYgG1HVzILdXIzLC17ln33o6MU8p+wDjPmbKgvKpQGJNaT1eflhj078f+ha/VQ2IMs8B5PNZU1X9mDL4enMgQ==
+  resolved "https://registry.yarnpkg.com/@renproject/fonts/-/fonts-1.0.1.tgz#5eb052638eec862760044b4367f062f8a890c5b8"
+  integrity sha512-OWk811Ay63UdPxY5nEg4N99Goz6K9HLaeGfUN2q0uehhQ70hJDqDQq/vYl5rtE07mv7MYX7GYTpj5POlPbZNRg==
 
-"@renex/react-components@1.0.21":
-  version "1.0.21"
-  resolved "https://registry.yarnpkg.com/@renex/react-components/-/react-components-1.0.21.tgz#ab579ea111917e4a6c95618ebca83f0f9c8005ef"
-  integrity sha512-tjF3HdFQ6mvvvhesvhYaPG4Ix2PWG5s7Z7PZK4PwnwPvZDcW1ke9GI7TAG2X7Ln+ej/bWZFcv8RxTE+jeABEAw==
+"@renproject/react-components@^1.0.23":
+  version "1.0.23"
+  resolved "https://registry.yarnpkg.com/@renproject/react-components/-/react-components-1.0.23.tgz#024a063c42acdd5d3b7c3c3b8e11077ea582c751"
+  integrity sha512-SdKgp7G8iuQisXCVj5zJXSQQ3OBzISDrK1TAGm94O1Om9FBqP/IjMgJoxtE3rM50ozD0tFvkXyF3EB4On6SIFA==
   dependencies:
     "@fortawesome/fontawesome-svg-core" "^1.2.18"
     "@fortawesome/free-brands-svg-icons" "^5.8.2"
     "@fortawesome/react-fontawesome" "^0.1.4"
-    "@renex/fonts" "^1.0.1"
+    "@renproject/fonts" "^1.0.1"
     emotion "^10.0.9"
     immutable "^4.0.0-rc.12"
     moment "^2.24.0"

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { Loading } from "@renex/react-components";
+import { Loading } from "@renproject/react-components";
 
 import { _catchInteractionErr_ } from "../../../lib/errors";
 import { Token } from "../../../state/generalTypes";

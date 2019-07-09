@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { Currency } from "@renex/react-components";
+import { Currency } from "@renproject/react-components";
 import { BigNumber } from "bignumber.js";
 
 import { Token, TokenPrices } from "../../state/generalTypes";

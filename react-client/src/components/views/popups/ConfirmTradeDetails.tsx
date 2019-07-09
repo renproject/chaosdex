@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { Currency, CurrencyIcon, InfoLabel, TokenIcon } from "@renex/react-components";
+import { Currency, CurrencyIcon, InfoLabel, TokenIcon } from "@renproject/react-components";
 
 import { Token, TokenPrices } from "../../../state/generalTypes";
 import { OrderInputs } from "../../../state/uiContainer";

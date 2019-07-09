@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { SelectMarket } from "@renex/react-components";
+import { SelectMarket } from "@renproject/react-components";
 
 import { _catchInteractionErr_ } from "../../lib/errors";
 import { getMarket } from "../../lib/market";

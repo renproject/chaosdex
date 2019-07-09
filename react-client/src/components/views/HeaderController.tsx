@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { currencies, CurrencyIcon, Dropdown, Header } from "@renex/react-components";
+import { currencies, CurrencyIcon, Dropdown, Header } from "@renproject/react-components";
 import { Link } from "react-router-dom";
 
 import { connect, ConnectedProps } from "../../state/connect";

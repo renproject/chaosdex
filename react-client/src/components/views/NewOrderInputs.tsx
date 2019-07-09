@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { CurrencyIcon, TokenValueInput } from "@renex/react-components";
+import { CurrencyIcon, TokenValueInput } from "@renproject/react-components";
 import BigNumber from "bignumber.js";
 import { debounce } from "throttle-debounce";
 

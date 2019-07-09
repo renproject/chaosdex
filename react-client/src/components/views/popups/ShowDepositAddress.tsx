@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { Loading, TokenIcon } from "@renex/react-components";
+import { Loading, TokenIcon } from "@renproject/react-components";
 import QRCode from "qrcode.react";
 import CopyToClipboard from "react-copy-to-clipboard";
 

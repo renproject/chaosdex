@@ -1,4 +1,4 @@
-import { Currency } from "@renex/react-components";
+import { Currency } from "@renproject/react-components";
 import { Map, OrderedMap } from "immutable";
 
 import { MarketPair, Token, TokenPrices } from "../state/generalTypes";

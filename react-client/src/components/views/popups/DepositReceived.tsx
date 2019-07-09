@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { InfoLabel, Loading, TokenIcon } from "@renex/react-components";
+import { InfoLabel, Loading, TokenIcon } from "@renproject/react-components";
 
 import { _catchInteractionErr_ } from "../../../lib/errors";
 import { Token } from "../../../state/generalTypes";

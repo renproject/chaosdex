@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { TokenIcon } from "@renex/react-components";
+import { TokenIcon } from "@renproject/react-components";
 import { Chain } from "@renproject/ren";
 
 import { naturalTime } from "../../lib/conversion";
