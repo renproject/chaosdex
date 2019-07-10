@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { ReactComponent as Logo } from "../../../styles/images/logo.svg";
+import { ReactComponent as MetaMask } from "../../../styles/images/metamask.svg";
 
 export const DOCS_LINK = "https://docs.renproject.io/ren/";
 export const BUILD_LINK = "https://docs.renproject.io/developers";
@@ -49,9 +50,15 @@ const GettingStarted: TutorialPage = ({ nextPage, previousPage }) => {
     return <Page>
         <Body>
             <h2>Let's get started</h2>
-            <p>Before you can utilize the demo, make sure you have a Bitcoin wallet that supports the Bitcoin Testnet and some Testnet Bitcoin. You’ll also need a MetaMask wallet and some Testnet Ether. </p>
-            <p>For more details on where to acquire these, <a href={FAQ_LINK} target="_blank" rel="noopener noreferrer">head over to the FAQ</a>.</p>
-            <p>If you want to find out more about how the demo works, <a href={DOCS_LINK} target="_blank" rel="noopener noreferrer">jump into the technical docs</a>.</p>
+            <p>Before you can use the demo, you'll need to:</p>
+            <ol>
+                <li>Install <a href="#"><MetaMask />MetaMask</a>. MetaMask is a browser extension that allows you to interact with Ethereum apps.</li>
+                <li>Send some Kovan Testnet ETH to your MetaMask from a <a href="https://github.com/kovan-testnet/faucet" target="_blank" rel="noopener noreferrer">Kovan ETH Faucet</a>.</li>
+                <li>Get some Testnet BTC from a <a href="https://testnet-faucet.mempool.co/" target="_blank" rel="noopener noreferrer">Testnet BTC Faucet</a>. If you don't have a Testnet Bitcoin wallet, skip this step until later.</li>
+            </ol>
+            {/*<p>make sure you have a Bitcoin wallet that supports the Bitcoin Testnet and some Testnet Bitcoin. You’ll also need a MetaMask wallet and some Testnet Ether. </p>
+                <p>For more details on where to acquire these, <a href={FAQ_LINK} target="_blank" rel="noopener noreferrer">head over to the FAQ</a>.</p>
+                <p>If you want to find out more about how the demo works, <a href={DOCS_LINK} target="_blank" rel="noopener noreferrer">jump into the technical docs</a>.</p>*/}
         </Body>
         <Buttons>
             <button className="button--white" onClick={previousPage}>Previous</button>
