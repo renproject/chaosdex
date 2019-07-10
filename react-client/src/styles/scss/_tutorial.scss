@@ -1,0 +1,151 @@
+.tutorial {
+    display: flex;
+    height: 465px;
+
+    ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .tutorial--left {
+        width: 190px;
+        box-shadow: 0px 1px 4px rgba(0, 27, 58, 0.2);
+        display: flex;
+        flex-flow: column;
+        justify-content: space-between;
+        text-align: left;
+
+        .tutorial--left--top {
+
+            .tutorial--left--setup {
+                font-style: normal;
+                font-weight: bold;
+                font-size: 12px;
+                line-height: 14px;
+                color: #87888C;
+                padding: 20px 20px;
+                text-transform: uppercase;
+            }
+
+            li {
+                cursor: pointer;
+                padding: 20px 20px;
+                font-style: normal;
+                font-weight: 500;
+                font-size: 14px;
+                line-height: 16px;
+                color: #006FE8;
+                border-top: 1px solid rgba(0, 0, 0, 0);
+                border-bottom: 1px solid rgba(0, 0, 0, 0);
+
+                &.selected {
+                    background: #F5F6F8;
+                    box-shadow: 0px 1px 2px rgba(0, 27, 58, 0.0509804);
+                    border-top: 1px solid #DBE0E8;
+                    border-bottom: 1px solid #DBE0E8;
+                }
+
+                &:before {
+                    content: "";
+                    border-radius: 100%;
+                    border: 2px solid #006FE8;
+                    width: 16px;
+                    height: 16px;
+                    display: inline-block;
+                    margin-right: 10px;
+                    margin-bottom: -3px;
+                }
+
+                &.checked:before {
+                    content: "✔";
+                    line-height: 14px;
+                }
+            }
+        }
+
+        .tutorial--left--bottom {
+            padding: 0 25px;
+
+            li {
+                svg {
+                    margin-right: 10px;
+                }
+
+                a {
+                    font-style: normal;
+                    font-weight: 500;
+                    font-size: 14px;
+                    line-height: 30px;
+
+                    color: #87888C;
+                }
+            }
+        }
+    }
+
+    .tutorial--page {
+        height: 100%;
+        width: 400px;
+        display: flex;
+        flex-flow: column;
+        justify-content: space-between;
+
+        .tutorial--page--body {
+
+            padding: 30px 50px;
+            padding-bottom: 0;
+
+            h2 {
+                margin-top: 30px;
+                font-weight: bold;
+                font-size: 18px;
+                line-height: 24px;
+                color: #585861;
+
+            }
+
+            p {
+                font-weight: normal;
+                font-size: 14px;
+                line-height: 21px;
+                color: #87888C;
+            }
+
+            a {
+                font-weight: normal;
+                font-size: 14px;
+                line-height: 21px;
+                color: #006FE8;
+
+            }
+
+            svg {
+                width: 60px;
+            }
+
+            * {
+                margin: 20px 0;
+            }
+        }
+
+        .tutorial--page--buttons {
+            display: flex;
+            justify-content: space-between;
+            padding: 30px;
+
+            .button {
+                height: 40px;
+                width: 140px;
+                border-radius: 4px;
+                background: linear-gradient(182.32deg, #00A8F5 -201.77%, #006FE8 93.76%);
+                font-weight: 500;
+                font-size: 14px;
+            }
+
+            .button--white {
+                border: 1.6px solid #006FE8;
+                background: white;
+            }
+        }
+    }
+}

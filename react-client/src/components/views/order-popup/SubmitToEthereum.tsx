@@ -4,7 +4,7 @@ import { Loading } from "@renproject/react-components";
 
 import { _catchInteractionErr_ } from "../../../lib/errors";
 import { Token } from "../../../state/generalTypes";
-import { Popup } from "./Popup";
+import { Popup } from "../Popup";
 
 export const SubmitToEthereum: React.StatelessComponent<{
     token: Token,
