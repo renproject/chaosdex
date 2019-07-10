@@ -1,19 +1,19 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "afaaed954259c3162eb4429d3e71d910",
+    "revision": "4ca6a93bbf0c61a233dddc13e2240fa4",
     "url": "/renvm-demo/index.html"
   },
   {
-    "revision": "0c3385d4b30f8314d990",
-    "url": "/renvm-demo/static/css/main.8cb18de6.chunk.css"
+    "revision": "6fa5f52c712aa0c75ff6",
+    "url": "/renvm-demo/static/css/main.d5a479c2.chunk.css"
   },
   {
     "revision": "ce307605cc6c0cf47d58",
     "url": "/renvm-demo/static/js/2.624e467c.chunk.js"
   },
   {
-    "revision": "0c3385d4b30f8314d990",
-    "url": "/renvm-demo/static/js/main.7e8e34fb.chunk.js"
+    "revision": "6fa5f52c712aa0c75ff6",
+    "url": "/renvm-demo/static/js/main.90c9804a.chunk.js"
   },
   {
     "revision": "91348c71a8f2f1001945",
@@ -52,10 +52,6 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/renvm-demo/static/media/arrow.f433f0ce.svg"
   },
   {
-    "revision": "c0d5d55fe0781499135d1ef17fcafd14",
-    "url": "/renvm-demo/static/media/build.c0d5d55f.svg"
-  },
-  {
     "revision": "a9cc8ba398e3b0c9015b8b2c89c06f4f",
     "url": "/renvm-demo/static/media/check.a9cc8ba3.svg"
   },
@@ -78,6 +74,10 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
     "revision": "3823a564b2c4f1be145249c498d4866e",
     "url": "/renvm-demo/static/media/faq.3823a564.svg"
+  },
+  {
+    "revision": "c0d5d55fe0781499135d1ef17fcafd14",
+    "url": "/renvm-demo/static/media/howitworks.c0d5d55f.svg"
   },
   {
     "revision": "c0de7696f3c8344a1e2ca791c1e20526",
