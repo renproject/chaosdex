@@ -40,7 +40,7 @@ export const DepositReceived: React.StatelessComponent<{
                 {waiting ? <Loading /> : null}
                 {error ? <span className="red">{`${error.message || error}`}</span> : null}
                 {waiting ? <div className="address-input--message">
-                    <>Submitting order to RenVM...<br />This can take a few minutes. <InfoLabel>{messageID ? messageID : <Loading />}</InfoLabel></>
+                    <>Submitting order to RenVM...<br />This can take a few minutes. <InfoLabel>{messageID ? <span className="break-all">Hyperdrive ID: {messageID}</span> : <Loading />}</InfoLabel></>
                 </div> : <div className="popup--buttons">
                         <button className="button open--confirm" onClick={onClick}>Submit to RenVM</button>
                     </div>

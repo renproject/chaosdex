@@ -263,10 +263,24 @@ button {
 }
 
 .label--message {
-    word-break: break-all;
+    word-break: normal !important;
     width: 100%;
 }
 
 .blue {
     color: $blue-bright;
+}
+
+.hint {
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.break-all {
+    word-break: break-all;
+}
+
+.bold {
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }

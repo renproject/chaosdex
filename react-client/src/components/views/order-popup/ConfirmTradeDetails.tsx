@@ -107,10 +107,10 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
                             </div>
                         </div>
                         <div className="swap-details--rounded">
-                            <span className="swap-details--values--left">
+                            <span className="swap-details--values--left bold">
                                 You will receive
                                 </span>
-                            <div className="swap-details--values--right">
+                            <div className="swap-details--values--right bold">
                                 <TokenBalance
                                     token={orderInputs.dstToken}
                                     amount={orderInputs.dstAmount}

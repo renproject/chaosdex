@@ -103,6 +103,7 @@ export class SDKContainer extends Container<typeof initialState> {
             receivedAmount: null,
             receivedAmountHex: null,
             depositAddress: null,
+            messageID: null,
         });
     }
 

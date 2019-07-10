@@ -59,7 +59,10 @@ export const PromptDetails = connect<Props & ConnectedProps<[UIContainer, SDKCon
             return <AskForAddress
                 key={confirmedOrderInputs.dstToken} // Since AskForAddress is used twice
                 token={confirmedOrderInputs.dstToken}
-                message={`Enter the ${confirmedOrderInputs.dstToken} public address you want to receive your tokens to.`}
+                message={<>
+                    Enter the {confirmedOrderInputs.dstToken} public address you want to receive your tokens to.
+                    {confirmedOrderInputs.dstToken === Token.BTC ? <InfoLabel><span className="hint">Hint</span>: If you don't have a Testnet BTC wallet, use the <a className="blue" href={BTC_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>'s return address.</InfoLabel> : <></>}
+                </>}
                 onAddress={uiContainer.updateToAddress}
                 cancel={onCancel}
                 defaultAddress={address || ""}
@@ -73,7 +76,7 @@ export const PromptDetails = connect<Props & ConnectedProps<[UIContainer, SDKCon
             token={confirmedOrderInputs.srcToken}
             message={<>
                 Enter your {confirmedOrderInputs.srcToken} refund address in case the trade doesn't go through.
-                {confirmedOrderInputs.srcToken === Token.BTC ? <InfoLabel>If you don't have a Testnet BTC wallet, use the <a className="blue" href={BTC_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>'s return address.</InfoLabel> : <></>}
+                {confirmedOrderInputs.srcToken === Token.BTC ? <InfoLabel><span className="hint">Hint</span>: If you don't have a Testnet BTC wallet, use the <a className="blue" href={BTC_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>'s return address.</InfoLabel> : <></>}
             </>}
             onAddress={onRefundAddress}
             cancel={onCancel}
