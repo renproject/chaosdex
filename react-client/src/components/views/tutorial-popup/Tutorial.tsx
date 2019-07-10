@@ -1,10 +1,10 @@
 import * as React from "react";
 
-import { ReactComponent as Build } from "../../../styles/images/icons/build.svg";
 import { ReactComponent as Docs } from "../../../styles/images/icons/docs.svg";
 import { ReactComponent as FAQ } from "../../../styles/images/icons/faq.svg";
+import { ReactComponent as HowItWorks } from "../../../styles/images/icons/howitworks.svg";
 import { Popup } from "../Popup";
-import { BUILD_LINK, DOCS_LINK, FAQ_LINK, tutorialPages } from "./TutorialPages";
+import { FAQ_LINK, HOWITWORKS_LINK, READTHEDOCS_LINK, tutorialPages } from "./TutorialPages";
 
 /**
  * Shows a tutorial popup with multiple pages. The pages are defined in
@@ -47,8 +47,8 @@ export const Tutorial: React.StatelessComponent<{
                 <div className="tutorial--left--bottom">
                     <hr />
                     <ul>
-                        <li><a href={BUILD_LINK} target="_blank" rel="noopener noreferrer"><Build />Build with RenVM</a></li>
-                        <li><a href={DOCS_LINK} target="_blank" rel="noopener noreferrer"><Docs />Read the docs</a></li>
+                        <li><a href={HOWITWORKS_LINK} target="_blank" rel="noopener noreferrer"><HowItWorks />How it works</a></li>
+                        <li><a href={READTHEDOCS_LINK} target="_blank" rel="noopener noreferrer"><Docs />Read the docs</a></li>
                         <li><a href={FAQ_LINK} target="_blank" rel="noopener noreferrer"><FAQ />FAQs</a></li>
                     </ul>
                 </div>

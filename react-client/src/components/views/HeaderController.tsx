@@ -6,12 +6,12 @@ import { Link } from "react-router-dom";
 
 import { connect, ConnectedProps } from "../../state/connect";
 import { UIContainer } from "../../state/uiContainer";
-import { ReactComponent as Build } from "../../styles/images/icons/build.svg";
 import { ReactComponent as Docs } from "../../styles/images/icons/docs.svg";
 import { ReactComponent as FAQ } from "../../styles/images/icons/faq.svg";
+import { ReactComponent as HowItWorks } from "../../styles/images/icons/howitworks.svg";
 import { ReactComponent as Tutorial } from "../../styles/images/icons/tutorial.svg";
 import { ReactComponent as Logo } from "../../styles/images/logo.svg";
-import { BUILD_LINK, DOCS_LINK, FAQ_LINK } from "../views/tutorial-popup/TutorialPages";
+import { FAQ_LINK, HOWITWORKS_LINK, READTHEDOCS_LINK } from "../views/tutorial-popup/TutorialPages";
 
 const currencyOptions = (() => {
     const options = new Map<string, React.ReactNode>();
@@ -88,11 +88,11 @@ export const HeaderController = (connect<Props>([UIContainer])(
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="links-navbar-nav">
                     <Nav>
-                        <Nav.Link className="nav--button nav--button-border" onClick={showTutorial}><Tutorial /> Welcome Tutorial</Nav.Link>
+                        <Nav.Link className="nav--button nav--button-border" onClick={showTutorial}><Tutorial />Welcome Tutorial</Nav.Link>
                         <div className="nav--divider" />
-                        <Nav.Link className="nav--button" target="_blank" rel="noopener noreferrer" href={BUILD_LINK}><Build /> Integrate RenVM</Nav.Link>
-                        <Nav.Link className="nav--button" target="_blank" rel="noopener noreferrer" href={DOCS_LINK}><Docs /> Read the docs</Nav.Link>
-                        <Nav.Link className="nav--button" target="_blank" rel="noopener noreferrer" href={FAQ_LINK}><FAQ /> FAQs</Nav.Link>
+                        <Nav.Link className="nav--button" target="_blank" rel="noopener noreferrer" href={HOWITWORKS_LINK}><HowItWorks />How it works</Nav.Link>
+                        <Nav.Link className="nav--button" target="_blank" rel="noopener noreferrer" href={READTHEDOCS_LINK}><Docs />Read the docs</Nav.Link>
+                        <Nav.Link className="nav--button" target="_blank" rel="noopener noreferrer" href={FAQ_LINK}><FAQ />FAQs</Nav.Link>
                     </Nav>
                 </Navbar.Collapse>
                 <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
