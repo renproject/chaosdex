@@ -299,7 +299,7 @@ export class UIContainer extends Container<typeof initialState> {
             let srcAmountAfterFees = new BigNumber(srcAmount);
             if (srcToken === Token.BTC) {
                 // Remove BTC transfer fees
-                srcAmountAfterFees = srcAmountAfterFees.minus(0.0001);
+                srcAmountAfterFees = BigNumber.max(srcAmountAfterFees.minus(0.0001), 0);
             }
 
             const dstAmount = await estimatePrice(

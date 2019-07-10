@@ -3,7 +3,6 @@ import * as React from "react";
 import { CurrencyIcon, TokenValueInput } from "@renproject/react-components";
 import BigNumber from "bignumber.js";
 import { debounce } from "throttle-debounce";
-import createPersistedState from "use-persisted-state";
 
 import { _catchInteractionErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
@@ -20,14 +19,12 @@ interface Props {
     marketPrice: number;
 }
 
-const useAmountState = createPersistedState("order-amount");
-
 export const NewOrderInputs = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer])(
     ({ containers: [uiContainer], }) => {
 
         // Store `srcAmount` as state so we can debounce storing it in the
         // container
-        const [srcAmountState, setSrcAmountState] = useAmountState(uiContainer.state.orderInputs.srcAmount);
+        const [srcAmountState, setSrcAmountState] = React.useState(uiContainer.state.orderInputs.srcAmount);
         // See `toggleSide`
         const [oldSrcAmount, setOldSrcAmount] = React.useState<string | undefined>(undefined);
 
