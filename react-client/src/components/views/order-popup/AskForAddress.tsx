@@ -9,7 +9,7 @@ import { Popup } from "../Popup";
 
 export const AskForAddress: React.StatelessComponent<{
     token: Token,
-    message: string,
+    message: React.ReactNode,
     defaultAddress: string,
     onAddress(address: string): void;
     cancel(): void;

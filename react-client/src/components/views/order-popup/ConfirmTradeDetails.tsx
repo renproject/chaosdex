@@ -104,13 +104,14 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
                                 FEE <InfoLabel>Darknode and transfer fees</InfoLabel>
                             </span>
                             <div className="swap-details--values--right">
-                                <CurrencyIcon currency={quoteCurrency} />
+                                0.01%
+                                {/*<CurrencyIcon currency={quoteCurrency} />
                                 <TokenBalance
                                     token={Token.BTC}
                                     convertTo={quoteCurrency}
                                     amount={"0.0001"}
                                     tokenPrices={tokenPrices}
-                                />
+                                />*/}
                             </div>
                         </div>
                         <div className="swap-details--rounded">

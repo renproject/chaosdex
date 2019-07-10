@@ -289,7 +289,6 @@ export class SDKContainer extends Container<typeof initialState> {
                     const decimals = dstTokenDetails ? dstTokenDetails.decimals : 8;
                     const receivedAmountBN = new BigNumber(data[3]);
                     const rcv = receivedAmountBN.dividedBy(new BigNumber(10).exponentiatedBy(decimals));
-                    console.log(`receivedAmountBN: ${receivedAmountBN.toString(16)}`);
                     this.setState({ receivedAmountHex: receivedAmountBN.toString(16) }).catch(_catchInteractionErr_);
                     resolve(rcv);
                     return;

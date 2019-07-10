@@ -1,11 +1,14 @@
 import * as React from "react";
 
+import { InfoLabel } from "@renproject/react-components";
+
 import { _catchInteractionErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
 import { SDKContainer } from "../../state/sdkContainer";
 import { UIContainer } from "../../state/uiContainer";
 import { AskForAddress } from "../views/order-popup/AskForAddress";
 import { ConfirmTradeDetails } from "../views/order-popup/ConfirmTradeDetails";
+import { BTC_FAUCET_LINK } from "../views/tutorial-popup/TutorialPages";
 
 interface Props {
     cancel: () => void;
@@ -67,7 +70,10 @@ export const PromptDetails = connect<Props & ConnectedProps<[UIContainer, SDKCon
         return <AskForAddress
             key={confirmedOrderInputs.srcToken} // Since AskForAddress is used twice
             token={confirmedOrderInputs.srcToken}
-            message={`Enter your ${confirmedOrderInputs.srcToken} refund address in case the trade doesn't go through.`}
+            message={<>
+                Enter your {confirmedOrderInputs.srcToken} refund address in case the trade doesn't go through.
+                <InfoLabel>If you don't have a Testnet BTC wallet, use the <a className="blue" href={BTC_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>'s return address.</InfoLabel>
+            </>}
             onAddress={onRefundAddress}
             cancel={onCancel}
             defaultAddress={address || ""}

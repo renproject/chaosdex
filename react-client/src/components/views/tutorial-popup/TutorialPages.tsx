@@ -6,6 +6,8 @@ import { ReactComponent as MetaMask } from "../../../styles/images/metamask.svg"
 export const DOCS_LINK = "https://docs.renproject.io/ren/";
 export const BUILD_LINK = "https://docs.renproject.io/developers";
 export const FAQ_LINK = "https://renproject.zendesk.com/hc/en-us";
+export const KOVAN_FAUCET_LINK = "https://github.com/kovan-testnet/faucet";
+export const BTC_FAUCET_LINK = "https://testnet-faucet.mempool.co/";
 
 type TutorialPage = React.StatelessComponent<{
     nextPage: () => void;
@@ -53,8 +55,8 @@ const GettingStarted: TutorialPage = ({ nextPage, previousPage }) => {
             <p>Before you can use the demo, you'll need to:</p>
             <ol>
                 <li>Install <a href="#"><MetaMask />MetaMask</a>. MetaMask is a browser extension that allows you to interact with Ethereum apps.</li>
-                <li>Send some Kovan Testnet ETH to your MetaMask from a <a href="https://github.com/kovan-testnet/faucet" target="_blank" rel="noopener noreferrer">Kovan ETH Faucet</a>.</li>
-                <li>Get some Testnet BTC from a <a href="https://testnet-faucet.mempool.co/" target="_blank" rel="noopener noreferrer">Testnet BTC Faucet</a>. If you don't have a Testnet Bitcoin wallet, skip this step until later.</li>
+                <li>Send some Kovan Testnet ETH to your MetaMask from a <a href={KOVAN_FAUCET_LINK} target="_blank" rel="noopener noreferrer">Kovan ETH Faucet</a>.</li>
+                <li>Get some Testnet BTC from a <a href={BTC_FAUCET_LINK} target="_blank" rel="noopener noreferrer">Testnet BTC Faucet</a>. If you don't have a Testnet Bitcoin wallet, skip this step until later.</li>
             </ol>
             {/*<p>make sure you have a Bitcoin wallet that supports the Bitcoin Testnet and some Testnet Bitcoin. You’ll also need a MetaMask wallet and some Testnet Ether. </p>
                 <p>For more details on where to acquire these, <a href={FAQ_LINK} target="_blank" rel="noopener noreferrer">head over to the FAQ</a>.</p>

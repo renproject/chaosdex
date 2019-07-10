@@ -11,10 +11,7 @@ import { ReactComponent as Docs } from "../../styles/images/icons/docs.svg";
 import { ReactComponent as FAQ } from "../../styles/images/icons/faq.svg";
 import { ReactComponent as Tutorial } from "../../styles/images/icons/tutorial.svg";
 import { ReactComponent as Logo } from "../../styles/images/logo.svg";
-import {
-    BUILD_LINK, DOCS_LINK, FAQ_LINK, tutorialPages,
-} from "../views/tutorial-popup/TutorialPages";
-import { AccountDropdown } from "./AccountDropdown";
+import { BUILD_LINK, DOCS_LINK, FAQ_LINK } from "../views/tutorial-popup/TutorialPages";
 
 const currencyOptions = (() => {
     const options = new Map<string, React.ReactNode>();
@@ -100,25 +97,30 @@ export const HeaderController = (connect<Props>([UIContainer])(
                 </Navbar.Collapse>
                 <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
                     <Nav>
-                        <NavDropdown title={account} className="header--selected" id="dropdown">
-                            {address ? <NavDropdown.Item onClick={copyToClipboard}>Copy address</NavDropdown.Item> : <></>}
-                            <NavDropdown.Item onClick={handleLogout}>Log Out</NavDropdown.Item>
+                        <NavDropdown title={<><CurrencyIcon currency={quoteCurrency} /> {quoteCurrency.toUpperCase()}</>} className="nav--bubble" id="currency-dropdown">
+                            {
+                                currencies.map(({ currency, description }) =>
+                                    // tslint:disable-next-line: react-this-binding-issue jsx-no-lambda
+                                    <NavDropdown.Item key={currency} onClick={() => uiContainer.setCurrency(currency)}>
+                                        <CurrencyIcon currency={currency} />
+                                        {" "}{description}
+                                    </NavDropdown.Item>
+                                )
+                            }
+                        </NavDropdown>
+                        <NavDropdown title={account} className="nav--bubble" id="dropdown">
+                            {address ?
+                                <>
+                                    <NavDropdown.Item onClick={copyToClipboard}>Copy address</NavDropdown.Item>
+                                    <NavDropdown.Item onClick={handleLogout}>Log Out</NavDropdown.Item>
+                                </> : <>
+                                    <NavDropdown.Item onClick={handleLogin}>Connect wallet</NavDropdown.Item>
+                                </>
+                            }
                         </NavDropdown>
                     </Nav>
                 </Navbar.Collapse>
             </Navbar>
         </div>;
-
-        // return <Header
-        //     logo={logo}
-        //     menu={[
-        //         currencyDropdown, <AccountDropdown
-        //             key="AccountDropdown"
-        //             handleLogin={handleLogin}
-        //             handleLogout={handleLogout}
-        //         />,
-        //     ]}
-        // />;
-
     }
 ));
