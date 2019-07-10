@@ -1,4 +1,4 @@
-# DEX Demo
+# RenVM Demo
 
 A demo exchange built on top of RenVM.
 
