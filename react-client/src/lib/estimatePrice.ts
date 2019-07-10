@@ -5,7 +5,6 @@ import { ReserveBalances } from "../state/uiContainer";
 
 export const estimatePrice = async (srcToken: Token, dstToken: Token, amount: string, reserves: ReserveBalances | undefined): Promise<BigNumber> => {
     if (!reserves) {
-        console.debug("no reserves");
         return new BigNumber(0);
     }
     const feeInBIPs = 20;
