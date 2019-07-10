@@ -8,11 +8,15 @@ import { connect, ConnectedProps } from "../../state/connect";
 import { UIContainer } from "../../state/uiContainer";
 import { NewOrderInputs } from "./NewOrderInputs";
 
+interface Props {
+    handleLogin: () => void;
+}
+
 /**
  * NewOrder is a visual component for allowing users to open new orders
  */
-export const NewOrder = connect<ConnectedProps<[UIContainer]>>([UIContainer])(
-    ({ containers: [uiContainer] }) => {
+export const NewOrder = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer])(
+    ({ handleLogin, containers: [uiContainer] }) => {
 
         const openOrder = async () => {
             uiContainer.setSubmitting(true).catch(_catchBackgroundErr_);
@@ -28,32 +32,36 @@ export const NewOrder = connect<ConnectedProps<[UIContainer]>>([UIContainer])(
         const validVolume = uiContainer.validVolume();
         const disabled = !loggedIn || !sufficientBalance || !validVolume;
 
-        return <>
-            <div className="section order">
-                <NewOrderInputs
-                    marketPrice={marketPrice}
-                />
-                <div className="submit-swap-buttons">
-                    {
-                        market ?
-                            <button
-                                disabled={disabled}
-                                onClick={openOrder}
-                                className={`button submit-swap ${disabled ? "disabled" : ""}`}
-                            >
-                                {uiContainer.state.submitting ? <Loading alt={true} /> :
-                                    !loggedIn ? "Connect to trade" :
-                                        !sufficientBalance ? "Insufficient balance" :
-                                            !validVolume ? "Volume too low" :
-                                                "Trade"
-                                }
-                            </button> :
-                            <button disabled={true} className="button submit-swap">
-                                Token pair not supported
-                            </button>
-                    }
-                </div>
-            </div>
-        </>;
+        let button;
+        if (!market) {
+            button = <button disabled={true} className="button submit-swap">
+                Token pair not supported
+            </button>;
+        } else if (!loggedIn) {
+            button = <button
+                onClick={handleLogin}
+                className="button button--white submit-swap connect-button"
+            >
+                Connect to trade
+            </button>;
+        } else {
+            button = <button
+                disabled={disabled}
+                onClick={openOrder}
+                className="button submit-swap"
+            >
+                {uiContainer.state.submitting ? <Loading alt={true} /> :
+                    !loggedIn ? "Connect to trade" :
+                        !sufficientBalance ? "Insufficient balance" :
+                            !validVolume ? "Volume too low" :
+                                "Trade"
+                }
+            </button>;
+        }
+
+        return <div className="section order">
+            <NewOrderInputs marketPrice={marketPrice} />
+            <div className="submit-swap-buttons">{button}</div>
+        </div>;
     }
 );

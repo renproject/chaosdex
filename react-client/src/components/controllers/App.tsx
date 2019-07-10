@@ -4,6 +4,7 @@ import { parse as parseLocation } from "qs";
 import { RouteComponentProps, withRouter } from "react-router-dom";
 import createPersistedState from "use-persisted-state";
 
+import { ETHEREUM_NETWORK, ETHEREUM_NETWORK_ID } from "../../lib/environmentVariables";
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
 import { getWeb3 } from "../../lib/getWeb3";
 import { connect, ConnectedProps } from "../../state/connect";
@@ -36,6 +37,10 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
         const login = React.useCallback(async () => {
             const web3 = await getWeb3();
             const networkID = await web3.eth.net.getId();
+            if (networkID.toString() !== ETHEREUM_NETWORK_ID) {
+                alert(`Please switch to the ${ETHEREUM_NETWORK} Ethereum network.`);
+                return;
+            }
             const addresses = await web3.eth.getAccounts();
             const address = addresses.length > 0 ? addresses[0] : null;
             await uiContainer.connect(web3, address, networkID);
@@ -82,9 +87,13 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
                 setInterval(() => uiContainer.updateTokenPrices().catch(_catchBackgroundErr_), 10 * 1000);
                 setInterval(() => uiContainer.updateBalanceReserves().catch(_catchBackgroundErr_), 10 * 1000);
                 setInterval(() => uiContainer.updateAccountBalances().catch(_catchBackgroundErr_), 10 * 1000);
-                login().then(() => {
+                if (!showingTutorial) {
+                    login().then(() => {
+                        setInitialized(true);
+                    }).catch(_catchBackgroundErr_);
+                } else {
                     setInitialized(true);
-                }).catch(_catchBackgroundErr_);
+                }
             }
         }, [initialized, uiContainer, location.search, login]);
 
@@ -92,7 +101,7 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
             <React.Suspense fallback={null}>
                 <HeaderController showTutorial={showTutorial} handleLogin={login} handleLogout={logout} />
             </React.Suspense>
-            <Exchange />
+            <Exchange handleLogin={login} />
             {showingTutorial ? <Tutorial cancel={hideTutorial} /> : null}
         </main>;
     }

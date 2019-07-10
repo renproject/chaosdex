@@ -3,6 +3,7 @@ import * as React from "react";
 import { CurrencyIcon, TokenValueInput } from "@renproject/react-components";
 import BigNumber from "bignumber.js";
 import { debounce } from "throttle-debounce";
+import createPersistedState from "use-persisted-state";
 
 import { _catchInteractionErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
@@ -19,10 +20,32 @@ interface Props {
     marketPrice: number;
 }
 
+const useAmountState = createPersistedState("order-amount");
+
 export const NewOrderInputs = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer])(
     ({ containers: [uiContainer], }) => {
 
-        const [srcAmountState, setSrcAmountState] = React.useState(uiContainer.state.orderInputs.srcAmount);
+        // Store `srcAmount` as state so we can debounce storing it in the
+        // container
+        const [srcAmountState, setSrcAmountState] = useAmountState(uiContainer.state.orderInputs.srcAmount);
+        // See `toggleSide`
+        const [oldSrcAmount, setOldSrcAmount] = React.useState<string | undefined>(undefined);
+
+        const quoteCurrency = uiContainer.state.preferredCurrency;
+        const orderInputs = uiContainer.state.orderInputs;
+
+        // Calculate the receive amount on load in case the srcAmount was stored
+        // in local storage.
+        const [initialized, setInitialized] = React.useState(false);
+        React.useEffect(() => {
+            if (!initialized) {
+                setInitialized(true);
+                uiContainer.updateSrcAmount(srcAmountState).catch(_catchInteractionErr_);
+                setTimeout(() => {
+                    uiContainer.updateSrcAmount(srcAmountState).catch(_catchInteractionErr_);
+                }, 1500);
+            }
+        });
 
         /**
          * Waits 100ms to update the send volume in case the user is still typing
@@ -41,10 +64,27 @@ export const NewOrderInputs = connect<Props & ConnectedProps<[UIContainer]>>([UI
             setSrcAmountState(value);
             // tslint:disable-next-line: no-floating-promises
             debouncedVolumeChange(value);
+
+            if (oldSrcAmount) {
+                setOldSrcAmount(undefined);
+            }
         };
 
         const toggleSide = async () => {
             await uiContainer.flipSendReceive();
+
+            // Flip the amounts, but if we flip twice in a row, use the original
+            // srcAmount instead of calculating a new one
+            // Wihout: src = 1 [flip] src = 0.01 [flip] src = 0.99
+            // & with: src = 1 [flip] src = 0.01 [flip] src = 1
+            const amount = oldSrcAmount !== undefined ? oldSrcAmount : new BigNumber(orderInputs.dstAmount).decimalPlaces(8).toFixed();
+            setSrcAmountState(amount);
+            uiContainer.updateSrcAmount(amount).catch(_catchInteractionErr_);
+            if (oldSrcAmount === undefined) {
+                setOldSrcAmount(srcAmountState);
+            } else {
+                setOldSrcAmount(undefined);
+            }
         };
 
         const toggle = <div className="order--tabs">
@@ -55,9 +95,6 @@ export const NewOrderInputs = connect<Props & ConnectedProps<[UIContainer]>>([UI
                 <img alt="Swap side" role="button" src={arrow} />
             </span>
         </div>;
-
-        const quoteCurrency = uiContainer.state.preferredCurrency;
-        const orderInputs = uiContainer.state.orderInputs;
 
         const firstSubtext = <>
             {"~ "}

@@ -3,7 +3,7 @@
 import * as Sentry from "@sentry/browser";
 
 import { naturalTime } from "./conversion";
-import { environment } from "./environmentVariables";
+import { ENVIRONMENT } from "./environmentVariables";
 
 interface Details {
     description?: string;
@@ -121,13 +121,13 @@ const _catchErr_ = <X extends Details>(error: any, details: X) => {
         // tslint:disable-next-line: no-console
         console.error(error);
 
-        if (environment !== "mainnet") {
+        if (ENVIRONMENT !== "mainnet") {
             if (typeof error === "string") {
                 // tslint:disable-next-line: no-parameter-reassignment
-                error = `[${environment.toUpperCase()}] ${error}`;
+                error = `[${ENVIRONMENT.toUpperCase()}] ${error}`;
             } else {
                 try {
-                    error.message = `[${environment.toUpperCase()}] ${error.message || error}`;
+                    error.message = `[${ENVIRONMENT.toUpperCase()}] ${error.message || error}`;
                 } catch {
                     // Ignore: Unable to overwrite message (may be read-only)
                 }

@@ -18,11 +18,15 @@ interface StoredHistory {
     [outTx: string]: HistoryEvent;
 }
 
+interface Props {
+    handleLogin: () => void;
+}
+
 /**
  * Exchange is the main token-swapping page.
  */
-export const Exchange = connect<ConnectedProps<[UIContainer, SDKContainer]>>([UIContainer, SDKContainer])(
-    ({ containers: [uiContainer, sdkContainer] }) => {
+export const Exchange = connect<Props & ConnectedProps<[UIContainer, SDKContainer]>>([UIContainer, SDKContainer])(
+    ({ handleLogin, containers: [uiContainer, sdkContainer] }) => {
         const [orderHistory, setOrderHistory] = useOrderHistoryState({} as unknown as StoredHistory);
 
         const cancel = () => {
@@ -44,7 +48,7 @@ export const Exchange = connect<ConnectedProps<[UIContainer, SDKContainer]>>([UI
             <div className="content container exchange-inner">
                 <div className="exchange--center">
                     <React.Suspense fallback={<Loading />}>
-                        <NewOrder />
+                        <NewOrder handleLogin={handleLogin} />
                         <OrderHistory orders={orders} />
                         {uiContainer.state.submitting ?
                             sdkContainer.state.commitment ?

@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/browser";
 
-import { environment, SENTRY_DSN, SOURCE_VERSION } from "./lib/environmentVariables";
+import { ENVIRONMENT, SENTRY_DSN, SOURCE_VERSION } from "./lib/environmentVariables";
 import { pageLoadedAt } from "./lib/errors";
 
 export const initializeSentry = () => {
@@ -11,7 +11,7 @@ export const initializeSentry = () => {
         dsn: SENTRY_DSN,
 
         // Used to separate testnet and mainnet errors
-        environment,
+        environment: ENVIRONMENT,
 
         // Used to track errors across versions
         release: SOURCE_VERSION,

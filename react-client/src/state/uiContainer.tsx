@@ -286,13 +286,21 @@ export class UIContainer extends Container<typeof initialState> {
         });
     }
 
-    private readonly updateReceiveValue = async (): Promise<void> => {
-        const { orderInputs: { srcToken, dstToken, srcAmount } } = this.state;
-        const market = getMarket(srcToken, dstToken);
+    public updateReceiveValue = async (): Promise<void> => {
+        const market = getMarket(
+            this.state.orderInputs.srcToken,
+            this.state.orderInputs.dstToken
+        );
         if (market) {
             const reserves = this.state.balanceReserves.get(market);
 
-            const dstAmount = await estimatePrice(srcToken, dstToken, srcAmount, reserves);
+            const dstAmount = await estimatePrice(
+                // Re-read from state
+                this.state.orderInputs.srcToken,
+                this.state.orderInputs.dstToken,
+                this.state.orderInputs.srcAmount,
+                reserves,
+            );
             await this.setState({ orderInputs: { ...this.state.orderInputs, dstAmount: dstAmount.toFixed() } });
         }
     }
