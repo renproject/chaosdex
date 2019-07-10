@@ -3,15 +3,26 @@ import BigNumber from "bignumber.js";
 import { Token } from "../state/generalTypes";
 import { ReserveBalances } from "../state/uiContainer";
 
-export const estimatePrice = async (srcToken: Token, dstToken: Token, amount: string, reserves: ReserveBalances | undefined): Promise<BigNumber> => {
+const feeInBIPs = 20;
+
+export const removeRenVMFee = (rcvAmount: BigNumber) =>
+    rcvAmount
+        .times(10000 - feeInBIPs)
+        .div(10000);
+
+export const recoverRenVMFee = (dstAmount: BigNumber) =>
+    dstAmount
+        .times(10000)
+        .div(10000 - feeInBIPs)
+        .minus(dstAmount);
+
+export const estimatePrice = async (srcToken: Token, dstToken: Token, sendAmount: BigNumber, reserves: ReserveBalances | undefined): Promise<BigNumber> => {
     if (!reserves) {
         return new BigNumber(0);
     }
-    const feeInBIPs = 20;
 
     const srcAmount = reserves.get(srcToken);
     const dstAmount = reserves.get(dstToken);
-    const sendAmount = new BigNumber(amount);
 
     if (srcAmount === undefined || dstAmount === undefined) {
         console.debug("srcAmount or dstAmount undefined");
@@ -19,5 +30,5 @@ export const estimatePrice = async (srcToken: Token, dstToken: Token, amount: st
     }
 
     const rcvAmount = dstAmount.minus((srcAmount.times(dstAmount).div(srcAmount.plus(sendAmount))));
-    return (rcvAmount.times(new BigNumber(10000 - feeInBIPs)).div(new BigNumber(10000)));
+    return removeRenVMFee(rcvAmount);
 };

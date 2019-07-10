@@ -287,18 +287,25 @@ export class UIContainer extends Container<typeof initialState> {
     }
 
     public updateReceiveValue = async (): Promise<void> => {
+        const { balanceReserves, orderInputs: { srcToken, dstToken, srcAmount } } = this.state;
+
         const market = getMarket(
-            this.state.orderInputs.srcToken,
-            this.state.orderInputs.dstToken
+            srcToken,
+            dstToken
         );
         if (market) {
-            const reserves = this.state.balanceReserves.get(market);
+            const reserves = balanceReserves.get(market);
+
+            let srcAmountAfterFees = new BigNumber(srcAmount);
+            if (srcToken === Token.BTC) {
+                // Remove BTC transfer fees
+                srcAmountAfterFees = srcAmountAfterFees.minus(0.0001);
+            }
 
             const dstAmount = await estimatePrice(
-                // Re-read from state
-                this.state.orderInputs.srcToken,
-                this.state.orderInputs.dstToken,
-                this.state.orderInputs.srcAmount,
+                srcToken,
+                dstToken,
+                srcAmountAfterFees,
                 reserves,
             );
             await this.setState({ orderInputs: { ...this.state.orderInputs, dstAmount: dstAmount.toFixed() } });

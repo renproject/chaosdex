@@ -1,7 +1,9 @@
 import * as React from "react";
 
 import { Currency, CurrencyIcon, InfoLabel, TokenIcon } from "@renproject/react-components";
+import BigNumber from "bignumber.js";
 
+import { recoverRenVMFee } from "../../../lib/estimatePrice";
 import { Token, TokenPrices } from "../../../state/generalTypes";
 import { OrderInputs } from "../../../state/uiContainer";
 import { ReactComponent as Arrow } from "../../../styles/images/arrow-right.svg";
@@ -76,42 +78,32 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
                     <div className="swap-details--values">
                         <div>
                             <span className="swap-details--values--left">
-                                <TokenBalance
-                                    token={orderInputs.dstToken}
-                                    amount={orderInputs.dstAmount}
-                                />
-                                {" "}
-                                {orderInputs.dstToken}
-                                {" @ "}
-                                <CurrencyIcon currency={quoteCurrency} />
-                                {/* tslint:disable-next-line: no-non-null-assertion no-unnecessary-type-assertion */}
-                                {tokenPrices.get(orderInputs.dstToken) ? tokenPrices.get(orderInputs.dstToken)!.get(quoteCurrency) : null}
-                                {quoteCurrency.toUpperCase()}
+                                RenVM Fees <InfoLabel>RenVM will receive 0.2% of the<br />asset being shifted</InfoLabel>
                             </span>
                             <div className="swap-details--values--right">
                                 <CurrencyIcon currency={quoteCurrency} />
                                 <TokenBalance
                                     token={orderInputs.dstToken}
                                     convertTo={quoteCurrency}
-                                    amount={orderInputs.dstAmount}
+                                    amount={recoverRenVMFee(new BigNumber(orderInputs.dstAmount)).toFixed()}
                                     tokenPrices={tokenPrices}
+                                    digits={3}
                                 />
                             </div>
                         </div>
                         <hr />
                         <div>
                             <span className="swap-details--values--left">
-                                FEE <InfoLabel>Darknode and transfer fees</InfoLabel>
+                                Bitcoin Transaction Fees
                             </span>
                             <div className="swap-details--values--right">
-                                0.01%
-                                {/*<CurrencyIcon currency={quoteCurrency} />
+                                <CurrencyIcon currency={quoteCurrency} />
                                 <TokenBalance
                                     token={Token.BTC}
                                     convertTo={quoteCurrency}
                                     amount={"0.0001"}
                                     tokenPrices={tokenPrices}
-                                />*/}
+                                />
                             </div>
                         </div>
                         <div className="swap-details--rounded">

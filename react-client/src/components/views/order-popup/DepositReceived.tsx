@@ -36,13 +36,13 @@ export const DepositReceived: React.StatelessComponent<{
         <div className="deposit-address">
             <div className="popup--body">
                 {token ? <TokenIcon className="token-icon" token={token} /> : null}
-                <h2>Submit to darknodes</h2>
+                <h2>Submit to RenVM</h2>
                 {waiting ? <Loading /> : null}
                 {error ? <span className="red">{`${error.message || error}`}</span> : null}
                 {waiting ? <div className="address-input--message">
                     <>Submitting order to RenVM...<br />This can take a few minutes. <InfoLabel>{messageID ? messageID : <Loading />}</InfoLabel></>
                 </div> : <div className="popup--buttons">
-                        <button className="button open--confirm" onClick={onClick}>Submit to darknodes</button>
+                        <button className="button open--confirm" onClick={onClick}>Submit to RenVM</button>
                     </div>
                 }
             </div>
