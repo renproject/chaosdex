@@ -5,7 +5,7 @@ import { ReactComponent as MetaMask } from "../../../styles/images/metamask.svg"
 
 export const READTHEDOCS_LINK = "https://docs.renproject.io/developers";
 export const HOWITWORKS_LINK = "https://docs.renproject.io/ren/";
-export const FAQ_LINK = "https://renproject.zendesk.com/hc/en-us";
+export const FAQ_LINK = "https://app.gitbook.com/@renproject/s/developers/renvm-testnet-demo/renvm-testnet-demo-faq";
 export const KOVAN_FAUCET_LINK = "https://github.com/kovan-testnet/faucet";
 export const BTC_FAUCET_LINK = "https://testnet-faucet.mempool.co/";
 export const METAMASK_LINK = "https://metamask.io/";
