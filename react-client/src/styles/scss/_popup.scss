@@ -52,7 +52,7 @@
 .popup--header h2 {
     color: white;
     margin: 0;
-    font-weight: 600;
+    font-weight: 500; // used to be 600
     font-size: 15px;
     text-align: center;
 }
@@ -177,11 +177,19 @@
     margin-left: 5px;
     position: absolute;
     z-index: 10;
-    margin-left: calc(100% - 46px);
+    margin-left: calc(100% - 35px);
     background: white;
     margin-top: -35px;
 
     svg {
         width: 20px;
     }
+}
+
+.infolabel--p {
+    font-weight: normal;
+    font-size: 14px;
+    line-height: 21px;
+    text-align: center;
+    color: #585861;
 }

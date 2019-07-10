@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { Loading, TokenIcon } from "@renproject/react-components";
+import { InfoLabel, Loading, TokenIcon } from "@renproject/react-components";
 import QRCode from "qrcode.react";
 import CopyToClipboard from "react-copy-to-clipboard";
 
@@ -8,6 +8,7 @@ import { Token } from "../../../state/generalTypes";
 import { ReactComponent as Copy } from "../../../styles/images/copy.svg";
 import { ReactComponent as QR } from "../../../styles/images/qr.svg";
 import { Popup } from "../Popup";
+import { BTC_FAUCET_LINK } from "../tutorial-popup/TutorialPages";
 
 interface Props {
     token: Token;
@@ -82,7 +83,7 @@ export const ShowDepositAddress: React.StatelessComponent<Props> =
             <div className="deposit-address">
                 <div className="popup--body">
                     <TokenIcon className="token-icon" token={token} />
-                    <h2>Deposit {amount} {token.toUpperCase()}</h2>
+                    <h2>Deposit {amount} {token.toUpperCase()}{token === Token.BTC ? <InfoLabel><span className="infolabel--p">If you don't have a Testnet BTC wallet, send Testnet BTC from the <a className="blue" href={BTC_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>.</span></InfoLabel> : <></>}</h2>
                     <div role="button" className="popup--header--x" onClick={cancel} />
                     <div className="address-input--message">
                         Only send {token.toUpperCase()} to your deposit address.<br />
@@ -92,7 +93,7 @@ export const ShowDepositAddress: React.StatelessComponent<Props> =
                         <>
                             <div className="address-input--label">
                                 Send {token.toUpperCase()} to:
-                        </div>
+                            </div>
                             <CopyToClipboard
                                 text={depositAddress || ""}
                                 onCopy={onClickAddress}
