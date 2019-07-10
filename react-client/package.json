@@ -2,7 +2,7 @@
   "name": "renvm-demo",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://testnet.ren.exchange/",
+  "homepage": "https://renproject.github.io/dex-demo",
   "dependencies": {
     "@renproject/fonts": "^1.0.1",
     "@renproject/react-components": "^1.0.25",
