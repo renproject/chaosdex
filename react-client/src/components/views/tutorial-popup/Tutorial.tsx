@@ -1,10 +1,14 @@
 import * as React from "react";
 
+import createPersistedState from "use-persisted-state";
+
 import { ReactComponent as Docs } from "../../../styles/images/icons/docs.svg";
 import { ReactComponent as FAQ } from "../../../styles/images/icons/faq.svg";
 import { ReactComponent as HowItWorks } from "../../../styles/images/icons/howitworks.svg";
 import { Popup } from "../Popup";
 import { FAQ_LINK, HOWITWORKS_LINK, READTHEDOCS_LINK, tutorialPages } from "./TutorialPages";
+
+const usePageState = createPersistedState("tutorial-page");
 
 /**
  * Shows a tutorial popup with multiple pages. The pages are defined in
@@ -16,7 +20,7 @@ export const Tutorial: React.StatelessComponent<{
 
     // `page` represents the index of the current page being shown, out of the
     // pages in `tutorialPages`.
-    const [page, setPage] = React.useState(0);
+    const [page, setPage] = usePageState(0);
 
     const nextPage = React.useCallback(async () => {
         if (page < tutorialPages.length - 1) {
@@ -31,6 +35,11 @@ export const Tutorial: React.StatelessComponent<{
             setPage(page - 1);
         }
     }, [page, setPage]);
+
+    if (page < 0 || page >= tutorialPages.length) {
+        setPage(0);
+        return <></>;
+    }
 
     return <Popup cancel={cancel}>
         <div className="tutorial">
