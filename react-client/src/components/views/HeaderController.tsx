@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { currencies, CurrencyIcon, Dropdown, Header } from "@renproject/react-components";
+import { currencies, CurrencyIcon } from "@renproject/react-components";
 import { Nav, Navbar, NavDropdown } from "react-bootstrap";
 import { Link } from "react-router-dom";
 
@@ -11,20 +11,22 @@ import { ReactComponent as FAQ } from "../../styles/images/icons/faq.svg";
 import { ReactComponent as HowItWorks } from "../../styles/images/icons/howitworks.svg";
 import { ReactComponent as Tutorial } from "../../styles/images/icons/tutorial.svg";
 import { ReactComponent as Logo } from "../../styles/images/logo.svg";
-import { FAQ_LINK, HOWITWORKS_LINK, READTHEDOCS_LINK } from "../views/tutorial-popup/TutorialPages";
+import {
+    BUILDWITHRENVM_LINK, FAQ_LINK, READTHEDOCS_LINK,
+} from "../views/tutorial-popup/TutorialPages";
 
-const currencyOptions = (() => {
-    const options = new Map<string, React.ReactNode>();
+// const currencyOptions = (() => {
+//     const options = new Map<string, React.ReactNode>();
 
-    for (const currency of currencies) {
-        options.set(currency.currency, <>
-            <CurrencyIcon currency={currency.currency} />
-            {" "}{currency.description}
-        </>);
-    }
+//     for (const currency of currencies) {
+//         options.set(currency.currency, <>
+//             <CurrencyIcon currency={currency.currency} />
+//             {" "}{currency.description}
+//         </>);
+//     }
 
-    return options;
-})();
+//     return options;
+// })();
 
 const logo = <Link className="header--logo no-underline" to="/">
     <Logo />
@@ -44,18 +46,18 @@ export const HeaderController = (connect<Props>([UIContainer])(
     ({ showTutorial, handleLogout, handleLogin, containers: [uiContainer] }) => {
 
         const quoteCurrency = uiContainer.state.preferredCurrency;
-        const currencyDropdown = <Dropdown
-            key="currencyDropdown"
-            selected={{
-                value: quoteCurrency,
-                render: <>
-                    <CurrencyIcon currency={quoteCurrency} />
-                    {" "}{quoteCurrency.toUpperCase()}
-                </>
-            }}
-            options={currencyOptions}
-            setValue={uiContainer.setCurrency}
-        />;
+        // const currencyDropdown = <Dropdown
+        //     key="currencyDropdown"
+        //     selected={{
+        //         value: quoteCurrency,
+        //         render: <>
+        //             <CurrencyIcon currency={quoteCurrency} />
+        //             {" "}{quoteCurrency.toUpperCase()}
+        //         </>
+        //     }}
+        //     options={currencyOptions}
+        //     setValue={uiContainer.setCurrency}
+        // />;
 
         const { address } = uiContainer.state;
         const account = <div
@@ -90,7 +92,7 @@ export const HeaderController = (connect<Props>([UIContainer])(
                     <Nav>
                         <Nav.Link className="nav--button nav--button-border" onClick={showTutorial}><Tutorial />Welcome Tutorial</Nav.Link>
                         <div className="nav--divider" />
-                        <Nav.Link className="nav--button" target="_blank" rel="noopener noreferrer" href={HOWITWORKS_LINK}><HowItWorks />How it works</Nav.Link>
+                        <Nav.Link className="nav--button" target="_blank" rel="noopener noreferrer" href={BUILDWITHRENVM_LINK}><HowItWorks />Build with RenVM</Nav.Link>
                         <Nav.Link className="nav--button" target="_blank" rel="noopener noreferrer" href={READTHEDOCS_LINK}><Docs />Read the docs</Nav.Link>
                         <Nav.Link className="nav--button" target="_blank" rel="noopener noreferrer" href={FAQ_LINK}><FAQ />FAQs</Nav.Link>
                     </Nav>

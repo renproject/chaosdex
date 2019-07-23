@@ -5,7 +5,6 @@ import { InfoLabel } from "@renproject/react-components";
 import { _catchInteractionErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
 import { Token } from "../../state/generalTypes";
-import { SDKContainer } from "../../state/sdkContainer";
 import { UIContainer } from "../../state/uiContainer";
 import { AskForAddress } from "../views/order-popup/AskForAddress";
 import { ConfirmTradeDetails } from "../views/order-popup/ConfirmTradeDetails";
@@ -18,8 +17,8 @@ interface Props {
 /**
  * PromptDetails is a visual component for allowing users to open new orders
  */
-export const PromptDetails = connect<Props & ConnectedProps<[UIContainer, SDKContainer]>>([UIContainer, SDKContainer])(
-    ({ containers: [uiContainer, sdkContainer], cancel }) => {
+export const PromptDetails = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer])(
+    ({ containers: [uiContainer], cancel }) => {
 
         const {
             toAddress, confirmedOrderInputs, confirmedTrade,
@@ -28,13 +27,12 @@ export const PromptDetails = connect<Props & ConnectedProps<[UIContainer, SDKCon
 
         const onRefundAddress = async (refundAddress: string) => {
             await uiContainer.updateRefundAddress(refundAddress).catch(_catchInteractionErr_);
-            const commitment = await uiContainer.updateCommitment();
-            await sdkContainer.setCommitment(commitment);
+            const currentOrderID = await uiContainer.commitOrder();
+            await uiContainer.handleOrder(currentOrderID);
         };
 
         const onCancel = () => {
             uiContainer.resetTrade().catch(_catchInteractionErr_);
-            sdkContainer.resetTrade().catch(_catchInteractionErr_);
             cancel();
         };
 

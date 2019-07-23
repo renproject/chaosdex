@@ -1,19 +1,21 @@
 import { Currency } from "@renproject/react-components";
-import { btcAddressToHex } from "@renproject/ren";
+import { btcAddressToHex, Ox } from "@renproject/ren";
 import BigNumber from "bignumber.js";
+import { crypto } from "bitcore-lib";
 import { Map as ImmutableMap } from "immutable";
 import { Container } from "unstated";
 import Web3 from "web3";
 
 import { getTokenDecimals, syncGetTokenAddress } from "../lib/contractAddresses";
-import { _catchBackgroundErr_ } from "../lib/errors";
 import { estimatePrice } from "../lib/estimatePrice";
 import { history } from "../lib/history";
 import { getMarket, getTokenPricesInCurrencies } from "../lib/market";
 import {
     getERC20, getExchange, isERC20, isEthereumBased, MarketPair, Token, Tokens,
 } from "./generalTypes";
-import { Commitment } from "./sdkContainer";
+import {
+    Commitment, PersistentContainer, ShiftInStatus, ShiftOutStatus,
+} from "./persistentContainer";
 
 export type ReserveBalances = Map<Token, BigNumber>;
 
@@ -50,10 +52,17 @@ const initialState = {
     refundAddress: null as string | null,
 
     orderInputs: initialOrder,
+    currentOrderID: undefined as string | undefined,
 };
 
 export class UIContainer extends Container<typeof initialState> {
     public state = initialState;
+    public persistentContainer: PersistentContainer;
+
+    constructor(persistentContainer: PersistentContainer) {
+        super();
+        this.persistentContainer = persistentContainer;
+    }
 
     public connect = async (web3: Web3, address: string | null, networkID: number): Promise<void> => {
         await this.setState({ web3, networkID, address });
@@ -64,8 +73,12 @@ export class UIContainer extends Container<typeof initialState> {
         await this.setState({ address: null });
     }
 
-    public onConfirmedTrade = () => {
-        this.setState({ confirmedTrade: true }).catch(_catchBackgroundErr_);
+    public onConfirmedTrade = async () => {
+        await this.setState({ confirmedTrade: true });
+    }
+
+    public handleOrder = async (orderID: string) => {
+        await this.setState({ currentOrderID: orderID });
     }
 
     // Token prices ////////////////////////////////////////////////////////////
@@ -163,7 +176,7 @@ export class UIContainer extends Container<typeof initialState> {
         );
     }
 
-    // Swap inputs /////////////////////////////////////////////////////////////
+    // Inputs for swap /////////////////////////////////////////////////////////
 
     public updateSrcToken = async (srcToken: Token): Promise<void> => {
         await this.setState({ orderInputs: { ...this.state.orderInputs, srcToken } });
@@ -200,8 +213,8 @@ export class UIContainer extends Container<typeof initialState> {
         await this.setState({ refundAddress });
     }
 
-    public updateCommitment = async (): Promise<Commitment> => {
-        const { orderInputs: order, networkID, web3, toAddress, refundAddress } = this.state;
+    public commitOrder = async (): Promise<string> => {
+        const { orderInputs: order, networkID, web3, toAddress, refundAddress, orderInputs } = this.state;
         if (!web3) {
             throw new Error("Web3 not set yet.");
         }
@@ -223,15 +236,42 @@ export class UIContainer extends Container<typeof initialState> {
         const commitment: Commitment = {
             srcToken: syncGetTokenAddress(networkID, order.srcToken),
             dstToken: syncGetTokenAddress(networkID, order.dstToken),
-            minDestinationAmount: new BigNumber(0),
-            srcAmount: new BigNumber(order.srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals)),
+            minDestinationAmount: 0,
+            srcAmount: new BigNumber(order.srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals)).toNumber(),
             toAddress: hexToAddress,
             refundBlockNumber: blockNumber + 360, // 360 blocks (assuming 0.1bps, equals 1 hour)
             refundAddress: hexRefundAddress,
-            orderInputs: order,
         };
 
-        return commitment;
+        const time = Date.now() / 1000;
+        const currentOrderID = String(time);
+
+        const shift = !isEthereumBased(orderInputs.srcToken) && isEthereumBased(orderInputs.dstToken) ? {
+            // Cast required by TS to differentiate ShiftIn and ShiftOut types.
+            shiftIn: true as true,
+            status: ShiftInStatus.Commited,
+        } : {
+                shiftIn: false as false,
+                status: ShiftOutStatus.Commited,
+            };
+
+        const nonce = Ox(crypto.Random.getRandomBuffer(32));
+
+        await this.persistentContainer.updateHistoryItem(currentOrderID, {
+            ...shift,
+            id: currentOrderID,
+            time,
+            inTx: null,
+            outTx: null,
+            receivedAmount: null,
+            complete: false,
+            orderInputs,
+            commitment,
+            messageID: null,
+            nonce,
+        });
+
+        return currentOrderID;
     }
 
     public resetTrade = async () => {
@@ -240,6 +280,7 @@ export class UIContainer extends Container<typeof initialState> {
             submitting: false,
             toAddress: null,
             refundAddress: null,
+            confirmedOrderInputs: null,
         });
     }
 

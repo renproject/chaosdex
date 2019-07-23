@@ -4,19 +4,20 @@ import { Loading } from "@renproject/react-components";
 
 import { _catchInteractionErr_ } from "../../../lib/errors";
 import { Token } from "../../../state/generalTypes";
-import { Commitment } from "../../../state/sdkContainer";
+import { Commitment } from "../../../state/persistentContainer";
 import { Popup } from "../Popup";
 
 export const TokenAllowance: React.StatelessComponent<{
     token: Token,
     amount: string,
     commitment: Commitment | null,
-    submit: () => Promise<void>,
-}> = ({ token, submit, amount, commitment }) => {
+    orderID: string;
+    submit: (orderID: string) => Promise<void>,
+}> = ({ token, amount, commitment, orderID, submit }) => {
     const [submitting, setSubmitting] = React.useState(false);
     const onSubmit = () => {
         setSubmitting(true);
-        submit().catch((err) => {
+        submit(orderID).catch((err) => {
             setSubmitting(false);
             _catchInteractionErr_(err);
         });

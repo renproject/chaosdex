@@ -6,7 +6,7 @@ import { ReactComponent as Docs } from "../../../styles/images/icons/docs.svg";
 import { ReactComponent as FAQ } from "../../../styles/images/icons/faq.svg";
 import { ReactComponent as HowItWorks } from "../../../styles/images/icons/howitworks.svg";
 import { Popup } from "../Popup";
-import { FAQ_LINK, HOWITWORKS_LINK, READTHEDOCS_LINK, tutorialPages } from "./TutorialPages";
+import { BUILDWITHRENVM_LINK, FAQ_LINK, READTHEDOCS_LINK, tutorialPages } from "./TutorialPages";
 
 const usePageState = createPersistedState("tutorial-page");
 
@@ -28,7 +28,7 @@ export const Tutorial: React.StatelessComponent<{
         } else {
             cancel();
         }
-    }, [page, setPage]);
+    }, [page, setPage, cancel]);
 
     const previousPage = React.useCallback(async () => {
         if (page > 0) {
@@ -56,7 +56,7 @@ export const Tutorial: React.StatelessComponent<{
                 <div className="tutorial--left--bottom">
                     <hr />
                     <ul>
-                        <li><a href={HOWITWORKS_LINK} target="_blank" rel="noopener noreferrer"><HowItWorks />How it works</a></li>
+                        <li><a href={BUILDWITHRENVM_LINK} target="_blank" rel="noopener noreferrer"><HowItWorks />Build with RenVM</a></li>
                         <li><a href={READTHEDOCS_LINK} target="_blank" rel="noopener noreferrer"><Docs />Read the docs</a></li>
                         <li><a href={FAQ_LINK} target="_blank" rel="noopener noreferrer"><FAQ />FAQs</a></li>
                     </ul>

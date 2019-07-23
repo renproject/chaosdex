@@ -42,7 +42,7 @@ export const NewOrderInputs = connect<Props & ConnectedProps<[UIContainer]>>([UI
                     uiContainer.updateSrcAmount(srcAmountState).catch(_catchInteractionErr_);
                 }, 1500);
             }
-        });
+        }, [setInitialized, initialized, srcAmountState, uiContainer]);
 
         /**
          * Waits 100ms to update the send volume in case the user is still typing

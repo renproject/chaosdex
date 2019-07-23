@@ -9,9 +9,9 @@ import { Popup } from "../Popup";
 export const DepositReceived: React.StatelessComponent<{
     token?: Token;
     messageID: string | null;
-    submitDeposit?: () => Promise<void>;
-    done: () => void;
-}> = ({ token, messageID, submitDeposit, done }) => {
+    orderID: string;
+    submitDeposit?: (orderID: string) => Promise<unknown>;
+}> = ({ token, messageID, orderID, submitDeposit }) => {
     const [submitted, setSubmitted] = React.useState(false);
     const [error, setError] = React.useState(null as Error | null);
 
@@ -20,8 +20,7 @@ export const DepositReceived: React.StatelessComponent<{
         setSubmitted(true);
         if (submitDeposit) {
             try {
-                await submitDeposit();
-                done();
+                await submitDeposit(orderID);
             } catch (error) {
                 setSubmitted(false);
                 setError(error);

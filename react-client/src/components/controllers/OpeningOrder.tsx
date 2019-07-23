@@ -3,7 +3,8 @@ import * as React from "react";
 import { _catchInteractionErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
 import { isERC20, isEthereumBased } from "../../state/generalTypes";
-import { HistoryEvent, SDKContainer } from "../../state/sdkContainer";
+import { ShiftInStatus, ShiftOutEvent, ShiftOutStatus } from "../../state/persistentContainer";
+import { SDKContainer } from "../../state/sdkContainer";
 import { UIContainer } from "../../state/uiContainer";
 import { DepositReceived } from "../views/order-popup/DepositReceived";
 import { ShowDepositAddress } from "../views/order-popup/ShowDepositAddress";
@@ -11,33 +12,24 @@ import { SubmitToEthereum } from "../views/order-popup/SubmitToEthereum";
 import { TokenAllowance } from "../views/order-popup/TokenAllowance";
 
 interface Props extends ConnectedProps<[UIContainer, SDKContainer]> {
+    orderID: string;
     cancel: () => void;
-    swapSubmitted?: (h: HistoryEvent) => void;
 }
 
 /**
  * OpeningOrder is a visual component for allowing users to open new orders
  */
 export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKContainer]>>([UIContainer, SDKContainer])(
-    ({ containers: [uiContainer, sdkContainer], cancel, swapSubmitted }) => {
+    ({ orderID, containers: [uiContainer, sdkContainer], cancel }) => {
 
         // tslint:disable-next-line: prefer-const
         let [returned, setReturned] = React.useState(false);
-        const [depositReceived, setDepositReceived] = React.useState(false);
-        const [depositSubmitted, setDepositSubmitted] = React.useState(false);
+        const [ERC20Approved, setERC20Approved] = React.useState(false);
         const { orderInputs } = uiContainer.state;
-
-        const onDeposit = () => {
-            setDepositReceived(true);
-        };
-
-        const onDepositSubmitted = () => {
-            setDepositSubmitted(true);
-        };
 
         const onCancel = () => {
             uiContainer.resetTrade().catch(_catchInteractionErr_);
-            sdkContainer.resetTrade().catch(_catchInteractionErr_);
+            sdkContainer.resetTrade(orderID).catch(_catchInteractionErr_);
             cancel();
         };
 
@@ -47,75 +39,62 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
             }
             returned = true;
             setReturned(true);
-            const historyItem = await sdkContainer.getHistoryEvent();
-            if (historyItem && swapSubmitted) {
-                swapSubmitted(historyItem);
-            }
-            onCancel();
+            uiContainer.resetTrade().catch(_catchInteractionErr_);
         };
 
         const shiftIn = () => {
-            const {
-                confirmedOrderInputs,
-            } = uiContainer.state;
-            const { depositAddress, outTx, messageID } = sdkContainer.state;
+            const order = sdkContainer.order(orderID);
 
-            if (!confirmedOrderInputs) {
-                return null;
-            }
-
-            if (!depositSubmitted) {
-                // Show the deposit address and wait for a deposit
-                if (!depositReceived) {
+            switch (order.status) {
+                case ShiftInStatus.Commited:
+                    // Show the deposit address and wait for a deposit
                     return <ShowDepositAddress
+                        orderID={orderID}
                         generateAddress={sdkContainer.generateAddress}
                         token={orderInputs.srcToken}
-                        depositAddress={depositAddress}
-                        amount={confirmedOrderInputs.srcAmount}
+                        amount={order.orderInputs.srcAmount}
                         waitForDeposit={sdkContainer.waitForDeposits}
                         cancel={onCancel}
-                        done={onDeposit}
                     />;
-                }
-                return <DepositReceived messageID={messageID} submitDeposit={sdkContainer.submitMintToRenVM} done={onDepositSubmitted} />;
+                case ShiftInStatus.Deposited:
+                case ShiftInStatus.SubmittedToRenVM:
+                    return <DepositReceived messageID={order.messageID} orderID={orderID} submitDeposit={sdkContainer.submitMintToRenVM} />;
+                case ShiftInStatus.ReturnedFromRenVM:
+                case ShiftInStatus.SubmittedToEthereum:
+                    return <SubmitToEthereum token={orderInputs.dstToken} orderID={orderID} submit={sdkContainer.submitMintToEthereum} />;
+                case ShiftInStatus.ConfirmedOnEthereum:
+                    onDone().catch(_catchInteractionErr_);
+                    return <></>;
             }
-
-            if (!outTx) {
-                // Submit the trade to Ethereum
-                return <SubmitToEthereum token={orderInputs.dstToken} submit={sdkContainer.submitMintToEthereum} />;
-            }
-
-            onDone().catch(_catchInteractionErr_);
             return <></>;
         };
 
         const shiftOut = () => {
             // Burning
 
-            const { confirmedOrderInputs } = uiContainer.state;
-            const { erc20Approved, outTx, inTx, messageID } = sdkContainer.state;
+            const order = sdkContainer.order(orderID);
+            const { messageID, commitment } = order as ShiftOutEvent;
 
-            if (!confirmedOrderInputs) {
-                return null;
+            switch (order.status) {
+                case ShiftOutStatus.Commited:
+                case ShiftOutStatus.SubmittedToEthereum:
+                    const submit = async (submitOrderID: string) => {
+                        await sdkContainer.approveTokenTransfer(submitOrderID);
+                        setERC20Approved(true);
+                    };
+                    if (isERC20(orderInputs.srcToken) && !ERC20Approved) {
+                        return <TokenAllowance token={orderInputs.srcToken} amount={order.orderInputs.srcAmount} orderID={orderID} submit={submit} commitment={commitment} />;
+                    }
+
+                    // Submit the trade to Ethereum
+                    return <SubmitToEthereum token={orderInputs.dstToken} orderID={orderID} submit={sdkContainer.submitBurnToEthereum} />;
+                case ShiftOutStatus.ConfirmedOnEthereum:
+                case ShiftOutStatus.SubmittedToRenVM:
+                    return <DepositReceived messageID={messageID} orderID={orderID} submitDeposit={sdkContainer.submitBurnToRenVM} />;
+                case ShiftOutStatus.ReturnedFromRenVM:
+                    onDone().catch(_catchInteractionErr_);
+                    return <></>;
             }
-
-            if (!inTx) {
-                // // If `srcToken` is Ethereum-based they can submit to the contract
-                // // directly, otherwise they must deposit `srcToken` to a generated
-                // // address.
-                if (isERC20(orderInputs.srcToken) && !erc20Approved) {
-                    return <TokenAllowance token={orderInputs.srcToken} amount={confirmedOrderInputs.srcAmount} submit={sdkContainer.approveTokenTransfer} commitment={sdkContainer.state.commitment} />;
-                }
-
-                // Submit the trade to Ethereum
-                return <SubmitToEthereum token={orderInputs.dstToken} submit={sdkContainer.submitBurnToEthereum} />;
-            }
-
-            if (!outTx) {
-                return <DepositReceived messageID={messageID} submitDeposit={sdkContainer.submitBurnToRenVM} done={onDepositSubmitted} />;
-            }
-
-            onDone().catch(_catchInteractionErr_);
             return <></>;
         };
 

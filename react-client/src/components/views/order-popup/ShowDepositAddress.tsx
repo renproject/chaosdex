@@ -12,22 +12,22 @@ import { BTC_FAUCET_LINK } from "../tutorial-popup/TutorialPages";
 
 interface Props {
     token: Token;
-    depositAddress: string | null;
     amount: string;
+    orderID: string;
     cancel(): void;
-    generateAddress(): Promise<void>;
-    waitForDeposit(): Promise<void>;
-    done(): void;
+    generateAddress(orderID: string): string | undefined;
+    waitForDeposit(orderID: string): Promise<void>;
 }
 
 export const ShowDepositAddress: React.StatelessComponent<Props> =
-    ({ amount, token, depositAddress, cancel, generateAddress, waitForDeposit, done }) => {
+    ({ amount, token, orderID, cancel, generateAddress, waitForDeposit }) => {
         // Defaults for demo
 
         // tslint:disable-next-line: prefer-const
         let [understood, setUnderstood] = React.useState(false);
         const [copied, setCopied] = React.useState(false);
         const [showQR, setShowQR] = React.useState(false);
+        const [depositAddress, setDepositAddress] = React.useState<string | undefined>(undefined);
 
         const [showSpinner, setShowSpinner] = React.useState(false);
 
@@ -39,12 +39,14 @@ export const ShowDepositAddress: React.StatelessComponent<Props> =
         const [initialized, setInitialized] = React.useState(false);
         React.useEffect(() => {
             if (!initialized) {
-                generateAddress().catch((error) => {
+                try {
+                    setDepositAddress(generateAddress(orderID));
+                } catch (error) {
                     setFailed(error);
-                });
+                }
                 setInitialized(true);
             }
-        }, [initialized, generateAddress]);
+        }, [initialized, generateAddress, orderID]);
 
         const showDepositAddress = () => {
             setTimer(setTimeout(() => {
@@ -53,12 +55,11 @@ export const ShowDepositAddress: React.StatelessComponent<Props> =
             );
             setUnderstood(true);
             understood = true;
-            waitForDeposit().then(() => {
-                done();
-            }).catch(() => {
-                setUnderstood(false);
-                understood = false;
-            });
+            waitForDeposit(orderID)
+                .catch(() => {
+                    setUnderstood(false);
+                    understood = false;
+                });
         };
 
         const onClickAddress = () => {

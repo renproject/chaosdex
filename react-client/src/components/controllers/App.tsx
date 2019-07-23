@@ -95,7 +95,7 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
                     setInitialized(true);
                 }
             }
-        }, [initialized, uiContainer, location.search, login]);
+        }, [initialized, uiContainer, location.search, login, showingTutorial]);
 
         return <main>
             <React.Suspense fallback={null}>

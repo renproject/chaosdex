@@ -8,8 +8,9 @@ import { Popup } from "../Popup";
 
 export const SubmitToEthereum: React.StatelessComponent<{
     token: Token,
-    submit: () => Promise<void>,
-}> = ({ token, submit }) => {
+    orderID: string,
+    submit: (orderID: string) => Promise<void>,
+}> = ({ token, orderID, submit }) => {
     const [submitting, setSubmitting] = React.useState(false);
     const [error, setError] = React.useState(null as Error | null);
 
@@ -17,7 +18,7 @@ export const SubmitToEthereum: React.StatelessComponent<{
         setError(null);
         setSubmitting(true);
         try {
-            await submit();
+            await submit(orderID);
         } catch (error) {
             setError(error);
             setSubmitting(false);

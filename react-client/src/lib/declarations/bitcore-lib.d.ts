@@ -103,8 +103,8 @@ declare module "bitcore-lib" {
         OP_MIN = 163,
         OP_MAX = 164,
         OP_WITHIN = 165,
-        OP_RIPEMD160 = 166,
-        OP_SHA1 = 167,
+        OP_RIPEMD160 = 166, // DevSkim: ignore DS126858
+        OP_SHA1 = 167, // DevSkim: ignore DS126858
         OP_SHA256 = 168,
         OP_HASH160 = 169,
         OP_HASH256 = 170,
@@ -544,8 +544,8 @@ declare module "bitcore-lib-zcash" {
         OP_MIN = 163,
         OP_MAX = 164,
         OP_WITHIN = 165,
-        OP_RIPEMD160 = 166,
-        OP_SHA1 = 167,
+        OP_RIPEMD160 = 166, // DevSkim: ignore DS126858
+        OP_SHA1 = 167, // DevSkim: ignore DS126858
         OP_SHA256 = 168,
         OP_HASH160 = 169,
         OP_HASH256 = 170,

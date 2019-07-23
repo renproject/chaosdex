@@ -1,7 +1,10 @@
 // tslint:disable:no-any
 import * as React from "react";
 
+// import { Loading } from "@renproject/react-components";
 import { Container, Subscribe } from "unstated";
+
+// import { PersistContainer } from "unstated-persist";
 
 interface AnyConnectedProps {
     containers: Array<Container<any>>;
@@ -17,10 +20,18 @@ type GetContainers<Props> = Props extends ConnectedProps<infer Containers> ?
 type GetContainerClasses<Props> = Props extends ConnectedProps<Array<infer ContainerInstance>> ?
     Array<new (...params: any[]) => ContainerInstance> : never;
 
+// const isBootstrapped = (container: Container<any> | PersistContainer<any>): boolean => {
+//     return (container as any).persist === undefined || container.state._persist_version !== undefined;
+// }
+
 // Somewhat typesafe version of https://github.com/goncy/unstated-connect
 export const connect = <Props extends AnyConnectedProps>(_containers: GetContainerClasses<Props>) =>
     (Component: React.ComponentClass<Props & ConnectedProps<GetContainers<Props>>> | React.StatelessComponent<Props & ConnectedProps<GetContainers<Props>>>) => (props: Omit<Props, "containers">) => (
         <Subscribe to={_containers}>
-            {(...containers) => <Component {...({ ...props, containers } as unknown as Props & ConnectedProps<GetContainers<Props>>)} />}
+            {(...containers) =>
+                // containers.every(isBootstrapped) ?
+                <Component {...({ ...props, containers } as unknown as Props & ConnectedProps<GetContainers<Props>>)} />
+                // : <Loading />
+            }
         </Subscribe>
     );
