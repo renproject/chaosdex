@@ -1273,10 +1273,10 @@
     react-router-dom "^5.0.0"
     react-select "^2.4.3"
 
-"@renproject/ren@0.1.2":
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/@renproject/ren/-/ren-0.1.2.tgz#6684c0bbae0a1070253948522339c614566a58c1"
-  integrity sha512-fAWaV/EAwHUtNbyzLt4pAFB8vN9dDxMIbX8P0dD/KIPTLr09ohO0SlFFY1X+KyRgspLvSk5AdbdHmP7Cl3CQJg==
+"@renproject/ren@^0.1.4":
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/@renproject/ren/-/ren-0.1.4.tgz#224f83d1eed57556f5bdd60a36a8fceac03a0294"
+  integrity sha512-KzZYm9d/5LtsP5QPm0uEr8kvq9tZwA0ZzIrveAoHMR+Wc7sEQjkHD1fjFIJCh77a1seWziSg9CXoTbGSHIqiHQ==
   dependencies:
     "@renproject/contracts" "^0.3.8"
     "@types/bitcore-lib" "^0.15.1"
@@ -1293,9 +1293,9 @@
     ethereumjs-util "^6.1.0"
     immutable "^4.0.0-rc.12"
     wallet-address-validator "^0.2.4"
-    web3 "^1.0.0-beta.55"
-    web3-core "^1.0.0-beta.55"
-    web3-eth-abi "^1.0.0-beta.55"
+    web3 "1.0.0-beta.55"
+    web3-core "1.0.0-beta.55"
+    web3-eth-abi "1.0.0-beta.55"
 
 "@restart/context@^2.1.4":
   version "2.1.4"
@@ -12686,7 +12686,7 @@ web3-core-subscriptions@1.0.0-beta.55:
     eventemitter3 "^3.1.0"
     lodash "^4.17.11"
 
-web3-core@1.0.0-beta.55, web3-core@^1.0.0-beta.55:
+web3-core@1.0.0-beta.55:
   version "1.0.0-beta.55"
   resolved "https://registry.yarnpkg.com/web3-core/-/web3-core-1.0.0-beta.55.tgz#26b9abbf1bc1837c9cc90f06ecbc4ed714f89b53"
   integrity sha512-AMMp7TLEtE7u8IJAu/THrRhBTZyZzeo7Y6GiWYNwb5+KStC9hIGLr9cI1KX9R6ZioTOLRHrqT7awDhnJ1ku2mg==
@@ -12699,7 +12699,7 @@ web3-core@1.0.0-beta.55, web3-core@^1.0.0-beta.55:
     web3-providers "1.0.0-beta.55"
     web3-utils "1.0.0-beta.55"
 
-web3-eth-abi@1.0.0-beta.55, web3-eth-abi@^1.0.0-beta.55:
+web3-eth-abi@1.0.0-beta.55:
   version "1.0.0-beta.55"
   resolved "https://registry.yarnpkg.com/web3-eth-abi/-/web3-eth-abi-1.0.0-beta.55.tgz#69250420039346105a3d0f899c0a8a53be926f97"
   integrity sha512-3h1xnm/vYmKUXTOYAOP0OsB5uijQV76pNNRGKOB6Dq6GR1pbcbD3WrB/4I643YA8l91t5FRzFzUiA3S77R2iqw==
@@ -12868,7 +12868,7 @@ web3-utils@1.0.0-beta.55:
     randombytes "^2.1.0"
     utf8 "2.1.1"
 
-web3@^1.0.0-beta.55:
+web3@1.0.0-beta.55, web3@^1.0.0-beta.55:
   version "1.0.0-beta.55"
   resolved "https://registry.yarnpkg.com/web3/-/web3-1.0.0-beta.55.tgz#8845075129299da172c2eb41a748c8a87c2a2b5a"
   integrity sha512-yJpwy4IUA3T/F9hWzYQVn0GbJCrAaZ0KTIO3iuqkhaYH0Y09KV7k4GzFi4hN7hT4cFTj4yIKaeVCwQ5kzvi2Vg==
