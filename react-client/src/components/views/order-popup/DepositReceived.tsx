@@ -18,7 +18,7 @@ export const DepositReceived: React.StatelessComponent<{
     const [submitted, setSubmitted] = React.useState(false);
     const [error, setError] = React.useState(null as Error | null);
 
-    const onClick = async () => {
+    const onClick = React.useCallback(async () => {
         setError(null);
         setSubmitted(true);
         if (submitDeposit) {
@@ -30,7 +30,7 @@ export const DepositReceived: React.StatelessComponent<{
                 _catchInteractionErr_(error);
             }
         }
-    };
+    }, [orderID, submitDeposit]);
 
     // useEffect replaces `componentDidMount` and `componentDidUpdate`.
     // To limit it to running once, we use the initialized hook.

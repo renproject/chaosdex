@@ -17,7 +17,7 @@ export const SubmitToEthereum: React.StatelessComponent<{
     const [submitting, setSubmitting] = React.useState(false);
     const [error, setError] = React.useState(null as Error | null);
 
-    const onSubmit = async () => {
+    const onSubmit = React.useCallback(async () => {
         setError(null);
         setSubmitting(true);
         try {
@@ -28,7 +28,7 @@ export const SubmitToEthereum: React.StatelessComponent<{
             setSubmitting(false);
             _catchInteractionErr_(error);
         }
-    };
+    }, [orderID, submit]);
 
     // useEffect replaces `componentDidMount` and `componentDidUpdate`.
     // To limit it to running once, we use the initialized hook.

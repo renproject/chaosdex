@@ -81,7 +81,7 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
                     if (isERC20(order.orderInputs.srcToken) && !ERC20Approved) {
                         return <TokenAllowance token={order.orderInputs.srcToken} amount={order.orderInputs.srcAmount} orderID={orderID} submit={submit} commitment={commitment} hide={hide} />;
                     }
-                // Intentionally don't break to fall-through to next case.
+                    return <SubmitToEthereum txHash={order.inTx} token={order.orderInputs.dstToken} orderID={orderID} submit={sdkContainer.submitBurnToEthereum} hide={hide} />;
                 case ShiftOutStatus.SubmittedToEthereum:
                     // Submit the trade to Ethereum
                     return <SubmitToEthereum txHash={order.inTx} token={order.orderInputs.dstToken} orderID={orderID} submit={sdkContainer.submitBurnToEthereum} hide={hide} />;

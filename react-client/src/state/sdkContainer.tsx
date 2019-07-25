@@ -1,6 +1,6 @@
 import { sleep } from "@renproject/react-components";
 import RenVM, {
-    Chain, NetworkTestnet, ShiftInObject, Signature, strip0x, Tokens as ShiftActions,
+    Chain, NetworkTestnet, ShiftInObject, Signature, Tokens as ShiftActions,
 } from "@renproject/ren";
 import { TxStatus } from "@renproject/ren/dist/renVM/transaction";
 import BigNumber from "bignumber.js";
