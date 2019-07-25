@@ -57,23 +57,21 @@
     text-align: center;
 }
 
-.popup--header--x {
+.popup--x {
     position: absolute;
     right: ((40px - 12px) / 2);
     top: ((40px - 12px) / 2);
     height: 12px;
     width: 12px;
     margin-top: 0;
-    background: url($images + 'exit.svg');
+    background: url($images + 'exit-black.svg');
     background-size: 100%;
     cursor: pointer;
 }
 
-.popup--body {
-    .popup--header--x {
-        margin-top: 0px;
-        background: url($images + 'exit-black.svg');
-    }
+.popup--x.popup--x--white {
+    margin-top: 0px;
+    background: url($images + 'exit.svg');
 }
 
 .popup.open,

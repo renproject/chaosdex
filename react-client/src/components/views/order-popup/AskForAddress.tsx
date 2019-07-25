@@ -16,6 +16,7 @@ export const AskForAddress: React.StatelessComponent<{
 }> = ({ token, message, defaultAddress, onAddress, cancel }) => {
     const [address, updateAddress] = React.useState("");
     const [error, updateError] = React.useState(null as string | null);
+    const [submitting, updateSubmitting] = React.useState(false);
     const inputRef = React.useRef<HTMLInputElement | null>() as React.MutableRefObject<HTMLInputElement | null>;
 
     const tokenDetails = Tokens.get(token);
@@ -26,7 +27,13 @@ export const AskForAddress: React.StatelessComponent<{
             updateError(`Invalid ${tokenDetails.chain.toUpperCase()} address`);
             return;
         }
-        onAddress(address);
+        try {
+            updateSubmitting(true);
+            onAddress(address);
+        } catch (error) {
+            updateError(String(error.message || error));
+            updateSubmitting(false);
+        }
     };
 
     const useDefaultAddress = () => {
@@ -47,7 +54,6 @@ export const AskForAddress: React.StatelessComponent<{
             <div className="popup--body">
                 <TokenIcon className="token-icon" token={token} />
                 <h2>{token} address</h2>
-                <div role="button" className="popup--header--x" onClick={cancel} />
                 <div className="address-input--message">
                     {message}
                 </div>
@@ -71,7 +77,7 @@ export const AskForAddress: React.StatelessComponent<{
                     </div>
                     {error ? <span className="red"><br />{error}</span> : null}
                     <div className="popup--buttons">
-                        <button className="button open--confirm" disabled={address === ""} type="submit"><span>{error ? "Use anyway" : "Confirm"}</span></button>
+                        <button className="button open--confirm" disabled={address === "" || submitting} type="submit"><span>{error ? "Use anyway" : "Confirm"}</span></button>
                     </div>
                 </form>
             </div>

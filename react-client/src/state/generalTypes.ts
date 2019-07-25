@@ -60,9 +60,9 @@ export interface TokenDetails {
 export type TokenPrices = Map<Token, Map<Currency, number>>;
 
 // tslint:disable: non-literal-require
-const ERC20ABI = require(`../contracts/devnet/ERC20.json`).abi;
-const DEXABI = require(`../contracts/devnet/DEX.json`).abi;
-const DEXAdapterABI = require(`../contracts/devnet/DEXAdapter.json`).abi;
+const ERC20ABI = require(`../contracts/testnet/ERC20.json`).abi;
+const DEXABI = require(`../contracts/testnet/DEX.json`).abi;
+const DEXAdapterABI = require(`../contracts/testnet/DEXAdapter.json`).abi;
 
 export const NULL_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000";
 

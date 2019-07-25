@@ -1,6 +1,7 @@
 import { Chain } from "@renproject/ren";
 import localForage from "localforage";
 import { PersistContainer } from "unstated-persist";
+import { TxStatus } from "@renproject/ren/dist/renVM/transaction";
 
 // import { Chain } from "@renproject/ren";
 // import { Token } from "./generalTypes";
@@ -22,20 +23,20 @@ export interface Tx {
 }
 
 export enum ShiftInStatus {
-    Commited = "commited",
-    Deposited = "deposited",
-    SubmittedToRenVM = "submittedToRenVM",
-    ReturnedFromRenVM = "returnedFromRenVM",
-    SubmittedToEthereum = "submittedToEthereum",
-    ConfirmedOnEthereum = "confirmedOnEthereum",
+    Commited = "shiftIn_committed",
+    Deposited = "shiftIn_deposited",
+    SubmittedToRenVM = "shiftIn_submittedToRenVM",
+    ReturnedFromRenVM = "shiftIn_returnedFromRenVM",
+    SubmittedToEthereum = "shiftIn_submittedToEthereum",
+    ConfirmedOnEthereum = "shiftIn_confirmedOnEthereum",
 }
 
 export enum ShiftOutStatus {
-    Commited = "commited",
-    SubmittedToEthereum = "submittedToEthereum",
-    ConfirmedOnEthereum = "confirmedOnEthereum",
-    SubmittedToRenVM = "submittedToRenVM",
-    ReturnedFromRenVM = "returnedFromRenVM",
+    Commited = "shiftOut_committed",
+    SubmittedToEthereum = "shiftOut_submittedToEthereum",
+    ConfirmedOnEthereum = "shiftOut_confirmedOnEthereum",
+    SubmittedToRenVM = "shiftOut_submittedToRenVM",
+    ReturnedFromRenVM = "shiftOut_returnedFromRenVM",
 }
 
 export interface HistoryEventCommon {
@@ -44,11 +45,11 @@ export interface HistoryEventCommon {
     inTx: Tx | null;
     outTx: Tx | null;
     receivedAmount: string | null;
-    complete: boolean;
     orderInputs: OrderInputs;
     commitment: Commitment;
     messageID: string | null;
     nonce: string;
+    renVMStatus: TxStatus | null;
 }
 
 export interface ShiftInEvent extends HistoryEventCommon {
@@ -79,7 +80,6 @@ const initialState = {
         //         srcAmount: "1",
         //         dstAmount: "1",
         //     },
-        //     complete: true,
         // }
     } as {
         [key: string]: HistoryEvent,
@@ -92,26 +92,26 @@ export class PersistentContainer extends PersistContainer<typeof initialState> {
     public state = initialState;
 
     public persist = {
-        key: "ren-order-history",
+        key: "ren-order-history-v2",
         version: 1,
         storage: localForage,
     };
 
     public updateHistoryItem = async (key: string, item: Partial<HistoryEvent>) => {
-        { // tslint:disable: no-any
-            await this.setState({
-                historyItems: { ...this.state.historyItems, [key]: { ...this.state.historyItems[key], ...item } },
-                _persist_version: (this.state as any)._persist_version || 1,
-            } as any);
-        } // tslint:enable: no-any
+        await this.setState({
+            historyItems: { ...this.state.historyItems, [key]: { ...this.state.historyItems[key], ...item } },
+            // tslint:disable-next-line: no-any
+            _persist_version: (this.state as any)._persist_version || 1,
+            // tslint:disable-next-line: no-any
+        } as any);
     }
 
     public removeHistoryItem = async (key: string) => {
-        { // tslint:disable: no-any
-            await this.setState({
-                historyItems: { ...this.state.historyItems, [key]: undefined },
-                _persist_version: (this.state as any)._persist_version || 1,
-            } as any);
-        } // tslint:enable: no-any
+        await this.setState({
+            historyItems: { ...this.state.historyItems, [key]: undefined },
+            // tslint:disable-next-line: no-any
+            _persist_version: (this.state as any)._persist_version || 1,
+            // tslint:disable-next-line: no-any
+        } as any);
     }
 }

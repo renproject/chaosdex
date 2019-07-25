@@ -13,25 +13,17 @@ import { TokenAllowance } from "../views/order-popup/TokenAllowance";
 
 interface Props extends ConnectedProps<[UIContainer, SDKContainer]> {
     orderID: string;
-    cancel: () => void;
 }
 
 /**
  * OpeningOrder is a visual component for allowing users to open new orders
  */
 export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKContainer]>>([UIContainer, SDKContainer])(
-    ({ orderID, containers: [uiContainer, sdkContainer], cancel }) => {
+    ({ orderID, containers: [uiContainer, sdkContainer] }) => {
 
         // tslint:disable-next-line: prefer-const
         let [returned, setReturned] = React.useState(false);
         const [ERC20Approved, setERC20Approved] = React.useState(false);
-        const { orderInputs } = uiContainer.state;
-
-        const onCancel = () => {
-            uiContainer.resetTrade().catch(_catchInteractionErr_);
-            sdkContainer.resetTrade(orderID).catch(_catchInteractionErr_);
-            cancel();
-        };
 
         const onDone = async () => {
             if (returned) {
@@ -42,65 +34,72 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
             uiContainer.resetTrade().catch(_catchInteractionErr_);
         };
 
-        const shiftIn = () => {
-            const order = sdkContainer.order(orderID);
+        const hide = async () => {
+            await uiContainer.handleOrder(null);
+        };
 
+        const order = sdkContainer.order(orderID);
+        if (!order) {
+            throw new Error("Order not set");
+        }
+
+        const shiftIn = () => {
             switch (order.status) {
                 case ShiftInStatus.Commited:
                     // Show the deposit address and wait for a deposit
                     return <ShowDepositAddress
                         orderID={orderID}
                         generateAddress={sdkContainer.generateAddress}
-                        token={orderInputs.srcToken}
+                        token={order.orderInputs.srcToken}
                         amount={order.orderInputs.srcAmount}
                         waitForDeposit={sdkContainer.waitForDeposits}
-                        cancel={onCancel}
+                        cancel={uiContainer.resetTrade}
                     />;
                 case ShiftInStatus.Deposited:
                 case ShiftInStatus.SubmittedToRenVM:
-                    return <DepositReceived messageID={order.messageID} orderID={orderID} submitDeposit={sdkContainer.submitMintToRenVM} />;
+                    return <DepositReceived renVMStatus={order.renVMStatus} messageID={order.messageID} orderID={orderID} submitDeposit={sdkContainer.submitMintToRenVM} hide={hide} />;
                 case ShiftInStatus.ReturnedFromRenVM:
                 case ShiftInStatus.SubmittedToEthereum:
-                    return <SubmitToEthereum token={orderInputs.dstToken} orderID={orderID} submit={sdkContainer.submitMintToEthereum} />;
+                    return <SubmitToEthereum txHash={order.outTx} token={order.orderInputs.dstToken} orderID={orderID} submit={sdkContainer.submitMintToEthereum} hide={hide} />;
                 case ShiftInStatus.ConfirmedOnEthereum:
                     onDone().catch(_catchInteractionErr_);
                     return <></>;
             }
+            console.error(`Unknown status in ShiftIn: ${order.status}`);
             return <></>;
         };
 
         const shiftOut = () => {
-            // Burning
-
-            const order = sdkContainer.order(orderID);
-            const { messageID, commitment } = order as ShiftOutEvent;
+            const { messageID, commitment, renVMStatus } = order as ShiftOutEvent;
 
             switch (order.status) {
                 case ShiftOutStatus.Commited:
-                case ShiftOutStatus.SubmittedToEthereum:
                     const submit = async (submitOrderID: string) => {
                         await sdkContainer.approveTokenTransfer(submitOrderID);
                         setERC20Approved(true);
                     };
-                    if (isERC20(orderInputs.srcToken) && !ERC20Approved) {
-                        return <TokenAllowance token={orderInputs.srcToken} amount={order.orderInputs.srcAmount} orderID={orderID} submit={submit} commitment={commitment} />;
+                    if (isERC20(order.orderInputs.srcToken) && !ERC20Approved) {
+                        return <TokenAllowance token={order.orderInputs.srcToken} amount={order.orderInputs.srcAmount} orderID={orderID} submit={submit} commitment={commitment} hide={hide} />;
                     }
-
+                // Intentionally don't break to fall-through to next case.
+                case ShiftOutStatus.SubmittedToEthereum:
                     // Submit the trade to Ethereum
-                    return <SubmitToEthereum token={orderInputs.dstToken} orderID={orderID} submit={sdkContainer.submitBurnToEthereum} />;
+                    return <SubmitToEthereum txHash={order.inTx} token={order.orderInputs.dstToken} orderID={orderID} submit={sdkContainer.submitBurnToEthereum} hide={hide} />;
                 case ShiftOutStatus.ConfirmedOnEthereum:
                 case ShiftOutStatus.SubmittedToRenVM:
-                    return <DepositReceived messageID={messageID} orderID={orderID} submitDeposit={sdkContainer.submitBurnToRenVM} />;
+                    return <DepositReceived renVMStatus={renVMStatus} messageID={messageID} orderID={orderID} submitDeposit={sdkContainer.submitBurnToRenVM} hide={hide} />;
                 case ShiftOutStatus.ReturnedFromRenVM:
                     onDone().catch(_catchInteractionErr_);
                     return <></>;
             }
+            console.error(`Unknown status in ShiftOut: ${order.status}`);
             return <></>;
         };
 
-        if (!isEthereumBased(orderInputs.srcToken) && isEthereumBased(orderInputs.dstToken)) {
+
+        if (!isEthereumBased(order.orderInputs.srcToken) && isEthereumBased(order.orderInputs.dstToken)) {
             return shiftIn();
-        } else if (isEthereumBased(orderInputs.srcToken) && !isEthereumBased(orderInputs.dstToken)) {
+        } else if (isEthereumBased(order.orderInputs.srcToken) && !isEthereumBased(order.orderInputs.dstToken)) {
             return shiftOut();
         } else {
             return <p>Unsupported token pair.</p>;

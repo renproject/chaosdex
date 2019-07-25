@@ -27,8 +27,7 @@ export const PromptDetails = connect<Props & ConnectedProps<[UIContainer]>>([UIC
 
         const onRefundAddress = async (refundAddress: string) => {
             await uiContainer.updateRefundAddress(refundAddress).catch(_catchInteractionErr_);
-            const currentOrderID = await uiContainer.commitOrder();
-            await uiContainer.handleOrder(currentOrderID);
+            await uiContainer.commitOrder();
         };
 
         const onCancel = () => {

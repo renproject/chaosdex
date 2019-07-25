@@ -1,6 +1,8 @@
+import { sleep } from "@renproject/react-components";
 import RenVM, {
     Chain, NetworkTestnet, ShiftInObject, Signature, strip0x, Tokens as ShiftActions,
 } from "@renproject/ren";
+import { TxStatus } from "@renproject/ren/dist/renVM/transaction";
 import BigNumber from "bignumber.js";
 import bs58 from "bs58";
 import { Container } from "unstated";
@@ -10,10 +12,9 @@ import { TransactionReceipt } from "web3-core";
 import {
     syncGetDEXAdapterAddress, syncGetDEXAddress, syncGetTokenAddress,
 } from "../lib/contractAddresses";
-import { _catchBackgroundErr_ } from "../lib/errors";
 import { getAdapter, getERC20, NULL_BYTES32, Tokens } from "./generalTypes";
 import {
-    Commitment, PersistentContainer, ShiftInStatus, ShiftOutStatus,
+    Commitment, HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus,
 } from "./persistentContainer";
 
 const BitcoinTx = (hash: string) => ({ hash, chain: Chain.Bitcoin });
@@ -43,7 +44,7 @@ export class SDKContainer extends Container<typeof initialState> {
         this.persistentContainer = persistentContainer;
     }
 
-    public order = (orderID: string) => this.persistentContainer.state.historyItems[orderID];
+    public order = (orderID: string): HistoryEvent | undefined => this.persistentContainer.state.historyItems[orderID];
 
     public connect = async (web3: Web3, address: string | null, networkID: number): Promise<void> => {
         await this.setState({
@@ -52,10 +53,6 @@ export class SDKContainer extends Container<typeof initialState> {
             sdkRenVM: new RenVM(NetworkTestnet),
             sdkAddress: address
         });
-    }
-
-    public resetTrade = async (orderID: string) => {
-        await this.persistentContainer.removeHistoryItem(orderID);
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -111,35 +108,61 @@ export class SDKContainer extends Container<typeof initialState> {
             throw new Error("Order not set");
         }
 
-        const amount = order.commitment.srcAmount.toString();
-        const txHash = NULL_BYTES32;
-        const signatureBytes = NULL_BYTES32;
+        let transactionHash = order.inTx ? order.inTx.hash : null;
 
-        const promiEvent = getAdapter(web3, networkID).methods.trade(
-            order.commitment.srcToken, // _src: string
-            order.commitment.dstToken, // _dst: string
-            order.commitment.minDestinationAmount, // _minDstAmt: BigNumber
-            order.commitment.toAddress, // _to: string
-            order.commitment.refundBlockNumber, // _refundBN: BigNumber
-            order.commitment.refundAddress, // _refundAddress: string
-            amount, // _amount: BigNumber
-            txHash, // _hash: string
-            signatureBytes, // _sig: string
-        ).send({ from: address, gas: 350000 });
+        if (!transactionHash) {
+            const amount = order.commitment.srcAmount.toString();
+            const txHash = NULL_BYTES32;
+            const signatureBytes = NULL_BYTES32;
 
-        const transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve).catch(reject));
+            const promiEvent = getAdapter(web3, networkID).methods.trade(
+                order.commitment.srcToken, // _src: string
+                order.commitment.dstToken, // _dst: string
+                order.commitment.minDestinationAmount, // _minDstAmt: BigNumber
+                order.commitment.toAddress, // _to: string
+                order.commitment.refundBlockNumber, // _refundBN: BigNumber
+                order.commitment.refundAddress, // _refundAddress: string
+                amount, // _amount: BigNumber
+                txHash, // _hash: string
+                signatureBytes, // _sig: string
+            ).send({ from: address, gas: 350000 });
+
+            promiEvent.catch((error: Error) => {
+                throw error;
+            });
+
+            transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve).catch(reject));
+            await this.persistentContainer.updateHistoryItem(order.id, {
+                inTx: EthereumTx(transactionHash),
+                status: ShiftOutStatus.SubmittedToEthereum,
+            });
+        }
+
+        // Wait for confirmation
+        let receipt;
+        while (!receipt) {
+            receipt = await web3.eth.getTransactionReceipt(transactionHash);
+            if (receipt) {
+                break;
+            }
+            await sleep(3 * 1000);
+        }
 
         await this.persistentContainer.updateHistoryItem(order.id, {
-            inTx: EthereumTx(transactionHash),
-            status: ShiftOutStatus.SubmittedToEthereum,
+            status: ShiftOutStatus.ConfirmedOnEthereum,
         });
     }
 
-    public submitBurnToRenVM = async (orderID: string) => {
+    public submitBurnToRenVM = async (orderID: string, _resubmit = false) => {
+        // if (resubmit) {
+        //     await this.persistentContainer.updateHistoryItem(orderID, { status: ShiftOutStatus.ConfirmedOnEthereum, messageID: null });
+        // }
+
         const { sdkWeb3: web3, sdkRenVM: renVM } = this.state;
         if (!web3 || !renVM) {
             throw new Error(`Invalid values required to submit deposit`);
         }
+
         const order = this.order(orderID);
         if (!order) {
             throw new Error("Order not set");
@@ -149,22 +172,27 @@ export class SDKContainer extends Container<typeof initialState> {
             throw new Error(`Invalid values required to submit deposit`);
         }
 
-        const shiftOutObject = renVM.shiftOut({
+        const shiftOutObject = await renVM.shiftOut({
             web3Provider: web3.currentProvider,
             sendToken: ShiftActions[order.orderInputs.dstToken].Eth2Btc,
             txHash: order.inTx.hash
-        });
+        }).readFromEthereum();
         const response = await shiftOutObject.submitToRenVM()
             .on("messageID", (messageID: string) => {
                 this.persistentContainer.updateHistoryItem(order.id, {
                     messageID,
                     status: ShiftOutStatus.SubmittedToRenVM,
                 }).catch(console.error);
+            })
+            .on("status", (renVMStatus: TxStatus) => {
+                this.persistentContainer.updateHistoryItem(order.id, {
+                    renVMStatus,
+                }).catch(console.error);
             });
-        const receivedAmount = new BigNumber(response.amount).dividedBy(new BigNumber(10).exponentiatedBy(8)).toString();
+        const receivedAmount = order.orderInputs.dstAmount; // new BigNumber(response.amount).dividedBy(new BigNumber(10).exponentiatedBy(8)).toString();
         await this.persistentContainer.updateHistoryItem(order.id, {
             receivedAmount,
-            outTx: BitcoinTx(bs58.encode(Buffer.from(strip0x(response.to), "hex"))),
+            outTx: BitcoinTx(bs58.encode(Buffer.from((response as any).tx.args[1].value, "base64"))),
             status: ShiftOutStatus.ReturnedFromRenVM,
         }).catch(console.error);
     }
@@ -194,6 +222,9 @@ export class SDKContainer extends Container<typeof initialState> {
             throw new Error("Invalid parameters passed to `generateAddress`");
         }
         const order = this.order(orderID);
+        if (!order) {
+            throw new Error("Order not set");
+        }
 
         const shiftObject = renVM.shiftIn({
             sendToken: ShiftActions[order.orderInputs.srcToken].Btc2Eth,
@@ -210,23 +241,44 @@ export class SDKContainer extends Container<typeof initialState> {
     // Takes a commitment as bytes or an array of primitive types and returns
     // the deposit address
     public generateAddress = (orderID: string): string | undefined => {
-        return this.shiftInObject(orderID).addr();
+        return this
+            .shiftInObject(orderID)
+            .addr();
     }
 
     // Retrieves unspent deposits at the provided address
     public waitForDeposits = async (orderID: string, confirmations = 0) => {
-        await this.shiftInObject(orderID).waitForDeposit(confirmations);
-        await this.persistentContainer.updateHistoryItem(orderID, { status: ShiftInStatus.Deposited });
+        await this
+            .shiftInObject(orderID)
+            .waitForDeposit(confirmations);
+        await this.persistentContainer
+            .updateHistoryItem(orderID, { status: ShiftInStatus.Deposited });
     }
 
     // Submits the commitment and transaction to the darknodes, and then submits
     // the signature to the adapter address
-    public submitMintToRenVM = async (orderID: string): Promise<Signature> => {
-        const onMessageID = (messageID: string) => {
-            this.persistentContainer.updateHistoryItem(orderID, { messageID, status: ShiftInStatus.SubmittedToRenVM })
+    public submitMintToRenVM = async (orderID: string, _resubmit = false): Promise<Signature> => {
+        // if (resubmit) {
+        //     await this.persistentContainer.updateHistoryItem(orderID, { status: ShiftInStatus.Deposited, messageID: null });
+        // }
+        const onMessageID = (messageID: string) =>
+            this.persistentContainer
+                .updateHistoryItem(orderID, { messageID, status: ShiftInStatus.SubmittedToRenVM })
                 .catch(console.error);
+        const onStatus = (renVMStatus: TxStatus) => {
+            this.persistentContainer.updateHistoryItem(orderID, {
+                renVMStatus,
+            }).catch(console.error);
         };
-        const signature = await (await this.shiftInObject(orderID).waitForDeposit(0)).submitToRenVM().on("messageID", onMessageID);
+        const shiftInObject = this
+            .shiftInObject(orderID)
+            .waitForDeposit(0);
+        await sleep(10 * 1000);
+        const obj = await shiftInObject;
+        const signature = await obj
+            .submitToRenVM()
+            .on("messageID", onMessageID)
+            .on("status", onStatus);
         await this.persistentContainer.updateHistoryItem(orderID, { status: ShiftInStatus.ReturnedFromRenVM });
         return signature;
     }
@@ -241,36 +293,43 @@ export class SDKContainer extends Container<typeof initialState> {
             throw new Error("Order not set");
         }
 
-        const promiEvent = (await this.submitMintToRenVM(orderID)).submitToEthereum(web3.currentProvider);
-        const transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve).catch(reject));
-        await this.persistentContainer.updateHistoryItem(orderID, { status: ShiftInStatus.SubmittedToEthereum });
-        // tslint:disable-next-line: no-any
-        const receivedAmount = await new Promise<BigNumber>((resolve, reject) => (promiEvent as any).once("confirmation", async (_confirmations: number, receipt: TransactionReceipt) => {
+        return new Promise<void>(async (resolve, reject) => {
+            const promiEvent = (await this.submitMintToRenVM(orderID)).submitToEthereum(web3.currentProvider);
+            promiEvent.catch((error) => {
+                reject(error);
+            });
+            const transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve).catch(reject));
+            await this.persistentContainer.updateHistoryItem(orderID, { status: ShiftInStatus.SubmittedToEthereum });
+            // tslint:disable-next-line: no-any
+            const receivedAmount = await new Promise<BigNumber>((resolve, reject) => (promiEvent as any).once("confirmation", async (_confirmations: number, receipt: TransactionReceipt) => {
 
-            // Loop through logs to find exchange event from the DEX contract.
-            // The event log always has the first topic as "0x8d10c7a1"
-            // TODO: Calculate this instead of hard coding it.
-            for (const log of receipt.logs) {
-                if (
-                    log.address.toLowerCase() === syncGetDEXAddress(networkID).toLowerCase() &&
-                    log.topics[0] === "0x8d10c7a140b316d7362354a44023c657a9c436616f21481cac1cb594aa305458".toLowerCase()
-                ) {
-                    const data = web3.eth.abi.decodeParameters(["address", "address", "uint256", "uint256"], log.data);
-                    const dstTokenDetails = Tokens.get(order.orderInputs.dstToken);
-                    const decimals = dstTokenDetails ? dstTokenDetails.decimals : 8;
-                    const receivedAmountBN = new BigNumber(data[3]);
-                    const rcv = receivedAmountBN.dividedBy(new BigNumber(10).exponentiatedBy(decimals));
-                    resolve(rcv);
-                    return;
+                // Loop through logs to find exchange event from the DEX contract.
+                // The event log always has the first topic as "0x8d10c7a1"
+                // TODO: Calculate this instead of hard coding it.
+                for (const log of receipt.logs) {
+                    if (
+                        log.address.toLowerCase() === syncGetDEXAddress(networkID).toLowerCase() &&
+                        log.topics[0] === "0x8d10c7a140b316d7362354a44023c657a9c436616f21481cac1cb594aa305458".toLowerCase()
+                    ) {
+                        const data = web3.eth.abi.decodeParameters(["address", "address", "uint256", "uint256"], log.data);
+                        const dstTokenDetails = Tokens.get(order.orderInputs.dstToken);
+                        const decimals = dstTokenDetails ? dstTokenDetails.decimals : 8;
+                        const receivedAmountBN = new BigNumber(data[3]);
+                        const rcv = receivedAmountBN.dividedBy(new BigNumber(10).exponentiatedBy(decimals));
+                        resolve(rcv);
+                        return;
+                    }
                 }
-            }
-            reject(new Error("No burn events found in transaction."));
-        }).catch(reject));
+                reject(new Error("No burn events found in transaction."));
+            }).catch(reject));
 
-        await this.persistentContainer.updateHistoryItem(order.id, {
-            receivedAmount: receivedAmount.toString(),
-            outTx: EthereumTx(transactionHash),
-            status: ShiftInStatus.ConfirmedOnEthereum,
+            await this.persistentContainer.updateHistoryItem(order.id, {
+                receivedAmount: receivedAmount.toString(),
+                outTx: EthereumTx(transactionHash),
+                status: ShiftInStatus.ConfirmedOnEthereum,
+            });
+
+            resolve();
         });
     }
 }

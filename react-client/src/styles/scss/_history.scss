@@ -177,3 +177,12 @@
     height: 20px;
     width: 20px !important;
 }
+
+.button--plain {
+    background: none;
+    border: none;
+    color: $blue-bright;
+    padding: 0;
+    margin: 0;
+    height: auto;
+}

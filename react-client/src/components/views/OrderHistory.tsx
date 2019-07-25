@@ -9,11 +9,39 @@ import { CircularProgressbar } from "react-circular-progressbar";
 import { naturalTime } from "../../lib/conversion";
 import { ETHERSCAN } from "../../lib/environmentVariables";
 import { connect, ConnectedProps } from "../../state/connect";
-import { HistoryEvent, PersistentContainer, Tx } from "../../state/persistentContainer";
+import {
+    HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus, Tx,
+} from "../../state/persistentContainer";
+import { UIContainer } from "../../state/uiContainer";
 import { ReactComponent as Arrow } from "../../styles/images/arrow-right.svg";
 import { ReactComponent as Next } from "../../styles/images/next.svg";
 import { ReactComponent as Previous } from "../../styles/images/previous.svg";
 import { TokenBalance } from "./TokenBalance";
+
+const shiftProgress = (status: ShiftInStatus | ShiftOutStatus) => {
+    switch (status) {
+        case ShiftInStatus.Commited:
+            return 1 / 6 * 100;
+        case ShiftInStatus.Deposited:
+            return 2 / 6 * 100;
+        case ShiftInStatus.SubmittedToRenVM:
+            return 3 / 6 * 100;
+        case ShiftInStatus.ReturnedFromRenVM:
+            return 4 / 6 * 100;
+        case ShiftInStatus.SubmittedToEthereum:
+            return 5 / 6 * 100;
+        case ShiftOutStatus.Commited:
+            return 1 / 5 * 100;
+        case ShiftOutStatus.SubmittedToEthereum:
+            return 2 / 5 * 100;
+        case ShiftOutStatus.ConfirmedOnEthereum:
+            return 3 / 5 * 100;
+        case ShiftOutStatus.SubmittedToRenVM:
+            return 4 / 5 * 100;
+        default:
+            return 100;
+    }
+};
 
 const txUrl = (tx: Tx | null): string => {
     if (!tx) { return ""; }
@@ -27,39 +55,49 @@ const txUrl = (tx: Tx | null): string => {
     }
 };
 
-const OrderHistoryEntry = ({ order }: {
+const OrderHistoryEntry = ({ order, continueOrder }: {
     order: HistoryEvent,
+    continueOrder: (orderID: string) => void,
 }) => {
+    const amount = <span className="token--amount">
+        <TokenBalance
+            token={order.orderInputs.dstToken}
+            amount={order.receivedAmount || order.orderInputs.dstAmount}
+            digits={8}
+        />{" "}
+        {order.orderInputs.dstToken}
+    </span>;
+    const onClick = () => {
+        continueOrder(order.id);
+    };
     return <div className="swap--history--entry">
         <div className="token--info">
-            <span className="tx-pending tx-pending--solid" />
-            {order.complete ?
-                <TokenIcon className="token-icon" token={order.orderInputs.dstToken} /> :
-                <CircularProgressbar
-                    className="swap--progress"
-                    value={33}
-                    strokeWidth={18}
-                    styles={{
-                        path: {
-                            stroke: "#006FE8",
-                            strokeLinecap: "butt",
-                            // strokeOpacity: 0.6,
-                        },
-                        trail: {
-                            stroke: "#006FE8",
-                            strokeOpacity: 0.2,
-                        },
-                    }}
-                />
+            {order.status === ShiftInStatus.ConfirmedOnEthereum || order.status === ShiftOutStatus.ReturnedFromRenVM ? <>
+                <TokenIcon className="token-icon" token={order.orderInputs.dstToken} />
+                <span className="received--text">Received</span>{amount}
+            </> : <>
+                    {/*<span className="tx-pending tx-pending--solid" />*/}
+                    <CircularProgressbar
+                        className="swap--progress"
+                        value={shiftProgress(order.status)}
+                        strokeWidth={18}
+                        styles={{
+                            path: {
+                                stroke: "#006FE8",
+                                strokeLinecap: "butt",
+                                // strokeOpacity: 0.6,
+                            },
+                            trail: {
+                                stroke: "#006FE8",
+                                strokeOpacity: 0.2,
+                            },
+                        }}
+                    />
+                    <span className="received--text">Receiving</span>{amount}
+                    <button className="button--plain" onClick={onClick}>Continue swap</button>
+                </>
             }
-            <span className="received--text">{order.complete ? <>Received</> : <>Receiving</>}</span>
-            <span className="token--amount">
-                <TokenBalance
-                    token={order.orderInputs.dstToken}
-                    amount={order.receivedAmount || order.orderInputs.dstAmount}
-                />{" "}
-                {order.orderInputs.dstToken}
-            </span>
+
         </div>
         <div className="history--txs">
             <span className="swap--time">{naturalTime(order.time, { message: "Just now", suffix: "ago", countDown: false, abbreviate: true })}</span>
@@ -79,8 +117,8 @@ const OrderHistoryEntry = ({ order }: {
 /**
  * OrderHistory is a visual component for allowing users to open new orders
  */
-export const OrderHistory = connect<{} & ConnectedProps<[PersistentContainer]>>([PersistentContainer])(
-    ({ containers: [persistentContainer] }) => {
+export const OrderHistory = connect<{} & ConnectedProps<[PersistentContainer, UIContainer]>>([PersistentContainer, UIContainer])(
+    ({ containers: [persistentContainer, uiContainer] }) => {
         // export const OrderHistory = ({ orders }: Props) => {
         const [start, setStart] = React.useState(0);
 
@@ -105,6 +143,7 @@ export const OrderHistory = connect<{} & ConnectedProps<[PersistentContainer]>>(
                         return <OrderHistoryEntry
                             key={historyEvent.time}
                             order={historyEvent}
+                            continueOrder={uiContainer.handleOrder}
                         />;
                     })}
                 </div>

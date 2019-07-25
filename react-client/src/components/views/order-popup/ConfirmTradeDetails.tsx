@@ -17,11 +17,10 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
     done(): void;
     cancel(): void;
 }> = ({ tokenPrices, orderInputs, quoteCurrency, done, cancel }) => {
-    return <Popup cancel={cancel}>
+    return <Popup cancel={cancel} whiteX={true}>
         <div className="swap swap--popup open">
             <div className="popup--header">
                 <h2>Confirm Trade</h2>
-                <div role="button" className="popup--header--x" onClick={cancel} />
                 <div className="swap-details--icons">
                     <div>
                         <TokenIcon white={true} className="swap-details--icon" token={orderInputs.srcToken} />

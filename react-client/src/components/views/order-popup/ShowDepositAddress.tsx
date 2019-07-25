@@ -85,7 +85,6 @@ export const ShowDepositAddress: React.StatelessComponent<Props> =
                 <div className="popup--body">
                     <TokenIcon className="token-icon" token={token} />
                     <h2>Deposit {amount} {token.toUpperCase()}{token === Token.BTC ? <InfoLabel><span className="infolabel--p"><span className="hint">Hint</span>: If you don't have a Testnet BTC wallet, send Testnet BTC from the <a className="blue" href={BTC_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>.</span></InfoLabel> : <></>}</h2>
-                    <div role="button" className="popup--header--x" onClick={cancel} />
                     <div className="address-input--message">
                         Only send {token.toUpperCase()} to your deposit address.<br />
                         Sending any other assets will result in permanent loss!

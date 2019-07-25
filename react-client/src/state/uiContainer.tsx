@@ -1,7 +1,6 @@
 import { Currency } from "@renproject/react-components";
-import { btcAddressToHex, Ox } from "@renproject/ren";
+import RenSDK, { btcAddressToHex } from "@renproject/ren";
 import BigNumber from "bignumber.js";
-import { crypto } from "bitcore-lib";
 import { Map as ImmutableMap } from "immutable";
 import { Container } from "unstated";
 import Web3 from "web3";
@@ -14,7 +13,7 @@ import {
     getERC20, getExchange, isERC20, isEthereumBased, MarketPair, Token, Tokens,
 } from "./generalTypes";
 import {
-    Commitment, PersistentContainer, ShiftInStatus, ShiftOutStatus,
+    Commitment, HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus,
 } from "./persistentContainer";
 
 export type ReserveBalances = Map<Token, BigNumber>;
@@ -52,7 +51,7 @@ const initialState = {
     refundAddress: null as string | null,
 
     orderInputs: initialOrder,
-    currentOrderID: undefined as string | undefined,
+    currentOrderID: null as string | null,
 };
 
 export class UIContainer extends Container<typeof initialState> {
@@ -77,8 +76,8 @@ export class UIContainer extends Container<typeof initialState> {
         await this.setState({ confirmedTrade: true });
     }
 
-    public handleOrder = async (orderID: string) => {
-        await this.setState({ currentOrderID: orderID });
+    public handleOrder = async (orderID: string | null) => {
+        await this.setState({ submitting: false, currentOrderID: orderID });
     }
 
     // Token prices ////////////////////////////////////////////////////////////
@@ -136,6 +135,7 @@ export class UIContainer extends Container<typeof initialState> {
         balances.forEach((bal, index) => {
             accountBalances = accountBalances.set(ethTokens[index], bal);
         });
+
 
         await this.setState({ accountBalances });
     }
@@ -213,7 +213,7 @@ export class UIContainer extends Container<typeof initialState> {
         await this.setState({ refundAddress });
     }
 
-    public commitOrder = async (): Promise<string> => {
+    public commitOrder = async (): Promise<void> => {
         const { orderInputs: order, networkID, web3, toAddress, refundAddress, orderInputs } = this.state;
         if (!web3) {
             throw new Error("Web3 not set yet.");
@@ -255,23 +255,25 @@ export class UIContainer extends Container<typeof initialState> {
                 status: ShiftOutStatus.Commited,
             };
 
-        const nonce = Ox(crypto.Random.getRandomBuffer(32));
+        const nonce = RenSDK.randomNonce();
 
-        await this.persistentContainer.updateHistoryItem(currentOrderID, {
+        const historyEvent: HistoryEvent = {
             ...shift,
             id: currentOrderID,
             time,
             inTx: null,
             outTx: null,
             receivedAmount: null,
-            complete: false,
             orderInputs,
             commitment,
             messageID: null,
+            renVMStatus: null,
             nonce,
-        });
+        };
 
-        return currentOrderID;
+        await this.persistentContainer.updateHistoryItem(currentOrderID, historyEvent);
+
+        await this.handleOrder(currentOrderID);
     }
 
     public resetTrade = async () => {
@@ -281,6 +283,7 @@ export class UIContainer extends Container<typeof initialState> {
             toAddress: null,
             refundAddress: null,
             confirmedOrderInputs: null,
+            currentOrderID: null,
         });
     }
 
