@@ -66,7 +66,7 @@
     "lint": "$npm_execpath run --silent lint:ts",
     "unused-exports": "ts-unused-exports ./tsconfig.json src/**/*.ts src/**/*.tsx",
     "start": "react-scripts start",
-    "build": "REACT_APP_SOURCE_VERSION=$SOURCE_VERSION react-scripts build",
+    "build": "NODE_OPTIONS=--max_old_space_size=4096 REACT_APP_SOURCE_VERSION=$SOURCE_VERSION react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "$npm_execpath run build",

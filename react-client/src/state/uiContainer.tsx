@@ -1,5 +1,5 @@
 import { Currency } from "@renproject/react-components";
-import RenSDK, { btcAddressToHex } from "@renproject/ren";
+import RenSDK, { btcAddressToHex, zecAddressToHex } from "@renproject/ren";
 import BigNumber from "bignumber.js";
 import { Map as ImmutableMap } from "immutable";
 import { Container } from "unstated";
@@ -228,10 +228,14 @@ export class UIContainer extends Container<typeof initialState> {
         let hexRefundAddress = refundAddress;
         if (order.srcToken === Token.BTC) {
             hexRefundAddress = btcAddressToHex(refundAddress);
+        } else if (order.srcToken === Token.ZEC) {
+            hexRefundAddress = zecAddressToHex(refundAddress);
         }
         let hexToAddress = toAddress;
         if (order.dstToken === Token.BTC) {
             hexToAddress = btcAddressToHex(toAddress);
+        } else if (order.dstToken === Token.ZEC) {
+            hexToAddress = zecAddressToHex(toAddress);
         }
         const commitment: Commitment = {
             srcToken: syncGetTokenAddress(networkID, order.srcToken),

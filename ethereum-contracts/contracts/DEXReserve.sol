@@ -47,10 +47,16 @@ contract DEXReserve is Ownable {
     }
 
     function bytesToAddress(bytes memory _addr) internal pure returns (address payable) {
-        address payable addr;  
+        address payable addr;
         /* solhint-disable-next-line */ /* solium-disable-next-line */
         assembly {
             addr := mload(add(_addr, 20))
-        } 
+        }
     }
-}   
+}
+
+/* solhint-disable-next-line */ /* solium-disable-next-line */
+contract BTC_DAI_Reserve is DEXReserve {}
+
+/* solhint-disable-next-line */ /* solium-disable-next-line */
+contract ZEC_DAI_Reserve is DEXReserve {}

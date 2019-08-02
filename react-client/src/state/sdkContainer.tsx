@@ -12,7 +12,7 @@ import { TransactionReceipt } from "web3-core";
 import {
     syncGetDEXAdapterAddress, syncGetDEXAddress, syncGetTokenAddress,
 } from "../lib/contractAddresses";
-import { getAdapter, getERC20, NULL_BYTES32, Tokens } from "./generalTypes";
+import { getAdapter, getERC20, NULL_BYTES32, Token, Tokens } from "./generalTypes";
 import {
     Commitment, HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus,
 } from "./persistentContainer";
@@ -173,8 +173,8 @@ export class SDKContainer extends Container<typeof initialState> {
         }
 
         const shiftOutObject = await renVM.shiftOut({
-            web3Provider: web3.currentProvider,
-            sendToken: ShiftActions[order.orderInputs.dstToken].Eth2Btc,
+            web3Provider: web3.currentProvider as any,
+            sendToken: order.orderInputs.dstToken === Token.ZEC ? ShiftActions.ZEC.Eth2Zec : ShiftActions.BTC.Eth2Btc,
             txHash: order.inTx.hash
         }).readFromEthereum();
         const response = await shiftOutObject.submitToRenVM()
@@ -226,8 +226,11 @@ export class SDKContainer extends Container<typeof initialState> {
             throw new Error("Order not set");
         }
 
+        console.log(ShiftActions);
+        console.log(order.orderInputs.srcToken);
+
         const shiftObject = renVM.shiftIn({
-            sendToken: ShiftActions[order.orderInputs.srcToken].Btc2Eth,
+            sendToken: order.orderInputs.srcToken === Token.ZEC ? ShiftActions.ZEC.Zec2Eth : ShiftActions.BTC.Btc2Eth,
             sendTo: syncGetDEXAdapterAddress(networkID),
             sendAmount: order.commitment.srcAmount,
             contractFn: "trade",
@@ -294,7 +297,7 @@ export class SDKContainer extends Container<typeof initialState> {
         }
 
         return new Promise<void>(async (resolve, reject) => {
-            const promiEvent = (await this.submitMintToRenVM(orderID)).submitToEthereum(web3.currentProvider);
+            const promiEvent = (await this.submitMintToRenVM(orderID)).submitToEthereum(web3.currentProvider as any);
             promiEvent.catch((error) => {
                 reject(error);
             });

@@ -8,7 +8,7 @@ import { Token } from "../../../state/generalTypes";
 import { ReactComponent as Copy } from "../../../styles/images/copy.svg";
 import { ReactComponent as QR } from "../../../styles/images/qr.svg";
 import { Popup } from "../Popup";
-import { BTC_FAUCET_LINK } from "../tutorial-popup/TutorialPages";
+import { BTC_FAUCET_LINK, TAZ_FAUCET_LINK } from "../tutorial-popup/TutorialPages";
 
 interface Props {
     token: Token;
@@ -84,7 +84,11 @@ export const ShowDepositAddress: React.StatelessComponent<Props> =
             <div className="deposit-address">
                 <div className="popup--body">
                     <TokenIcon className="token-icon" token={token} />
-                    <h2>Deposit {amount} {token.toUpperCase()}{token === Token.BTC ? <InfoLabel><span className="infolabel--p"><span className="hint">Hint</span>: If you don't have a Testnet BTC wallet, send Testnet BTC from the <a className="blue" href={BTC_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>.</span></InfoLabel> : <></>}</h2>
+                    <h2>Deposit {amount} {token.toUpperCase()}{
+                        token === Token.BTC ? <InfoLabel><span className="infolabel--p"><span className="hint">Hint</span>: If you don't have a Testnet BTC wallet, send Testnet BTC from the <a className="blue" href={BTC_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>.</span></InfoLabel> :
+                            token === Token.ZEC ? <InfoLabel><span className="infolabel--p"><span className="hint">Hint</span>: If you don't have a Testnet ZEC wallet, send Testnet ZEC from the <a className="blue" href={TAZ_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>.</span></InfoLabel> :
+                                <></>
+                    }</h2>
                     <div className="address-input--message">
                         Only send {token.toUpperCase()} to your deposit address.<br />
                         Sending any other assets will result in permanent loss!
