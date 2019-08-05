@@ -7,7 +7,7 @@ export const BUILDWITHRENVM_LINK = "https://renprotocol.typeform.com/to/kARAnf";
 export const READTHEDOCS_LINK = "https://docs.renproject.io/ren/"; // https://docs.renproject.io/developers
 export const FAQ_LINK = "https://app.gitbook.com/@renproject/s/developers/renvm-testnet-demo/renvm-testnet-demo-faq";
 export const KOVAN_FAUCET_LINK = "https://github.com/kovan-testnet/faucet";
-export const BTC_FAUCET_LINK = "https://testnet-faucet.mempool.co/";
+export const BTC_FAUCET_LINK = "https://bitcoinfaucet.uo1.net/";
 export const TAZ_FAUCET_LINK = "https://faucet.zcash.garethtdavies.com/";
 export const METAMASK_LINK = "https://metamask.io/";
 
