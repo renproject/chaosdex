@@ -233,7 +233,7 @@
   },
   "networks": {
     "42": {
-      "address": "0xdF23f128134345F7D8165Cc6C396D087f6A6A0f5",
+      "address": "0x440aE83cC4cE44B333185cA1ac1ea187f506eB59",
       "links": {},
       "events": {
         "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0": {
@@ -255,9 +255,8 @@
           "signature": "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0"
         }
       },
-      "transactionHash": "0x39fae63ef554f98206ddf7987e4fe7e73be85c6a18e1af2f6a506452b355290b"
+      "transactionHash": "0xe052b65fc06d6b9bba2c254538b2eb6223584ab08bae5d933942ca848dfa938b"
     }
   },
-  "schemaVersion": "3.0.11",
-  "updatedAt": "2019-08-05T06:59:28.988Z"
+  "schemaVersion": "3.0.11"
 }

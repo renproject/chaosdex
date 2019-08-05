@@ -222,10 +222,9 @@
     "42": {
       "events": {},
       "links": {},
-      "address": "0xd1077409aaCC26363e2ef179761adc5B338D7819",
-      "transactionHash": "0xd315366de84263e06d50a7d063ee582aa4c5249e250dfba86daebf77fcbf6159"
+      "address": "0x8C68d87aE2E3f372420Df2EAbc720aDCE19D0ff8",
+      "transactionHash": "0x73cad8ab62e274975183a164dadb83d9bcda2b6b1232a491567519a57808c8b0"
     }
   },
-  "schemaVersion": "3.0.11",
-  "updatedAt": "2019-08-05T06:59:29.006Z"
+  "schemaVersion": "3.0.11"
 }

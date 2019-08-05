@@ -254,10 +254,9 @@
         }
       },
       "links": {},
-      "address": "0xFe2aDaF4D9F3Dc9D749b83e055EdE891eA321771",
-      "transactionHash": "0xa543a4b09a8fbd83958dc435d59ab188e4765f493a055695d1d7b38a38779843"
+      "address": "0x7BD4b2d80e86d3c32b1820fDC515b24023375270",
+      "transactionHash": "0x046af873f384f26bbddd64f8e4a07f693da711ae25bf9c86ab4147c04b9507ed"
     }
   },
-  "schemaVersion": "3.0.11",
-  "updatedAt": "2019-08-05T06:59:28.993Z"
+  "schemaVersion": "3.0.11"
 }

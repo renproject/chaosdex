@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { Loading } from "@renproject/react-components";
+import { InfoLabel, LabelLevel, Loading } from "@renproject/react-components";
 
 import { _catchInteractionErr_ } from "../../../lib/errors";
 import { Token } from "../../../state/generalTypes";
@@ -17,14 +17,20 @@ export const TokenAllowance: React.StatelessComponent<{
 }> = ({ token, amount, commitment, orderID, submit, hide }) => {
     const [submitting, setSubmitting] = React.useState(false);
     const [error, setError] = React.useState(null as Error | null);
+    const [failedTransaction, setFailedTransaction] = React.useState(null as string | null);
 
     const onSubmit = () => {
         setError(null);
         setSubmitting(true);
         submit(orderID).catch((error) => {
-            setSubmitting(false);
-            setError(error);
             _catchInteractionErr_(error);
+            const match = String(error.message || error).match(/"transactionHash": "(0x[a-fA-F0-9]{64})"/);
+            setSubmitting(false);
+            if (match && match.length >= 2) {
+                setFailedTransaction(match[1]);
+                error = new Error("Transaction reverted.");
+            }
+            setError(error);
         });
     };
     return <Popup cancel={hide}>
@@ -36,7 +42,13 @@ export const TokenAllowance: React.StatelessComponent<{
                     <br />
                     <br />
                 </div>
-                {error ? <span className="red">{`${error.message || error}`}</span> : null}
+                {error ? <span className="red">
+                    Error submitting to Ethereum <InfoLabel level={LabelLevel.Warning}>{`${error.message || error}`}</InfoLabel>
+                    {failedTransaction ? <>
+                        <br />
+                        <a href={`https://dashboard.tenderly.dev/tx/kovan/${failedTransaction}`}>Transaction Stack Trace</a>
+                    </> : null}
+                </span> : null}
                 <div className="popup--buttons">
                     <button className="button open--confirm" disabled={submitting || commitment === null} onClick={onSubmit}>{submitting ? <Loading alt={true} /> : "Approve"}</button>
                 </div>

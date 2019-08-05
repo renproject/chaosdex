@@ -3,6 +3,7 @@ import * as React from "react";
 import { parse as parseLocation } from "qs";
 import { RouteComponentProps, withRouter } from "react-router-dom";
 import createPersistedState from "use-persisted-state";
+import { NetworkTestnet } from "@renproject/ren";
 
 import { ETHEREUM_NETWORK, ETHEREUM_NETWORK_ID } from "../../lib/environmentVariables";
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
@@ -43,8 +44,9 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
             }
             const addresses = await web3.eth.getAccounts();
             const address = addresses.length > 0 ? addresses[0] : null;
-            await uiContainer.connect(web3, address, networkID);
-            await sdkContainer.connect(web3, address, networkID);
+            const network = NetworkTestnet;
+            await uiContainer.connect(web3, network, address, networkID);
+            await sdkContainer.connect(web3, network, address, networkID);
 
             uiContainer.updateTokenPrices().catch(_catchBackgroundErr_);
             uiContainer.updateBalanceReserves().catch(_catchBackgroundErr_);
@@ -84,9 +86,9 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
                 }
 
                 // Start loops to update prices and balances
-                setInterval(() => uiContainer.updateTokenPrices().catch(_catchBackgroundErr_), 10 * 1000);
-                setInterval(() => uiContainer.updateBalanceReserves().catch(_catchBackgroundErr_), 10 * 1000);
-                setInterval(() => uiContainer.updateAccountBalances().catch(_catchBackgroundErr_), 10 * 1000);
+                setInterval(() => uiContainer.updateTokenPrices().catch(() => { /* ignore */ }), 10 * 1000);
+                setInterval(() => uiContainer.updateBalanceReserves().catch(() => { /* ignore */ }), 10 * 1000);
+                setInterval(() => uiContainer.updateAccountBalances().catch(() => { /* ignore */ }), 10 * 1000);
                 if (!showingTutorial) {
                     login().then(() => {
                         setInitialized(true);

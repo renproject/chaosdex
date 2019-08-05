@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { InfoLabel, Loading } from "@renproject/react-components";
+import { InfoLabel, LabelLevel, Loading } from "@renproject/react-components";
 
 import { _catchInteractionErr_ } from "../../../lib/errors";
 import { Token } from "../../../state/generalTypes";
@@ -16,17 +16,23 @@ export const SubmitToEthereum: React.StatelessComponent<{
 }> = ({ token, orderID, txHash, submit, hide }) => {
     const [submitting, setSubmitting] = React.useState(false);
     const [error, setError] = React.useState(null as Error | null);
+    const [failedTransaction, setFailedTransaction] = React.useState(null as string | null);
 
     const onSubmit = React.useCallback(async () => {
         setError(null);
+        setFailedTransaction(null);
         setSubmitting(true);
         try {
             await submit(orderID);
         } catch (error) {
-            console.error(error);
-            setError(error);
-            setSubmitting(false);
             _catchInteractionErr_(error);
+            const match = String(error.message || error).match(/"transactionHash": "(0x[a-fA-F0-9]{64})"/);
+            setSubmitting(false);
+            if (match && match.length >= 2) {
+                setFailedTransaction(match[1]);
+                error = new Error("Transaction reverted.");
+            }
+            setError(error);
         }
     }, [orderID, submit]);
 
@@ -51,7 +57,13 @@ export const SubmitToEthereum: React.StatelessComponent<{
                     <br />
                     <br />
                 </div>
-                {error ? <span className="red">{`${error.message || error}`}</span> : null}
+                {error ? <span className="red">
+                    Error submitting to Ethereum <InfoLabel level={LabelLevel.Warning}>{`${error.message || error}`}</InfoLabel>
+                    {failedTransaction ? <>
+                        <br />
+                        <a href={`https://dashboard.tenderly.dev/tx/kovan/${failedTransaction}`}>Transaction Stack Trace</a>
+                    </> : null}
+                </span> : null}
                 <div className="popup--buttons">
                     <button className="button open--confirm" disabled={submitting} onClick={onSubmit}>{submitting ? <Loading alt={true} /> : "Submit"}</button>
                 </div>

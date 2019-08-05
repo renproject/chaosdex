@@ -1,5 +1,7 @@
 import { Currency } from "@renproject/react-components";
-import RenSDK, { btcAddressToHex, zecAddressToHex } from "@renproject/ren";
+import RenSDK, {
+    btcAddressToHex, NetworkDetails, NetworkTestnet, zecAddressToHex,
+} from "@renproject/ren";
 import BigNumber from "bignumber.js";
 import { Map as ImmutableMap } from "immutable";
 import { Container } from "unstated";
@@ -52,6 +54,8 @@ const initialState = {
 
     orderInputs: initialOrder,
     currentOrderID: null as string | null,
+
+    network: NetworkTestnet,
 };
 
 export class UIContainer extends Container<typeof initialState> {
@@ -63,8 +67,8 @@ export class UIContainer extends Container<typeof initialState> {
         this.persistentContainer = persistentContainer;
     }
 
-    public connect = async (web3: Web3, address: string | null, networkID: number): Promise<void> => {
-        await this.setState({ web3, networkID, address });
+    public connect = async (web3: Web3, network: NetworkDetails, address: string | null, networkID: number): Promise<void> => {
+        await this.setState({ web3, network, networkID, address });
         await this.updateAccountBalances();
     }
 
@@ -106,7 +110,7 @@ export class UIContainer extends Container<typeof initialState> {
     }
 
     public fetchEthereumTokenBalance = async (token: Token, address: string): Promise<BigNumber> => {
-        const { web3, networkID } = this.state;
+        const { web3, networkID, network } = this.state;
         if (!web3) {
             throw new Error("Web3 not set yet.");
         }
@@ -115,7 +119,7 @@ export class UIContainer extends Container<typeof initialState> {
             balance = await web3.eth.getBalance(address);
         } else if (isERC20(token)) {
             const tokenAddress = syncGetTokenAddress(networkID, token);
-            const tokenInstance = getERC20(web3, tokenAddress);
+            const tokenInstance = getERC20(web3, network, tokenAddress);
             balance = (await tokenInstance.methods.balanceOf(address).call()).toString();
         } else {
             throw new Error(`Invalid Ethereum token: ${token}`);
@@ -124,7 +128,7 @@ export class UIContainer extends Container<typeof initialState> {
     }
 
     public updateAccountBalances = async (): Promise<void> => {
-        const { address } = this.state;
+        const { address, network } = this.state;
         if (!address) {
             return;
         }
@@ -136,8 +140,7 @@ export class UIContainer extends Container<typeof initialState> {
             accountBalances = accountBalances.set(ethTokens[index], bal);
         });
 
-
-        await this.setState({ accountBalances });
+        await this.setState({ accountBalances, network });
     }
 
     /**
@@ -146,7 +149,7 @@ export class UIContainer extends Container<typeof initialState> {
      * @param dstToken The destination token being received
      */
     public getReserveBalance = async (marketPairs: MarketPair[]): Promise<ReserveBalances[]> => {
-        const { web3, networkID } = this.state;
+        const { web3, networkID, network } = this.state;
         if (!web3) {
             throw new Error("Web3 not set yet.");
         }
@@ -157,7 +160,7 @@ export class UIContainer extends Container<typeof initialState> {
                 return new BigNumber((await web3.eth.getBalance(reserve)).toString());
             }
             const tokenAddress = syncGetTokenAddress(networkID, token);
-            const tokenInstance = getERC20(web3, tokenAddress);
+            const tokenInstance = getERC20(web3, network, tokenAddress);
             const decimals = getTokenDecimals(token);
             const rawBalance = new BigNumber((await tokenInstance.methods.balanceOf(reserve).call()).toString());
             return rawBalance.dividedBy(new BigNumber(10).exponentiatedBy(decimals));
@@ -171,7 +174,7 @@ export class UIContainer extends Container<typeof initialState> {
                 const reserve = await exchange.methods.reserve(leftAddress, rightAddress).call();
                 const leftBalance = await balance(left, reserve);
                 const rightBalance = await balance(right, reserve);
-                console.log(`${_marketPair}: ${leftBalance.toFixed()}, ${rightBalance.toFixed()} (${reserve})`);
+                console.debug(`${_marketPair} reserve: ${leftBalance.toFixed()}, ${rightBalance.toFixed()} (${reserve})`);
                 return new Map().set(left, leftBalance).set(right, rightBalance);
             })
         );

@@ -46,8 +46,8 @@ module.exports = {
     },
     testnet: {
         renNetwork: ren.testnet,
-        DEX: "0xd1077409aaCC26363e2ef179761adc5B338D7819",
-        DEXAdapter: "0x72ADbEcD9a1f92D0700e8fcf74819A6139C7c516",
+        DEX: "",
+        DEXAdapter: "",
         config: {
             ...config,
             mintAuthority: "0x44Bb4eF43408072bC888Afd1a5986ba0Ce35Cb54",

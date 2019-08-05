@@ -30,13 +30,15 @@ for (const network of networks) {
                     compiler: obj.compiler,
                     networks: obj.networks,
                     schemaVersion: obj.schemaVersion,
-                    updatedAt: obj.updatedAt,
                 }
+                const newData = JSON.stringify(newObj, null, "  ");
 
-                fs.writeFile(file, JSON.stringify(newObj, null, "  "), function (err) {
-                    if (err) return console.log(err);
-                    console.log(` Updated \x1b[33m${file}\x1b[0m.`);
-                });
+                if (data !== newData) {
+                    fs.writeFile(file, JSON.stringify(newObj, null, "  "), function (err) {
+                        if (err) return console.log(err);
+                        console.log(` Updated \x1b[33m${file}\x1b[0m.`);
+                    });
+                }
             });
         });
     });

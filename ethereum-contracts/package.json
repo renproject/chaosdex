@@ -12,9 +12,9 @@
     "test": "yarn run generate && truffle test",
     "bindings:ts": "truffle compile && yarn run typings --target web3-1.0.0 --outDir '../react-client/src/lib/contracts'",
     "bindings:go": "solc --allow-paths . --combined-json bin,abi,userdoc,devdoc,metadata $(find contracts -type f -name '*.sol') | abigen -pkg bindings --out bindings.go --abi -",
-    "deploy": "truffle migrate --skipDryRun --network $NETWORK",
+    "deploy": "truffle migrate --skipDryRun --network $NETWORK --all",
     "verify": "truffle run verify --network $NETWORK",
-    "clean-build": "grep -R -l 'networks\": {}' $npm_package_config_truffleBuildPath --exclude-dir=development | xargs rm && node $npm_package_config_truffleBuildPath/clean.js",
+    "clean-build": "grep -R -l 'networks\": {}' $npm_package_config_truffleBuildPath --exclude-dir=development | xargs rm; node $npm_package_config_truffleBuildPath/clean.js",
     "prepare": "patch-package"
   },
   "dependencies": {

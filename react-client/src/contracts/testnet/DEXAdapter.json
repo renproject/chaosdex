@@ -322,10 +322,9 @@
         }
       },
       "links": {},
-      "address": "0x72ADbEcD9a1f92D0700e8fcf74819A6139C7c516",
-      "transactionHash": "0x4ed672d92472846990ed8ab72bd47d1c391f44970daea91f571b5bd94b02c048"
+      "address": "0xB92b95f5C1886975cb0e80a27192Ec063aFDacAe",
+      "transactionHash": "0xe45e52e675101f325387d3aee86d1e9e8a06893293b4520d751fc493dae929c0"
     }
   },
-  "schemaVersion": "3.0.11",
-  "updatedAt": "2019-08-05T06:59:28.998Z"
+  "schemaVersion": "3.0.11"
 }
