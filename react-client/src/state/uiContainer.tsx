@@ -174,7 +174,7 @@ export class UIContainer extends Container<typeof initialState> {
                 const reserve = await exchange.methods.reserve(leftAddress, rightAddress).call();
                 const leftBalance = await balance(left, reserve);
                 const rightBalance = await balance(right, reserve);
-                console.debug(`${_marketPair} reserve: ${leftBalance.toFixed()}, ${rightBalance.toFixed()} (${reserve})`);
+                // console.debug(`${_marketPair} reserve: ${leftBalance.toFixed()} ${left}, ${rightBalance.toFixed()} ${right} (${reserve})`);
                 return new Map().set(left, leftBalance).set(right, rightBalance);
             })
         );
