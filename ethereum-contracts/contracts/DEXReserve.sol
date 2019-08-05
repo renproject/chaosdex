@@ -52,6 +52,7 @@ contract DEXReserve is Ownable {
         assembly {
             addr := mload(add(_addr, 20))
         }
+        return addr;
     }
 }
 
