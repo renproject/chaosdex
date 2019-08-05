@@ -46,8 +46,8 @@ module.exports = {
     },
     testnet: {
         renNetwork: ren.testnet,
-        DEX: '0xA273212Cd8aa2ce027c65673990E485Adc1A9a68',
-        DEXAdapter: '0xF7567f74BbAB9927DeE452cDCef04F7056F46BB5',
+        DEX: "0xd1077409aaCC26363e2ef179761adc5B338D7819",
+        DEXAdapter: "0x72ADbEcD9a1f92D0700e8fcf74819A6139C7c516",
         config: {
             ...config,
             mintAuthority: "0x44Bb4eF43408072bC888Afd1a5986ba0Ce35Cb54",
@@ -55,8 +55,8 @@ module.exports = {
     },
     devnet: {
         renNetwork: ren.devnet,
-        DEX: '0x641aBd6CC3E5CbDDAf2586A906d7F694C4d1ee2E',
-        DEXAdapter: '0x33094b0124f8623A05ccB55c1840477B0019aAfB',
+        DEX: "0x641aBd6CC3E5CbDDAf2586A906d7F694C4d1ee2E",
+        DEXAdapter: "0x33094b0124f8623A05ccB55c1840477B0019aAfB",
         config: {
             ...config,
             mintAuthority: "0x723eb4380E03dF6a6f98Cc1338b00cfBE5E45218",

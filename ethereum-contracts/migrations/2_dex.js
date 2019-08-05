@@ -24,13 +24,6 @@ module.exports = async function (deployer, network, accounts) {
 
     const renNetwork = addresses.renNetwork || networks.config.renNetwork;
 
-    deployer.logger.log("Using:");
-    deployer.logger.log(`BTCShifter: ${renNetwork.addresses.shifter.BTCShifter.address}`);
-    deployer.logger.log(`ZECShifter: ${renNetwork.addresses.shifter.ZECShifter.address}`);
-    deployer.logger.log(`zZEC: ${renNetwork.addresses.shifter.zZEC.address}`);
-    deployer.logger.log(`zBTC: ${renNetwork.addresses.shifter.zBTC.address}`);
-    deployer.logger.log(`DAI: ${renNetwork.addresses.tokens.DAI.address}`);
-
     BTCShifter.address = renNetwork.addresses.shifter.BTCShifter.address || "";
     ZECShifter.address = renNetwork.addresses.shifter.ZECShifter.address || "";
     zZEC.address = renNetwork.addresses.shifter.zZEC.address || "";
