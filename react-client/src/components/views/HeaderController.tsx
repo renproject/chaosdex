@@ -2,6 +2,9 @@ import * as React from "react";
 
 import { currencies, CurrencyIcon } from "@renproject/react-components";
 import { Nav, Navbar, NavDropdown } from "react-bootstrap";
+// import Nav from "react-bootstrap/Nav";
+// import Navbar from "react-bootstrap/Navbar";
+// import NavDropdown from "react-bootstrap/NavDropdown";
 import { Link } from "react-router-dom";
 
 import { connect, ConnectedProps } from "../../state/connect";

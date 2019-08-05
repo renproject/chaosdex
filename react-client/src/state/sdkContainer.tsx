@@ -226,9 +226,6 @@ export class SDKContainer extends Container<typeof initialState> {
             throw new Error("Order not set");
         }
 
-        console.log(ShiftActions);
-        console.log(order.orderInputs.srcToken);
-
         const shiftObject = renVM.shiftIn({
             sendToken: order.orderInputs.srcToken === Token.ZEC ? ShiftActions.ZEC.Zec2Eth : ShiftActions.BTC.Btc2Eth,
             sendTo: syncGetDEXAdapterAddress(networkID),

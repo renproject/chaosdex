@@ -96,7 +96,7 @@ export class UIContainer extends Container<typeof initialState> {
 
         let newBalanceReserves = balanceReserves;
         // const marketPairs = [MarketPair.DAI_BTC, MarketPair.ETH_BTC, MarketPair.REN_BTC, MarketPair.ZEC_BTC];
-        const marketPairs = [MarketPair.DAI_BTC];
+        const marketPairs = [MarketPair.DAI_BTC, MarketPair.DAI_ZEC];
         const res = await this.getReserveBalance(marketPairs); // Promise<Array<Map<Token, BigNumber>>> => {
         marketPairs.forEach((value, index) => {
             newBalanceReserves = newBalanceReserves.set(value, res[index]);
@@ -171,6 +171,7 @@ export class UIContainer extends Container<typeof initialState> {
                 const reserve = await exchange.methods.reserve(leftAddress, rightAddress).call();
                 const leftBalance = await balance(left, reserve);
                 const rightBalance = await balance(right, reserve);
+                console.log(`${_marketPair}: ${leftBalance.toFixed()}, ${rightBalance.toFixed()} (${reserve})`);
                 return new Map().set(left, leftBalance).set(right, rightBalance);
             })
         );
