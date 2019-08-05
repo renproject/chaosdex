@@ -14,6 +14,7 @@
     "bindings:go": "solc --allow-paths . --combined-json bin,abi,userdoc,devdoc,metadata $(find contracts -type f -name '*.sol') | abigen -pkg bindings --out bindings.go --abi -",
     "deploy": "truffle migrate --skipDryRun --network $NETWORK",
     "verify": "truffle run verify --network $NETWORK",
+    "clean-build": "grep -R -l 'networks\": {}' $npm_package_config_truffleBuildPath --exclude-dir=development | xargs rm && node $npm_package_config_truffleBuildPath/clean.js",
     "prepare": "patch-package"
   },
   "dependencies": {
