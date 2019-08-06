@@ -9,7 +9,7 @@ coverage
 # production
 build
 # ABI location
-/react-client/src/contracts
+/react-client/src/contracts/development
 # Contract typings
 /react-client/src/lib/contracts
 

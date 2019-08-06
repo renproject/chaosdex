@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { InfoLabel, Loading, TokenIcon } from "@renproject/react-components";
+import { InfoLabel, LabelLevel, Loading, TokenIcon } from "@renproject/react-components";
 import { TxStatus } from "@renproject/ren/dist/renVM/transaction";
 
 import { _catchInteractionErr_ } from "../../../lib/errors";
@@ -66,7 +66,7 @@ export const DepositReceived: React.StatelessComponent<{
                 {token ? <TokenIcon className="token-icon" token={token} /> : null}
                 <h2>Submit to RenVM</h2>
                 {waiting ? <Loading /> : null}
-                {error ? <span className="red">{`${error.message || error}`}</span> : null}
+                {error ? <span className="red">Unable to submit to RenVM <InfoLabel level={LabelLevel.Warning}>{`${error.message || error}`}</InfoLabel></span> : null}
                 {waiting ? <div className="address-input--message">
                     <>Submitting order to RenVM...<br />This can take a few minutes. <InfoLabel>Status: {renVMStatus || <Loading className="loading--small" />}{/* <button className="button--plain" onClick={onRetry}>(retry)</button>*/}</InfoLabel></>
                 </div> : <div className="popup--buttons">

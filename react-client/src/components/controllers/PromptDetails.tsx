@@ -8,7 +8,7 @@ import { Token } from "../../state/generalTypes";
 import { UIContainer } from "../../state/uiContainer";
 import { AskForAddress } from "../views/order-popup/AskForAddress";
 import { ConfirmTradeDetails } from "../views/order-popup/ConfirmTradeDetails";
-import { BTC_FAUCET_LINK } from "../views/tutorial-popup/TutorialPages";
+import { BTC_FAUCET_LINK, TAZ_FAUCET_LINK } from "../views/tutorial-popup/TutorialPages";
 
 interface Props {
     cancel: () => void;
@@ -74,6 +74,7 @@ export const PromptDetails = connect<Props & ConnectedProps<[UIContainer]>>([UIC
             message={<>
                 Enter your {confirmedOrderInputs.srcToken} refund address in case the trade doesn't go through.
                 {confirmedOrderInputs.srcToken === Token.BTC ? <InfoLabel><span className="hint">Hint</span>: If you don't have a Testnet BTC wallet, use the <a className="blue" href={BTC_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>'s return address.</InfoLabel> : <></>}
+                {confirmedOrderInputs.srcToken === Token.ZEC ? <InfoLabel><span className="hint">Hint</span>: If you don't have a Testnet ZEC wallet, use the <a className="blue" href={TAZ_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>'s return address.</InfoLabel> : <></>}
             </>}
             onAddress={onRefundAddress}
             cancel={onCancel}

@@ -35,7 +35,7 @@ contract DEXAdapter is Ownable {
         emit LogTransferIn(_src, _amount);
 
         // Handle refunds if the refund block number has passed
-        if (block.number > _refundBN) {
+        if (block.number >= _refundBN) {
             if (DEXReserve(dex.reserve(_src, _dst)).isShifted(address(_src))) {
                 DEXReserve(dex.reserve(_src, _dst)).getShifter(address(_src)).shiftOut(_refundAddress, transferredAmt);
             }
@@ -80,7 +80,7 @@ contract DEXAdapter is Ownable {
             recvAmt = dex.trade(to, _src, _dst, _amount);
         }
 
-        require(recvAmt > _minDstAmt, "invalid receive amount");
+        require(recvAmt >= _minDstAmt, "invalid receive amount");
         if (reserve.isShifted(address(_dst))) {
             reserve.getShifter(address(_dst)).shiftOut(_to, recvAmt);
         }

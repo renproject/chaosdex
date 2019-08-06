@@ -1,6 +1,6 @@
 import { sleep } from "@renproject/react-components";
 import RenVM, {
-    Chain, NetworkTestnet, ShiftInObject, Signature, Tokens as ShiftActions,
+    Chain, NetworkDetails, NetworkTestnet, ShiftInObject, Signature, Tokens as ShiftActions,
 } from "@renproject/ren";
 import { TxStatus } from "@renproject/ren/dist/renVM/transaction";
 import BigNumber from "bignumber.js";
@@ -12,7 +12,7 @@ import { TransactionReceipt } from "web3-core";
 import {
     syncGetDEXAdapterAddress, syncGetDEXAddress, syncGetTokenAddress,
 } from "../lib/contractAddresses";
-import { getAdapter, getERC20, NULL_BYTES32, Tokens } from "./generalTypes";
+import { getAdapter, getERC20, NULL_BYTES32, Token, Tokens } from "./generalTypes";
 import {
     Commitment, HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus,
 } from "./persistentContainer";
@@ -26,6 +26,7 @@ const initialState = {
     sdkAddress: null as string | null,
     sdkWeb3: null as Web3 | null,
     sdkNetworkID: 0,
+    network: NetworkTestnet,
 };
 
 /**
@@ -46,12 +47,13 @@ export class SDKContainer extends Container<typeof initialState> {
 
     public order = (orderID: string): HistoryEvent | undefined => this.persistentContainer.state.historyItems[orderID];
 
-    public connect = async (web3: Web3, address: string | null, networkID: number): Promise<void> => {
+    public connect = async (web3: Web3, network: NetworkDetails, address: string | null, networkID: number): Promise<void> => {
         await this.setState({
             sdkWeb3: web3,
             sdkNetworkID: networkID,
-            sdkRenVM: new RenVM(NetworkTestnet),
-            sdkAddress: address
+            sdkRenVM: new RenVM(network),
+            sdkAddress: address,
+            network,
         });
     }
 
@@ -65,7 +67,7 @@ export class SDKContainer extends Container<typeof initialState> {
     // 3. Submit the burn to the darknodes
 
     public approveTokenTransfer = async (orderID: string) => {
-        const { sdkAddress: address, sdkWeb3: web3, sdkNetworkID: networkID } = this.state;
+        const { sdkAddress: address, sdkWeb3: web3, sdkNetworkID: networkID, network } = this.state;
         if (!web3 || !address) {
             throw new Error("Web3 address is not defined");
         }
@@ -81,7 +83,7 @@ export class SDKContainer extends Container<typeof initialState> {
         }
         const srcAmountBN = new BigNumber(srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals));
 
-        const tokenInstance = getERC20(web3, syncGetTokenAddress(networkID, srcToken));
+        const tokenInstance = getERC20(web3, network, syncGetTokenAddress(networkID, srcToken));
 
         // Check the allowance of the token.
         // If it's not sufficient, approve the required amount.
@@ -173,8 +175,8 @@ export class SDKContainer extends Container<typeof initialState> {
         }
 
         const shiftOutObject = await renVM.shiftOut({
-            web3Provider: web3.currentProvider,
-            sendToken: ShiftActions[order.orderInputs.dstToken].Eth2Btc,
+            web3Provider: web3.currentProvider as any,
+            sendToken: order.orderInputs.dstToken === Token.ZEC ? ShiftActions.ZEC.Eth2Zec : ShiftActions.BTC.Eth2Btc,
             txHash: order.inTx.hash
         }).readFromEthereum();
         const response = await shiftOutObject.submitToRenVM()
@@ -227,7 +229,7 @@ export class SDKContainer extends Container<typeof initialState> {
         }
 
         const shiftObject = renVM.shiftIn({
-            sendToken: ShiftActions[order.orderInputs.srcToken].Btc2Eth,
+            sendToken: order.orderInputs.srcToken === Token.ZEC ? ShiftActions.ZEC.Zec2Eth : ShiftActions.BTC.Btc2Eth,
             sendTo: syncGetDEXAdapterAddress(networkID),
             sendAmount: order.commitment.srcAmount,
             contractFn: "trade",
@@ -294,7 +296,7 @@ export class SDKContainer extends Container<typeof initialState> {
         }
 
         return new Promise<void>(async (resolve, reject) => {
-            const promiEvent = (await this.submitMintToRenVM(orderID)).submitToEthereum(web3.currentProvider);
+            const promiEvent = (await this.submitMintToRenVM(orderID)).submitToEthereum(web3.currentProvider as any);
             promiEvent.catch((error) => {
                 reject(error);
             });

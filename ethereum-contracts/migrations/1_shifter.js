@@ -35,12 +35,20 @@ module.exports = async function (deployer, network, accounts) {
     const config = networks[network] ? networks[network].config : networks.config;
     const _mintAuthority = config.mintAuthority || accounts[0];
     const _feeRecipient = accounts[0];
+    const renNetwork = addresses.renNetwork || networks.config.renNetwork;
 
-    BTCShifter.address = addresses.BTCShifter || "";
-    ZECShifter.address = addresses.ZECShifter || "";
-    ShifterRegistry.address = addresses.ShifterRegistry || "";
-    zZEC.address = addresses.zZEC || "";
-    zBTC.address = addresses.zBTC || "";
+    deployer.logger.log("Using:");
+    deployer.logger.log(`BTCShifter: ${renNetwork.addresses.shifter.BTCShifter.address}`);
+    deployer.logger.log(`ZECShifter: ${renNetwork.addresses.shifter.ZECShifter.address}`);
+    deployer.logger.log(`ShifterRegistry: ${renNetwork.addresses.shifter.ShifterRegistry.address}`);
+    deployer.logger.log(`zZEC: ${renNetwork.addresses.shifter.zZEC.address}`);
+    deployer.logger.log(`zBTC: ${renNetwork.addresses.shifter.zBTC.address}`);
+
+    BTCShifter.address = renNetwork.addresses.shifter.BTCShifter.address || "";
+    ZECShifter.address = renNetwork.addresses.shifter.ZECShifter.address || "";
+    ShifterRegistry.address = renNetwork.addresses.shifter.ShifterRegistry.address || "";
+    zZEC.address = renNetwork.addresses.shifter.zZEC.address || "";
+    zBTC.address = renNetwork.addresses.shifter.zBTC.address || "";
 
     /** Registry **************************************************************/
 
@@ -71,7 +79,9 @@ module.exports = async function (deployer, network, accounts) {
     const btcShifter = await BTCShifter.at(BTCShifter.address);
 
     if (await zbtc.owner() !== BTCShifter.address) {
+        deployer.logger.log(`Transferring ownership of BTCShifter`);
         await zbtc.transferOwnership(BTCShifter.address);
+        deployer.logger.log(`Claiming token ownership in BTCShifter`);
         await btcShifter.claimTokenOwnership();
     }
 

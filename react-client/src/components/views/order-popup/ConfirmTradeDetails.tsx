@@ -17,6 +17,32 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
     done(): void;
     cancel(): void;
 }> = ({ tokenPrices, orderInputs, quoteCurrency, done, cancel }) => {
+    const feeRow = (token: Token) => {
+        if (token === Token.BTC || token === Token.ZEC) {
+            return <div>
+                <span className="swap-details--values--left">
+                    {(token === Token.BTC) ?
+                        "Bitcoin Transaction Fees" :
+                        (token === Token.ZEC) ?
+                            "ZCash Transaction Fees" :
+                            "Transaction Fees"
+                    }
+                </span>
+                <div className="swap-details--values--right">
+                    <CurrencyIcon currency={quoteCurrency} />
+                    <TokenBalance
+                        token={token}
+                        convertTo={quoteCurrency}
+                        amount={"0.0001"}
+                        tokenPrices={tokenPrices}
+                    />
+                </div>
+            </div>;
+        } else {
+            return <></>;
+        }
+    };
+
     return <Popup cancel={cancel} whiteX={true}>
         <div className="swap swap--popup open">
             <div className="popup--header">
@@ -91,20 +117,8 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
                             </div>
                         </div>
                         <hr />
-                        <div>
-                            <span className="swap-details--values--left">
-                                Bitcoin Transaction Fees
-                            </span>
-                            <div className="swap-details--values--right">
-                                <CurrencyIcon currency={quoteCurrency} />
-                                <TokenBalance
-                                    token={Token.BTC}
-                                    convertTo={quoteCurrency}
-                                    amount={"0.0001"}
-                                    tokenPrices={tokenPrices}
-                                />
-                            </div>
-                        </div>
+                        {feeRow(orderInputs.dstToken)}
+                        {feeRow(orderInputs.srcToken)}
                         <div className="swap-details--rounded">
                             <span className="swap-details--values--left bold">
                                 You will receive

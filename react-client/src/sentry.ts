@@ -10,7 +10,7 @@ export const initializeSentry = () => {
         // Used to define the project to log errors to
         dsn: SENTRY_DSN,
 
-        // Used to separate testnet and mainnet errors
+        // Used to separate production and staging errors
         environment: ENVIRONMENT,
 
         // Used to track errors across versions
