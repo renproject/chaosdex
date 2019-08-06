@@ -8,6 +8,14 @@ It uses the [RenVM.js SDK](https://github.com/renproject/renvm-sdk-js). To get s
 
 ## Run locally
 
+This will run against `testnet`.
+
+```sh
+cd ethereum-contracts
+yarn install
+yarn run bindings:ts
+```
+
 ```sh
 cd react-client
 yarn install
