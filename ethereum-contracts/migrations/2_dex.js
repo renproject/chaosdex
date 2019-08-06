@@ -24,16 +24,9 @@ module.exports = async function (deployer, network, accounts) {
 
     const renNetwork = addresses.renNetwork || networks.config.renNetwork;
 
-    BTCShifter.address = renNetwork.addresses.shifter.BTCShifter.address || "";
-    ZECShifter.address = renNetwork.addresses.shifter.ZECShifter.address || "";
-    zZEC.address = renNetwork.addresses.shifter.zZEC.address || "";
-    zBTC.address = renNetwork.addresses.shifter.zBTC.address || "";
     DEX.address = addresses.DEX || "";
     DEXAdapter.address = addresses.DEXAdapter || "";
     DaiToken.address = renNetwork.addresses.tokens.DAI.address || "";
-
-
-
 
     if (!DaiToken.address) {
         await deployer.deploy(DaiToken)
@@ -53,6 +46,8 @@ module.exports = async function (deployer, network, accounts) {
             DEX.address,
         );
     }
+
+    deployer.logger.log("Deploying reserves...");
 
     const deployReserve = async (leftToken, rightToken, Reserve, shifter) => {
         await deployer.deploy(Reserve);

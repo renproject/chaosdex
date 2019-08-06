@@ -37,18 +37,18 @@ module.exports = async function (deployer, network, accounts) {
     const _feeRecipient = accounts[0];
     const renNetwork = addresses.renNetwork || networks.config.renNetwork;
 
-    deployer.logger.log("Using:");
-    deployer.logger.log(`BTCShifter: ${renNetwork.addresses.shifter.BTCShifter.address}`);
-    deployer.logger.log(`ZECShifter: ${renNetwork.addresses.shifter.ZECShifter.address}`);
-    deployer.logger.log(`ShifterRegistry: ${renNetwork.addresses.shifter.ShifterRegistry.address}`);
-    deployer.logger.log(`zZEC: ${renNetwork.addresses.shifter.zZEC.address}`);
-    deployer.logger.log(`zBTC: ${renNetwork.addresses.shifter.zBTC.address}`);
-
     BTCShifter.address = renNetwork.addresses.shifter.BTCShifter.address || "";
     ZECShifter.address = renNetwork.addresses.shifter.ZECShifter.address || "";
     ShifterRegistry.address = renNetwork.addresses.shifter.ShifterRegistry.address || "";
     zZEC.address = renNetwork.addresses.shifter.zZEC.address || "";
     zBTC.address = renNetwork.addresses.shifter.zBTC.address || "";
+
+    deployer.logger.log("Using:");
+    deployer.logger.log(`BTCShifter: ${BTCShifter.address}`);
+    deployer.logger.log(`ZECShifter: ${ZECShifter.address}`);
+    deployer.logger.log(`ShifterRegistry: ${ShifterRegistry.address}`);
+    deployer.logger.log(`zZEC: ${zZEC.address}`);
+    deployer.logger.log(`zBTC: ${zBTC.address}`);
 
     /** Registry **************************************************************/
 
@@ -69,11 +69,11 @@ module.exports = async function (deployer, network, accounts) {
     if (!BTCShifter.address) {
         await deployer.deploy(
             BTCShifter,
-            NULL,
             zBTC.address,
             _feeRecipient,
             _mintAuthority,
             config.shifterFees,
+            config.zBTCMinShiftOutAmount,
         );
     }
     const btcShifter = await BTCShifter.at(BTCShifter.address);
@@ -102,17 +102,19 @@ module.exports = async function (deployer, network, accounts) {
     if (!ZECShifter.address) {
         await deployer.deploy(
             ZECShifter,
-            NULL,
             zZEC.address,
             _feeRecipient,
             _mintAuthority,
             config.shifterFees,
+            config.zZECMinShiftOutAmount,
         );
     }
     const zecShifter = await ZECShifter.at(ZECShifter.address);
 
     if (await zzec.owner() !== ZECShifter.address) {
+        deployer.logger.log(`Transferring ownership of ZECShifter`);
         await zzec.transferOwnership(ZECShifter.address);
+        deployer.logger.log(`Claiming token ownership in ZECShifter`);
         await zecShifter.claimTokenOwnership();
     }
 
