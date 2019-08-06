@@ -14,6 +14,7 @@ This will run against `testnet`.
 cd ethereum-contracts
 yarn install
 yarn run bindings:ts
+cd ../
 ```
 
 ```sh
@@ -21,3 +22,8 @@ cd react-client
 yarn install
 NETWORK="testnet" yarn start
 ```
+
+> If it throws `Can't resolve './build/Release/scrypt'`, run:
+> ```sh
+> rm -r node_modules/scrypt
+> ```
