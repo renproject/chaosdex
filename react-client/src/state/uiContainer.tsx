@@ -1,7 +1,5 @@
 import { Currency } from "@renproject/react-components";
-import RenSDK, {
-    btcAddressToHex, NetworkDetails, NetworkTestnet, zecAddressToHex,
-} from "@renproject/ren";
+import RenSDK, { btcAddressToHex, zecAddressToHex } from "@renproject/ren";
 import BigNumber from "bignumber.js";
 import { Map as ImmutableMap } from "immutable";
 import { Container } from "unstated";
@@ -17,6 +15,7 @@ import {
 import {
     Commitment, HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus,
 } from "./persistentContainer";
+import { network } from "./sdkContainer";
 
 export type ReserveBalances = Map<Token, BigNumber>;
 
@@ -55,7 +54,7 @@ const initialState = {
     orderInputs: initialOrder,
     currentOrderID: null as string | null,
 
-    network: NetworkTestnet,
+    network,
 };
 
 export class UIContainer extends Container<typeof initialState> {
@@ -67,8 +66,8 @@ export class UIContainer extends Container<typeof initialState> {
         this.persistentContainer = persistentContainer;
     }
 
-    public connect = async (web3: Web3, network: NetworkDetails, address: string | null, networkID: number): Promise<void> => {
-        await this.setState({ web3, network, networkID, address });
+    public connect = async (web3: Web3, address: string | null, networkID: number): Promise<void> => {
+        await this.setState({ web3, networkID, address });
         await this.updateAccountBalances();
     }
 

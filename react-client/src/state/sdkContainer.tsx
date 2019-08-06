@@ -1,6 +1,7 @@
 import { sleep } from "@renproject/react-components";
 import RenVM, {
-    Chain, NetworkDetails, NetworkTestnet, ShiftInObject, Signature, Tokens as ShiftActions,
+    Chain, NetworkDetails, NetworkDevnet, NetworkLocalnet, NetworkTestnet, ShiftInObject, Signature,
+    Tokens as ShiftActions,
 } from "@renproject/ren";
 import { TxStatus } from "@renproject/ren/dist/renVM/transaction";
 import BigNumber from "bignumber.js";
@@ -12,6 +13,7 @@ import { TransactionReceipt } from "web3-core";
 import {
     syncGetDEXAdapterAddress, syncGetDEXAddress, syncGetTokenAddress,
 } from "../lib/contractAddresses";
+import { NETWORK } from "../lib/environmentVariables";
 import { getAdapter, getERC20, NULL_BYTES32, Token, Tokens } from "./generalTypes";
 import {
     Commitment, HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus,
@@ -21,12 +23,22 @@ const BitcoinTx = (hash: string) => ({ hash, chain: Chain.Bitcoin });
 // const ZCashTx = (hash: string) => ({ hash, chain: Chain.ZCash });
 const EthereumTx = (hash: string) => ({ hash, chain: Chain.Ethereum });
 
+export let network: NetworkDetails = NetworkTestnet;
+switch (NETWORK) {
+    case "development":
+        network = NetworkLocalnet; break;
+    case "devnet":
+        network = NetworkDevnet; break;
+    case "testnet":
+        network = NetworkTestnet; break;
+}
+
 const initialState = {
     sdkRenVM: null as null | RenVM,
     sdkAddress: null as string | null,
     sdkWeb3: null as Web3 | null,
     sdkNetworkID: 0,
-    network: NetworkTestnet,
+    network,
 };
 
 /**
@@ -47,13 +59,12 @@ export class SDKContainer extends Container<typeof initialState> {
 
     public order = (orderID: string): HistoryEvent | undefined => this.persistentContainer.state.historyItems[orderID];
 
-    public connect = async (web3: Web3, network: NetworkDetails, address: string | null, networkID: number): Promise<void> => {
+    public connect = async (web3: Web3, address: string | null, networkID: number): Promise<void> => {
         await this.setState({
             sdkWeb3: web3,
             sdkNetworkID: networkID,
             sdkRenVM: new RenVM(network),
             sdkAddress: address,
-            network,
         });
     }
 

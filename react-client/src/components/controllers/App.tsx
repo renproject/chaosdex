@@ -3,7 +3,6 @@ import * as React from "react";
 import { parse as parseLocation } from "qs";
 import { RouteComponentProps, withRouter } from "react-router-dom";
 import createPersistedState from "use-persisted-state";
-import { NetworkTestnet } from "@renproject/ren";
 
 import { ETHEREUM_NETWORK, ETHEREUM_NETWORK_ID } from "../../lib/environmentVariables";
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
@@ -38,15 +37,14 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
         const login = React.useCallback(async () => {
             const web3 = await getWeb3();
             const networkID = await web3.eth.net.getId();
-            if (networkID.toString() !== ETHEREUM_NETWORK_ID) {
+            if (ETHEREUM_NETWORK_ID && networkID.toString() !== ETHEREUM_NETWORK_ID) {
                 alert(`Please switch to the ${ETHEREUM_NETWORK} Ethereum network.`);
                 return;
             }
             const addresses = await web3.eth.getAccounts();
             const address = addresses.length > 0 ? addresses[0] : null;
-            const network = NetworkTestnet;
-            await uiContainer.connect(web3, network, address, networkID);
-            await sdkContainer.connect(web3, network, address, networkID);
+            await uiContainer.connect(web3, address, networkID);
+            await sdkContainer.connect(web3, address, networkID);
 
             uiContainer.updateTokenPrices().catch(_catchBackgroundErr_);
             uiContainer.updateBalanceReserves().catch(_catchBackgroundErr_);

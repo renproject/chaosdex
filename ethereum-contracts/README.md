@@ -37,7 +37,7 @@ Run the Truffle test suite with coverage.
 yarn coverage
 ```
 
-## Deploying
+## Deploying to Kovan
 
 Add a `.env`, filling in the mnemonic and Kovan ethereum node (e.g. Infura):
 
@@ -56,5 +56,5 @@ NETWORK=kovan yarn run deploy
 ## Verifying Contract Code
 
 ```sh
-NETWORK=kovan yarn run verify YourContractName
+NETWORK=kovan yarn run verify DEX DEXAdapter
 ```
