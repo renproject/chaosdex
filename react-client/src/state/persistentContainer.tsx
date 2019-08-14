@@ -98,7 +98,6 @@ export class PersistentContainer extends PersistContainer<typeof initialState> {
     };
 
     public updateHistoryItem = async (key: string, item: Partial<HistoryEvent>) => {
-        console.log(`inside updateHistoryItem for ${key}`, item);
         await this.setState({
             historyItems: { ...this.state.historyItems, [key]: { ...this.state.historyItems[key], ...item } },
             // tslint:disable-next-line: no-any
