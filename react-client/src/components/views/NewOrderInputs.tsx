@@ -111,7 +111,7 @@ export const NewOrderInputs = connect<Props & ConnectedProps<[UIContainer]>>([UI
             subtext={firstSubtext}
             hint={null}
             error={false}
-            onChange={onVolumeChange}
+            onValueChange={onVolumeChange}
         >
             <SelectMarketWrapper top={true} thisToken={orderInputs.srcToken} otherToken={orderInputs.dstToken} />
         </TokenValueInput >;
@@ -122,7 +122,7 @@ export const NewOrderInputs = connect<Props & ConnectedProps<[UIContainer]>>([UI
             subtext={<></>}
             hint={"Based on market price, after transfer and RenVM fees."}
             error={false}
-            onChange={null}
+            onValueChange={null}
             className="order-inputs--second"
         >
             <SelectMarketWrapper top={false} thisToken={orderInputs.dstToken} otherToken={orderInputs.srcToken} />

@@ -64,14 +64,14 @@
     height: 12px;
     width: 12px;
     margin-top: 0;
-    background: url($images + 'exit-black.svg');
+    background: url('../images/exit-black.svg');
     background-size: 100%;
     cursor: pointer;
 }
 
 .popup--x.popup--x--white {
     margin-top: 0px;
-    background: url($images + 'exit.svg');
+    background: url('../images/exit.svg');
 }
 
 .popup.open,

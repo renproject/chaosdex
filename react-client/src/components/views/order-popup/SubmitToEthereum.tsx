@@ -48,7 +48,7 @@ export const SubmitToEthereum: React.StatelessComponent<{
         }
     }, [initialized, txHash, onSubmit]);
 
-    return <Popup cancel={hide}>
+    return <Popup cancel={!submitting || txHash ? hide : undefined}>
         <div className="address-input">
             <div className="popup--body">
                 <h2>Submit swap to Ethereum</h2>
@@ -61,7 +61,9 @@ export const SubmitToEthereum: React.StatelessComponent<{
                     Error submitting to Ethereum <InfoLabel level={LabelLevel.Warning}>{`${error.message || error}`}</InfoLabel>
                     {failedTransaction ? <>
                         <br />
-                        <a href={`https://dashboard.tenderly.dev/tx/kovan/${failedTransaction}`}>Transaction Stack Trace</a>
+                        See the "Error" tab of the <a className="blue" href={`https://dashboard.tenderly.dev/tx/kovan/${failedTransaction}`}>Transaction Stack Trace</a>.
+                        <br />
+                        If you see <span className="monospace">"nonce already submitted"</span> your trade may have already gone through.
                     </> : null}
                 </span> : null}
                 <div className="popup--buttons">

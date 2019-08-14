@@ -36,21 +36,24 @@ contract("DEX", (accounts) => {
     // `ecsign`. Web3's sign functions all prefix the message being signed.
     let mintAuthority;
     let privKey;
+    const feeRecipeint = accounts[1];
 
     const shifterFees = new BN(10);
     const dexFees = new BN(10);
+    const zBTCMinShiftOutAmount = new BN(10000);
+    const zZECMinShiftOutAmount = new BN(10000);
 
     before(async () => {
         mintAuthority = web3.eth.accounts.create();
         privKey = Buffer.from(mintAuthority.privateKey.slice(2), "hex")
 
         token1 = await zBTC.new();
-        shifter1 = await Shifter.new(NULL, token1.address, accounts[1], mintAuthority.address, shifterFees);
+        shifter1 = await Shifter.new(token1.address, feeRecipeint, mintAuthority.address, shifterFees, zBTCMinShiftOutAmount);
         await token1.transferOwnership(shifter1.address);
         await shifter1.claimTokenOwnership();
 
         token2 = await zZEC.new();
-        shifter2 = await Shifter.new(NULL, token2.address, accounts[1], mintAuthority.address, shifterFees);
+        shifter2 = await Shifter.new(token2.address, feeRecipeint, mintAuthority.address, shifterFees, zZECMinShiftOutAmount);
         await token2.transferOwnership(shifter2.address);
         await shifter2.claimTokenOwnership();
 
@@ -127,7 +130,7 @@ contract("DEX", (accounts) => {
 
     it("should trade token1 to token2 on DEX", async () => {
         const nHash = `0x${randomBytes(32).toString("hex")}`
-        const value = new BN(200);
+        const value = new BN(22500);
         const commitment = await dexAdapter.hashPayload(
             token1.address, token2.address, 0, "0x002200220022",
             100000, "0x010101010101",
@@ -146,7 +149,7 @@ contract("DEX", (accounts) => {
 
     it("should trade token2 to token1 on DEX", async () => {
         const nHash = `0x${randomBytes(32).toString("hex")}`
-        const value = new BN(200);
+        const value = new BN(22500);
         const commitment = await dexAdapter.hashPayload(
             token2.address, token1.address, 0, "0x002200220022",
             100000, "0x010101010101",
@@ -164,7 +167,7 @@ contract("DEX", (accounts) => {
     });
 
     it("should trade eth to token1 on DEX", async () => {
-        const value = new BN(200);
+        const value = new BN(22500);
         const nHash = `0x${randomBytes(32).toString("hex")}`;
         const pHash = `0x${randomBytes(32).toString("hex")}`;
         await dexAdapter.trade(
@@ -178,7 +181,7 @@ contract("DEX", (accounts) => {
     });
 
     it("should trade eth to token2 on DEX", async () => {
-        const value = new BN(200);
+        const value = new BN(22500);
         const nHash = `0x${randomBytes(32).toString("hex")}`;
         const pHash = `0x${randomBytes(32).toString("hex")}`;
         await dexAdapter.trade(
@@ -192,7 +195,7 @@ contract("DEX", (accounts) => {
     });
 
     it("should trade eth to token3 on DEX", async () => {
-        const value = new BN(200);
+        const value = new BN(22500);
         const nHash = `0x${randomBytes(32).toString("hex")}`;
         const pHash = `0x${randomBytes(32).toString("hex")}`;
         await dexAdapter.trade(
@@ -207,7 +210,7 @@ contract("DEX", (accounts) => {
 
     it("should trade token1 to eth on DEX", async () => {
         const nHash = `0x${randomBytes(32).toString("hex")}`
-        const value = new BN(200);
+        const value = new BN(22500);
         const commitment = await dexAdapter.hashPayload(
             token1.address, ETHEREUM_TOKEN_ADDRESS, 0, accounts[3],
             100000, "0x010101010101",
@@ -226,7 +229,7 @@ contract("DEX", (accounts) => {
 
     it("should trade token2 to eth on DEX", async () => {
         const nHash = `0x${randomBytes(32).toString("hex")}`
-        const value = new BN(200);
+        const value = new BN(22500);
         const commitment = await dexAdapter.hashPayload(
             token2.address, ETHEREUM_TOKEN_ADDRESS, 0, accounts[3],
             100000, "0x010101010101",
@@ -245,7 +248,7 @@ contract("DEX", (accounts) => {
 
     it("should trade token1 to token3 on DEX", async () => {
         const nHash = `0x${randomBytes(32).toString("hex")}`
-        const value = new BN(200);
+        const value = new BN(22500);
         const commitment = await dexAdapter.hashPayload(
             token1.address, token3.address, 0, accounts[3],
             100000, "0x010101010101",
@@ -264,7 +267,7 @@ contract("DEX", (accounts) => {
 
     it("should trade token2 to token3 on DEX", async () => {
         const nHash = `0x${randomBytes(32).toString("hex")}`
-        const value = new BN(200);
+        const value = new BN(22500);
         const commitment = await dexAdapter.hashPayload(
             token2.address, token3.address, 0, accounts[3],
             100000, "0x010101010101",

@@ -2,7 +2,8 @@
 
 import * as Sentry from "@sentry/browser";
 
-import { naturalTime } from "./conversion";
+import { naturalTime } from "@renproject/react-components";
+
 import { ENVIRONMENT } from "./environmentVariables";
 
 interface Details {

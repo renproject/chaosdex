@@ -2,11 +2,10 @@ import "react-circular-progressbar/dist/styles.css";
 
 import * as React from "react";
 
-import { TokenIcon } from "@renproject/react-components";
+import { naturalTime, TokenIcon } from "@renproject/react-components";
 import { Chain } from "@renproject/ren";
 import { CircularProgressbar } from "react-circular-progressbar";
 
-import { naturalTime } from "../../lib/conversion";
 import { ETHERSCAN } from "../../lib/environmentVariables";
 import { connect, ConnectedProps } from "../../state/connect";
 import {

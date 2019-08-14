@@ -280,17 +280,25 @@ export class UIContainer extends Container<typeof initialState> {
 
         await this.persistentContainer.updateHistoryItem(currentOrderID, historyEvent);
 
+        await this.setState({
+            confirmedTrade: false,
+            toAddress: null,
+            refundAddress: null,
+            confirmedOrderInputs: null,
+            currentOrderID: null,
+        });
+
         await this.handleOrder(currentOrderID);
     }
 
     public resetTrade = async () => {
         await this.setState({
             confirmedTrade: false,
-            submitting: false,
             toAddress: null,
             refundAddress: null,
             confirmedOrderInputs: null,
             currentOrderID: null,
+            submitting: false,
         });
     }
 

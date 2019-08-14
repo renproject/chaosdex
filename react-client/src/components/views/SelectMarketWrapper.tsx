@@ -34,7 +34,7 @@ export const SelectMarketWrapper = connect<Props & ConnectedProps<[UIContainer]>
             thisToken={thisToken}
             otherToken={otherToken}
             allTokens={newTokens}
-            onChange={handleChange}
+            onMarketChange={handleChange}
             getMarket={getMarket}
         />;
     }

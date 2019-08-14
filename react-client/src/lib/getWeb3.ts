@@ -17,17 +17,14 @@ declare global {
 export const getWeb3 = async () => new Promise<Web3>(async (resolve, reject) => {
     // Modern dApp browsers...
     if (window.ethereum) {
-        window.web3 = new Web3(window.ethereum);
         try {
             // Request account access if needed
             await window.ethereum.enable();
-            resolve(new Web3(window.web3.currentProvider));
+            resolve(new Web3(window.ethereum));
         } catch (error) {
             reject(error);
         }
     } else if (window.web3) {
-        // Legacy dApp browsers...
-        window.web3 = new Web3(window.web3.currentProvider);
         // Accounts always exposed
         resolve(new Web3(window.web3.currentProvider));
     } else {
