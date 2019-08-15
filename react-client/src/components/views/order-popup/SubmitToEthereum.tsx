@@ -25,10 +25,16 @@ export const SubmitToEthereum: React.StatelessComponent<{
         try {
             await submit(orderID, error !== null);
         } catch (error) {
+            setSubmitting(false);
             let shownError = error;
+
+            // Ignore user denying error in MetaMask.
+            if (String(shownError.message || shownError).match(/User denied transaction signature/)) {
+                return;
+            }
+
             _catchInteractionErr_(shownError);
             const match = String(shownError.message || shownError).match(/"transactionHash": "(0x[a-fA-F0-9]{64})"/);
-            setSubmitting(false);
             if (match && match.length >= 2) {
                 setFailedTransaction(match[1]);
                 shownError = new Error("Transaction reverted.");

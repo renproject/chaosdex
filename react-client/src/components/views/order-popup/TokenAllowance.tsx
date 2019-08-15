@@ -23,9 +23,15 @@ export const TokenAllowance: React.StatelessComponent<{
         setError(null);
         setSubmitting(true);
         submit(orderID).catch((error) => {
+            setSubmitting(false);
+
+            // Ignore user denying error in MetaMask.
+            if (String(error.message || error).match(/User denied transaction signature/)) {
+                return;
+            }
+
             _catchInteractionErr_(error);
             const match = String(error.message || error).match(/"transactionHash": "(0x[a-fA-F0-9]{64})"/);
-            setSubmitting(false);
             if (match && match.length >= 2) {
                 setFailedTransaction(match[1]);
                 error = new Error("Transaction reverted.");
