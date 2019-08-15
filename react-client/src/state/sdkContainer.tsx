@@ -142,6 +142,10 @@ export class SDKContainer extends Container<typeof initialState> {
             throw new Error("Order not set");
         }
 
+        if (retry) {
+            await this.approveTokenTransfer(orderID);
+        }
+
         // If there's a previous transaction and `retry` isn't set, reuse tx.
         let transactionHash = order.inTx && !retry ? order.inTx.hash : null;
 
