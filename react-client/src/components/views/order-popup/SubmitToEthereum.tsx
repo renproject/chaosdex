@@ -64,7 +64,7 @@ export const SubmitToEthereum: React.StatelessComponent<{
                         <br />
                         See the <a className="blue" href={`https://dashboard.tenderly.dev/tx/kovan/${failedTransaction}/error`}>Transaction Stack Trace</a> for more details.
                         <br />
-                        If you see <span className="monospace">"nonce already submitted"</span> your trade may have already gone through.
+                        If you see <span className="monospace">"nonce hash already spent"</span> your trade may have already gone through.
                     </> : null}
                 </span> : null}
                 <div className="popup--buttons">
