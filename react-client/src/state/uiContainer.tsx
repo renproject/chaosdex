@@ -246,7 +246,7 @@ export class UIContainer extends Container<typeof initialState> {
             minDestinationAmount: 0,
             srcAmount: new BigNumber(order.srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals)).toNumber(),
             toAddress: hexToAddress,
-            refundBlockNumber: blockNumber + 360, // 360 blocks (assuming 0.1bps, equals 1 hour)
+            refundBlockNumber: blockNumber + 360 * 48, // assuming 0.1bps 360 blocks is about 1 hour
             refundAddress: hexRefundAddress,
         };
 
@@ -256,10 +256,10 @@ export class UIContainer extends Container<typeof initialState> {
         const shift = !isEthereumBased(orderInputs.srcToken) && isEthereumBased(orderInputs.dstToken) ? {
             // Cast required by TS to differentiate ShiftIn and ShiftOut types.
             shiftIn: true as true,
-            status: ShiftInStatus.Commited,
+            status: ShiftInStatus.Committed,
         } : {
                 shiftIn: false as false,
-                status: ShiftOutStatus.Commited,
+                status: ShiftOutStatus.Committed,
             };
 
         const nonce = RenSDK.randomNonce();

@@ -33,7 +33,7 @@ export const TokenAllowance: React.StatelessComponent<{
             setError(error);
         });
     };
-    return <Popup cancel={hide}>
+    return <Popup cancel={!submitting ? hide : undefined}>
         <div className="address-input">
             <div className="popup--body">
                 <h2>Transfer Approval</h2>
@@ -46,7 +46,7 @@ export const TokenAllowance: React.StatelessComponent<{
                     Error submitting to Ethereum <InfoLabel level={LabelLevel.Warning}>{`${error.message || error}`}</InfoLabel>
                     {failedTransaction ? <>
                         <br />
-                        See the <a href={`https://dashboard.tenderly.dev/tx/kovan/${failedTransaction}`}>Transaction Stack Trace</a> for an error message.
+                        See the <a className="blue" href={`https://dashboard.tenderly.dev/tx/kovan/${failedTransaction}/error`}>Transaction Stack Trace</a> for more details.
                     </> : null}
                 </span> : null}
                 <div className="popup--buttons">

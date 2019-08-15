@@ -1,7 +1,7 @@
 import { Chain } from "@renproject/ren";
+import { TxStatus } from "@renproject/ren/dist/renVM/transaction";
 import localForage from "localforage";
 import { PersistContainer } from "unstated-persist";
-import { TxStatus } from "@renproject/ren/dist/renVM/transaction";
 
 // import { Chain } from "@renproject/ren";
 // import { Token } from "./generalTypes";
@@ -23,20 +23,22 @@ export interface Tx {
 }
 
 export enum ShiftInStatus {
-    Commited = "shiftIn_committed",
+    Committed = "shiftIn_committed",
     Deposited = "shiftIn_deposited",
     SubmittedToRenVM = "shiftIn_submittedToRenVM",
     ReturnedFromRenVM = "shiftIn_returnedFromRenVM",
     SubmittedToEthereum = "shiftIn_submittedToEthereum",
     ConfirmedOnEthereum = "shiftIn_confirmedOnEthereum",
+    RefundedOnEthereum = "shiftIn_refundedOnEthereum",
 }
 
 export enum ShiftOutStatus {
-    Commited = "shiftOut_committed",
+    Committed = "shiftOut_committed",
     SubmittedToEthereum = "shiftOut_submittedToEthereum",
     ConfirmedOnEthereum = "shiftOut_confirmedOnEthereum",
     SubmittedToRenVM = "shiftOut_submittedToRenVM",
     ReturnedFromRenVM = "shiftOut_returnedFromRenVM",
+    RefundedOnEthereum = "shiftOut_refundedOnEthereum",
 }
 
 export interface HistoryEventCommon {

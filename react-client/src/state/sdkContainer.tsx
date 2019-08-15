@@ -107,11 +107,32 @@ export class SDKContainer extends Container<typeof initialState> {
                 (getAdapter(web3, networkID)).address,
                 srcAmountBN.toString()
             ).send({ from: address });
-            await new Promise((resolve, reject) => promiEvent.on("transactionHash", resolve).catch(reject));
+            await new Promise((resolve, reject) => promiEvent.on("transactionHash", async (transactionHash: string) => {
+                resolve(transactionHash);
+            }).catch(reject));
         }
     }
 
-    public submitBurnToEthereum = async (orderID: string) => {
+    public getReceipt = async (web3: Web3, transactionHash: string) => {
+        // Wait for confirmation
+        let receipt;
+        while (!receipt || !receipt.blockHash) {
+            receipt = await web3.eth.getTransactionReceipt(transactionHash);
+            if (receipt && receipt.blockHash) {
+                break;
+            }
+            await sleep(3 * 1000);
+        }
+
+        // Status might be undefined - so check against `false` explicitly.
+        if (receipt.status === false) {
+            throw new Error(`Transaction was reverted. { "transactionHash": "${transactionHash}" }`);
+        }
+
+        return receipt;
+    }
+
+    public submitBurnToEthereum = async (orderID: string, retry = false) => {
         const { sdkAddress: address, sdkWeb3: web3, sdkRenVM: renVM, sdkNetworkID: networkID } = this.state;
         if (!web3 || !renVM || !address) {
             throw new Error(`Invalid values required for swap`);
@@ -121,7 +142,8 @@ export class SDKContainer extends Container<typeof initialState> {
             throw new Error("Order not set");
         }
 
-        let transactionHash = order.inTx ? order.inTx.hash : null;
+        // If there's a previous transaction and `retry` isn't set, reuse tx.
+        let transactionHash = order.inTx && !retry ? order.inTx.hash : null;
 
         if (!transactionHash) {
             const amount = order.commitment.srcAmount.toString();
@@ -152,13 +174,24 @@ export class SDKContainer extends Container<typeof initialState> {
         }
 
         // Wait for confirmation
-        let receipt;
-        while (!receipt) {
-            receipt = await web3.eth.getTransactionReceipt(transactionHash);
-            if (receipt) {
-                break;
+        await this.getReceipt(web3, transactionHash);
+
+        try {
+            await renVM.shiftOut({
+                web3Provider: web3.currentProvider,
+                sendToken: order.orderInputs.dstToken === Token.ZEC ? ShiftActions.ZEC.Eth2Zec : ShiftActions.BTC.Eth2Btc,
+                txHash: transactionHash,
+            }).readFromEthereum();
+        } catch (error) {
+            if (String(error.message || error).match(/No reference ID found in logs/)) {
+                await this.persistentContainer.updateHistoryItem(order.id, {
+                    receivedAmount: "0",
+                    outTx: EthereumTx(transactionHash),
+                    status: ShiftOutStatus.RefundedOnEthereum,
+                });
+                return;
             }
-            await sleep(3 * 1000);
+            throw error;
         }
 
         await this.persistentContainer.updateHistoryItem(order.id, {
@@ -186,10 +219,11 @@ export class SDKContainer extends Container<typeof initialState> {
         }
 
         const shiftOutObject = await renVM.shiftOut({
-            web3Provider: web3.currentProvider as any,
+            web3Provider: web3.currentProvider,
             sendToken: order.orderInputs.dstToken === Token.ZEC ? ShiftActions.ZEC.Eth2Zec : ShiftActions.BTC.Eth2Btc,
             txHash: order.inTx.hash
         }).readFromEthereum();
+
         const response = await shiftOutObject.submitToRenVM()
             .on("messageID", (messageID: string) => {
                 this.persistentContainer.updateHistoryItem(order.id, {
@@ -292,11 +326,14 @@ export class SDKContainer extends Container<typeof initialState> {
             .submitToRenVM()
             .on("messageID", onMessageID)
             .on("status", onStatus);
-        await this.persistentContainer.updateHistoryItem(orderID, { status: ShiftInStatus.ReturnedFromRenVM });
+        await this.persistentContainer.updateHistoryItem(orderID, {
+            inTx: BitcoinTx(bs58.encode(Buffer.from(signature.response.args.utxo.txHash, "base64"))),
+            status: ShiftInStatus.ReturnedFromRenVM,
+        });
         return signature;
     }
 
-    public submitMintToEthereum = async (orderID: string) => {
+    public submitMintToEthereum = async (orderID: string, retry = false) => {
         const { sdkAddress: address, sdkWeb3: web3, sdkNetworkID: networkID } = this.state;
         if (!web3 || !address) {
             throw new Error(`Invalid values required for swap`);
@@ -306,43 +343,54 @@ export class SDKContainer extends Container<typeof initialState> {
             throw new Error("Order not set");
         }
 
-        return new Promise<void>(async (resolve, reject) => {
-            const promiEvent = (await this.submitMintToRenVM(orderID)).submitToEthereum(web3.currentProvider as any);
-            promiEvent.catch((error) => {
-                reject(error);
+        let transactionHash = order.outTx && !retry ? order.outTx.hash : null;
+        let receipt: TransactionReceipt;
+
+        if (!transactionHash) {
+            [receipt, transactionHash] = await new Promise<[TransactionReceipt, string]>(async (resolve, reject) => {
+                const promiEvent = (await this.submitMintToRenVM(orderID)).submitToEthereum(web3.currentProvider);
+                promiEvent.catch((error) => {
+                    reject(error);
+                });
+                const txHash = await new Promise<string>((resolveTx, rejectTx) => promiEvent.on("transactionHash", resolveTx).catch(rejectTx));
+                await this.persistentContainer.updateHistoryItem(orderID, {
+                    status: ShiftInStatus.SubmittedToEthereum,
+                    outTx: EthereumTx(txHash),
+                });
+
+                // tslint:disable-next-line: no-any
+                (promiEvent as any).once("confirmation", (_confirmations: number, newReceipt: TransactionReceipt) => { resolve([newReceipt, txHash]); });
             });
-            const transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve).catch(reject));
-            await this.persistentContainer.updateHistoryItem(orderID, { status: ShiftInStatus.SubmittedToEthereum });
-            // tslint:disable-next-line: no-any
-            const receivedAmount = await new Promise<BigNumber>((resolve, reject) => (promiEvent as any).once("confirmation", async (_confirmations: number, receipt: TransactionReceipt) => {
+        } else {
+            receipt = await this.getReceipt(web3, transactionHash);
+        }
 
-                // Loop through logs to find exchange event from the DEX contract.
-                // The event log always has the first topic as "0x8d10c7a1"
-                // TODO: Calculate this instead of hard coding it.
-                for (const log of receipt.logs) {
-                    if (
-                        log.address.toLowerCase() === syncGetDEXAddress(networkID).toLowerCase() &&
-                        log.topics[0] === "0x8d10c7a140b316d7362354a44023c657a9c436616f21481cac1cb594aa305458".toLowerCase()
-                    ) {
-                        const data = web3.eth.abi.decodeParameters(["address", "address", "uint256", "uint256"], log.data);
-                        const dstTokenDetails = Tokens.get(order.orderInputs.dstToken);
-                        const decimals = dstTokenDetails ? dstTokenDetails.decimals : 8;
-                        const receivedAmountBN = new BigNumber(data[3]);
-                        const rcv = receivedAmountBN.dividedBy(new BigNumber(10).exponentiatedBy(decimals));
-                        resolve(rcv);
-                        return;
-                    }
-                }
-                reject(new Error("No burn events found in transaction."));
-            }).catch(reject));
-
-            await this.persistentContainer.updateHistoryItem(order.id, {
-                receivedAmount: receivedAmount.toString(),
-                outTx: EthereumTx(transactionHash),
-                status: ShiftInStatus.ConfirmedOnEthereum,
-            });
-
-            resolve();
+        // Loop through logs to find exchange event from the DEX contract.
+        // The event log always has the first topic as "0x8d10c7a1"
+        // TODO: Calculate this instead of hard coding it.
+        for (const log of receipt.logs) {
+            if (
+                log.address.toLowerCase() === syncGetDEXAddress(networkID).toLowerCase() &&
+                log.topics[0] === "0x8d10c7a140b316d7362354a44023c657a9c436616f21481cac1cb594aa305458".toLowerCase()
+            ) {
+                const data = web3.eth.abi.decodeParameters(["address", "address", "uint256", "uint256"], log.data);
+                const dstTokenDetails = Tokens.get(order.orderInputs.dstToken);
+                const decimals = dstTokenDetails ? dstTokenDetails.decimals : 8;
+                const receivedAmountBN = new BigNumber(data[3]);
+                const receivedAmount = receivedAmountBN.dividedBy(new BigNumber(10).exponentiatedBy(decimals));
+                await this.persistentContainer.updateHistoryItem(order.id, {
+                    receivedAmount: receivedAmount.toString(),
+                    outTx: EthereumTx(transactionHash),
+                    status: ShiftInStatus.ConfirmedOnEthereum,
+                });
+                return;
+            }
+        }
+        await this.persistentContainer.updateHistoryItem(order.id, {
+            receivedAmount: "0",
+            outTx: EthereumTx(transactionHash),
+            status: ShiftInStatus.RefundedOnEthereum,
         });
+        return;
     }
 }

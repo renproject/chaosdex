@@ -45,7 +45,7 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
 
         const shiftIn = () => {
             switch (order.status) {
-                case ShiftInStatus.Commited:
+                case ShiftInStatus.Committed:
                     // Show the deposit address and wait for a deposit
                     return <ShowDepositAddress
                         orderID={orderID}
@@ -61,6 +61,7 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
                 case ShiftInStatus.ReturnedFromRenVM:
                 case ShiftInStatus.SubmittedToEthereum:
                     return <SubmitToEthereum txHash={order.outTx} token={order.orderInputs.dstToken} orderID={orderID} submit={sdkContainer.submitMintToEthereum} hide={hide} />;
+                case ShiftInStatus.RefundedOnEthereum:
                 case ShiftInStatus.ConfirmedOnEthereum:
                     onDone().catch(_catchInteractionErr_);
                     return <></>;
@@ -73,7 +74,7 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
             const { messageID, commitment, renVMStatus } = order as ShiftOutEvent;
 
             switch (order.status) {
-                case ShiftOutStatus.Commited:
+                case ShiftOutStatus.Committed:
                     const submit = async (submitOrderID: string) => {
                         await sdkContainer.approveTokenTransfer(submitOrderID);
                         setERC20Approved(true);
@@ -88,6 +89,7 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
                 case ShiftOutStatus.ConfirmedOnEthereum:
                 case ShiftOutStatus.SubmittedToRenVM:
                     return <DepositReceived renVMStatus={renVMStatus} messageID={messageID} orderID={orderID} submitDeposit={sdkContainer.submitBurnToRenVM} hide={hide} />;
+                case ShiftOutStatus.RefundedOnEthereum:
                 case ShiftOutStatus.ReturnedFromRenVM:
                     onDone().catch(_catchInteractionErr_);
                     return <></>;
@@ -95,7 +97,6 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
             console.error(`Unknown status in ShiftOut: ${order.status}`);
             return <></>;
         };
-
 
         if (!isEthereumBased(order.orderInputs.srcToken) && isEthereumBased(order.orderInputs.dstToken)) {
             return shiftIn();

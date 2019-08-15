@@ -11,7 +11,7 @@ export const SubmitToEthereum: React.StatelessComponent<{
     token: Token,
     orderID: string,
     txHash: Tx | null,
-    submit: (orderID: string) => Promise<void>,
+    submit: (orderID: string, retry?: boolean) => Promise<void>,
     hide?: () => void,
 }> = ({ token, orderID, txHash, submit, hide }) => {
     const [submitting, setSubmitting] = React.useState(false);
@@ -23,18 +23,19 @@ export const SubmitToEthereum: React.StatelessComponent<{
         setFailedTransaction(null);
         setSubmitting(true);
         try {
-            await submit(orderID);
+            await submit(orderID, error !== null);
         } catch (error) {
-            _catchInteractionErr_(error);
-            const match = String(error.message || error).match(/"transactionHash": "(0x[a-fA-F0-9]{64})"/);
+            let shownError = error;
+            _catchInteractionErr_(shownError);
+            const match = String(shownError.message || shownError).match(/"transactionHash": "(0x[a-fA-F0-9]{64})"/);
             setSubmitting(false);
             if (match && match.length >= 2) {
                 setFailedTransaction(match[1]);
-                error = new Error("Transaction reverted.");
+                shownError = new Error("Transaction reverted.");
             }
-            setError(error);
+            setError(shownError);
         }
-    }, [orderID, submit]);
+    }, [orderID, submit, error]);
 
     // useEffect replaces `componentDidMount` and `componentDidUpdate`.
     // To limit it to running once, we use the initialized hook.
@@ -61,7 +62,7 @@ export const SubmitToEthereum: React.StatelessComponent<{
                     Error submitting to Ethereum <InfoLabel level={LabelLevel.Warning}>{`${error.message || error}`}</InfoLabel>
                     {failedTransaction ? <>
                         <br />
-                        See the "Error" tab of the <a className="blue" href={`https://dashboard.tenderly.dev/tx/kovan/${failedTransaction}`}>Transaction Stack Trace</a>.
+                        See the <a className="blue" href={`https://dashboard.tenderly.dev/tx/kovan/${failedTransaction}/error`}>Transaction Stack Trace</a> for more details.
                         <br />
                         If you see <span className="monospace">"nonce already submitted"</span> your trade may have already gone through.
                     </> : null}

@@ -2,7 +2,7 @@ import "react-circular-progressbar/dist/styles.css";
 
 import * as React from "react";
 
-import { naturalTime, TokenIcon } from "@renproject/react-components";
+import { InfoLabel, naturalTime, TokenIcon } from "@renproject/react-components";
 import { Chain } from "@renproject/ren";
 import { CircularProgressbar } from "react-circular-progressbar";
 
@@ -19,7 +19,7 @@ import { TokenBalance } from "./TokenBalance";
 
 const shiftProgress = (status: ShiftInStatus | ShiftOutStatus) => {
     switch (status) {
-        case ShiftInStatus.Commited:
+        case ShiftInStatus.Committed:
             return 1 / 6 * 100;
         case ShiftInStatus.Deposited:
             return 2 / 6 * 100;
@@ -29,7 +29,7 @@ const shiftProgress = (status: ShiftInStatus | ShiftOutStatus) => {
             return 4 / 6 * 100;
         case ShiftInStatus.SubmittedToEthereum:
             return 5 / 6 * 100;
-        case ShiftOutStatus.Commited:
+        case ShiftOutStatus.Committed:
             return 1 / 5 * 100;
         case ShiftOutStatus.SubmittedToEthereum:
             return 2 / 5 * 100;
@@ -54,8 +54,9 @@ const txUrl = (tx: Tx | null): string => {
     }
 };
 
-const OrderHistoryEntry = ({ order, continueOrder }: {
+const OrderHistoryEntry = ({ order, continueOrder, loggedIn }: {
     order: HistoryEvent,
+    loggedIn: boolean,
     continueOrder: (orderID: string) => void,
 }) => {
     const amount = <span className="token--amount">
@@ -71,38 +72,60 @@ const OrderHistoryEntry = ({ order, continueOrder }: {
     };
     return <div className="swap--history--entry">
         <div className="token--info">
-            {order.status === ShiftInStatus.ConfirmedOnEthereum || order.status === ShiftOutStatus.ReturnedFromRenVM ? <>
-                <TokenIcon className="token-icon" token={order.orderInputs.dstToken} />
-                <span className="received--text">Received</span>{amount}
-            </> : <>
-                    {/*<span className="tx-pending tx-pending--solid" />*/}
-                    <CircularProgressbar
-                        className="swap--progress"
-                        value={shiftProgress(order.status)}
-                        strokeWidth={18}
-                        styles={{
-                            path: {
-                                stroke: "#006FE8",
-                                strokeLinecap: "butt",
-                                // strokeOpacity: 0.6,
-                            },
-                            trail: {
-                                stroke: "#006FE8",
-                                strokeOpacity: 0.2,
-                            },
-                        }}
-                    />
-                    <span className="received--text">Receiving</span>{amount}
-                    <button className="button--plain" onClick={onClick}>Continue swap</button>
-                </>
+            {(
+                order.status === ShiftInStatus.ConfirmedOnEthereum ||
+                order.status === ShiftOutStatus.ReturnedFromRenVM
+            ) ?
+                <>
+                    <TokenIcon className="token-icon" token={order.orderInputs.dstToken} />
+                    <span className="received--text">Received</span>{amount}
+                </> :
+                (
+                    order.status === ShiftInStatus.RefundedOnEthereum ||
+                    order.status === ShiftOutStatus.RefundedOnEthereum
+                ) ?
+                    <>
+                        <TokenIcon className="token-icon" token={order.orderInputs.dstToken} />
+                        <span className="received--text">{order.orderInputs.srcToken} refunded</span> <InfoLabel>A swap will be refunded if too much time has passed or if the price has fallen too much.</InfoLabel>
+                    </> :
+                    <>
+                        {/*<span className="tx-pending tx-pending--solid" />*/}
+                        <CircularProgressbar
+                            className="swap--progress"
+                            value={shiftProgress(order.status)}
+                            strokeWidth={18}
+                            styles={{
+                                path: {
+                                    stroke: "#006FE8",
+                                    strokeLinecap: "butt",
+                                    // strokeOpacity: 0.6,
+                                },
+                                trail: {
+                                    stroke: "#006FE8",
+                                    strokeOpacity: 0.2,
+                                },
+                            }}
+                        />
+                        <span className="received--text">Receiving</span>{amount}
+                        <button
+                            disabled={!loggedIn}
+                            className="button--plain"
+                            onClick={onClick}
+                        >
+                            {loggedIn ? <>Continue swap</> : <>: Connect to continue</>}
+                        </button>
+                    </>
             }
 
         </div>
         <div className="history--txs">
             <span className="swap--time">{naturalTime(order.time, { message: "Just now", suffix: "ago", countDown: false, abbreviate: true })}</span>
-            {/*<a className={`tx-in ${inTxPending ? "tx-pending" : ""}`} target="_blank" rel="noopener noreferrer" href={txUrl(order.inTx)}>
-                <Arrow />
-            </a>*/}
+            {order.inTx ?
+                <a className={`tx-in`} target="_blank" rel="noopener noreferrer" href={txUrl(order.inTx)}>
+                    <Arrow />
+                </a> :
+                <></>
+            }
             {order.outTx ?
                 <a className={`tx-out`} target="_blank" rel="noopener noreferrer" href={txUrl(order.outTx)}>
                     <Arrow />
@@ -126,6 +149,8 @@ export const OrderHistory = connect<{} & ConnectedProps<[PersistentContainer, UI
 
         const orders = Object.values(persistentContainer.state.historyItems).sort((a, b) => b.time - a.time);
 
+        const loggedIn = uiContainer.state.address !== null;
+
         if (orders.length === 0) {
             return <></>;
         }
@@ -142,6 +167,7 @@ export const OrderHistory = connect<{} & ConnectedProps<[PersistentContainer, UI
                         return <OrderHistoryEntry
                             key={historyEvent.time}
                             order={historyEvent}
+                            loggedIn={loggedIn}
                             continueOrder={uiContainer.handleOrder}
                         />;
                     })}
