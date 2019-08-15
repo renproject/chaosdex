@@ -1,7 +1,7 @@
 import { sleep } from "@renproject/react-components";
 import RenVM, {
-    Chain, NetworkDetails, NetworkDevnet, NetworkLocalnet, NetworkTestnet, ShiftInObject, Signature,
-    Tokens as ShiftActions,
+    Chain, NetworkDetails, NetworkDevnet, NetworkLocalnet, NetworkTestnet, Ox, ShiftInObject,
+    Signature, Tokens as ShiftActions,
 } from "@renproject/ren";
 import { TxStatus } from "@renproject/ren/dist/renVM/transaction";
 import BigNumber from "bignumber.js";
@@ -327,7 +327,7 @@ export class SDKContainer extends Container<typeof initialState> {
             .on("messageID", onMessageID)
             .on("status", onStatus);
         await this.persistentContainer.updateHistoryItem(orderID, {
-            inTx: BitcoinTx(bs58.encode(Buffer.from(signature.response.args.utxo.txHash, "base64"))),
+            inTx: BitcoinTx(Ox(Buffer.from(signature.response.args.utxo.txHash, "base64"))),
             status: ShiftInStatus.ReturnedFromRenVM,
         });
         return signature;

@@ -3,7 +3,7 @@ import "react-circular-progressbar/dist/styles.css";
 import * as React from "react";
 
 import { InfoLabel, naturalTime, TokenIcon } from "@renproject/react-components";
-import { Chain } from "@renproject/ren";
+import { Chain, strip0x } from "@renproject/ren";
 import { CircularProgressbar } from "react-circular-progressbar";
 
 import { ETHERSCAN } from "../../lib/environmentVariables";
@@ -48,6 +48,9 @@ const txUrl = (tx: Tx | null): string => {
         case Chain.Ethereum:
             return `${ETHERSCAN}/tx/${tx.hash}`;
         case Chain.Bitcoin:
+            if (tx.hash && tx.hash.slice && tx.hash.slice(0, 2) === "0x") {
+                return `https://chain.so/tx/BTCTEST/${strip0x(tx.hash)}`;
+            }
             return `https://chain.so/address/BTCTEST/${tx.hash}`;
         case Chain.Zcash:
             return `https://chain.so/address/ZECTEST/${tx.hash}`;
