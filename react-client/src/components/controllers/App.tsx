@@ -14,6 +14,7 @@ import { UIContainer } from "../../state/uiContainer";
 import { HeaderController } from "../views/HeaderController";
 import { Tutorial } from "../views/tutorial-popup/Tutorial";
 import { Exchange } from "./Exchange";
+import { FeedbackButton } from "@renproject/react-components";
 
 const useTutorialState = createPersistedState("show-tutorial");
 
@@ -103,6 +104,7 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
             </React.Suspense>
             <Exchange handleLogin={login} />
             {showingTutorial ? <Tutorial cancel={hideTutorial} /> : null}
+            <FeedbackButton url="https://renprotocol.typeform.com/to/YdmFyB" />
         </main>;
     }
 ));
