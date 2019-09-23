@@ -1126,10 +1126,10 @@
     typed-styles "^0.0.5"
     warning "^3.0.0"
 
-"@renproject/contracts@0.3.14":
-  version "0.3.14"
-  resolved "https://registry.yarnpkg.com/@renproject/contracts/-/contracts-0.3.14.tgz#fdd1562571ca2a6fd87dc8b233c9129b032793ad"
-  integrity sha512-WsDE99pffvAfOaADv1qekCWHTGvIxx7zWaq8Y7aWNNeeNlOO/LLi/I3ui+vqbUg6EtZCuXquPIAjGk/LIC8+CA==
+"@renproject/contracts@0.3.16":
+  version "0.3.16"
+  resolved "https://registry.yarnpkg.com/@renproject/contracts/-/contracts-0.3.16.tgz#8ed095941ce35567a9a301fd5165249c6e200959"
+  integrity sha512-72O8pFCe6BxfI9MKr82IOxLYKUrvOa6XYZdE71ezSUDWhl1rlsZkAaS4fiLdmxa/f+syEfdMohyyrVEUvi3f0w==
   dependencies:
     darknode-sol "https://github.com/renproject/darknode-sol#be15db5d3720b8050a3a379c37260d87026e3626"
 
@@ -1155,12 +1155,12 @@
     react-router-dom "^5.0.1"
     react-select "^3.0.4"
 
-"@renproject/ren@0.1.8":
-  version "0.1.8"
-  resolved "https://registry.yarnpkg.com/@renproject/ren/-/ren-0.1.8.tgz#960bbdc7b98a241136f80e1e51b4c578e6cf5725"
-  integrity sha512-hurGe+cP0dwn+uVRHTKqHu8RNojcGjO848qLkG4MHrVmyjE9/Mpltwer43dK5VT1wPWpYtFj8EOyZ0bgtQOnPw==
+"@renproject/ren@0.1.10":
+  version "0.1.10"
+  resolved "https://registry.yarnpkg.com/@renproject/ren/-/ren-0.1.10.tgz#2155cb135dff625976fed64c089aa2c95c5e98c2"
+  integrity sha512-Mf9TEVBZjQUghttgIcOYwlwmsuVGKBQx4ArCIC7C9Uh74xDC6pxg/ZxDrXwOHDtSdLJFcO7oPcQDKKIvATLklQ==
   dependencies:
-    "@renproject/contracts" "0.3.14"
+    "@renproject/contracts" "0.3.16"
     "@types/bitcore-lib" "^0.15.1"
     "@types/bn.js" "^4.11.5"
     "@types/bs58" "^4.0.0"
@@ -2565,7 +2565,7 @@ bip66@^1.1.5:
   dependencies:
     safe-buffer "^5.0.1"
 
-bitcore-lib-zcash@zcash-hackworks/bitcore-lib-zcash:
+"bitcore-lib-zcash@github:zcash-hackworks/bitcore-lib-zcash":
   version "0.13.19"
   resolved "https://codeload.github.com/zcash-hackworks/bitcore-lib-zcash/tar.gz/e97ae1dd2e9f14d6076d5e5429c75d8965afa4ab"
   dependencies:
@@ -3907,9 +3907,9 @@ damerau-levenshtein@^1.0.4:
   resolved "https://registry.yarnpkg.com/damerau-levenshtein/-/damerau-levenshtein-1.0.5.tgz#780cf7144eb2e8dbd1c3bb83ae31100ccc31a414"
   integrity sha512-CBCRqFnpu715iPmw1KrdOrzRqbdFwQTwAWyyyYS42+iAgHCuXZ+/TdMgQkUENPomxEz9z1BEzuQU2Xw0kUuAgA==
 
-"darknode-sol@https://github.com/renproject/darknode-sol#be15db5d3720b8050a3a379c37260d87026e3626":
+"darknode-sol@git+https://github.com/renproject/darknode-sol.git#be15db5d3720b8050a3a379c37260d87026e3626":
   version "0.0.3"
-  resolved "https://github.com/renproject/darknode-sol#be15db5d3720b8050a3a379c37260d87026e3626"
+  resolved "git+https://github.com/renproject/darknode-sol.git#be15db5d3720b8050a3a379c37260d87026e3626"
   dependencies:
     openzeppelin-solidity "2.3.0"
 
