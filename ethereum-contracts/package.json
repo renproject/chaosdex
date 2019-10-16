@@ -56,7 +56,8 @@
     "typescript": "^3.5.3"
   },
   "resolutions": {
-    "solc": "0.5.11"
+    "solc": "0.5.11",
+    "scrypt": "https://github.com/ren-forks/node-scrypt"
   },
   "author": "Ren",
   "license": "GPL-3.0-or-later"
