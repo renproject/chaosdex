@@ -83,36 +83,41 @@ contract("DEX", (accounts) => {
 
     const removeFee = (value, bips) => value.sub(value.mul(new BN(bips)).div(new BN(10000)))
 
-    const shiftIn = async (value: BN, shifter: ShifterInstance) => {
-        const nHash = `0x${randomBytes(32).toString("hex")}`;
-        const pHash = `0x${randomBytes(32).toString("hex")}`;
-        const hash = await shifter.hashForSignature(pHash, value.toNumber(), accounts[0], nHash);
-        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
-        const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
-        await shifter.shiftIn(pHash, value.toNumber(), nHash, sigString, { from: accounts[0] });
-    }
-
     const depositToReserve = async (value: BN, token: ERC20Instance, reserve: DEXReserveInstance) => {
         await dai.approve(reserve.address, value);
         await token.approve(reserve.address, removeFee(value, shifterFees));
         await reserve.addLiquidity(accounts[0], value, removeFee(value, 10), 10000000000000);
     };
 
-    const withdrawFromReserve = async (token: ERC20Instance, reserve: DEXReserveInstance) => {
+    const shiftToReserve = async (value: BN, token: ERC20Instance, reserve: DEXReserveInstance, shifter: ShifterInstance) => {
+        const nHash = `0x${randomBytes(32).toString("hex")}`;
+        const pHash = await dexAdapter.hashLiquidityPayload(accounts[0], value, token.address, value, 10000000000000, "0x002002002");
+        const hash = await shifter.hashForSignature(pHash, value, dexAdapter.address, nHash);
+        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
+        const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
+        await dai.approve(reserve.address, value);
+        await dexAdapter.addLiquidity(accounts[0], value, token.address, 10000000000000, "0x002002002", value, nHash, sigString);
+    };
+
+    const shiftFromReserve = async (token: ERC20Instance, reserve: DEXReserveInstance) => {
         const liquidity = await reserve.balanceOf(accounts[0]);
-        await reserve.removeLiquidity(accounts[0], liquidity);
+        await reserve.approve(dexAdapter.address, liquidity);
+        await dexAdapter.removeLiquidity(token.address, liquidity, "0x0011001100110011");
+    }
+
+    const withdrawFromReserve = async (reserve: DEXReserveInstance) => {
+        const liquidity = await reserve.balanceOf(accounts[0]);
+        await reserve.removeLiquidity(liquidity);
     }
 
     it("should deposit token1 to the reserve1", async () => {
         const value = new BN(20000000000);
-        await shiftIn(value, shifter1);
-        await depositToReserve(value, token1, dexReserve1);
+        await shiftToReserve(value, token1, dexReserve1, shifter1);
     });
 
     it("should deposit token2 to the reserve2", async () => {
         const value = new BN(20000000000);
-        await shiftIn(value, shifter2);
-        await depositToReserve(value, token2, dexReserve2);
+        await shiftToReserve(value, token2, dexReserve2, shifter2);
     });
 
     it("should deposit token3 to the reserve3", async () => {
@@ -167,7 +172,7 @@ contract("DEX", (accounts) => {
     it("should trade token1 to token2 on DEX", async () => {
         const nHash = `0x${randomBytes(32).toString("hex")}`
         const value = new BN(22500);
-        const commitment = await dexAdapter.hashPayload(
+        const commitment = await dexAdapter.hashTradePayload(
             token1.address, token2.address, 0, "0x002200220022",
             100000, "0x010101010101",
         );
@@ -186,7 +191,7 @@ contract("DEX", (accounts) => {
     it("should trade token2 to token1 on DEX", async () => {
         const nHash = `0x${randomBytes(32).toString("hex")}`
         const value = new BN(22500);
-        const commitment = await dexAdapter.hashPayload(
+        const commitment = await dexAdapter.hashTradePayload(
             token2.address, token1.address, 0, "0x002200220022",
             100000, "0x010101010101",
         );
@@ -205,7 +210,7 @@ contract("DEX", (accounts) => {
     it("should trade token1 to dai on DEX", async () => {
         const nHash = `0x${randomBytes(32).toString("hex")}`
         const value = new BN(22500);
-        const commitment = await dexAdapter.hashPayload(
+        const commitment = await dexAdapter.hashTradePayload(
             token1.address, dai.address, 0, accounts[3],
             100000, "0x010101010101",
         );
@@ -221,10 +226,10 @@ contract("DEX", (accounts) => {
         );
     });
 
-    it("should trade token2 to eth on DEX", async () => {
+    it("should trade token2 to dai on DEX", async () => {
         const nHash = `0x${randomBytes(32).toString("hex")}`
         const value = new BN(22500);
-        const commitment = await dexAdapter.hashPayload(
+        const commitment = await dexAdapter.hashTradePayload(
             token2.address, dai.address, 0, accounts[3],
             100000, "0x010101010101",
         );
@@ -243,7 +248,7 @@ contract("DEX", (accounts) => {
     it("should trade token1 to token3 on DEX", async () => {
         const nHash = `0x${randomBytes(32).toString("hex")}`
         const value = new BN(22500);
-        const commitment = await dexAdapter.hashPayload(
+        const commitment = await dexAdapter.hashTradePayload(
             token1.address, token3.address, 0, accounts[3],
             100000, "0x010101010101",
         );
@@ -262,7 +267,7 @@ contract("DEX", (accounts) => {
     it("should trade token2 to token3 on DEX", async () => {
         const nHash = `0x${randomBytes(32).toString("hex")}`
         const value = new BN(22500);
-        const commitment = await dexAdapter.hashPayload(
+        const commitment = await dexAdapter.hashTradePayload(
             token2.address, token3.address, 0, accounts[3],
             100000, "0x010101010101",
         );
@@ -278,7 +283,7 @@ contract("DEX", (accounts) => {
         );
     });
 
-    it("should withdraw dai and token1 from the reserve1", async () => await withdrawFromReserve(token1, dexReserve1));
-    it("should withdraw dai and token2 from the reserve2", async () => await withdrawFromReserve(token2, dexReserve2));
-    it("should withdraw dai and token3 from the reserve3", async () => await withdrawFromReserve(token3, dexReserve3));
+    it("should withdraw dai and token1 from the reserve1", async () => await shiftFromReserve(token1, dexReserve1));
+    it("should withdraw dai and token2 from the reserve2", async () => await shiftFromReserve(token2, dexReserve2));
+    it("should withdraw dai and token3 from the reserve3", async () => await withdrawFromReserve(dexReserve3));
 });
