@@ -128,8 +128,10 @@ export const NewOrderInputs = connect<Props & ConnectedProps<[UIContainer]>>([UI
             <SelectMarketWrapper top={false} thisToken={orderInputs.dstToken} otherToken={orderInputs.srcToken} />
         </TokenValueInput>;
 
-        return <div className="order--wrapper">
-            {first}{toggle}{second}
+        return <div className="order--wrapper--wrapper">
+            <div className="order--wrapper">
+                {first}{toggle}{second}
+            </div>
         </div>;
     }
 );

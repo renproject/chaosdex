@@ -23,7 +23,7 @@
                 font-weight: bold;
                 font-size: 12px;
                 line-height: 14px;
-                color: #87888C;
+                color: $grey-11;
                 padding: 20px 20px;
                 text-transform: uppercase;
             }
@@ -35,22 +35,22 @@
                 font-weight: 500;
                 font-size: 14px;
                 line-height: 16px;
-                color: #006FE8;
+                color: $blue-bright;
                 border-top: 1px solid rgba(0, 0, 0, 0);
                 border-bottom: 1px solid rgba(0, 0, 0, 0);
 
                 &.selected {
-                    background: #F5F6F8;
                     box-shadow: 0px 1px 2px rgba(0, 27, 58, 0.0509804);
-                    border-top: 1px solid #DBE0E8;
-                    border-bottom: 1px solid #DBE0E8;
+                    border-top: 1px solid $grey-7;
+                    border-bottom: 1px solid $grey-7;
+                    background: $grey-6;
                 }
 
                 &:before {
                     content: "";
                     border-radius: 100%;
-                    border: 2px solid #006FE8;
-                    color: #006FE8;
+                    border: 2px solid $blue-bright;
+                    color: $blue-bright;
                     width: 16px;
                     height: 16px;
                     display: inline-block;
@@ -78,7 +78,7 @@
                     font-size: 14px;
                     line-height: 30px;
 
-                    color: #87888C;
+                    color: $grey-11;
                 }
             }
         }
@@ -112,7 +112,7 @@
                 font-weight: bold;
                 font-size: 18px;
                 line-height: 24px;
-                color: #585861;
+                color: $grey-12;
 
             }
 
@@ -120,14 +120,14 @@
                 font-weight: normal;
                 font-size: 14px;
                 line-height: 21px;
-                color: #87888C;
+                color: $grey-11;
             }
 
             a {
                 font-weight: normal;
                 font-size: 14px;
                 line-height: 21px;
-                color: #006FE8;
+                color: $blue-bright;
 
             }
 
@@ -139,7 +139,7 @@
                 font-weight: normal;
                 font-size: 14px;
                 line-height: 21px;
-                color: #87888C;
+                color: $grey-11;
                 // text-align: left;
 
                 svg {
@@ -152,7 +152,7 @@
             }
 
             svg {
-                width: 60px;
+                width: 200px;
             }
 
             >* {
@@ -170,14 +170,14 @@
                 height: 40px;
                 width: 140px;
                 border-radius: 4px;
-                background: linear-gradient(182.32deg, #00A8F5 -201.77%, #006FE8 93.76%);
+                background: linear-gradient(182.32deg, $blue-light -201.77%, $blue-bright 93.76%);
                 font-weight: 500;
                 font-size: 14px;
             }
 
             .button--white {
-                border: 1.6px solid #006FE8;
-                background: white;
+                border: 1.6px solid $blue-bright;
+                background: $grey-1;
             }
         }
 

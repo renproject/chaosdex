@@ -20,6 +20,11 @@ body {
     margin: 0;
 }
 
+html,
+body {
+    background: $grey-5;
+}
+
 h1 {
     font-weight: 500;
     margin-top: 0;
@@ -46,12 +51,12 @@ label {
 input[type=number],
 input[type=text],
 input[type=password] {
-    border: 1px solid $light-grey;
+    border: 1px solid $grey-8;
     height: 35px;
     padding: 0 8px;
 
     &:disabled {
-        color: $mid-grey;
+        color: $grey-12;
     }
 
     &:focus {
@@ -65,23 +70,23 @@ input[type=checkbox] {
 }
 
 ::-webkit-input-placeholder {
-    color: $mid-grey;
+    color: $grey-12;
 }
 
 ::-moz-placeholder {
-    color: $mid-grey;
+    color: $grey-12;
 }
 
 :-ms-input-placeholder {
-    color: $mid-grey;
+    color: $grey-12;
 }
 
 :-moz-placeholder {
-    color: $mid-grey;
+    color: $grey-12;
 }
 
 select:focus {
-    background-color: $off-white;
+    background-color: $grey-5;
     outline: none;
 }
 
@@ -90,7 +95,7 @@ button:focus {
 }
 
 button:disabled {
-    color: $mid-grey;
+    color: $grey-12;
     cursor: not-allowed;
 }
 
@@ -99,7 +104,7 @@ button:not(:disabled):hover {
 }
 
 button:not(:disabled):active {
-    background-color: $off-white;
+    background-color: $grey-5;
 }
 
 button .loading:after {
@@ -167,7 +172,7 @@ details {
     text-align: left;
     white-space: pre-wrap;
     font-family: monospace;
-    color: #556;
+    color: $var5;
 }
 
 .mobile-only {
@@ -201,7 +206,7 @@ details {
 }
 
 button {
-    border: 1px solid $light-grey;
+    border: 1px solid $grey-8;
     height: 35px;
     min-width: 120px;
     position: relative;
@@ -214,14 +219,14 @@ button {
 }
 
 pre {
-    background-color: #333;
-    color: white;
+    background-color: $grey-14;
+    color: $grey-0;
     padding: 8px;
     border-radius: 4px;
 }
 
 a {
-    color: $mid-grey;
+    color: $grey-12;
 }
 
 .loading--small {

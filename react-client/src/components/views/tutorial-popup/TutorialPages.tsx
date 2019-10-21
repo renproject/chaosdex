@@ -40,8 +40,7 @@ const Overview: TutorialPage = ({ nextPage, previousPage }) => {
         <Body>
             <h2>Overview</h2>
             <p>The RenVM Testnet Demo is a simple DEX the team created to showcase interoperability facilitated by RenVM.</p>
-            <p>Users will be able to exchange (testnet) DAI & BTC in a completely trustless, decentralized, and permissionless manner. </p>
-            <p>Please note this is a demonstration of our technology and will remain on the Testnet only.</p>
+            <p>Users will be able to exchange DAI & BTC in a completely trustless, decentralized, and permissionless manner. </p>
         </Body>
         <Buttons>
             <button className="button--white" onClick={previousPage}>Previous</button>

@@ -23,12 +23,11 @@
 
         svg {
             height: 40px;
-            width: 40px;
             min-height: 40px;
             margin-right: 20px;
 
             .ren-logo {
-                fill: #212122;
+                fill: $grey-15;
             }
         }
     }
@@ -46,7 +45,7 @@
         -moz-border-radius: 3.5px;
         -webkit-border-radius: 3.5px;
         border-radius: 3.5px;
-        background-color: #F45532;
+        background-color: $orange;
     }
 
     .header--account--connected .header--account--type::before {
@@ -54,11 +53,11 @@
     }
 
     .nav--divider {
-        border: 0.5px solid #DBE0E8;
+        border: 0.5px solid $grey-7;
     }
 
     .nav--button {
-        background: #FFFFFF;
+        background: $grey-1;
         box-sizing: border-box;
         border-radius: 4px;
         margin: 0 20px;
@@ -67,7 +66,7 @@
 
         @media(min-width: $min-lg) {
             &.nav--button-border {
-                border: 1px solid #DBE0E8;
+                border: 1px solid $grey-7;
                 box-shadow: 0px 1px 2px rgba(0, 26, 58, 0.0509804);
                 padding-right: 1rem !important;
                 padding-left: 1rem !important;
@@ -79,15 +78,23 @@
         }
     }
 
+    .nav-item {
+        border: 1px solid $border !important;
+        box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.2);
+    }
+
     .nav--bubble {
-        background: white;
-        border: 1px solid #E1E1E1;
+        background: $grey-1;
+        border: 1px solid $var0;
         box-sizing: border-box;
         border-radius: 16px;
         margin: 0 10px;
         padding: 0 10px;
     }
 
+    .nav-link {
+        color: $grey-16 !important;
+    }
 
     @media(max-width: $max-md) {
         .nav--bubble {
@@ -96,8 +103,8 @@
         }
 
         .navbar-collapse {
-            background: white;
-            border-bottom: 1px solid #DBE0E8;
+            background: $grey-1;
+            border-bottom: 1px solid $grey-7;
             box-shadow: 0px 1px 2px rgba(0, 26, 58, 0.0509804);
             padding: 20px 0;
         }
@@ -111,7 +118,7 @@
         font-weight: 200; // originally 400
         line-height: normal;
         text-align: left;
-        color: $mid-grey;
+        color: $grey-12;
 
         display: flex;
         align-items: center;
@@ -121,17 +128,17 @@
         width: calc(100% - 20px);
 
         &:hover {
-            border: 1px solid #DBE0E8;
+            border: 1px solid $grey-7;
             border-radius: 6px;
             background-color: inherit;
         }
 
         &:active {
-            color: black;
+            color: $grey-16;
         }
 
         &.header--dropdown--selected {
-            border: 1px solid #DBE0E8;
+            border: 1px solid $grey-7;
             border-radius: 6px;
             background-color: inherit;
         }

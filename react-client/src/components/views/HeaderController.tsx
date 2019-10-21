@@ -33,7 +33,6 @@ import {
 
 const logo = <Link className="header--logo no-underline" to="/">
     <Logo />
-    <h1>RenVM Demo</h1>
 </Link>;
 
 interface Props extends ConnectedProps<[UIContainer]> {
