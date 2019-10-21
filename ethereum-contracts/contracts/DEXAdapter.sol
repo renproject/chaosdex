@@ -2,16 +2,19 @@ pragma solidity ^0.5.8;
 
 import "./DEX.sol";
 import "./DEXReserve.sol";
+import "darknode-sol/contracts/Shifter/ShifterRegistry.sol";
+import "darknode-sol/contracts/Shifter/IShifter.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
-contract DEXAdapter is Ownable {
+contract DEXAdapter {
     DEX public dex;
+    ShifterRegistry public shifterRegistry;
 
-    event LogTransferIn(ERC20 src, uint256 amount);
-    event LogTransferOut(ERC20 dst, uint256 amount);
+    event LogTransferIn(address src, uint256 amount);
+    event LogTransferOut(address dst, uint256 amount);
 
-    constructor(DEX _dex) public {
+    constructor(DEX _dex, ShifterRegistry _shifterRegistry) public {
+        shifterRegistry = _shifterRegistry;
         dex = _dex;
     }
 
@@ -25,29 +28,29 @@ contract DEXAdapter is Ownable {
 
     function trade(
         // Payload
-        /*uint256 _relayerFee,*/ ERC20 _src, ERC20 _dst, uint256 _minDstAmt, bytes calldata _to,
+        /*uint256 _relayerFee,*/ address _src, address _dst, uint256 _minDstAmt, bytes calldata _to,
         uint256 _refundBN, bytes calldata _refundAddress,
         // Required
         uint256 _amount, bytes32 _nHash, bytes calldata _sig
     ) external payable {
         pHash = hashPayload(_src, _dst, _minDstAmt, _to, _refundBN, _refundAddress);
-        transferredAmt = _transferIn(_src, _dst, _amount, _nHash, pHash, _sig);
-        emit LogTransferIn(_src, _amount);
-
         // Handle refunds if the refund block number has passed
         if (block.number >= _refundBN) {
-            if (DEXReserve(dex.reserve(_src, _dst)).isShifted(address(_src))) {
-                DEXReserve(dex.reserve(_src, _dst)).getShifter(address(_src)).shiftOut(_refundAddress, transferredAmt);
+            IShifter shifter = shifterRegistry.getShifterByToken(address(_src));
+            if (shifter != IShifter(0x0)) {
+                transferredAmt = shifter.shiftIn(pHash, _amount, _nHash, _sig);
+                shifter.shiftOut(_refundAddress, transferredAmt);
             }
-            // FIXME: Also handle the refunds for non-shifted tokens
             return;
         }
 
+        transferredAmt = _transferIn(_src, _amount, _nHash, pHash, _sig);
+        emit LogTransferIn(_src, transferredAmt);
         _doTrade(_src, _dst, _minDstAmt, _to, transferredAmt);
     }
 
     function hashPayload(
-        /*uint256 _relayerFee,*/ ERC20 _src, ERC20 _dst, uint256 _minDstAmt, bytes memory _to,
+        /*uint256 _relayerFee,*/ address _src, address _dst, uint256 _minDstAmt, bytes memory _to,
         uint256 _refundBN, bytes memory _refundAddress
     ) public pure returns (bytes32) {
         return keccak256(abi.encode(_src, _dst, _minDstAmt, _to, _refundBN, _refundAddress));
@@ -61,13 +64,13 @@ contract DEXAdapter is Ownable {
     }
 
     function _doTrade(
-        ERC20 _src, ERC20 _dst, uint256 _minDstAmt, bytes memory _to, uint256 _amount
+        address _src, address _dst, uint256 _minDstAmt, bytes memory _to, uint256 _amount
     ) internal {
         uint256 recvAmt;
         address payable to;
-        DEXReserve reserve = DEXReserve(dex.reserve(_src, _dst));
+        IShifter shifter = shifterRegistry.getShifterByToken(address(_dst));
 
-        if (reserve.isShifted(address(_dst))) {
+        if (shifter != IShifter(0x0)) {
             to = address(this);
         } else {
             to = _bytesToAddress(_to);
@@ -76,30 +79,33 @@ contract DEXAdapter is Ownable {
         if (_src == dex.ethereum()) {
             recvAmt = dex.trade.value(msg.value)(to, _src, _dst, _amount);
         } else {
-            _src.approve(address(dex), _amount);
+            if (_src == dex.BaseToken()) {
+                ERC20(_src).approve(address(dex.reserves(_dst)), _amount);
+            } else {
+                ERC20(_src).approve(address(dex.reserves(_src)), _amount);
+            }
             recvAmt = dex.trade(to, _src, _dst, _amount);
         }
 
-        require(recvAmt >= _minDstAmt, "invalid receive amount");
-        if (reserve.isShifted(address(_dst))) {
-            reserve.getShifter(address(_dst)).shiftOut(_to, recvAmt);
+        require(recvAmt > 0 && recvAmt >= _minDstAmt, "invalid receive amount");
+        if (shifter != IShifter(0x0)) {
+            shifter.shiftOut(_to, recvAmt);
         }
         emit LogTransferOut(_dst, recvAmt);
     }
 
     function _transferIn(
-        /*uint256 _relayerFee,*/ ERC20 _src, ERC20 _dst, uint256 _amount,
+        /*uint256 _relayerFee,*/ address _src, uint256 _amount,
         bytes32 _nHash, bytes32 _pHash, bytes memory _sig
     ) internal returns (uint256) {
-        DEXReserve reserve = DEXReserve(dex.reserve(_src, _dst));
-
-        if (reserve.isShifted(address(_src))) {
-            return reserve.getShifter(address(_src)).shiftIn(_pHash, _amount, _nHash, _sig);
+        IShifter shifter = shifterRegistry.getShifterByToken(address(_src));
+        if (shifter != IShifter(0x0)) {
+            return shifter.shiftIn(_pHash, _amount, _nHash, _sig);
         } else if (_src == dex.ethereum()) {
             require(msg.value >= _amount, "insufficient eth amount");
             return msg.value;
         } else {
-            require(_src.transferFrom(msg.sender, address(this), _amount), "source token transfer failed");
+            require(ERC20(_src).transferFrom(msg.sender, address(this), _amount), "source token transfer failed");
             return _amount;
         }
     }
@@ -111,5 +117,9 @@ contract DEXAdapter is Ownable {
             addr := mload(add(_addr, 20))
         }
         return addr;
+    }
+
+    function calculateReceiveAmount(address _src, address _dst, uint256 _sendAmount) public view returns (uint256) {
+        return dex.calculateReceiveAmount(_src, _dst, _sendAmount);
     }
 }
