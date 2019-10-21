@@ -33,7 +33,7 @@ contract DEXAdapter {
         // Required
         uint256 _amount, bytes32 _nHash, bytes calldata _sig
     ) external payable {
-        pHash = hashPayload(_src, _dst, _minDstAmt, _to, _refundBN, _refundAddress);
+        pHash = hashTradePayload(_src, _dst, _minDstAmt, _to, _refundBN, _refundAddress);
         // Handle refunds if the refund block number has passed
         if (block.number >= _refundBN) {
             IShifter shifter = shifterRegistry.getShifterByToken(address(_src));
@@ -49,11 +49,18 @@ contract DEXAdapter {
         _doTrade(_src, _dst, _minDstAmt, _to, transferredAmt);
     }
 
-    function hashPayload(
+    function hashTradePayload(
         /*uint256 _relayerFee,*/ address _src, address _dst, uint256 _minDstAmt, bytes memory _to,
         uint256 _refundBN, bytes memory _refundAddress
     ) public pure returns (bytes32) {
         return keccak256(abi.encode(_src, _dst, _minDstAmt, _to, _refundBN, _refundAddress));
+    }
+
+    function hashLiquidityPayload(
+        address _liquidityProvider,  uint256 _maxBaseToken, address _token, uint256 _amount,
+        uint256 _refundBN, bytes memory _refundAddress
+    ) public pure returns (bytes32) {
+        return keccak256(abi.encode(_liquidityProvider, _maxBaseToken, _token, _amount, _refundBN, _refundAddress));
     }
 
     function encodePayload(
@@ -61,6 +68,34 @@ contract DEXAdapter {
         uint256 _refundBN, bytes memory _refundAddress
     ) public pure returns (bytes memory) {
         return abi.encode(_src, _dst, _minDstAmt, _to, _refundBN, _refundAddress);
+    }
+
+    function addLiquidity(
+        address _liquidityProvider,  uint256 _maxBaseToken, address _token, uint256 _deadline, bytes calldata _refundAddress,
+        uint256 _amount, bytes32 _nHash, bytes calldata _sig
+        ) external returns (uint256) {
+            DEXReserve reserve = dex.reserves(_token);
+            require(reserve != DEXReserve(0x0), "unsupported token");
+            bytes32 pHash = hashLiquidityPayload(_liquidityProvider, _maxBaseToken, _token, _amount, _deadline, _refundAddress);
+            if (block.number > _deadline) {
+                uint256 shiftedAmount = shifterRegistry.getShifterByToken(_token).shiftIn(pHash, _amount, _nHash, _sig);
+                shifterRegistry.getShifterByToken(_token).shiftOut(_refundAddress, shiftedAmount);
+                return 0;
+            }
+            require(ERC20(dex.BaseToken()).allowance(_liquidityProvider, address(reserve)) >= _maxBaseToken,
+                "insufficient base token allowance");
+            uint256 transferredAmount = _transferIn(_token, _amount, _nHash, pHash, _sig);
+            ERC20(_token).approve(address(reserve), transferredAmount);
+            return reserve.addLiquidity(_liquidityProvider, _maxBaseToken, transferredAmount, _deadline);
+    }
+
+    function removeLiquidity(address _token, uint256 _liquidity, bytes calldata _tokenAddress) external {
+        DEXReserve reserve = dex.reserves(_token);
+        require(reserve != DEXReserve(0x0), "unsupported token");
+        reserve.transferFrom(msg.sender, address(this), _liquidity);
+        (uint256 baseTokenAmount, uint256 quoteTokenAmount) = reserve.removeLiquidity(_liquidity);
+        reserve.BaseToken().transfer(msg.sender, baseTokenAmount);
+        shifterRegistry.getShifterByToken(address(reserve.Token())).shiftOut(_tokenAddress, quoteTokenAmount);
     }
 
     function _doTrade(

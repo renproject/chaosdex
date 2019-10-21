@@ -48,25 +48,24 @@ contract DEXReserve is ERC20 {
         return _removeFees(rcvAmt);
     }
 
-    function removeLiquidity(address _address, uint256 _liquidity) external {
-        require(balanceOf(_address) >= _liquidity && totalSupply() != 0 && _liquidity <= totalSupply(), "invalid liquidity");
+    function removeLiquidity(uint256 _liquidity) external returns (uint256, uint256) {
+        require(balanceOf(msg.sender) >= _liquidity, "insufficient balance");
         uint256 baseTokenAmount = calculateBaseTokenValue(_liquidity);
         uint256 quoteTokenAmount = calculateQuoteTokenValue(_liquidity);
-        _burn(_address, _liquidity);
-        BaseToken.transfer(_address, baseTokenAmount);
-        Token.transfer(_address, quoteTokenAmount);
+        _burn(msg.sender, _liquidity);
+        BaseToken.transfer(msg.sender, baseTokenAmount);
+        Token.transfer(msg.sender, quoteTokenAmount);
+        return (baseTokenAmount, quoteTokenAmount);
     }
 
     function addLiquidity(
         address _liquidiyProvider, uint256 _maxBaseToken, uint256 _tokenAmount, uint256 _deadline
         ) external returns (uint256) {
         require(_deadline > block.number, "addLiquidity request expired");
-        Token.transferFrom(_liquidiyProvider, address(this), _tokenAmount);
+        Token.transferFrom(msg.sender, address(this), _tokenAmount);
         if (totalSupply() > 0) {
             require(_tokenAmount > 0, "token amount is less than allowed min amount");
-            uint256 daiReserve = BaseToken.balanceOf(address(this));
-            uint256 tokenReserve = Token.balanceOf(address(this));
-            uint256 daiAmount = _tokenAmount * daiReserve / tokenReserve;
+            uint256 daiAmount = expectedBaseTokenAmount(_tokenAmount);
             require(daiAmount < _maxBaseToken && BaseToken.transferFrom(_liquidiyProvider, address(this), daiAmount), "failed to transfer base token");
             emit LogAddLiquidity(_liquidiyProvider, _tokenAmount, daiAmount);
         } else {
@@ -87,6 +86,12 @@ contract DEXReserve is ERC20 {
         require(totalSupply() != 0, "Division by Zero");
         uint256 tokenReserve = Token.balanceOf(address(this));
         return (_liquidity * tokenReserve)/totalSupply();
+    }
+
+    function expectedBaseTokenAmount(uint256 _quoteTokenAmount) public view returns (uint256) {
+        uint256 daiReserve = BaseToken.balanceOf(address(this));
+        uint256 tokenReserve = Token.balanceOf(address(this));
+        return (_quoteTokenAmount * daiReserve)/tokenReserve;
     }
 
     function _removeFees(uint256 _amount) internal view returns (uint256) {
