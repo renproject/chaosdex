@@ -18,10 +18,6 @@ contract DEXAdapter {
         dex = _dex;
     }
 
-    // solhint-disable-next-line no-empty-blocks
-    function() external payable {
-    }
-
     // TODO: Fix "Stack too deep" error!
     uint256 transferredAmt;
 
@@ -31,7 +27,7 @@ contract DEXAdapter {
         uint256 _refundBN, bytes calldata _refundAddress,
         // Required
         uint256 _amount, bytes32 _nHash, bytes calldata _sig
-    ) external payable {
+    ) external {
         transferredAmt;
         bytes32 pHash = hashTradePayload(_src, _dst, _minDstAmt, _to, _refundBN, _refundAddress);
         // Handle refunds if the refund block number has passed
@@ -102,7 +98,7 @@ contract DEXAdapter {
         address _src, address _dst, uint256 _minDstAmt, bytes memory _to, uint256 _amount
     ) internal {
         uint256 recvAmt;
-        address payable to;
+        address to;
         IShifter shifter = shifterRegistry.getShifterByToken(address(_dst));
 
         if (shifter != IShifter(0x0)) {
@@ -111,16 +107,12 @@ contract DEXAdapter {
             to = _bytesToAddress(_to);
         }
 
-        if (_src == dex.ethereum()) {
-            recvAmt = dex.trade.value(msg.value)(to, _src, _dst, _amount);
+        if (_src == dex.BaseToken()) {
+            ERC20(_src).approve(address(dex.reserves(_dst)), _amount);
         } else {
-            if (_src == dex.BaseToken()) {
-                ERC20(_src).approve(address(dex.reserves(_dst)), _amount);
-            } else {
-                ERC20(_src).approve(address(dex.reserves(_src)), _amount);
-            }
-            recvAmt = dex.trade(to, _src, _dst, _amount);
+            ERC20(_src).approve(address(dex.reserves(_src)), _amount);
         }
+        recvAmt = dex.trade(to, _src, _dst, _amount);
 
         require(recvAmt > 0 && recvAmt >= _minDstAmt, "invalid receive amount");
         if (shifter != IShifter(0x0)) {
@@ -145,8 +137,8 @@ contract DEXAdapter {
         }
     }
 
-    function _bytesToAddress(bytes memory _addr) internal pure returns (address payable) {
-        address payable addr;
+    function _bytesToAddress(bytes memory _addr) internal pure returns (address) {
+        address addr;
         /* solhint-disable-next-line */ /* solium-disable-next-line */
         assembly {
             addr := mload(add(_addr, 20))
