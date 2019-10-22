@@ -16,12 +16,22 @@ contract DEX {
         FeeInBips = _feeInBips;
     }
 
+    /// @notice Allow anyone to recover funds accidentally sent to the contract.
+    /// To withdraw ETH, the token should be set to `0x0`.
+    function recoverTokens(address _token) external {
+        if (_token == address(0x0)) {
+            msg.sender.transfer(address(this).balance);
+        } else {
+            ERC20(_token).transfer(msg.sender, ERC20(_token).balanceOf(address(this)));
+        }
+    }
+
     function registerReserve(address _erc20, DEXReserve _reserve) external {
         require(reserves[_erc20] == DEXReserve(0x0), "token reserve already registered");
         reserves[_erc20] = _reserve;
     }
 
-    function trade(address payable _to, address _src, address _dst, uint256 _sendAmount) public payable returns (uint256) {
+    function trade(address _to, address _src, address _dst, uint256 _sendAmount) public payable returns (uint256) {
         uint256 recvAmount;
         if (_src == BaseToken) {
             require(reserves[_dst] != DEXReserve(0x0), "unsupported token");
