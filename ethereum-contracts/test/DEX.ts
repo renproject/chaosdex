@@ -69,7 +69,7 @@ contract("DEX", (accounts) => {
         dexReserve2 = await DEXReserve.new(dai.address, token2.address, dexFees);
         dexReserve3 = await DEXReserve.new(dai.address, token3.address, dexFees);
 
-        dex = await DEX.new(dai.address, dexFees);
+        dex = await DEX.new(dai.address);
         await dex.registerReserve(token1.address, dexReserve1.address);
         await dex.registerReserve(token2.address, dexReserve2.address);
         await dex.registerReserve(token3.address, dexReserve3.address);
@@ -112,10 +112,29 @@ contract("DEX", (accounts) => {
         await reserve.removeLiquidity(liquidity);
     }
 
+    const sellBaseToken = async (srcToken: ERC20Instance, dstToken: ERC20Instance) => {
+        const value = new BN(225000);
+        const amount = await dex.calculateReceiveAmount(srcToken.address, dstToken.address, value);
+        const nHash = `0x${randomBytes(32).toString("hex")}`;
+        const pHash = `0x${randomBytes(32).toString("hex")}`;
+        await srcToken.approve(dexAdapter.address, value);
+        const reserve = await dex.reserves(dstToken.address);
+        const initialBalance = new BN((await dstToken.balanceOf(reserve)).toString());
+        await dexAdapter.trade(
+            // Payload:
+            srcToken.address, dstToken.address, 0, "0x002200220022", 100000,
+            "0x010101010101",
+            // Required
+            value, nHash, pHash,
+        );
+        const finalBalance = new BN((await dstToken.balanceOf(reserve)).toString());
+        // initialBalance.sub(finalBalance).should.bignumber.equal(amount);
+        console.log(initialBalance.sub(finalBalance).toString(), " == ", amount.toString());
+    }
+
+
     it("should fail when trying to trade dai to token1 on DEX before funding the reserve", async () => {
         const value = new BN(225000);
-        const amount = await dex.calculateReceiveAmount.call(dai.address, token1.address, value);
-
         const nHash = `0x${randomBytes(32).toString("hex")}`;
         const pHash = `0x${randomBytes(32).toString("hex")}`;
         await dai.approve(dexAdapter.address, value);
@@ -163,47 +182,15 @@ contract("DEX", (accounts) => {
     });
 
     it("should trade dai to token1 on DEX", async () => {
-        const value = new BN(225000);
-        const amount = await dex.calculateReceiveAmount.call(dai.address, token1.address, value);
-
-        const nHash = `0x${randomBytes(32).toString("hex")}`;
-        const pHash = `0x${randomBytes(32).toString("hex")}`;
-        await dai.approve(dexAdapter.address, value);
-        await dexAdapter.trade(
-            // Payload:
-            dai.address, token1.address, 0, "0x002200220022", 100000,
-            "0x010101010101",
-            // Required
-            value, nHash, pHash,
-        );
+        await sellBaseToken(dai, token1);
     });
 
     it("should trade dai to token2 on DEX", async () => {
-        const value = new BN(22500);
-        const nHash = `0x${randomBytes(32).toString("hex")}`;
-        const pHash = `0x${randomBytes(32).toString("hex")}`;
-        await dai.approve(dexAdapter.address, value);
-        await dexAdapter.trade(
-            // Payload:
-            dai.address, token2.address, 0, "0x002200220022", 100000,
-            "0x010101010101",
-            // Required
-            value, nHash, pHash,
-        );
+        await sellBaseToken(dai, token2);
     });
 
     it("should trade dai to token3 on DEX", async () => {
-        const value = new BN(22500);
-        const nHash = `0x${randomBytes(32).toString("hex")}`;
-        const pHash = `0x${randomBytes(32).toString("hex")}`;
-        await dai.approve(dexAdapter.address, value);
-        await dexAdapter.trade(
-            // Payload:
-            dai.address, token3.address, 0, "0x002200220022", 100000,
-            "0x010101010101",
-            // Required
-            value, nHash, pHash,
-        );
+        await sellBaseToken(dai, token3);
     });
 
     it("should trade token1 to token2 on DEX", async () => {

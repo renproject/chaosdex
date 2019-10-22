@@ -33,7 +33,6 @@ module.exports = async function (deployer, network, accounts) {
         await deployer.deploy(
             DEX,
             DaiToken.address,
-            config.dexFees, // uint256 _feeinBIPs
         );
     }
     const dex = await DEX.at(DEX.address);
@@ -49,7 +48,7 @@ module.exports = async function (deployer, network, accounts) {
     deployer.logger.log("Deploying reserves...");
 
     const deployReserve = async (quoteToken, baseToken, Reserve) => {
-        await deployer.deploy(Reserve, baseToken.address, quoteToken.address, 20);
+        await deployer.deploy(Reserve, baseToken.address, quoteToken.address, config.dexFees);
         const res = await Reserve.at(Reserve.address);
         await dex.registerReserve(quoteToken.address, Reserve.address);
         // const dai = await rightToken.at(rightToken.address);
