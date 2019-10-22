@@ -1,11 +1,7 @@
 /// <reference types="../types/truffle-contracts" />
 
-const BN = require("bn.js");
-
-const BTCShifter = artifacts.require("BTCShifter");
 const zBTC = artifacts.require("zBTC");
 
-const ZECShifter = artifacts.require("ZECShifter");
 const zZEC = artifacts.require("zZEC");
 const ShifterRegistry = artifacts.require("ShifterRegistry");
 
@@ -60,30 +56,30 @@ module.exports = async function (deployer, network, accounts) {
         // await dai.transfer(Reserve.address, "100000000000000000000");
     }
 
-    // BTC_DAI_Reserve.address = await dex.reserves(zBTC.address);
-    // if (BTC_DAI_Reserve.address === "0x0000000000000000000000000000000000000000") {
-    //     await deployReserve(zBTC, DaiToken, BTC_DAI_Reserve);
-    //     deployer.logger.log(`[${"BTC"}, ${"DAI"}]: ${BTC_DAI_Reserve.address}`);
-    // } else {
-    //     deployer.logger.log(`\nUsing existing reserve for [${"BTC"}, ${"DAI"}]: ${BTC_DAI_Reserve.address}\n`);
-    // }
+    BTC_DAI_Reserve.address = await dex.reserves(zBTC.address);
+    if (BTC_DAI_Reserve.address === "0x0000000000000000000000000000000000000000") {
+        await deployReserve(zBTC, DaiToken, BTC_DAI_Reserve);
+        deployer.logger.log(`[${"BTC"}, ${"DAI"}]: ${BTC_DAI_Reserve.address}`);
+    } else {
+        deployer.logger.log(`\nUsing existing reserve for [${"BTC"}, ${"DAI"}]: ${BTC_DAI_Reserve.address}\n`);
+    }
 
-    // ZEC_DAI_Reserve.address = await dex.reserves(zZEC.address);
-    // if (ZEC_DAI_Reserve.address === "0x0000000000000000000000000000000000000000") {
-    //     await deployReserve(zZEC, DaiToken, ZEC_DAI_Reserve);
-    //     deployer.logger.log(`[${"ZEC"}, ${"DAI"}]: ${ZEC_DAI_Reserve.address}`);
-    // } else {
-    //     deployer.logger.log(`\nUsing existing reserve for [${"ZEC"}, ${"DAI"}]: ${ZEC_DAI_Reserve.address}\n`);
-    // }
+    ZEC_DAI_Reserve.address = await dex.reserves(zZEC.address);
+    if (ZEC_DAI_Reserve.address === "0x0000000000000000000000000000000000000000") {
+        await deployReserve(zZEC, DaiToken, ZEC_DAI_Reserve);
+        deployer.logger.log(`[${"ZEC"}, ${"DAI"}]: ${ZEC_DAI_Reserve.address}`);
+    } else {
+        deployer.logger.log(`\nUsing existing reserve for [${"ZEC"}, ${"DAI"}]: ${ZEC_DAI_Reserve.address}\n`);
+    }
 
-    // // await web3.eth.sendTransaction({ to: "0x797522Fb74d42bB9fbF6b76dEa24D01A538d5D66", from: accounts[0], value: web3.utils.toWei("1", "ether") });
+    // await web3.eth.sendTransaction({ to: "", from: accounts[0], value: web3.utils.toWei("1", "ether") });
 
-    // /** LOG *******************************************************************/
+    /** LOG *******************************************************************/
 
-    // deployer.logger.log({
-    //     DEX: DEX.address,
-    //     DEXAdapter: DEXAdapter.address,
-    //     BTC_DAI_Reserve: BTC_DAI_Reserve.address,
-    //     ZEC_DAI_Reserve: ZEC_DAI_Reserve.address,
-    // });
+    deployer.logger.log({
+        DEX: DEX.address,
+        DEXAdapter: DEXAdapter.address,
+        BTC_DAI_Reserve: BTC_DAI_Reserve.address,
+        ZEC_DAI_Reserve: ZEC_DAI_Reserve.address,
+    });
 }

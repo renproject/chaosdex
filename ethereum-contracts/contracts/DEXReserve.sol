@@ -100,7 +100,13 @@ contract DEXReserve is ERC20 {
 }
 
 /* solhint-disable-next-line */ /* solium-disable-next-line */
-contract BTC_DAI_Reserve is DEXReserve {}
+contract BTC_DAI_Reserve is DEXReserve {
+    constructor (ERC20 _baseToken, ERC20 _token, uint256 _feeInBIPS) public DEXReserve(_baseToken, _token, _feeInBIPS) {
+    }
+}
 
 /* solhint-disable-next-line */ /* solium-disable-next-line */
-contract ZEC_DAI_Reserve is DEXReserve {}
+contract ZEC_DAI_Reserve is DEXReserve {
+    constructor (ERC20 _baseToken, ERC20 _token, uint256 _feeInBIPS) public DEXReserve(_baseToken, _token, _feeInBIPS) {
+    }
+}
