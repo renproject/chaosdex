@@ -2,13 +2,13 @@ import { ec } from "elliptic";
 import BN from "bn.js";
 import { randomBytes } from "crypto";
 import { ecsign } from "ethereumjs-util";
+import { format } from "url";
 
 import {
-    DEXAdapterInstance, DEXInstance, DEXReserveInstance, ERC20ShiftedInstance, ShifterInstance,
-    TestTokenInstance, ShifterRegistryInstance, DaiTokenInstance, ERC20Instance,
+    DaiTokenInstance, DEXAdapterInstance, DEXInstance, DEXReserveInstance, ERC20Instance,
+    ERC20ShiftedInstance, ShifterInstance, ShifterRegistryInstance, TestTokenInstance,
 } from "../types/truffle-contracts";
 import { ETHEREUM_TOKEN_ADDRESS, NULL } from "./helper/testUtils";
-import { format } from "url";
 
 const TestToken = artifacts.require("TestToken");
 const DAI = artifacts.require("DaiToken");
@@ -91,8 +91,10 @@ contract("DEX", (accounts) => {
 
     const shiftToReserve = async (value: BN, token: ERC20Instance, reserve: DEXReserveInstance, shifter: ShifterInstance) => {
         const nHash = `0x${randomBytes(32).toString("hex")}`;
-        const pHash = await dexAdapter.hashLiquidityPayload(accounts[0], value, token.address, value, 10000000000000, "0x002002002");
-        const hash = await shifter.hashForSignature(pHash, value, dexAdapter.address, nHash);
+        const pHash = await dexAdapter.hashLiquidityPayload.call(accounts[0], value, token.address, value, 10000000000000, "0x002002002");
+        // const types = ["address", "uint256", "address", "uint256", "uint256", "bytes"];
+        // const pHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(types, [accounts[0], value.toString(), token.address, value.toString(), 10000000000000, "0x002002002"]));
+        const hash = await shifter.hashForSignature.call(pHash, value, dexAdapter.address, nHash);
         const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
         const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
         await dai.approve(reserve.address, value);
@@ -100,13 +102,13 @@ contract("DEX", (accounts) => {
     };
 
     const shiftFromReserve = async (token: ERC20Instance, reserve: DEXReserveInstance) => {
-        const liquidity = await reserve.balanceOf(accounts[0]);
+        const liquidity = await reserve.balanceOf.call(accounts[0]);
         await reserve.approve(dexAdapter.address, liquidity);
         await dexAdapter.removeLiquidity(token.address, liquidity, "0x0011001100110011");
     }
 
     const withdrawFromReserve = async (reserve: DEXReserveInstance) => {
-        const liquidity = await reserve.balanceOf(accounts[0]);
+        const liquidity = await reserve.balanceOf.call(accounts[0]);
         await reserve.removeLiquidity(liquidity);
     }
 
@@ -127,7 +129,7 @@ contract("DEX", (accounts) => {
 
     it("should trade dai to token1 on DEX", async () => {
         const value = new BN(225000);
-        const amount = await dex.calculateReceiveAmount(dai.address, token1.address, value);
+        const amount = await dex.calculateReceiveAmount.call(dai.address, token1.address, value);
 
         const nHash = `0x${randomBytes(32).toString("hex")}`;
         const pHash = `0x${randomBytes(32).toString("hex")}`;
@@ -172,11 +174,11 @@ contract("DEX", (accounts) => {
     it("should trade token1 to token2 on DEX", async () => {
         const nHash = `0x${randomBytes(32).toString("hex")}`
         const value = new BN(22500);
-        const commitment = await dexAdapter.hashTradePayload(
+        const commitment = await dexAdapter.hashTradePayload.call(
             token1.address, token2.address, 0, "0x002200220022",
             100000, "0x010101010101",
         );
-        const hash = await shifter1.hashForSignature(commitment, value.toNumber(), dexAdapter.address, nHash);
+        const hash = await shifter1.hashForSignature.call(commitment, value.toNumber(), dexAdapter.address, nHash);
         const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
         const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
         await dexAdapter.trade(
@@ -191,11 +193,11 @@ contract("DEX", (accounts) => {
     it("should trade token2 to token1 on DEX", async () => {
         const nHash = `0x${randomBytes(32).toString("hex")}`
         const value = new BN(22500);
-        const commitment = await dexAdapter.hashTradePayload(
+        const commitment = await dexAdapter.hashTradePayload.call(
             token2.address, token1.address, 0, "0x002200220022",
             100000, "0x010101010101",
         );
-        const hash = await shifter2.hashForSignature(commitment, value.toNumber(), dexAdapter.address, nHash);
+        const hash = await shifter2.hashForSignature.call(commitment, value.toNumber(), dexAdapter.address, nHash);
         const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
         const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
         await dexAdapter.trade(
@@ -210,11 +212,11 @@ contract("DEX", (accounts) => {
     it("should trade token1 to dai on DEX", async () => {
         const nHash = `0x${randomBytes(32).toString("hex")}`
         const value = new BN(22500);
-        const commitment = await dexAdapter.hashTradePayload(
+        const commitment = await dexAdapter.hashTradePayload.call(
             token1.address, dai.address, 0, accounts[3],
             100000, "0x010101010101",
         );
-        const hash = await shifter1.hashForSignature(commitment, value.toNumber(), dexAdapter.address, nHash);
+        const hash = await shifter1.hashForSignature.call(commitment, value.toNumber(), dexAdapter.address, nHash);
         const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
         const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
         await dexAdapter.trade(
@@ -229,11 +231,11 @@ contract("DEX", (accounts) => {
     it("should trade token2 to dai on DEX", async () => {
         const nHash = `0x${randomBytes(32).toString("hex")}`
         const value = new BN(22500);
-        const commitment = await dexAdapter.hashTradePayload(
+        const commitment = await dexAdapter.hashTradePayload.call(
             token2.address, dai.address, 0, accounts[3],
             100000, "0x010101010101",
         );
-        const hash = await shifter2.hashForSignature(commitment, value.toNumber(), dexAdapter.address, nHash);
+        const hash = await shifter2.hashForSignature.call(commitment, value.toNumber(), dexAdapter.address, nHash);
         const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
         const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
         await dexAdapter.trade(
@@ -248,11 +250,11 @@ contract("DEX", (accounts) => {
     it("should trade token1 to token3 on DEX", async () => {
         const nHash = `0x${randomBytes(32).toString("hex")}`
         const value = new BN(22500);
-        const commitment = await dexAdapter.hashTradePayload(
+        const commitment = await dexAdapter.hashTradePayload.call(
             token1.address, token3.address, 0, accounts[3],
             100000, "0x010101010101",
         );
-        const hash = await shifter1.hashForSignature(commitment, value.toNumber(), dexAdapter.address, nHash);
+        const hash = await shifter1.hashForSignature.call(commitment, value.toNumber(), dexAdapter.address, nHash);
         const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
         const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
         await dexAdapter.trade(
@@ -267,11 +269,11 @@ contract("DEX", (accounts) => {
     it("should trade token2 to token3 on DEX", async () => {
         const nHash = `0x${randomBytes(32).toString("hex")}`
         const value = new BN(22500);
-        const commitment = await dexAdapter.hashTradePayload(
+        const commitment = await dexAdapter.hashTradePayload.call(
             token2.address, token3.address, 0, accounts[3],
             100000, "0x010101010101",
         );
-        const hash = await shifter2.hashForSignature(commitment, value.toNumber(), dexAdapter.address, nHash);
+        const hash = await shifter2.hashForSignature.call(commitment, value.toNumber(), dexAdapter.address, nHash);
         const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
         const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
         await dexAdapter.trade(
