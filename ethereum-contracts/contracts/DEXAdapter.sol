@@ -24,7 +24,6 @@ contract DEXAdapter {
 
     // TODO: Fix "Stack too deep" error!
     uint256 transferredAmt;
-    bytes32 pHash;
 
     function trade(
         // Payload
@@ -33,7 +32,8 @@ contract DEXAdapter {
         // Required
         uint256 _amount, bytes32 _nHash, bytes calldata _sig
     ) external payable {
-        pHash = hashTradePayload(_src, _dst, _minDstAmt, _to, _refundBN, _refundAddress);
+        transferredAmt;
+        bytes32 pHash = hashTradePayload(_src, _dst, _minDstAmt, _to, _refundBN, _refundAddress);
         // Handle refunds if the refund block number has passed
         if (block.number >= _refundBN) {
             IShifter shifter = shifterRegistry.getShifterByToken(address(_src));
