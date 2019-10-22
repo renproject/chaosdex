@@ -16,18 +16,9 @@
       "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [],
-      "name": "renounceOwnership",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
       "constant": true,
       "inputs": [],
-      "name": "owner",
+      "name": "shifterRegistry",
       "outputs": [
         {
           "name": "",
@@ -36,40 +27,16 @@
       ],
       "payable": false,
       "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "isOwner",
-      "outputs": [
-        {
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "name": "newOwner",
-          "type": "address"
-        }
-      ],
-      "name": "transferOwnership",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
       "inputs": [
         {
           "name": "_dex",
+          "type": "address"
+        },
+        {
+          "name": "_shifterRegistry",
           "type": "address"
         }
       ],
@@ -114,23 +81,6 @@
         }
       ],
       "name": "LogTransferOut",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "name": "previousOwner",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "name": "newOwner",
-          "type": "address"
-        }
-      ],
-      "name": "OwnershipTransferred",
       "type": "event"
     },
     {
@@ -207,7 +157,46 @@
           "type": "bytes"
         }
       ],
-      "name": "hashPayload",
+      "name": "hashTradePayload",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "_liquidityProvider",
+          "type": "address"
+        },
+        {
+          "name": "_maxBaseToken",
+          "type": "uint256"
+        },
+        {
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "name": "_amount",
+          "type": "uint256"
+        },
+        {
+          "name": "_refundBN",
+          "type": "uint256"
+        },
+        {
+          "name": "_refundAddress",
+          "type": "bytes"
+        }
+      ],
+      "name": "hashLiquidityPayload",
       "outputs": [
         {
           "name": "",
@@ -255,6 +244,102 @@
       ],
       "payable": false,
       "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_liquidityProvider",
+          "type": "address"
+        },
+        {
+          "name": "_maxBaseToken",
+          "type": "uint256"
+        },
+        {
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "name": "_deadline",
+          "type": "uint256"
+        },
+        {
+          "name": "_refundAddress",
+          "type": "bytes"
+        },
+        {
+          "name": "_amount",
+          "type": "uint256"
+        },
+        {
+          "name": "_nHash",
+          "type": "bytes32"
+        },
+        {
+          "name": "_sig",
+          "type": "bytes"
+        }
+      ],
+      "name": "addLiquidity",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "name": "_liquidity",
+          "type": "uint256"
+        },
+        {
+          "name": "_tokenAddress",
+          "type": "bytes"
+        }
+      ],
+      "name": "removeLiquidity",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "_src",
+          "type": "address"
+        },
+        {
+          "name": "_dst",
+          "type": "address"
+        },
+        {
+          "name": "_sendAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "calculateReceiveAmount",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
       "type": "function"
     }
   ],
@@ -322,9 +407,52 @@
         }
       },
       "links": {},
-      "address": "0xB92b95f5C1886975cb0e80a27192Ec063aFDacAe",
-      "transactionHash": "0xe45e52e675101f325387d3aee86d1e9e8a06893293b4520d751fc493dae929c0"
+      "address": "0x80F35bFD2cC37bfCaA60780d1D6Aa7bCf412cfc9",
+      "transactionHash": "0xd6411ee267e0d2bbe8a5dc8c008481fba7d6850ea6357ad3c2685f2a226fd25d"
+    },
+    "1571705399371": {
+      "events": {
+        "0xf9a8a6f3535e914cfd5fef422f9f604a324554db59d703e57cf12e77139140e3": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": false,
+              "name": "src",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "name": "amount",
+              "type": "uint256"
+            }
+          ],
+          "name": "LogTransferIn",
+          "type": "event",
+          "signature": "0xf9a8a6f3535e914cfd5fef422f9f604a324554db59d703e57cf12e77139140e3"
+        },
+        "0x44e2ab5a6cfe856e15b49f53aec49ff1d9d164735554befaac76ac4dec58af93": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": false,
+              "name": "dst",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "name": "amount",
+              "type": "uint256"
+            }
+          ],
+          "name": "LogTransferOut",
+          "type": "event",
+          "signature": "0x44e2ab5a6cfe856e15b49f53aec49ff1d9d164735554befaac76ac4dec58af93"
+        }
+      },
+      "links": {},
+      "address": "0xFF58EdDDB503A14463eCd77B73397CAf58D0dFaE",
+      "transactionHash": "0x4e4e398fc318b72adaae01a2ca96db0f03d6c503521fb671c66b8213206bc0d5"
     }
   },
-  "schemaVersion": "3.0.11"
+  "schemaVersion": "3.0.16"
 }
