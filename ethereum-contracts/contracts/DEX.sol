@@ -7,13 +7,11 @@ contract DEX {
     mapping (address=>DEXReserve) public reserves;
     address public BaseToken;
     address public ethereum = address(0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee);
-    uint256 public FeeInBips;
 
     event LogTrade(address _src, address _dst, uint256 _sendAmount, uint256 _recvAmount);
 
-    constructor(address _baseToken, uint256 _feeInBips) public {
+    constructor(address _baseToken) public {
         BaseToken = _baseToken;
-        FeeInBips = _feeInBips;
     }
 
     function registerReserve(address _erc20, DEXReserve _reserve) external {
@@ -21,7 +19,7 @@ contract DEX {
         reserves[_erc20] = _reserve;
     }
 
-    function trade(address payable _to, address _src, address _dst, uint256 _sendAmount) public payable returns (uint256) {
+    function trade(address _to, address _src, address _dst, uint256 _sendAmount) public returns (uint256) {
         uint256 recvAmount;
         if (_src == BaseToken) {
             require(reserves[_dst] != DEXReserve(0x0), "unsupported token");
