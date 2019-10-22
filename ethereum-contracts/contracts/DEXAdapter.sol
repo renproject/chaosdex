@@ -76,15 +76,15 @@ contract DEXAdapter {
         ) external returns (uint256) {
             DEXReserve reserve = dex.reserves(_token);
             require(reserve != DEXReserve(0x0), "unsupported token");
-            bytes32 pHash = hashLiquidityPayload(_liquidityProvider, _maxBaseToken, _token, _amount, _deadline, _refundAddress);
+            bytes32 lpHash = hashLiquidityPayload(_liquidityProvider, _maxBaseToken, _token, _amount, _deadline, _refundAddress);
             if (block.number > _deadline) {
-                uint256 shiftedAmount = shifterRegistry.getShifterByToken(_token).shiftIn(pHash, _amount, _nHash, _sig);
+                uint256 shiftedAmount = shifterRegistry.getShifterByToken(_token).shiftIn(lpHash, _amount, _nHash, _sig);
                 shifterRegistry.getShifterByToken(_token).shiftOut(_refundAddress, shiftedAmount);
                 return 0;
             }
             require(ERC20(dex.BaseToken()).allowance(_liquidityProvider, address(reserve)) >= _maxBaseToken,
                 "insufficient base token allowance");
-            uint256 transferredAmount = _transferIn(_token, _amount, _nHash, pHash, _sig);
+            uint256 transferredAmount = _transferIn(_token, _amount, _nHash, lpHash, _sig);
             ERC20(_token).approve(address(reserve), transferredAmount);
             return reserve.addLiquidity(_liquidityProvider, _maxBaseToken, transferredAmount, _deadline);
     }
