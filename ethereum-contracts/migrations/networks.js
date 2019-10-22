@@ -48,8 +48,10 @@ module.exports = {
     },
     testnet: {
         renNetwork: ren.testnet,
-        DEX: '0x5f0bEEA5f87EA1D9b7ef9FEa60eb20ECcCD57C23',
-        DEXAdapter: '0x80F35bFD2cC37bfCaA60780d1D6Aa7bCf412cfc9',
+        DEX: '0x6Be14F3ce70c72876aBb07b54F5DA8E75Be7F4a7',
+        DEXAdapter: '0x467371C80B4d92837876E40d9610E893D26C36BA',
+        BTC_DAI_Reserve: '0x0a3ea20A2942677df300361e0F32c296b0AC2158',
+        ZEC_DAI_Reserve: '0xA100f837b913901AeD82EcB011891b75e9842Ce5',
         config: {
             ...config,
             mintAuthority: "0x44Bb4eF43408072bC888Afd1a5986ba0Ce35Cb54",
