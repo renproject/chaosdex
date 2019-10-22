@@ -11,7 +11,7 @@
     "coveralls": "cat ./coverage/lcov.info | coveralls",
     "test": "yarn run generate && truffle test",
     "bindings:ts": "truffle compile && yarn run typings --target web3-v1 --outDir '../react-client/src/lib/contracts'",
-    "bindings:go": "solc --allow-paths . --combined-json bin,abi,userdoc,devdoc,metadata $(find contracts -type f -name '*.sol') | abigen -pkg bindings --out bindings.go --abi -",
+    "bindings:go": "solc darknode-sol=`pwd`/node_modules/darknode-sol openzeppelin-solidity=`pwd`/node_modules/openzeppelin-solidity --combined-json bin,abi,userdoc,devdoc,metadata $(find contracts -type f -name '*.sol') | abigen -pkg bindings --out bindings.go --abi -",
     "deploy": "truffle migrate --skipDryRun --network $NETWORK --all",
     "verify": "truffle run verify --network $NETWORK",
     "clean-build": "grep -R -l 'networks\": {}' $npm_package_config_truffleBuildPath --exclude-dir=development | xargs rm; node $npm_package_config_truffleBuildPath/clean.js",
