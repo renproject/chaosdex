@@ -10,7 +10,7 @@
     "coverage": "yarn run generate && solidity-coverage",
     "coveralls": "cat ./coverage/lcov.info | coveralls",
     "test": "yarn run generate && truffle test",
-    "bindings:ts": "truffle compile && yarn run typings --target web3-1.0.0 --outDir '../react-client/src/lib/contracts'",
+    "bindings:ts": "truffle compile && yarn run typings --target web3-v1 --outDir '../react-client/src/lib/contracts'",
     "bindings:go": "solc --allow-paths . --combined-json bin,abi,userdoc,devdoc,metadata $(find contracts -type f -name '*.sol') | abigen -pkg bindings --out bindings.go --abi -",
     "deploy": "truffle migrate --skipDryRun --network $NETWORK --all",
     "verify": "truffle run verify --network $NETWORK",
@@ -53,6 +53,8 @@
     "ts-node": "^8.4.1",
     "tslint": "^5.20.0",
     "typechain": "^1.0.2",
+    "typechain-target-truffle": "^1.0.0",
+    "typechain-target-web3-v1": "^1.0.0",
     "typescript": "^3.6.4"
   },
   "resolutions": {
