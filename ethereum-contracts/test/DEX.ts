@@ -54,22 +54,22 @@ contract("DEX", (accounts) => {
 
         dai = await DAI.new();
         token1 = await zBTC.new();
-        shifter1 = await Shifter.new(token1.address, feeRecipeint, mintAuthority.address, shifterFees.toNumber(), zBTCMinShiftOutAmount.toNumber());
+        shifter1 = await Shifter.new(token1.address, feeRecipeint, mintAuthority.address, shifterFees, zBTCMinShiftOutAmount);
         await token1.transferOwnership(shifter1.address);
         await shifter1.claimTokenOwnership();
 
         token2 = await zZEC.new();
-        shifter2 = await Shifter.new(token2.address, feeRecipeint, mintAuthority.address, shifterFees.toNumber(), zZECMinShiftOutAmount.toNumber());
+        shifter2 = await Shifter.new(token2.address, feeRecipeint, mintAuthority.address, shifterFees, zZECMinShiftOutAmount);
         await token2.transferOwnership(shifter2.address);
         await shifter2.claimTokenOwnership();
 
         token3 = await TestToken.new("TestToken1", "TST", 18);
 
-        dexReserve1 = await DEXReserve.new(dai.address, token1.address, dexFees.toNumber());
-        dexReserve2 = await DEXReserve.new(dai.address, token2.address, dexFees.toNumber());
-        dexReserve3 = await DEXReserve.new(dai.address, token3.address, dexFees.toNumber());
+        dexReserve1 = await DEXReserve.new(dai.address, token1.address, dexFees);
+        dexReserve2 = await DEXReserve.new(dai.address, token2.address, dexFees);
+        dexReserve3 = await DEXReserve.new(dai.address, token3.address, dexFees);
 
-        dex = await DEX.new(dai.address, dexFees.toNumber());
+        dex = await DEX.new(dai.address, dexFees);
         await dex.registerReserve(token1.address, dexReserve1.address);
         await dex.registerReserve(token2.address, dexReserve2.address);
         await dex.registerReserve(token3.address, dexReserve3.address);
@@ -84,9 +84,9 @@ contract("DEX", (accounts) => {
     const removeFee = (value, bips) => value.sub(value.mul(new BN(bips)).div(new BN(10000)))
 
     const depositToReserve = async (value: BN, token: ERC20Instance, reserve: DEXReserveInstance) => {
-        await dai.approve(reserve.address, value.toNumber());
-        await token.approve(reserve.address, removeFee(value, shifterFees.toNumber()));
-        await reserve.addLiquidity(accounts[0], value.toNumber(), removeFee(value, 10), 10000000000000);
+        await dai.approve(reserve.address, value);
+        await token.approve(reserve.address, removeFee(value, shifterFees));
+        await reserve.addLiquidity(accounts[0], value, removeFee(value, 10), 10000000000000);
     };
 
     const shiftToReserve = async (value: BN, token: ERC20Instance, reserve: DEXReserveInstance, shifter: ShifterInstance) => {
@@ -97,8 +97,8 @@ contract("DEX", (accounts) => {
         const hash = await shifter.hashForSignature.call(pHash, value, dexAdapter.address, nHash);
         const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
         const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
-        await dai.approve(reserve.address, value.toNumber());
-        await dexAdapter.addLiquidity(accounts[0], value.toNumber(), token.address, 10000000000000, "0x002002002", value.toNumber(), nHash, sigString);
+        await dai.approve(reserve.address, value);
+        await dexAdapter.addLiquidity(accounts[0], value, token.address, 10000000000000, "0x002002002", value, nHash, sigString);
     };
 
     const shiftFromReserve = async (token: ERC20Instance, reserve: DEXReserveInstance) => {
@@ -118,24 +118,24 @@ contract("DEX", (accounts) => {
 
         const nHash = `0x${randomBytes(32).toString("hex")}`;
         const pHash = `0x${randomBytes(32).toString("hex")}`;
-        await dai.approve(dexAdapter.address, value.toNumber());
+        await dai.approve(dexAdapter.address, value);
         await dexAdapter.trade(
             // Payload:
             dai.address, token1.address, 0, "0x002200220022", 100000,
             "0x010101010101",
             // Required
-            value.toNumber(), nHash, pHash,
+            value, nHash, pHash,
         ).should.be.rejectedWith(/reserve has no funds/);
     });
 
-    it("should fail when trying to trade token1 to dai on DEX before funding the reserv", async () => {
+    it("should fail when trying to trade token1 to dai on DEX before funding the reserve", async () => {
         const nHash = `0x${randomBytes(32).toString("hex")}`
         const value = new BN(22500);
         const commitment = await dexAdapter.hashTradePayload.call(
             token1.address, dai.address, 0, accounts[3],
             100000, "0x010101010101",
         );
-        const hash = await shifter1.hashForSignature.call(commitment, value.toNumber(), dexAdapter.address, nHash);
+        const hash = await shifter1.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
         const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
         const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
         await dexAdapter.trade(
@@ -143,7 +143,7 @@ contract("DEX", (accounts) => {
             token1.address, dai.address, 0, accounts[3],
             100000, "0x010101010101",
             // Required
-            value.toNumber(), nHash, sigString,
+            value, nHash, sigString,
         ).should.be.rejectedWith(/reserve has no funds/);
     });
 
@@ -168,13 +168,13 @@ contract("DEX", (accounts) => {
 
         const nHash = `0x${randomBytes(32).toString("hex")}`;
         const pHash = `0x${randomBytes(32).toString("hex")}`;
-        await dai.approve(dexAdapter.address, value.toNumber());
+        await dai.approve(dexAdapter.address, value);
         await dexAdapter.trade(
             // Payload:
             dai.address, token1.address, 0, "0x002200220022", 100000,
             "0x010101010101",
             // Required
-            value.toNumber(), nHash, pHash,
+            value, nHash, pHash,
         );
     });
 
@@ -182,13 +182,13 @@ contract("DEX", (accounts) => {
         const value = new BN(22500);
         const nHash = `0x${randomBytes(32).toString("hex")}`;
         const pHash = `0x${randomBytes(32).toString("hex")}`;
-        await dai.approve(dexAdapter.address, value.toNumber());
+        await dai.approve(dexAdapter.address, value);
         await dexAdapter.trade(
             // Payload:
             dai.address, token2.address, 0, "0x002200220022", 100000,
             "0x010101010101",
             // Required
-            value.toNumber(), nHash, pHash,
+            value, nHash, pHash,
         );
     });
 
@@ -196,13 +196,13 @@ contract("DEX", (accounts) => {
         const value = new BN(22500);
         const nHash = `0x${randomBytes(32).toString("hex")}`;
         const pHash = `0x${randomBytes(32).toString("hex")}`;
-        await dai.approve(dexAdapter.address, value.toNumber());
+        await dai.approve(dexAdapter.address, value);
         await dexAdapter.trade(
             // Payload:
             dai.address, token3.address, 0, "0x002200220022", 100000,
             "0x010101010101",
             // Required
-            value.toNumber(), nHash, pHash,
+            value, nHash, pHash,
         );
     });
 
@@ -213,7 +213,7 @@ contract("DEX", (accounts) => {
             token1.address, token2.address, 0, "0x002200220022",
             100000, "0x010101010101",
         );
-        const hash = await shifter1.hashForSignature.call(commitment, value.toNumber(), dexAdapter.address, nHash);
+        const hash = await shifter1.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
         const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
         const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
         await dexAdapter.trade(
@@ -221,7 +221,7 @@ contract("DEX", (accounts) => {
             token1.address, token2.address, 0, "0x002200220022", 100000,
             "0x010101010101",
             // Required
-            value.toNumber(), nHash, sigString,
+            value, nHash, sigString,
         );
     });
 
@@ -232,7 +232,7 @@ contract("DEX", (accounts) => {
             token2.address, token1.address, 0, "0x002200220022",
             100000, "0x010101010101",
         );
-        const hash = await shifter2.hashForSignature.call(commitment, value.toNumber(), dexAdapter.address, nHash);
+        const hash = await shifter2.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
         const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
         const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
         await dexAdapter.trade(
@@ -240,7 +240,7 @@ contract("DEX", (accounts) => {
             token2.address, token1.address, 0, "0x002200220022", 100000,
             "0x010101010101",
             // Required
-            value.toNumber(), nHash, sigString,
+            value, nHash, sigString,
         );
     });
 
@@ -251,7 +251,7 @@ contract("DEX", (accounts) => {
             token1.address, dai.address, 0, accounts[3],
             100000, "0x010101010101",
         );
-        const hash = await shifter1.hashForSignature.call(commitment, value.toNumber(), dexAdapter.address, nHash);
+        const hash = await shifter1.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
         const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
         const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
         await dexAdapter.trade(
@@ -259,7 +259,7 @@ contract("DEX", (accounts) => {
             token1.address, dai.address, 0, accounts[3],
             100000, "0x010101010101",
             // Required
-            value.toNumber(), nHash, sigString,
+            value, nHash, sigString,
         );
     });
 
@@ -270,7 +270,7 @@ contract("DEX", (accounts) => {
             token2.address, dai.address, 0, accounts[3],
             100000, "0x010101010101",
         );
-        const hash = await shifter2.hashForSignature.call(commitment, value.toNumber(), dexAdapter.address, nHash);
+        const hash = await shifter2.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
         const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
         const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
         await dexAdapter.trade(
@@ -278,7 +278,7 @@ contract("DEX", (accounts) => {
             token2.address, dai.address, 0, accounts[3],
             100000, "0x010101010101",
             // Required
-            value.toNumber(), nHash, sigString,
+            value, nHash, sigString,
         );
     });
 
@@ -289,7 +289,7 @@ contract("DEX", (accounts) => {
             token1.address, token3.address, 0, accounts[3],
             100000, "0x010101010101",
         );
-        const hash = await shifter1.hashForSignature.call(commitment, value.toNumber(), dexAdapter.address, nHash);
+        const hash = await shifter1.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
         const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
         const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
         await dexAdapter.trade(
@@ -297,7 +297,7 @@ contract("DEX", (accounts) => {
             token1.address, token3.address, 0, accounts[3], 100000,
             "0x010101010101",
             // Required
-            value.toNumber(), nHash, sigString,
+            value, nHash, sigString,
         );
     });
 
@@ -308,7 +308,7 @@ contract("DEX", (accounts) => {
             token2.address, token3.address, 0, accounts[3],
             100000, "0x010101010101",
         );
-        const hash = await shifter2.hashForSignature.call(commitment, value.toNumber(), dexAdapter.address, nHash);
+        const hash = await shifter2.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
         const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
         const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
         await dexAdapter.trade(
@@ -316,7 +316,7 @@ contract("DEX", (accounts) => {
             token2.address, token3.address, 0, accounts[3], 100000,
             "0x010101010101",
             // Required
-            value.toNumber(), nHash, sigString,
+            value, nHash, sigString,
         );
     });
 
