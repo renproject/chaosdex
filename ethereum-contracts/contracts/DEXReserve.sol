@@ -19,8 +19,8 @@ contract DEXReserve is ERC20 {
 
     function buy(address _to, address _from, uint256 _baseTokenAmount) external returns (uint256)  {
         require(totalSupply() != 0, "reserve has no funds");
-        BaseToken.transferFrom(_from, address(this), _baseTokenAmount);
         uint256 rcvAmount = calculateBuyRcvAmt(_baseTokenAmount);
+        BaseToken.transferFrom(_from, address(this), _baseTokenAmount);
         require(rcvAmount < Token.balanceOf(address(this)), "insufficient balance");
         require(Token.transfer(_to, rcvAmount), "failed to transfer quote token");
         return rcvAmount;
@@ -28,8 +28,8 @@ contract DEXReserve is ERC20 {
 
     function sell(address _to, address _from, uint256 _tokenAmount) external returns (uint256) {
         require(totalSupply() != 0, "reserve has no funds");
-        Token.transferFrom(_from, address(this), _tokenAmount);
         uint256 rcvAmount = calculateSellRcvAmt(_tokenAmount);
+        Token.transferFrom(_from, address(this), _tokenAmount);
         require(BaseToken.transfer(_to, rcvAmount), "failed to transfer base token");
         return rcvAmount;
     }
