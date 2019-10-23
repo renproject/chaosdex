@@ -4,7 +4,7 @@ import "./styles/index.scss";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
-import { Router } from "react-router";
+import { Router } from "react-router-dom";
 import { Provider } from "unstated";
 
 import { App } from "./components/controllers/App";

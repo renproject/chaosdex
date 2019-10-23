@@ -1,6 +1,6 @@
 import { Token } from "../state/generalTypes";
 
-const network = process.env.REACT_APP_NETWORK;
+const network = process.env.REACT_APP_NETWORK || "testnet";
 
 // tslint:disable: non-literal-require
 export const syncGetTokenAddress = (networkID: number, token: Token): string => {

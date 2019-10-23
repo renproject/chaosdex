@@ -15,6 +15,7 @@ interface Props {
     otherToken: Token;
 }
 
+
 /**
  * SelectMarket allows the user to select a market from two token dropdowns
  */
@@ -36,6 +37,7 @@ export const SelectMarketWrapper = connect<Props & ConnectedProps<[UIContainer]>
             allTokens={newTokens}
             onMarketChange={handleChange}
             getMarket={getMarket}
+            white={true}
         />;
     }
 );

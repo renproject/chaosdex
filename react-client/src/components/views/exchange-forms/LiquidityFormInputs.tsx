@@ -4,12 +4,12 @@ import { CurrencyIcon, TokenValueInput } from "@renproject/react-components";
 import BigNumber from "bignumber.js";
 import { debounce } from "throttle-debounce";
 
-import { _catchInteractionErr_ } from "../../lib/errors";
-import { connect, ConnectedProps } from "../../state/connect";
-import { UIContainer } from "../../state/uiContainer";
-import arrow from "../../styles/images/arrow.svg";
-import { SelectMarketWrapper } from "./SelectMarketWrapper";
-import { TokenBalance } from "./TokenBalance";
+import { _catchInteractionErr_ } from "../../../lib/errors";
+import { connect, ConnectedProps } from "../../../state/connect";
+import { UIContainer } from "../../../state/uiContainer";
+import arrow from "../../../styles/images/arrow.svg";
+import { SelectMarketWrapper } from "../SelectMarketWrapper";
+import { TokenBalance } from "../TokenBalance";
 
 const normalizeDecimals = (inputIn: string | null): string | null => {
     return inputIn === null ? inputIn : new BigNumber(inputIn).decimalPlaces(8).toFixed();
@@ -19,7 +19,7 @@ interface Props {
     marketPrice: number;
 }
 
-export const NewOrderInputs = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer])(
+export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer])(
     ({ containers: [uiContainer], }) => {
 
         // Store `srcAmount` as state so we can debounce storing it in the
@@ -89,7 +89,8 @@ export const NewOrderInputs = connect<Props & ConnectedProps<[UIContainer]>>([UI
                 role="button"
                 onClick={toggleSide}
             >
-                <img alt="Swap side" role="button" src={arrow} />
+                {/* <img alt="Swap side" role="button" src={arrow} /> */}
+                &
             </span>
         </div>;
 

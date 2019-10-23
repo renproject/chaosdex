@@ -2,11 +2,11 @@ import * as React from "react";
 
 import { Loading } from "@renproject/react-components";
 
-import { _catchBackgroundErr_ } from "../../lib/errors";
-import { getMarket } from "../../lib/market";
-import { connect, ConnectedProps } from "../../state/connect";
-import { UIContainer } from "../../state/uiContainer";
-import { NewOrderInputs } from "./NewOrderInputs";
+import { _catchBackgroundErr_ } from "../../../lib/errors";
+import { getMarket } from "../../../lib/market";
+import { connect, ConnectedProps } from "../../../state/connect";
+import { UIContainer } from "../../../state/uiContainer";
+import { OrderFormInputs } from "./OrderFormInputs";
 
 interface Props {
     handleLogin: () => void;
@@ -15,7 +15,7 @@ interface Props {
 /**
  * NewOrder is a visual component for allowing users to open new orders
  */
-export const NewOrder = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer])(
+export const OrderForm = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer])(
     ({ handleLogin, containers: [uiContainer] }) => {
 
         const openOrder = async () => {
@@ -60,7 +60,7 @@ export const NewOrder = connect<Props & ConnectedProps<[UIContainer]>>([UIContai
         }
 
         return <div className="section order">
-            <NewOrderInputs marketPrice={marketPrice} />
+            <OrderFormInputs marketPrice={marketPrice} />
             <div className="submit-swap-buttons">{button}</div>
         </div>;
     }

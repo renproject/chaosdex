@@ -51,3 +51,39 @@
     border-radius: 12px !important;
     border: none !important;
 }
+
+// TABS
+
+.exchange--tabs {
+    background: #1C2127;
+    border: 1px solid rgba(145, 149, 160, 0.1);
+    box-sizing: border-box;
+    box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.5);
+    border-radius: 20px;
+    margin: 0 -20px;
+}
+
+.exchange--tab {
+    background: none;
+    border: none;
+    font-size: 14px;
+    line-height: 16px;
+    text-align: center;
+
+    color: #9195A0;
+    opacity: 0.4;
+    width: 50%;
+    transition: all 200ms;
+    border: 0px solid rgba(145, 149, 160, 0.1);
+    border-radius: 20px;
+}
+
+.exchange--tab--selected {
+    background: #282C35;
+    border: 1px solid rgba(145, 149, 160, 0.1);
+    border-radius: 20px;
+    box-sizing: border-box;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+    color: #E0E3EB;
+    opacity: 1;
+}

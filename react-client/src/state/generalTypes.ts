@@ -63,7 +63,8 @@ export interface TokenDetails {
 export type TokenPrices = Map<Token, Map<Currency, number>>;
 
 // tslint:disable: non-literal-require
-const network = process.env.REACT_APP_NETWORK;
+console.log(process.env);
+const network = process.env.REACT_APP_NETWORK || "testnet";
 const DEXABI = require(`../contracts/${network}/DEX.json`).abi;
 const DEXAdapterABI = require(`../contracts/${network}/DEXAdapter.json`).abi;
 const DEXReserveABI = require(`../contracts/${network}/BTC_DAI_Reserve.json`).abi;
