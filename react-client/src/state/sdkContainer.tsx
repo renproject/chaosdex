@@ -16,7 +16,7 @@ import {
 import { NETWORK } from "../lib/environmentVariables";
 import { getAdapter, getERC20, NULL_BYTES32, Token, Tokens } from "./generalTypes";
 import {
-    Commitment, HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus,
+    HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus, CommitmentType, AddLiquidityCommitment, OrderCommitment,
 } from "./persistentContainer";
 
 const BitcoinTx = (hash: string) => ({ hash, chain: Chain.Bitcoin });
@@ -57,7 +57,7 @@ export class SDKContainer extends Container<typeof initialState> {
         this.persistentContainer = persistentContainer;
     }
 
-    public order = (orderID: string): HistoryEvent | undefined => this.persistentContainer.state.historyItems[orderID];
+    public order = (id: string): HistoryEvent | undefined => this.persistentContainer.state.historyItems[id];
 
     public connect = async (web3: Web3, address: string | null, networkID: number): Promise<void> => {
         await this.setState({
@@ -150,26 +150,37 @@ export class SDKContainer extends Container<typeof initialState> {
         let transactionHash = order.inTx && !retry ? order.inTx.hash : null;
 
         if (!transactionHash) {
-            const amount = order.commitment.srcAmount.toString();
             const txHash = NULL_BYTES32;
             const signatureBytes = NULL_BYTES32;
+            let amount;
+            let promiEvent: any;
 
-            const promiEvent = getAdapter(web3, networkID).methods.trade(
-                order.commitment.srcToken, // _src: string
-                order.commitment.dstToken, // _dst: string
-                order.commitment.minDestinationAmount, // _minDstAmt: BigNumber
-                order.commitment.toAddress, // _to: string
-                order.commitment.refundBlockNumber, // _refundBN: BigNumber
-                order.commitment.refundAddress, // _refundAddress: string
-                amount, // _amount: BigNumber
-                txHash, // _hash: string
-                signatureBytes, // _sig: string
-            ).send({ from: address, gas: 350000 });
+            if (order.commitment.type == CommitmentType.Trade) {
+                amount = order.commitment.srcAmount.toString();
+                promiEvent = getAdapter(web3, networkID).methods.trade(
+                    order.commitment.srcToken, // _src: string
+                    order.commitment.dstToken, // _dst: string
+                    order.commitment.minDestinationAmount, // _minDstAmt: BigNumber
+                    order.commitment.toAddress, // _to: string
+                    order.commitment.refundBlockNumber, // _refundBN: BigNumber
+                    order.commitment.refundAddress, // _refundAddress: string
+                    amount, // _amount: BigNumber
+                    txHash, // _hash: string
+                    signatureBytes, // _sig: string
+                ).send({ from: address, gas: 350000 });
+            } else if (order.commitment.type == CommitmentType.RemoveLiquidity) {
+                promiEvent = getAdapter(web3, networkID).methods.removeLiquidity(
+                    order.commitment.token, // _token: string
+                    order.commitment.liquidity,  // _liquidity: number
+                    order.commitment.nativeAddress, // _tokenAddress: string
+                ).send({ from: address, gas: 350000 });
+            } else {
+                return;
+            }
 
             promiEvent.catch((error: Error) => {
                 throw error;
             });
-
             transactionHash = await new Promise<string>((resolve, reject) => promiEvent.on("transactionHash", resolve).catch(reject));
             await this.persistentContainer.updateHistoryItem(order.id, {
                 inTx: EthereumTx(transactionHash),
@@ -258,14 +269,27 @@ export class SDKContainer extends Container<typeof initialState> {
     // 3. Submit the deposit to RenVM and retrieve back a signature
     // 4. Submit the signature to Ethereum, creating zBTC & swapping it for DAI
 
-    public zipPayload = (commitment: Commitment) => [
-        { name: "srcToken", type: "address", value: commitment.srcToken },
-        { name: "dstToken", type: "address", value: commitment.dstToken },
-        { name: "minDestinationAmount", type: "uint256", value: commitment.minDestinationAmount.toFixed() },
-        { name: "toAddress", type: "bytes", value: commitment.toAddress },
-        { name: "refundBlockNumber", type: "uint256", value: commitment.refundBlockNumber },
-        { name: "refundAddress", type: "bytes", value: commitment.refundAddress },
-    ]
+    public zipPayload = (commitment: AddLiquidityCommitment | OrderCommitment) => {
+        if (commitment.type === CommitmentType.Trade) {
+            [
+                { name: "srcToken", type: "address", value: commitment.srcToken },
+                { name: "dstToken", type: "address", value: commitment.dstToken },
+                { name: "minDestinationAmount", type: "uint256", value: commitment.minDestinationAmount.toFixed() },
+                { name: "toAddress", type: "bytes", value: commitment.toAddress },
+                { name: "refundBlockNumber", type: "uint256", value: commitment.refundBlockNumber },
+                { name: "refundAddress", type: "bytes", value: commitment.refundAddress },
+            ]
+        } else {
+            [
+                { name: "liquidityProvider", type: "address", value: commitment.liquidityProvider },
+                { name: "maxDAIAmount", type: "uint256", value: commitment.maxDAIAmount.toFixed() },
+                { name: "token", type: "address", value: commitment.token },
+                { name: "amount", type: "uint256", value: commitment.amount },
+                { name: "refundBlockNumber", type: "uint256", value: commitment.refundBlockNumber },
+                { name: "refundAddress", type: "bytes", value: commitment.refundAddress },
+            ]
+        }
+    }
 
     public shiftInObject = (orderID: string): ShiftInObject => {
         const { sdkRenVM: renVM, sdkNetworkID: networkID } = this.state;
@@ -277,16 +301,29 @@ export class SDKContainer extends Container<typeof initialState> {
             throw new Error("Order not set");
         }
 
-        const shiftObject = renVM.shiftIn({
-            sendToken: order.orderInputs.srcToken === Token.ZEC ? ShiftActions.ZEC.Zec2Eth : ShiftActions.BTC.Btc2Eth,
-            sendTo: syncGetDEXAdapterAddress(networkID),
-            sendAmount: order.commitment.srcAmount,
-            contractFn: "trade",
-            contractParams: this.zipPayload(order.commitment),
-            nonce: order.nonce,
-            messageID: order.messageID || undefined,
-        });
-        return shiftObject;
+        if (order.commitment.type === CommitmentType.Trade) {
+            return renVM.shiftIn({
+                sendToken: order.orderInputs.srcToken === Token.ZEC ? ShiftActions.ZEC.Zec2Eth : ShiftActions.BTC.Btc2Eth,
+                sendTo: syncGetDEXAdapterAddress(networkID),
+                sendAmount: order.commitment.srcAmount,
+                contractFn: "trade",
+                contractParams: this.zipPayload(order.commitment),
+                nonce: order.nonce,
+                messageID: order.messageID || undefined,
+            });
+        } else if (order.commitment.type === CommitmentType.AddLiquidity) {
+            return renVM.shiftIn({
+                sendToken: order.commitment.token === Token.ZEC ? ShiftActions.ZEC.Zec2Eth : ShiftActions.BTC.Btc2Eth,
+                sendTo: syncGetDEXAdapterAddress(networkID),
+                sendAmount: order.commitment.amount,
+                contractFn: "addLiquidity",
+                contractParams: this.zipPayload(order.commitment),
+                nonce: order.nonce,
+                messageID: order.messageID || undefined,
+            });
+        } else {
+            throw new Error("Trying to remove liquidity using ShiftIn")
+        }
     }
 
     // Takes a commitment as bytes or an array of primitive types and returns
