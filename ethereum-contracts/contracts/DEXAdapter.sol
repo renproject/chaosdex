@@ -82,7 +82,7 @@ contract DEXAdapter {
         ) external returns (uint256) {
             DEXReserve reserve = dex.reserves(_token);
             require(reserve != DEXReserve(0x0), "unsupported token");
-            bytes32 lpHash = hashLiquidityPayload(_liquidityProvider, _maxBaseToken, _token, _amount, _deadline, _refundAddress);
+            bytes32 lpHash = hashLiquidityPayload(_liquidityProvider, _maxBaseToken, _token, _deadline, _refundAddress);
             if (block.number > _deadline) {
                 uint256 shiftedAmount = shifterRegistry.getShifterByToken(_token).shiftIn(lpHash, _amount, _nHash, _sig);
                 shifterRegistry.getShifterByToken(_token).shiftOut(_refundAddress, shiftedAmount);
