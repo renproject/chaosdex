@@ -5,7 +5,9 @@ import { validate } from "wallet-address-validator";
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
 
-import { syncGetDEXAdapterAddress, syncGetDEXAddress, syncGetDEXReserveAddress } from "../lib/contractAddresses";
+import {
+    syncGetDEXAdapterAddress, syncGetDEXAddress, syncGetDEXReserveAddress,
+} from "../lib/contractAddresses";
 import { DEX } from "../lib/contracts/DEX";
 import { DEXAdapter } from "../lib/contracts/DEXAdapter";
 import { DEXReserve } from "../lib/contracts/DEXReserve";
@@ -64,7 +66,7 @@ export type TokenPrices = Map<Token, Map<Currency, number>>;
 const network = process.env.REACT_APP_NETWORK;
 const DEXABI = require(`../contracts/${network}/DEX.json`).abi;
 const DEXAdapterABI = require(`../contracts/${network}/DEXAdapter.json`).abi;
-const DEXReserveABI = require(`../contracts/${network}/DEXReserve.json`).abi;
+const DEXReserveABI = require(`../contracts/${network}/BTC_DAI_Reserve.json`).abi;
 
 export const NULL_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000";
 

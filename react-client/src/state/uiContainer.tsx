@@ -14,7 +14,7 @@ import {
     getERC20, getExchange, isERC20, isEthereumBased, MarketPair, Token, Tokens,
 } from "./generalTypes";
 import {
-    Commitment, HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus,
+    Commitment, CommitmentType, HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus,
 } from "./persistentContainer";
 import { network } from "./sdkContainer";
 
@@ -242,6 +242,7 @@ export class UIContainer extends Container<typeof initialState> {
             hexToAddress = zecAddressToHex(toAddress);
         }
         const commitment: Commitment = {
+            type: CommitmentType.Trade,
             srcToken: syncGetTokenAddress(networkID, order.srcToken),
             dstToken: syncGetTokenAddress(networkID, order.dstToken),
             minDestinationAmount: 0,

@@ -36,6 +36,8 @@ export interface RemoveLiquidityCommitment {
     nativeAddress: string;
 }
 
+export type Commitment = OrderCommitment | AddLiquidityCommitment | RemoveLiquidityCommitment;
+
 export enum CommitmentType {
     Trade,
     AddLiquidity,
@@ -82,6 +84,7 @@ export interface HistoryEventCommon {
 export interface ShiftInEvent extends HistoryEventCommon {
     shiftIn: true;
     status: ShiftInStatus;
+    commitment: RemoveLiquidityCommitment | AddLiquidityCommitment | OrderCommitment;
 }
 
 export interface ShiftOutEvent extends HistoryEventCommon {

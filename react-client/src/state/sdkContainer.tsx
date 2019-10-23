@@ -16,7 +16,8 @@ import {
 import { NETWORK } from "../lib/environmentVariables";
 import { getAdapter, getERC20, NULL_BYTES32, Token, Tokens } from "./generalTypes";
 import {
-    HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus, CommitmentType, AddLiquidityCommitment, OrderCommitment,
+    AddLiquidityCommitment, CommitmentType, HistoryEvent, OrderCommitment, PersistentContainer,
+    ShiftInStatus, ShiftOutStatus,
 } from "./persistentContainer";
 
 const BitcoinTx = (hash: string) => ({ hash, chain: Chain.Bitcoin });
@@ -271,23 +272,23 @@ export class SDKContainer extends Container<typeof initialState> {
 
     public zipPayload = (commitment: AddLiquidityCommitment | OrderCommitment) => {
         if (commitment.type === CommitmentType.Trade) {
-            [
+            return [
                 { name: "srcToken", type: "address", value: commitment.srcToken },
                 { name: "dstToken", type: "address", value: commitment.dstToken },
                 { name: "minDestinationAmount", type: "uint256", value: commitment.minDestinationAmount.toFixed() },
                 { name: "toAddress", type: "bytes", value: commitment.toAddress },
                 { name: "refundBlockNumber", type: "uint256", value: commitment.refundBlockNumber },
                 { name: "refundAddress", type: "bytes", value: commitment.refundAddress },
-            ]
+            ];
         } else {
-            [
+            return [
                 { name: "liquidityProvider", type: "address", value: commitment.liquidityProvider },
                 { name: "maxDAIAmount", type: "uint256", value: commitment.maxDAIAmount.toFixed() },
                 { name: "token", type: "address", value: commitment.token },
                 { name: "amount", type: "uint256", value: commitment.amount },
                 { name: "refundBlockNumber", type: "uint256", value: commitment.refundBlockNumber },
                 { name: "refundAddress", type: "bytes", value: commitment.refundAddress },
-            ]
+            ];
         }
     }
 
