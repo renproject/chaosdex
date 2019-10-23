@@ -5,9 +5,12 @@ import { validate } from "wallet-address-validator";
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
 
-import { syncGetDEXAdapterAddress, syncGetDEXAddress } from "../lib/contractAddresses";
+import {
+    syncGetDEXAdapterAddress, syncGetDEXAddress, syncGetDEXReserveAddress,
+} from "../lib/contractAddresses";
 import { DEX } from "../lib/contracts/DEX";
 import { DEXAdapter } from "../lib/contracts/DEXAdapter";
+import { DEXReserve } from "../lib/contracts/DEXReserve";
 import { ERC20Detailed } from "../lib/contracts/ERC20Detailed";
 
 export enum Token {
@@ -63,6 +66,7 @@ export type TokenPrices = Map<Token, Map<Currency, number>>;
 const network = process.env.REACT_APP_NETWORK;
 const DEXABI = require(`../contracts/${network}/DEX.json`).abi;
 const DEXAdapterABI = require(`../contracts/${network}/DEXAdapter.json`).abi;
+const DEXReserveABI = require(`../contracts/${network}/BTC_DAI_Reserve.json`).abi;
 
 export const NULL_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
@@ -73,3 +77,5 @@ export const getERC20 = (web3: Web3, network: NetworkDetails, tokenAddress: stri
     new (web3.eth.Contract)(network.contracts.addresses.erc.ERC20.abi, tokenAddress);
 export const getAdapter = (web3: Web3, networkID: number): DEXAdapter =>
     new (web3.eth.Contract)(DEXAdapterABI as AbiItem[], syncGetDEXAdapterAddress(networkID));
+export const getReserve = (web3: Web3, networkID: number, token: Token): DEXReserve =>
+    new (web3.eth.Contract)(DEXReserveABI as AbiItem[], syncGetDEXReserveAddress(networkID, token));

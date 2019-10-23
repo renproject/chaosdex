@@ -46,13 +46,24 @@ module.exports = {
             mintAuthority: "TODO",
         },
     },
-    testnet: {
-        renNetwork: ren.testnet,
-        DEX: '0x8C68d87aE2E3f372420Df2EAbc720aDCE19D0ff8',
-        DEXAdapter: '0xB92b95f5C1886975cb0e80a27192Ec063aFDacAe',
+    chaosnet: {
+        renNetwork: ren.chaosnet,
+        DEX: "0xe4Ec27Bc47F006A1b79Da8E3e35051FEd5A00f80",
+        DEXAdapter: "0xf218f90c71Bb03C23ca1d88f57FB2cF256176AD5",
         config: {
             ...config,
-            mintAuthority: "0x44Bb4eF43408072bC888Afd1a5986ba0Ce35Cb54",
+            mintAuthority: ren.chaosnet.renVM.mintAuthority,
+        },
+    },
+    testnet: {
+        renNetwork: ren.testnet,
+        DEX: '0x6Be14F3ce70c72876aBb07b54F5DA8E75Be7F4a7',
+        DEXAdapter: '0x467371C80B4d92837876E40d9610E893D26C36BA',
+        BTC_DAI_Reserve: '0x0a3ea20A2942677df300361e0F32c296b0AC2158',
+        ZEC_DAI_Reserve: '0xA100f837b913901AeD82EcB011891b75e9842Ce5',
+        config: {
+            ...config,
+            mintAuthority: ren.testnet.renVM.mintAuthority,
         },
     },
     devnet: {
@@ -61,7 +72,7 @@ module.exports = {
         DEXAdapter: "0x33094b0124f8623A05ccB55c1840477B0019aAfB",
         config: {
             ...config,
-            mintAuthority: "0x723eb4380E03dF6a6f98Cc1338b00cfBE5E45218",
+            mintAuthority: ren.devnet.renVM.mintAuthority,
         },
     },
     config,

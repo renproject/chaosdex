@@ -1,19 +1,20 @@
 import { Currency } from "@renproject/react-components";
-import RenSDK, { btcAddressToHex, zecAddressToHex } from "@renproject/ren";
+import RenSDK, { btcAddressToHex, Chain, zecAddressToHex } from "@renproject/ren";
 import BigNumber from "bignumber.js";
 import { Map as ImmutableMap } from "immutable";
 import { Container } from "unstated";
 import Web3 from "web3";
+import BN from "bn.js";
 
 import { getTokenDecimals, syncGetTokenAddress } from "../lib/contractAddresses";
-import { estimatePrice } from "../lib/estimatePrice";
+import { estimatePrice, removeRenVMFee } from "../lib/estimatePrice";
 import { history } from "../lib/history";
 import { getMarket, getTokenPricesInCurrencies } from "../lib/market";
 import {
     getERC20, getExchange, isERC20, isEthereumBased, MarketPair, Token, Tokens,
 } from "./generalTypes";
 import {
-    Commitment, HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus,
+    Commitment, CommitmentType, HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus,
 } from "./persistentContainer";
 import { network } from "./sdkContainer";
 
@@ -94,19 +95,19 @@ export class UIContainer extends Container<typeof initialState> {
         await this.setState({ tokenPrices });
     }
 
-    public updateBalanceReserves = async (): Promise<void> => {
-        const { balanceReserves } = this.state;
+    // public updateBalanceReserves = async (): Promise<void> => {
+    //     const { balanceReserves } = this.state;
 
-        let newBalanceReserves = balanceReserves;
-        // const marketPairs = [MarketPair.DAI_BTC, MarketPair.ETH_BTC, MarketPair.REN_BTC, MarketPair.ZEC_BTC];
-        const marketPairs = [MarketPair.DAI_BTC, MarketPair.DAI_ZEC];
-        const res = await this.getReserveBalance(marketPairs); // Promise<Array<Map<Token, BigNumber>>> => {
-        marketPairs.forEach((value, index) => {
-            newBalanceReserves = newBalanceReserves.set(value, res[index]);
-        });
-        await this.setState({ balanceReserves: newBalanceReserves });
-        await this.updateReceiveValue();
-    }
+    //     let newBalanceReserves = balanceReserves;
+    //     // const marketPairs = [MarketPair.DAI_BTC, MarketPair.ETH_BTC, MarketPair.REN_BTC, MarketPair.ZEC_BTC];
+    //     const marketPairs = [MarketPair.DAI_BTC, MarketPair.DAI_ZEC];
+    //     const res = await this.getReserveBalance(marketPairs); // Promise<Array<Map<Token, BigNumber>>> => {
+    //     marketPairs.forEach((value, index) => {
+    //         newBalanceReserves = newBalanceReserves.set(value, res[index]);
+    //     });
+    //     await this.setState({ balanceReserves: newBalanceReserves });
+    //     await this.updateReceiveValue();
+    // }
 
     public fetchEthereumTokenBalance = async (token: Token, address: string): Promise<BigNumber> => {
         const { web3, networkID, network } = this.state;
@@ -147,37 +148,37 @@ export class UIContainer extends Container<typeof initialState> {
      * @param srcToken The source token being spent
      * @param dstToken The destination token being received
      */
-    public getReserveBalance = async (marketPairs: MarketPair[]): Promise<ReserveBalances[]> => {
-        const { web3, networkID, network } = this.state;
-        if (!web3) {
-            throw new Error("Web3 not set yet.");
-        }
-        const exchange = getExchange(web3, networkID);
+    // public getReserveBalance = async (marketPairs: MarketPair[]): Promise<ReserveBalances[]> => {
+    //     const { web3, networkID, network } = this.state;
+    //     if (!web3) {
+    //         throw new Error("Web3 not set yet.");
+    //     }
+    //     const exchange = getExchange(web3, networkID);
 
-        const balance = async (token: Token, reserve: string): Promise<BigNumber> => {
-            if (token === Token.ETH) {
-                return new BigNumber((await web3.eth.getBalance(reserve)).toString());
-            }
-            const tokenAddress = syncGetTokenAddress(networkID, token);
-            const tokenInstance = getERC20(web3, network, tokenAddress);
-            const decimals = getTokenDecimals(token);
-            const rawBalance = new BigNumber((await tokenInstance.methods.balanceOf(reserve).call()).toString());
-            return rawBalance.dividedBy(new BigNumber(10).exponentiatedBy(decimals));
-        };
+    //     const balance = async (token: Token, reserve: string): Promise<BigNumber> => {
+    //         if (token === Token.ETH) {
+    //             return new BigNumber((await web3.eth.getBalance(reserve)).toString());
+    //         }
+    //         const tokenAddress = syncGetTokenAddress(networkID, token);
+    //         const tokenInstance = getERC20(web3, network, tokenAddress);
+    //         const decimals = getTokenDecimals(token);
+    //         const rawBalance = new BigNumber((await tokenInstance.methods.balanceOf(reserve).call()).toString());
+    //         return rawBalance.dividedBy(new BigNumber(10).exponentiatedBy(decimals));
+    //     };
 
-        return Promise.all(
-            marketPairs.map(async (_marketPair) => {
-                const [left, right] = _marketPair.split("/") as [Token, Token];
-                const leftAddress = syncGetTokenAddress(networkID, left);
-                const rightAddress = syncGetTokenAddress(networkID, right);
-                const reserve = await exchange.methods.reserve(leftAddress, rightAddress).call();
-                const leftBalance = await balance(left, reserve);
-                const rightBalance = await balance(right, reserve);
-                // console.debug(`${_marketPair} reserve: ${leftBalance.toFixed()} ${left}, ${rightBalance.toFixed()} ${right} (${reserve})`);
-                return new Map().set(left, leftBalance).set(right, rightBalance);
-            })
-        );
-    }
+    //     return Promise.all(
+    //         marketPairs.map(async (_marketPair) => {
+    //             const [left, right] = _marketPair.split("/") as [Token, Token];
+    //             const leftAddress = syncGetTokenAddress(networkID, left);
+    //             const rightAddress = syncGetTokenAddress(networkID, right);
+    //             const reserve = await exchange.methods.reserve(leftAddress, rightAddress).call();
+    //             const leftBalance = await balance(left, reserve);
+    //             const rightBalance = await balance(right, reserve);
+    //             // console.debug(`${_marketPair} reserve: ${leftBalance.toFixed()} ${left}, ${rightBalance.toFixed()} ${right} (${reserve})`);
+    //             return new Map().set(left, leftBalance).set(right, rightBalance);
+    //         })
+    //     );
+    // }
 
     // Inputs for swap /////////////////////////////////////////////////////////
 
@@ -241,6 +242,7 @@ export class UIContainer extends Container<typeof initialState> {
             hexToAddress = zecAddressToHex(toAddress);
         }
         const commitment: Commitment = {
+            type: CommitmentType.Trade,
             srcToken: syncGetTokenAddress(networkID, order.srcToken),
             dstToken: syncGetTokenAddress(networkID, order.dstToken),
             minDestinationAmount: 0,
@@ -353,21 +355,44 @@ export class UIContainer extends Container<typeof initialState> {
             dstToken
         );
         if (market) {
-            const reserves = balanceReserves.get(market);
+            const { web3, networkID } = this.state;
+            if (!web3) {
+                throw new Error("Web3 not set yet.");
+            }
+            const exchange = getExchange(web3, networkID);
+            const srcTokenAddress = syncGetTokenAddress(networkID, srcToken);
+            const dstTokenAddress = syncGetTokenAddress(networkID, dstToken);
+            const srcTokenDetails = Tokens.get(srcToken) || { decimals: 18, chain: Chain.Ethereum };
+            const dstTokenDetails = Tokens.get(dstToken) || { decimals: 18, chain: Chain.Ethereum };
+            let srcAmountBN = new BigNumber(srcAmount);
+            if (srcTokenDetails.chain !== Chain.Ethereum) {
+                srcAmountBN = removeRenVMFee(srcAmountBN);
+            }
+            const srdAmountShifted = (srcAmountBN.times(new BigNumber(10).pow(srcTokenDetails.decimals))).toFixed(0);
+            const dstAmount = await exchange.methods.calculateReceiveAmount(srcTokenAddress, dstTokenAddress, srdAmountShifted).call();
 
-            let srcAmountAfterFees = new BigNumber(srcAmount);
-            if (srcToken === Token.BTC) {
-                // Remove BTC transfer fees
-                srcAmountAfterFees = BigNumber.max(srcAmountAfterFees.minus(0.0001), 0);
+            let dstAmountBN = new BigNumber(dstAmount);
+            if (dstTokenDetails.chain !== Chain.Ethereum) {
+                dstAmountBN = removeRenVMFee(dstAmountBN);
             }
 
-            const dstAmount = await estimatePrice(
-                srcToken,
-                dstToken,
-                srcAmountAfterFees,
-                reserves,
-            );
-            await this.setState({ orderInputs: { ...this.state.orderInputs, dstAmount: dstAmount.toFixed() } });
+            const dstAmountShifted = (new BigNumber(dstAmountBN).div(new BigNumber(10).pow(dstTokenDetails.decimals))).toString();
+
+            // const reserves = balanceReserves.get(market);
+
+            // let srcAmountAfterFees = new BigNumber(srcAmount);
+            // if (srcToken === Token.BTC) {
+            //     // Remove BTC transfer fees
+            //     srcAmountAfterFees = BigNumber.max(srcAmountAfterFees.minus(0.0001), 0);
+            // }
+
+            // const dstAmount = await estimatePrice(
+            //     srcToken,
+            //     dstToken,
+            //     srcAmountAfterFees,
+            //     reserves,
+            // );
+            await this.setState({ orderInputs: { ...this.state.orderInputs, dstAmount: dstAmountShifted } });
         }
     }
 

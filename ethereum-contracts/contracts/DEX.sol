@@ -1,59 +1,59 @@
-pragma solidity ^0.5.8;
+pragma solidity ^0.5.0;
 
 import "./DEXReserve.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 
 contract DEX {
-    mapping (bytes32=>address payable) public reserves;
-    ERC20 public ethereum = ERC20(0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee);
+    mapping (address=>DEXReserve) public reserves;
+    address public BaseToken;
+    address public ethereum = address(0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee);
 
-    event LogTrade(ERC20 _src, ERC20 _dst, uint256 _sendAmount, uint256 _recvAmount); 
-    uint256 public feeinBIPs;
+    event LogTrade(address _src, address _dst, uint256 _sendAmount, uint256 _recvAmount);
 
-    constructor(uint256 _feeinBIPs) public {
-        feeinBIPs = _feeinBIPs;
+    constructor(address _baseToken) public {
+        BaseToken = _baseToken;
     }
 
-    function trade(address payable _to, ERC20 _src, ERC20 _dst, uint256 _sendAmount) public payable returns (uint256) {
-        address payable reserve = reserve(_src, _dst);
-        require(reserve != address(0x0), "unsupported token pair");
-        uint256 recvAmount = calculateReceiveAmount(_src, _dst, _sendAmount);
-
-        if (_src != ethereum) {
-            require(_src.transferFrom(msg.sender, reserve, _sendAmount), "source token transfer failed");
+    /// @notice Allow anyone to recover funds accidentally sent to the contract.
+    /// To withdraw ETH, the token should be set to `0x0`.
+    function recoverTokens(address _token) external {
+        if (_token == address(0x0)) {
+            msg.sender.transfer(address(this).balance);
         } else {
-            require(msg.value >= _sendAmount, "invalid msg.value");
-            reserve.transfer(msg.value);
+            ERC20(_token).transfer(msg.sender, ERC20(_token).balanceOf(address(this)));
         }
+    }
 
-        if (_dst != ethereum) {
-            require(_dst.transferFrom(reserve, _to, recvAmount), "destination token transfer failed");
+    function registerReserve(address _erc20, DEXReserve _reserve) external {
+        require(reserves[_erc20] == DEXReserve(0x0), "token reserve already registered");
+        reserves[_erc20] = _reserve;
+    }
+
+    function trade(address _to, address _src, address _dst, uint256 _sendAmount) public returns (uint256) {
+        uint256 recvAmount;
+        if (_src == BaseToken) {
+            require(reserves[_dst] != DEXReserve(0x0), "unsupported token");
+            recvAmount = reserves[_dst].buy(_to, msg.sender, _sendAmount);
+        } else if (_dst == BaseToken) {
+            require(reserves[_src] != DEXReserve(0x0), "unsupported token");
+            recvAmount = reserves[_src].sell(_to, msg.sender, _sendAmount);
         } else {
-            DEXReserve(reserve).transfer(_to, recvAmount);
+            require(reserves[_src] != DEXReserve(0x0) && reserves[_dst] != DEXReserve(0x0), "unsupported token");
+            uint256 intermediteAmount = reserves[_src].sell(address(this), msg.sender, _sendAmount);
+            ERC20(BaseToken).approve(address(reserves[_dst]), intermediteAmount);
+            recvAmount = reserves[_dst].buy(_to, address(this), intermediteAmount);
         }
-
         emit LogTrade(_src, _dst, _sendAmount, recvAmount);
         return recvAmount;
     }
 
-    function registerReserve(ERC20 _a, ERC20 _b, address payable _reserve) public {
-        reserves[tokenPairID(_a, _b)] = _reserve;
-    }
-
-    function calculateReceiveAmount(ERC20 _src, ERC20 _dst, uint256 _sendAmount) public view returns (uint256) {
-        address reserve = reserve(_src, _dst);
-        uint256 srcAmount = _src == ethereum ? reserve.balance : _src.balanceOf(reserve);
-        uint256 dstAmount = _dst == ethereum ? reserve.balance : _dst.balanceOf(reserve);
-        uint256 rcvAmount = dstAmount - ((srcAmount*dstAmount)/(srcAmount+_sendAmount));
-        return (rcvAmount * (10000 - feeinBIPs))/10000;
-    }
-
-    function reserve(ERC20 _a, ERC20 _b) public view returns (address payable) {
-        return reserves[tokenPairID(_a, _b)];
-    }
-    
-    function tokenPairID(ERC20 _a, ERC20 _b) public pure returns (bytes32) {
-        return uint160(address(_a)) < uint160(address(_b)) ? 
-            keccak256(abi.encodePacked(_a, _b)) : keccak256(abi.encodePacked(_b, _a));
+    function calculateReceiveAmount(address _src, address _dst, uint256 _sendAmount) public view returns (uint256) {
+        if (_src == BaseToken) {
+            return reserves[_dst].calculateBuyRcvAmt(_sendAmount);
+        }
+        if (_dst == BaseToken) {
+            return reserves[_src].calculateSellRcvAmt(_sendAmount);
+        }
+        return reserves[_dst].calculateBuyRcvAmt(reserves[_src].calculateSellRcvAmt(_sendAmount));
     }
 }

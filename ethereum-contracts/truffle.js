@@ -12,7 +12,7 @@ const { execSync } = require("child_process")
 const GWEI = 1000000000;
 const commitHash = execSync("git describe --always --long").toString().trim();
 
-if ((process.env.NETWORK || "").match(/devnet|testnet|mainnet/) && process.env.INFURA_KEY === undefined) {
+if ((process.env.NETWORK || "").match(/devnet|testnet|chaosnet|mainnet/) && process.env.INFURA_KEY === undefined) {
   throw new Error("Must set INFURA_KEY");
 }
 
@@ -31,6 +31,13 @@ module.exports = {
       provider: () => new HDWalletProvider(process.env.MNEMONIC_KOVAN, `https://kovan.infura.io/v3/${process.env.INFURA_KEY}`),
       network_id: 42,
       gas: 6721975,
+      gasPrice: 10 * GWEI,
+    },
+    chaosnet: {
+      // @ts-ignore
+      provider: () => new HDWalletProvider(process.env.MNEMONIC_MAINNET, `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`),
+      network_id: 1,
+      gas: 2000000,
       gasPrice: 10 * GWEI,
     },
     development: {

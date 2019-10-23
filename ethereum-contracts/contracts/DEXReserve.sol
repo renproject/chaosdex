@@ -1,63 +1,114 @@
 pragma solidity ^0.5.8;
 
 import "darknode-sol/contracts/Shifter/Shifter.sol";
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-contract DEXReserve is Ownable {
-    ERC20 public ethereum = ERC20(0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee);
+contract DEXReserve is ERC20 {
+    uint256 FeeInBIPS;
+    ERC20 public BaseToken;
+    ERC20 public Token;
+    event LogAddLiquidity(address _liquidityProvider, uint256 _tokenAmount, uint256 _baseTokenAmount);
+    event LogDebug(uint256 _rcvAmount);
 
-    mapping (address => Shifter) public getShifter;
-    mapping (address => bool) public isShifted;
-    mapping (address=>uint256) public approvals;
-
-    // solhint-disable-next-line no-empty-blocks
-    function() external payable {
+    constructor (ERC20 _baseToken, ERC20 _token, uint256 _feeInBIPS) public {
+        BaseToken = _baseToken;
+        Token = _token;
+        FeeInBIPS = _feeInBIPS;
     }
 
-    function approve(ERC20 _token, address spender, uint256 value) external onlyOwner {
-        if (_token == ethereum) {
-            approvals[spender] += value;
+    function buy(address _to, address _from, uint256 _baseTokenAmount) external returns (uint256)  {
+        require(totalSupply() != 0, "reserve has no funds");
+        uint256 rcvAmount = calculateBuyRcvAmt(_baseTokenAmount);
+        BaseToken.transferFrom(_from, address(this), _baseTokenAmount);
+        require(rcvAmount < Token.balanceOf(address(this)), "insufficient balance");
+        require(Token.transfer(_to, rcvAmount), "failed to transfer quote token");
+        return rcvAmount;
+    }
+
+    function sell(address _to, address _from, uint256 _tokenAmount) external returns (uint256) {
+        require(totalSupply() != 0, "reserve has no funds");
+        uint256 rcvAmount = calculateSellRcvAmt(_tokenAmount);
+        Token.transferFrom(_from, address(this), _tokenAmount);
+        require(BaseToken.transfer(_to, rcvAmount), "failed to transfer base token");
+        return rcvAmount;
+    }
+
+    function calculateBuyRcvAmt(uint256 _sendAmt) public view returns (uint256) {
+        uint256 daiReserve = BaseToken.balanceOf(address(this));
+        uint256 tokenReserve = Token.balanceOf(address(this));
+        uint256 finalQuoteTokenAmount = (daiReserve.mul(tokenReserve)).div(daiReserve.add(_sendAmt));
+        uint256 rcvAmt = tokenReserve.sub(finalQuoteTokenAmount);
+        return _removeFees(rcvAmt);
+    }
+
+    function calculateSellRcvAmt(uint256 _sendAmt) public view returns (uint256) {
+        uint256 daiReserve = BaseToken.balanceOf(address(this));
+        uint256 tokenReserve = Token.balanceOf(address(this));
+        uint256 finalBaseTokenAmount = (daiReserve.mul(tokenReserve)).div(tokenReserve.add(_sendAmt));
+        uint256 rcvAmt = daiReserve.sub(finalBaseTokenAmount);
+        return _removeFees(rcvAmt);
+    }
+
+    function removeLiquidity(uint256 _liquidity) external returns (uint256, uint256) {
+        require(balanceOf(msg.sender) >= _liquidity, "insufficient balance");
+        uint256 baseTokenAmount = calculateBaseTokenValue(_liquidity);
+        uint256 quoteTokenAmount = calculateQuoteTokenValue(_liquidity);
+        _burn(msg.sender, _liquidity);
+        BaseToken.transfer(msg.sender, baseTokenAmount);
+        Token.transfer(msg.sender, quoteTokenAmount);
+        return (baseTokenAmount, quoteTokenAmount);
+    }
+
+    function addLiquidity(
+        address _liquidiyProvider, uint256 _maxBaseToken, uint256 _tokenAmount, uint256 _deadline
+        ) external returns (uint256) {
+        require(_deadline > block.number, "addLiquidity request expired");
+        Token.transferFrom(msg.sender, address(this), _tokenAmount);
+        if (totalSupply() > 0) {
+            require(_tokenAmount > 0, "token amount is less than allowed min amount");
+            uint256 daiAmount = expectedBaseTokenAmount(_tokenAmount);
+            require(daiAmount < _maxBaseToken && BaseToken.transferFrom(_liquidiyProvider, address(this), daiAmount), "failed to transfer base token");
+            emit LogAddLiquidity(_liquidiyProvider, _tokenAmount, daiAmount);
         } else {
-            _token.approve(spender, value);
+            require(BaseToken.transferFrom(_liquidiyProvider, address(this), _maxBaseToken), "failed to transfer base token");
+            emit LogAddLiquidity(_liquidiyProvider, _tokenAmount, _maxBaseToken);
         }
+        _mint(_liquidiyProvider, _tokenAmount*2);
+        return _tokenAmount*2;
     }
 
-    function setShifter(ERC20 _token, Shifter _shifter) external onlyOwner {
-        isShifted[address(_token)] = true;
-        getShifter[address(_token)] = _shifter;
+    function calculateBaseTokenValue(uint256 _liquidity) public view returns (uint256) {
+        require(totalSupply() != 0, "Division by Zero");
+        uint256 daiReserve = BaseToken.balanceOf(address(this));
+        return (_liquidity * daiReserve)/totalSupply();
     }
 
-    function transfer(address payable _to, uint256 _value) external {
-        require(approvals[msg.sender] >= _value, "insufficient approval amount");
-        approvals[msg.sender] -= _value;
-        _to.transfer(_value);
+    function calculateQuoteTokenValue(uint256 _liquidity) public view returns (uint256) {
+        require(totalSupply() != 0, "Division by Zero");
+        uint256 tokenReserve = Token.balanceOf(address(this));
+        return (_liquidity * tokenReserve)/totalSupply();
     }
 
-    function withdraw(ERC20 _token, bytes calldata _to, uint256 _amount) external onlyOwner {
-        if (_token == ethereum) {
-            bytesToAddress(_to).transfer(_amount);
-        } else {
-            if (isShifted[address(_token)]) {
-                getShifter[address(_token)].shiftOut(_to, _amount);
-            } else {
-                _token.transfer(bytesToAddress(_to), _amount);
-            }
-        }
+    function expectedBaseTokenAmount(uint256 _quoteTokenAmount) public view returns (uint256) {
+        uint256 daiReserve = BaseToken.balanceOf(address(this));
+        uint256 tokenReserve = Token.balanceOf(address(this));
+        return (_quoteTokenAmount * daiReserve)/tokenReserve;
     }
 
-    function bytesToAddress(bytes memory _addr) internal pure returns (address payable) {
-        address payable addr;
-        /* solhint-disable-next-line */ /* solium-disable-next-line */
-        assembly {
-            addr := mload(add(_addr, 20))
-        }
-        return addr;
+    function _removeFees(uint256 _amount) internal view returns (uint256) {
+        return (_amount * (10000 - FeeInBIPS))/10000;
     }
 }
 
 /* solhint-disable-next-line */ /* solium-disable-next-line */
-contract BTC_DAI_Reserve is DEXReserve {}
+contract BTC_DAI_Reserve is DEXReserve {
+    constructor (ERC20 _baseToken, ERC20 _token, uint256 _feeInBIPS) public DEXReserve(_baseToken, _token, _feeInBIPS) {
+    }
+}
 
 /* solhint-disable-next-line */ /* solium-disable-next-line */
-contract ZEC_DAI_Reserve is DEXReserve {}
+contract ZEC_DAI_Reserve is DEXReserve {
+    constructor (ERC20 _baseToken, ERC20 _token, uint256 _feeInBIPS) public DEXReserve(_baseToken, _token, _feeInBIPS) {
+    }
+}
