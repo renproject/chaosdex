@@ -63,10 +63,10 @@ contract DEXAdapter {
     }
 
     function hashLiquidityPayload(
-        address _liquidityProvider,  uint256 _maxBaseToken, address _token, uint256 _amount,
+        address _liquidityProvider,  uint256 _maxBaseToken, address _token,
         uint256 _refundBN, bytes memory _refundAddress
     ) public pure returns (bytes32) {
-        return keccak256(abi.encode(_liquidityProvider, _maxBaseToken, _token, _amount, _refundBN, _refundAddress));
+        return keccak256(abi.encode(_liquidityProvider, _maxBaseToken, _token, _refundBN, _refundAddress));
     }
 
     function encodePayload(

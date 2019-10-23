@@ -91,7 +91,7 @@ contract("DEX", (accounts) => {
 
     const shiftToReserve = async (value: BN, token: ERC20Instance, reserve: DEXReserveInstance, shifter: ShifterInstance) => {
         const nHash = `0x${randomBytes(32).toString("hex")}`;
-        const pHash = await dexAdapter.hashLiquidityPayload.call(accounts[0], value, token.address, value, 10000000000000, "0x002002002");
+        const pHash = await dexAdapter.hashLiquidityPayload.call(accounts[0], value, token.address, 10000000000000, "0x002002002");
         // const types = ["address", "uint256", "address", "uint256", "uint256", "bytes"];
         // const pHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(types, [accounts[0], value.toString(), token.address, value.toString(), 10000000000000, "0x002002002"]));
         const hash = await shifter.hashForSignature.call(pHash, value, dexAdapter.address, nHash);
@@ -114,12 +114,12 @@ contract("DEX", (accounts) => {
 
     const sellBaseToken = async (srcToken: ERC20Instance, dstToken: ERC20Instance) => {
         const value = new BN(225000);
-        const amount = await dex.calculateReceiveAmount(srcToken.address, dstToken.address, value);
+        const amount = await dex.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
         const nHash = `0x${randomBytes(32).toString("hex")}`;
         const pHash = `0x${randomBytes(32).toString("hex")}`;
         await srcToken.approve(dexAdapter.address, value);
-        const reserve = await dex.reserves(dstToken.address);
-        const initialBalance = new BN((await dstToken.balanceOf(reserve)).toString());
+        const reserve = await dex.reserves.call(dstToken.address);
+        const initialBalance = new BN((await dstToken.balanceOf.call(reserve)).toString());
         await dexAdapter.trade(
             // Payload:
             srcToken.address, dstToken.address, 0, "0x002200220022", 100000,
@@ -127,7 +127,7 @@ contract("DEX", (accounts) => {
             // Required
             value, nHash, pHash,
         );
-        const finalBalance = new BN((await dstToken.balanceOf(reserve)).toString());
+        const finalBalance = new BN((await dstToken.balanceOf.call(reserve)).toString());
         // initialBalance.sub(finalBalance).should.bignumber.equal(amount);
         console.log(initialBalance.sub(finalBalance).toString(), " == ", amount.toString());
     }
