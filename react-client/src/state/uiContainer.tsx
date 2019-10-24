@@ -405,13 +405,14 @@ export class UIContainer extends Container<typeof initialState> {
         let dstAmountBN: BigNumber;
 
         let srcAmountBN = new BigNumber(srcAmount);
-        if (srcTokenDetails.chain !== Chain.Ethereum) {
-            srcAmountBN = removeRenVMFee(srcAmountBN);
-        }
-
-        const srdAmountShifted = (srcAmountBN.times(new BigNumber(10).pow(srcTokenDetails.decimals))).toFixed(0);
 
         if (exchangeTab === ExchangeTabs.Swap) {
+
+            if (srcTokenDetails.chain !== Chain.Ethereum) {
+                srcAmountBN = removeRenVMFee(srcAmountBN);
+            }
+
+            const srdAmountShifted = (srcAmountBN.times(new BigNumber(10).pow(srcTokenDetails.decimals))).toFixed(0);
 
             const dstAmount = await exchange.methods.calculateReceiveAmount(srcTokenAddress, dstTokenAddress, srdAmountShifted).call();
 
@@ -423,6 +424,9 @@ export class UIContainer extends Container<typeof initialState> {
         } else if (exchangeTab === ExchangeTabs.Liquidity) {
             const reserveAddress = await exchange.methods.reserves(syncGetTokenAddress(networkID, srcToken)).call();
             const reserve = getReserve(web3, networkID, reserveAddress);
+
+            const srdAmountShifted = (srcAmountBN.times(new BigNumber(10).pow(srcTokenDetails.decimals))).toFixed(0);
+
             dstAmountBN = new BigNumber(await reserve.methods.expectedBaseTokenAmount(srdAmountShifted).call());
         } else {
             return;
