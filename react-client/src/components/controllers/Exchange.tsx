@@ -3,8 +3,9 @@ import * as React from "react";
 import { Loading } from "@renproject/react-components";
 
 import { className } from "../../lib/className";
+import { _catchInteractionErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
-import { UIContainer } from "../../state/uiContainer";
+import { ExchangeTabs, UIContainer } from "../../state/uiContainer";
 import { _catch_ } from "../ErrorBoundary";
 import { LiquidityForm } from "../views/exchange-forms/LiquidityForm";
 import { OrderForm } from "../views/exchange-forms/OrderForm";
@@ -16,35 +17,30 @@ interface Props {
     handleLogin: () => void;
 }
 
-enum Tabs {
-    Swap,
-    Liquidity,
-}
-
 /**
  * Exchange is the main token-swapping page.
  */
 export const Exchange = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer])(
     ({ handleLogin, containers: [uiContainer] }) => {
 
-        const [tab, setTab] = React.useState<Tabs>(Tabs.Swap);
+        const onSwapTab = React.useCallback(() => { uiContainer.setExchangeTab(ExchangeTabs.Swap).catch(_catchInteractionErr_); }, [uiContainer]);
+        const onLiquidityTab = React.useCallback(() => { uiContainer.setExchangeTab(ExchangeTabs.Liquidity).catch(_catchInteractionErr_); }, [uiContainer]);
 
-        const onSwapTab = React.useCallback(() => { setTab(Tabs.Swap); }, [setTab]);
-        const onLiquidityTab = React.useCallback(() => { setTab(Tabs.Liquidity); }, [setTab]);
-
-        const cancel = async () => {
+        const cancel = React.useCallback(async () => {
             await uiContainer.setSubmitting(false);
-        };
+        }, [uiContainer]);
+
+        const { exchangeTab } = uiContainer.state;
 
         return <div className="exchange">
             <div className="content container exchange-inner">
                 <div className="exchange--center">
                     <React.Suspense fallback={<Loading />}>
                         <div className="exchange--tabs">
-                            <button onClick={onSwapTab} className={className("exchange--tab", tab === Tabs.Swap ? "exchange--tab--selected" : "")}>Swap</button>
-                            <button onClick={onLiquidityTab} className={className("exchange--tab", tab === Tabs.Liquidity ? "exchange--tab--selected" : "")}>Liquidity</button>
+                            <button onClick={onSwapTab} className={className("exchange--tab", exchangeTab === ExchangeTabs.Swap ? "exchange--tab--selected" : "")}>Swap</button>
+                            <button onClick={onLiquidityTab} className={className("exchange--tab", exchangeTab === ExchangeTabs.Liquidity ? "exchange--tab--selected" : "")}>Liquidity</button>
                         </div>
-                        {tab === Tabs.Swap ?
+                        {exchangeTab === ExchangeTabs.Swap ?
                             _catch_(<OrderForm handleLogin={handleLogin} />) :
                             _catch_(<LiquidityForm handleLogin={handleLogin} />)
                         }

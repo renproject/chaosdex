@@ -45,11 +45,6 @@
       "type": "constructor"
     },
     {
-      "payable": true,
-      "stateMutability": "payable",
-      "type": "fallback"
-    },
-    {
       "anonymous": false,
       "inputs": [
         {
@@ -82,6 +77,20 @@
       ],
       "name": "LogTransferOut",
       "type": "event"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_token",
+          "type": "address"
+        }
+      ],
+      "name": "recoverTokens",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
     },
     {
       "constant": false,
@@ -125,8 +134,8 @@
       ],
       "name": "trade",
       "outputs": [],
-      "payable": true,
-      "stateMutability": "payable",
+      "payable": false,
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -182,10 +191,6 @@
         {
           "name": "_token",
           "type": "address"
-        },
-        {
-          "name": "_amount",
-          "type": "uint256"
         },
         {
           "name": "_refundBN",
@@ -407,8 +412,8 @@
         }
       },
       "links": {},
-      "address": "0x467371C80B4d92837876E40d9610E893D26C36BA",
-      "transactionHash": "0x78d074dd7214dcf05c65bb0ed1dae94db2f07530fa1d7333ae294b0f090d36d2"
+      "address": "0x0246DB1836c0fad9b6B5f3c4E642Af81b444Bbf8",
+      "transactionHash": "0x3c0b2b2e4e28ee6f30ad9ea050c58aa203bc2d187884b61f1978c333511deee1"
     },
     "1571705399371": {
       "events": {

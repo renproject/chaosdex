@@ -22,7 +22,7 @@ export interface OrderCommitment {
 export interface AddLiquidityCommitment {
     type: CommitmentType.AddLiquidity;
     liquidityProvider: string;
-    maxDAIAmount: BigNumber;
+    maxDAIAmount: string;
     token: string;
     amount: number;
     refundBlockNumber: number;
@@ -75,7 +75,7 @@ export interface HistoryEventCommon {
     outTx: Tx | null;
     receivedAmount: string | null;
     orderInputs: OrderInputs;
-    commitment: RemoveLiquidityCommitment | AddLiquidityCommitment | OrderCommitment;
+    commitment: Commitment;
     messageID: string | null;
     nonce: string;
     renVMStatus: TxStatus | null;
@@ -84,7 +84,7 @@ export interface HistoryEventCommon {
 export interface ShiftInEvent extends HistoryEventCommon {
     shiftIn: true;
     status: ShiftInStatus;
-    commitment: RemoveLiquidityCommitment | AddLiquidityCommitment | OrderCommitment;
+    commitment: Commitment;
 }
 
 export interface ShiftOutEvent extends HistoryEventCommon {

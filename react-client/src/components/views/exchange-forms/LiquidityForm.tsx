@@ -5,6 +5,7 @@ import { Loading } from "@renproject/react-components";
 import { _catchBackgroundErr_ } from "../../../lib/errors";
 import { getMarket } from "../../../lib/market";
 import { connect, ConnectedProps } from "../../../state/connect";
+import { CommitmentType } from "../../../state/persistentContainer";
 import { UIContainer } from "../../../state/uiContainer";
 import { LiquidityFormInputs } from "./LiquidityFormInputs";
 
@@ -16,6 +17,7 @@ export const LiquidityForm = connect<Props & ConnectedProps<[UIContainer]>>([UIC
     ({ handleLogin, containers: [uiContainer] }) => {
 
         const openOrder = async () => {
+            await uiContainer.updateCommitmentType(CommitmentType.AddLiquidity);
             uiContainer.setSubmitting(true).catch(_catchBackgroundErr_);
         };
 
@@ -51,7 +53,7 @@ export const LiquidityForm = connect<Props & ConnectedProps<[UIContainer]>>([UIC
                     !loggedIn ? "Connect to trade" :
                         !sufficientBalance ? "Insufficient balance" :
                             !validVolume ? "Volume too low" :
-                                "Trade"
+                                "Add"
                 }
             </button>;
         }

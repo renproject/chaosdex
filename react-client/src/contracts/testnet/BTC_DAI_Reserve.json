@@ -69,7 +69,7 @@
       "constant": false,
       "inputs": [
         {
-          "name": "_liquidiyProvider",
+          "name": "_liquidityProvider",
           "type": "address"
         },
         {
@@ -512,7 +512,7 @@
   },
   "networks": {
     "42": {
-      "address": "0x0a3ea20A2942677df300361e0F32c296b0AC2158",
+      "address": "0x426034F4B7C82b2DF1c06349A995E70F35B0C57B",
       "links": {},
       "events": {
         "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0": {
@@ -616,7 +616,7 @@
           "signature": "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925"
         }
       },
-      "transactionHash": "0xe49afa53c4a669163739a25aeacf7bd760ad69630ac45caf8b498570df901926"
+      "transactionHash": "0x3ca956b275bc3001f3292ee869c092f756a7c554205976e57ac701d6c22294bd"
     },
     "1571705399371": {
       "events": {

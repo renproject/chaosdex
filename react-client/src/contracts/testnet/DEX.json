@@ -31,20 +31,6 @@
     },
     {
       "constant": true,
-      "inputs": [],
-      "name": "FeeInBips",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
       "inputs": [
         {
           "name": "",
@@ -67,10 +53,6 @@
         {
           "name": "_baseToken",
           "type": "address"
-        },
-        {
-          "name": "_feeInBips",
-          "type": "uint256"
         }
       ],
       "payable": false,
@@ -103,6 +85,20 @@
       ],
       "name": "LogTrade",
       "type": "event"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_token",
+          "type": "address"
+        }
+      ],
+      "name": "recoverTokens",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
     },
     {
       "constant": false,
@@ -149,8 +145,8 @@
           "type": "uint256"
         }
       ],
-      "payable": true,
-      "stateMutability": "payable",
+      "payable": false,
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -219,8 +215,8 @@
         }
       },
       "links": {},
-      "address": "0x6Be14F3ce70c72876aBb07b54F5DA8E75Be7F4a7",
-      "transactionHash": "0x4c5990f78a60463828c6441d4188e4a345c487e60e6ebdd2d2d57e0566a3635e"
+      "address": "0x8da562d3d67B5832a834181Fc3345B306689DDbE",
+      "transactionHash": "0xecfd4e27e26ef09013350e30e187305e972951f820297f83b5e43c2057d99b02"
     },
     "1571705399371": {
       "events": {

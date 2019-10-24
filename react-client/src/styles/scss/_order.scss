@@ -51,13 +51,13 @@
     margin-left: -20px;
     margin-right: -20px;
 
-    >div {
-        border-radius: 12px 12px 0 0;
-    }
+    // >div {
+    //     border-radius: 12px 12px 0 0;
+    // }
 
-    >div+div+div {
-        border-radius: 0 0 12px 12px;
-    }
+    // >div+div+div {
+    //     border-radius: 0 0 12px 12px;
+    // }
 }
 
 .order--wrapper p {
@@ -96,7 +96,7 @@
         box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.2) !important;
         color: $blue-bright;
         font-size: 20px;
-        font-weight: 100;
+        font-weight: 500;
     }
 }
 
@@ -140,6 +140,10 @@
         box-sizing: border-box !important;
         box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.2) !important;
         border-radius: 20px !important;
+    }
+
+    .token--icon {
+        background-color: #58585b !important;
     }
 }
 

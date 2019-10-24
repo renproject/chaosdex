@@ -13,8 +13,11 @@ import { TransactionReceipt } from "web3-core";
 import {
     syncGetDEXAdapterAddress, syncGetDEXAddress, syncGetTokenAddress,
 } from "../lib/contractAddresses";
+import { ERC20Detailed } from "../lib/contracts/ERC20Detailed";
 import { NETWORK } from "../lib/environmentVariables";
-import { getAdapter, getERC20, NULL_BYTES32, Token, Tokens } from "./generalTypes";
+import {
+    getAdapter, getERC20, getExchange, getReserve, NULL_BYTES32, Token, Tokens,
+} from "./generalTypes";
 import {
     AddLiquidityCommitment, CommitmentType, HistoryEvent, OrderCommitment, PersistentContainer,
     ShiftInStatus, ShiftOutStatus,
@@ -88,25 +91,44 @@ export class SDKContainer extends Container<typeof initialState> {
             throw new Error("Order not set");
         }
 
-        const { srcToken, srcAmount } = order.orderInputs;
-        const srcTokenDetails = Tokens.get(srcToken);
-        if (!srcTokenDetails) {
-            throw new Error(`Unable to retrieve details for ${srcToken}`);
-        }
-        const srcAmountBN = new BigNumber(srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals));
+        let amountBN: BigNumber;
+        let tokenInstance: ERC20Detailed;
+        let reserveAddress: string;
 
-        const tokenInstance = getERC20(web3, network, syncGetTokenAddress(networkID, srcToken));
+        const dex = getExchange(web3, networkID);
+
+        if (order.commitment.type === CommitmentType.Trade) {
+            const { srcToken, srcAmount, dstToken } = order.orderInputs;
+            const srcTokenDetails = Tokens.get(srcToken);
+            if (!srcTokenDetails) {
+                throw new Error(`Unable to retrieve details for ${srcToken}`);
+            }
+            amountBN = new BigNumber(srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals));
+
+            tokenInstance = getERC20(web3, network, syncGetTokenAddress(networkID, srcToken));
+
+            reserveAddress = await dex.methods.reserves(syncGetTokenAddress(networkID, dstToken)).call();
+        } else if (order.commitment.type === CommitmentType.AddLiquidity) {
+            const { dstToken, srcToken } = order.orderInputs;
+            amountBN = new BigNumber(order.commitment.maxDAIAmount);
+            tokenInstance = getERC20(web3, network, syncGetTokenAddress(networkID, dstToken));
+            reserveAddress = await dex.methods.reserves(syncGetTokenAddress(networkID, srcToken)).call();
+        } else {
+            throw new Error("Token approval not required");
+        }
+
+        console.log(reserveAddress);
 
         // Check the allowance of the token.
         // If it's not sufficient, approve the required amount.
         // NOTE: Some tokens require the allowance to be 0 before being able to
         // approve a new amount.
-        const allowance = new BigNumber((await tokenInstance.methods.allowance(address, (getAdapter(web3, networkID)).address).call()).toString());
-        if (allowance.lt(srcAmountBN)) {
+        const allowance = new BigNumber((await tokenInstance.methods.allowance(address, reserveAddress).call()).toString());
+        if (allowance.lt(amountBN)) {
             // We don't have enough allowance so approve more
             const promiEvent = tokenInstance.methods.approve(
-                (getAdapter(web3, networkID)).address,
-                srcAmountBN.toString()
+                reserveAddress,
+                amountBN.toString()
             ).send({ from: address });
             await new Promise((resolve, reject) => promiEvent.on("transactionHash", async (transactionHash: string) => {
                 resolve(transactionHash);
@@ -283,9 +305,9 @@ export class SDKContainer extends Container<typeof initialState> {
         } else {
             return [
                 { name: "liquidityProvider", type: "address", value: commitment.liquidityProvider },
-                { name: "maxDAIAmount", type: "uint256", value: commitment.maxDAIAmount.toFixed() },
+                { name: "maxDAIAmount", type: "uint256", value: commitment.maxDAIAmount },
                 { name: "token", type: "address", value: commitment.token },
-                { name: "amount", type: "uint256", value: commitment.amount },
+                // { name: "amount", type: "uint256", value: commitment.amount },
                 { name: "refundBlockNumber", type: "uint256", value: commitment.refundBlockNumber },
                 { name: "refundAddress", type: "bytes", value: commitment.refundAddress },
             ];
@@ -301,6 +323,10 @@ export class SDKContainer extends Container<typeof initialState> {
         if (!order) {
             throw new Error("Order not set");
         }
+
+        console.log(order);
+        console.log(order.commitment);
+        console.log(order.commitment.type);
 
         if (order.commitment.type === CommitmentType.Trade) {
             return renVM.shiftIn({
@@ -323,7 +349,7 @@ export class SDKContainer extends Container<typeof initialState> {
                 messageID: order.messageID || undefined,
             });
         } else {
-            throw new Error("Trying to remove liquidity using ShiftIn")
+            throw new Error("Trying to remove liquidity using ShiftIn");
         }
     }
 
@@ -389,6 +415,11 @@ export class SDKContainer extends Container<typeof initialState> {
         let receipt: TransactionReceipt;
 
         if (!transactionHash) {
+
+            if (order.commitment.type === CommitmentType.AddLiquidity) {
+                await this.approveTokenTransfer(orderID);
+            }
+
             [receipt, transactionHash] = await new Promise<[TransactionReceipt, string]>(async (resolve, reject) => {
                 const promiEvent = (await this.submitMintToRenVM(orderID)).submitToEthereum(web3.currentProvider);
                 promiEvent.catch((error) => {
@@ -410,7 +441,10 @@ export class SDKContainer extends Container<typeof initialState> {
         // Loop through logs to find exchange event from the DEX contract.
         // The event log always has the first topic as "0x8d10c7a1"
         // TODO: Calculate this instead of hard coding it.
+        console.log(`Looking through ${receipt.logs.length} logs`);
         for (const log of receipt.logs) {
+            console.log(log);
+            // TODO: Replace hard-coded hash with call to web3.utils.sha3.
             if (
                 log.address.toLowerCase() === syncGetDEXAddress(networkID).toLowerCase() &&
                 log.topics[0] === "0x8d10c7a140b316d7362354a44023c657a9c436616f21481cac1cb594aa305458".toLowerCase()

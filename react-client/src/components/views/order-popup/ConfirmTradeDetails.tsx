@@ -5,6 +5,7 @@ import BigNumber from "bignumber.js";
 
 import { recoverRenVMFee } from "../../../lib/estimatePrice";
 import { Token, TokenPrices } from "../../../state/generalTypes";
+import { CommitmentType } from "../../../state/persistentContainer";
 import { OrderInputs } from "../../../state/uiContainer";
 import { ReactComponent as Arrow } from "../../../styles/images/arrow-right.svg";
 import { Popup } from "../Popup";
@@ -14,9 +15,10 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
     orderInputs: OrderInputs;
     quoteCurrency: Currency;
     tokenPrices: TokenPrices;
+    commitmentType: CommitmentType;
     done(): void;
     cancel(): void;
-}> = ({ tokenPrices, orderInputs, quoteCurrency, done, cancel }) => {
+}> = ({ tokenPrices, orderInputs, quoteCurrency, commitmentType, done, cancel }) => {
     const feeRow = (token: Token) => {
         if (token === Token.BTC || token === Token.ZEC) {
             return <div>
@@ -43,10 +45,18 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
         }
     };
 
+    let title: React.ReactNode;
+    switch (commitmentType) {
+        case CommitmentType.Trade:
+            title = <>Confirm Trade</>;
+        default:
+            title = <>Confirm</>;
+    }
+
     return <Popup cancel={cancel} whiteX={true}>
         <div className="swap swap--popup open">
             <div className="popup--header">
-                <h2>Confirm Trade</h2>
+                <h2>{title}</h2>
                 <div className="swap-details--icons">
                     <div>
                         <TokenIcon white={true} className="swap-details--icon" token={orderInputs.srcToken} />

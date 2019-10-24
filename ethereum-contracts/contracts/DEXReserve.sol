@@ -21,7 +21,7 @@ contract DEXReserve is ERC20 {
         require(totalSupply() != 0, "reserve has no funds");
         uint256 rcvAmount = calculateBuyRcvAmt(_baseTokenAmount);
         BaseToken.transferFrom(_from, address(this), _baseTokenAmount);
-        require(rcvAmount < Token.balanceOf(address(this)), "insufficient balance");
+        require(rcvAmount <= Token.balanceOf(address(this)), "insufficient balance");
         require(Token.transfer(_to, rcvAmount), "failed to transfer quote token");
         return rcvAmount;
     }
@@ -35,18 +35,18 @@ contract DEXReserve is ERC20 {
     }
 
     function calculateBuyRcvAmt(uint256 _sendAmt) public view returns (uint256) {
-        uint256 daiReserve = BaseToken.balanceOf(address(this));
+        uint256 baseReserve = BaseToken.balanceOf(address(this));
         uint256 tokenReserve = Token.balanceOf(address(this));
-        uint256 finalQuoteTokenAmount = (daiReserve.mul(tokenReserve)).div(daiReserve.add(_sendAmt));
+        uint256 finalQuoteTokenAmount = (baseReserve.mul(tokenReserve)).div(baseReserve.add(_sendAmt));
         uint256 rcvAmt = tokenReserve.sub(finalQuoteTokenAmount);
         return _removeFees(rcvAmt);
     }
 
     function calculateSellRcvAmt(uint256 _sendAmt) public view returns (uint256) {
-        uint256 daiReserve = BaseToken.balanceOf(address(this));
+        uint256 baseReserve = BaseToken.balanceOf(address(this));
         uint256 tokenReserve = Token.balanceOf(address(this));
-        uint256 finalBaseTokenAmount = (daiReserve.mul(tokenReserve)).div(tokenReserve.add(_sendAmt));
-        uint256 rcvAmt = daiReserve.sub(finalBaseTokenAmount);
+        uint256 finalBaseTokenAmount = (baseReserve.mul(tokenReserve)).div(tokenReserve.add(_sendAmt));
+        uint256 rcvAmt = baseReserve.sub(finalBaseTokenAmount);
         return _removeFees(rcvAmt);
     }
 
@@ -61,27 +61,28 @@ contract DEXReserve is ERC20 {
     }
 
     function addLiquidity(
-        address _liquidiyProvider, uint256 _maxBaseToken, uint256 _tokenAmount, uint256 _deadline
+        address _liquidityProvider, uint256 _maxBaseToken, uint256 _tokenAmount, uint256 _deadline
         ) external returns (uint256) {
-        require(_deadline > block.number, "addLiquidity request expired");
-        Token.transferFrom(msg.sender, address(this), _tokenAmount);
+        require(block.number <= _deadline, "addLiquidity request expired");
         if (totalSupply() > 0) {
             require(_tokenAmount > 0, "token amount is less than allowed min amount");
-            uint256 daiAmount = expectedBaseTokenAmount(_tokenAmount);
-            require(daiAmount < _maxBaseToken && BaseToken.transferFrom(_liquidiyProvider, address(this), daiAmount), "failed to transfer base token");
-            emit LogAddLiquidity(_liquidiyProvider, _tokenAmount, daiAmount);
+            uint256 baseAmount = expectedBaseTokenAmount(_tokenAmount);
+            require(baseAmount <= _maxBaseToken, "calculated base amount exceeds the maximum amount set");
+            require(BaseToken.transferFrom(_liquidityProvider, address(this), baseAmount), "failed to transfer base token");
+            emit LogAddLiquidity(_liquidityProvider, _tokenAmount, baseAmount);
         } else {
-            require(BaseToken.transferFrom(_liquidiyProvider, address(this), _maxBaseToken), "failed to transfer base token");
-            emit LogAddLiquidity(_liquidiyProvider, _tokenAmount, _maxBaseToken);
+            require(BaseToken.transferFrom(_liquidityProvider, address(this), _maxBaseToken), "failed to transfer base token");
+            emit LogAddLiquidity(_liquidityProvider, _tokenAmount, _maxBaseToken);
         }
-        _mint(_liquidiyProvider, _tokenAmount*2);
+        Token.transferFrom(msg.sender, address(this), _tokenAmount);
+        _mint(_liquidityProvider, _tokenAmount*2);
         return _tokenAmount*2;
     }
 
     function calculateBaseTokenValue(uint256 _liquidity) public view returns (uint256) {
         require(totalSupply() != 0, "Division by Zero");
-        uint256 daiReserve = BaseToken.balanceOf(address(this));
-        return (_liquidity * daiReserve)/totalSupply();
+        uint256 baseReserve = BaseToken.balanceOf(address(this));
+        return (_liquidity * baseReserve)/totalSupply();
     }
 
     function calculateQuoteTokenValue(uint256 _liquidity) public view returns (uint256) {
@@ -91,9 +92,9 @@ contract DEXReserve is ERC20 {
     }
 
     function expectedBaseTokenAmount(uint256 _quoteTokenAmount) public view returns (uint256) {
-        uint256 daiReserve = BaseToken.balanceOf(address(this));
+        uint256 baseReserve = BaseToken.balanceOf(address(this));
         uint256 tokenReserve = Token.balanceOf(address(this));
-        return (_quoteTokenAmount * daiReserve)/tokenReserve;
+        return (_quoteTokenAmount * baseReserve)/tokenReserve;
     }
 
     function _removeFees(uint256 _amount) internal view returns (uint256) {

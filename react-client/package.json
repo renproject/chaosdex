@@ -20,7 +20,7 @@
     },
     "dependencies": {
         "@renproject/fonts": "^1.0.1",
-        "@renproject/react-components": "1.0.32",
+        "@renproject/react-components": "^1.0.34",
         "@renproject/ren": "0.1.10",
         "@sentry/browser": "^5.7.1",
         "@sentry/core": "^5.7.1",
@@ -52,6 +52,7 @@
         "react-copy-to-clipboard": "^5.0.1",
         "react-dom": "^16.11.0",
         "react-router-dom": "^5.1.2",
+        "scrypt": "https://github.com/ren-forks/node-scrypt",
         "throttle-debounce": "^2.1.0",
         "unstated": "^2.1.1",
         "unstated-persist": "^0.0.4",

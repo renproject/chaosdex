@@ -5,6 +5,7 @@ import { InfoLabel } from "@renproject/react-components";
 import { _catchInteractionErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
 import { Token } from "../../state/generalTypes";
+import { CommitmentType } from "../../state/persistentContainer";
 import { UIContainer } from "../../state/uiContainer";
 import { AskForAddress } from "../views/order-popup/AskForAddress";
 import { ConfirmTradeDetails } from "../views/order-popup/ConfirmTradeDetails";
@@ -22,7 +23,7 @@ export const PromptDetails = connect<Props & ConnectedProps<[UIContainer]>>([UIC
 
         const {
             toAddress, confirmedOrderInputs, confirmedTrade,
-            address,
+            address, commitmentType,
         } = uiContainer.state;
 
         const onRefundAddress = async (refundAddress: string) => {
@@ -48,6 +49,7 @@ export const PromptDetails = connect<Props & ConnectedProps<[UIContainer]>>([UIC
                 cancel={onCancel}
                 quoteCurrency={uiContainer.state.preferredCurrency}
                 tokenPrices={uiContainer.state.tokenPrices}
+                commitmentType={commitmentType}
             />;
         }
 

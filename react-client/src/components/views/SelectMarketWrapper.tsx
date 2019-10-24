@@ -13,14 +13,14 @@ interface Props {
     top: boolean;
     thisToken: Token;
     otherToken: Token;
+    locked?: boolean;
 }
-
 
 /**
  * SelectMarket allows the user to select a market from two token dropdowns
  */
 export const SelectMarketWrapper = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer])(
-    ({ containers: [uiContainer], top, thisToken, otherToken }) => {
+    ({ containers: [uiContainer], top, thisToken, otherToken, locked }) => {
         const handleChange = (token: Token): void => {
             if (top) {
                 uiContainer.updateSrcToken(token).catch(_catchInteractionErr_);
@@ -30,11 +30,12 @@ export const SelectMarketWrapper = connect<Props & ConnectedProps<[UIContainer]>
         };
 
         const newTokens = new Map<Token, TokenDetails>(Tokens);
+        const lockedToken = new Map<Token, TokenDetails>().set(thisToken, newTokens.get(thisToken)!);
         return <SelectMarket
             top={top}
             thisToken={thisToken}
             otherToken={otherToken}
-            allTokens={newTokens}
+            allTokens={locked ? lockedToken : newTokens}
             onMarketChange={handleChange}
             getMarket={getMarket}
             white={true}

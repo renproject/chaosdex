@@ -57,10 +57,10 @@ module.exports = {
     },
     testnet: {
         renNetwork: ren.testnet,
-        DEX: '0x6Be14F3ce70c72876aBb07b54F5DA8E75Be7F4a7',
-        DEXAdapter: '0x467371C80B4d92837876E40d9610E893D26C36BA',
-        BTC_DAI_Reserve: '0x0a3ea20A2942677df300361e0F32c296b0AC2158',
-        ZEC_DAI_Reserve: '0xA100f837b913901AeD82EcB011891b75e9842Ce5',
+        DEX: '0x8da562d3d67B5832a834181Fc3345B306689DDbE',
+        DEXAdapter: '0x0246DB1836c0fad9b6B5f3c4E642Af81b444Bbf8',
+        BTC_DAI_Reserve: '0x426034F4B7C82b2DF1c06349A995E70F35B0C57B',
+        ZEC_DAI_Reserve: '0xF2Ac666b592A2debEB0EceC60e3cdB0302B6266E',
         config: {
             ...config,
             mintAuthority: ren.testnet.renVM.mintAuthority,

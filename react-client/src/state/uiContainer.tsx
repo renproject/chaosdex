@@ -4,14 +4,13 @@ import BigNumber from "bignumber.js";
 import { Map as ImmutableMap } from "immutable";
 import { Container } from "unstated";
 import Web3 from "web3";
-import BN from "bn.js";
 
-import { getTokenDecimals, syncGetTokenAddress } from "../lib/contractAddresses";
-import { estimatePrice, removeRenVMFee } from "../lib/estimatePrice";
+import { syncGetTokenAddress } from "../lib/contractAddresses";
+import { removeRenVMFee } from "../lib/estimatePrice";
 import { history } from "../lib/history";
 import { getMarket, getTokenPricesInCurrencies } from "../lib/market";
 import {
-    getERC20, getExchange, isERC20, isEthereumBased, MarketPair, Token, Tokens,
+    getERC20, getExchange, getReserve, isERC20, isEthereumBased, MarketPair, Token, Tokens,
 } from "./generalTypes";
 import {
     Commitment, CommitmentType, HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus,
@@ -34,6 +33,11 @@ const initialOrder: OrderInputs = {
     dstAmount: "0",
 };
 
+export enum ExchangeTabs {
+    Swap,
+    Liquidity,
+}
+
 const initialState = {
     web3: null as Web3 | null,
     networkID: 0,
@@ -42,13 +46,16 @@ const initialState = {
 
     preferredCurrency: Currency.USD,
 
+    exchangeTab: ExchangeTabs.Swap,
+
     address: null as string | null,
     tokenPrices: ImmutableMap<Token, ImmutableMap<Currency, number>>(),
     accountBalances: ImmutableMap<Token, BigNumber>(),
-    balanceReserves: ImmutableMap<MarketPair, ReserveBalances>(),
+    // balanceReserves: ImmutableMap<MarketPair, ReserveBalances>(),
 
     confirmedTrade: false,
     submitting: false,
+    commitmentType: CommitmentType.Trade,
     toAddress: null as string | null,
     refundAddress: null as string | null,
 
@@ -82,6 +89,10 @@ export class UIContainer extends Container<typeof initialState> {
 
     public handleOrder = async (orderID: string | null) => {
         await this.setState({ submitting: false, currentOrderID: orderID });
+    }
+
+    public setExchangeTab = async (exchangeTab: ExchangeTabs) => {
+        await this.setState({ exchangeTab });
     }
 
     // Token prices ////////////////////////////////////////////////////////////
@@ -210,6 +221,10 @@ export class UIContainer extends Container<typeof initialState> {
         await this.updateReceiveValue();
     }
 
+    public updateCommitmentType = async (commitmentType: CommitmentType) => {
+        console.log(`Setting commitmentType to ${commitmentType}!`);
+        await this.setState({ commitmentType });
+    }
     public updateToAddress = async (toAddress: string) => {
         await this.setState({ toAddress });
     }
@@ -218,13 +233,14 @@ export class UIContainer extends Container<typeof initialState> {
     }
 
     public commitOrder = async (): Promise<void> => {
-        const { orderInputs: order, networkID, web3, toAddress, refundAddress, orderInputs } = this.state;
+        const { orderInputs: order, networkID, web3, commitmentType, toAddress, refundAddress, orderInputs } = this.state;
         if (!web3) {
             throw new Error("Web3 not set yet.");
         }
 
         const srcTokenDetails = Tokens.get(order.srcToken);
-        if (!toAddress || !refundAddress || !srcTokenDetails) {
+        const dstTokenDetails = Tokens.get(order.dstToken);
+        if (!refundAddress || !srcTokenDetails || !dstTokenDetails || !toAddress) {
             throw new Error(`Required info is undefined (${toAddress}, ${refundAddress}, ${srcTokenDetails})`);
         }
 
@@ -241,16 +257,37 @@ export class UIContainer extends Container<typeof initialState> {
         } else if (order.dstToken === Token.ZEC) {
             hexToAddress = zecAddressToHex(toAddress);
         }
-        const commitment: Commitment = {
-            type: CommitmentType.Trade,
-            srcToken: syncGetTokenAddress(networkID, order.srcToken),
-            dstToken: syncGetTokenAddress(networkID, order.dstToken),
-            minDestinationAmount: 0,
-            srcAmount: new BigNumber(order.srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals)).toNumber(),
-            toAddress: hexToAddress,
-            refundBlockNumber: blockNumber + 360 * 48, // assuming 0.1bps 360 blocks is about 1 hour
-            refundAddress: hexRefundAddress,
-        };
+
+        let commitment: Commitment;
+
+        switch (commitmentType) {
+            case CommitmentType.Trade:
+
+                commitment = {
+                    type: commitmentType,
+                    srcToken: syncGetTokenAddress(networkID, order.srcToken),
+                    dstToken: syncGetTokenAddress(networkID, order.dstToken),
+                    minDestinationAmount: 0,
+                    srcAmount: new BigNumber(order.srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals)).toNumber(),
+                    toAddress: hexToAddress,
+                    refundBlockNumber: blockNumber + 360 * 48, // assuming 0.1bps 360 blocks is about 1 hour
+                    refundAddress: hexRefundAddress,
+                };
+                break;
+            case CommitmentType.AddLiquidity:
+                commitment = {
+                    type: commitmentType,
+                    liquidityProvider: hexToAddress,
+                    maxDAIAmount: new BigNumber(order.dstAmount).multipliedBy(new BigNumber(10).exponentiatedBy(dstTokenDetails.decimals)).toFixed(),
+                    token: syncGetTokenAddress(networkID, order.srcToken),
+                    amount: new BigNumber(order.srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals)).toNumber(),
+                    refundBlockNumber: blockNumber + 360 * 48, // assuming 0.1bps 360 blocks is about 1 hour
+                    refundAddress: hexRefundAddress,
+                };
+                break;
+            default:
+                throw new Error(`Unknown commitment type`);
+        }
 
         const time = Date.now() / 1000;
         const currentOrderID = String(time);
@@ -348,52 +385,67 @@ export class UIContainer extends Container<typeof initialState> {
     }
 
     public updateReceiveValue = async (): Promise<void> => {
-        const { balanceReserves, orderInputs: { srcToken, dstToken, srcAmount } } = this.state;
+        const { exchangeTab, orderInputs: { srcToken, dstToken, srcAmount } } = this.state;
 
-        const market = getMarket(
-            srcToken,
-            dstToken
-        );
-        if (market) {
-            const { web3, networkID } = this.state;
-            if (!web3) {
-                throw new Error("Web3 not set yet.");
-            }
-            const exchange = getExchange(web3, networkID);
-            const srcTokenAddress = syncGetTokenAddress(networkID, srcToken);
-            const dstTokenAddress = syncGetTokenAddress(networkID, dstToken);
-            const srcTokenDetails = Tokens.get(srcToken) || { decimals: 18, chain: Chain.Ethereum };
-            const dstTokenDetails = Tokens.get(dstToken) || { decimals: 18, chain: Chain.Ethereum };
-            let srcAmountBN = new BigNumber(srcAmount);
-            if (srcTokenDetails.chain !== Chain.Ethereum) {
-                srcAmountBN = removeRenVMFee(srcAmountBN);
-            }
-            const srdAmountShifted = (srcAmountBN.times(new BigNumber(10).pow(srcTokenDetails.decimals))).toFixed(0);
+        // const market = getMarket(
+        //     srcToken,
+        //     dstToken
+        // );
+        // if (market) {
+        const { web3, networkID } = this.state;
+        if (!web3) {
+            throw new Error("Web3 not set yet.");
+        }
+        const exchange = getExchange(web3, networkID);
+        const srcTokenAddress = syncGetTokenAddress(networkID, srcToken);
+        const dstTokenAddress = syncGetTokenAddress(networkID, dstToken);
+        const srcTokenDetails = Tokens.get(srcToken) || { decimals: 18, chain: Chain.Ethereum };
+        const dstTokenDetails = Tokens.get(dstToken) || { decimals: 18, chain: Chain.Ethereum };
+
+        let dstAmountBN: BigNumber;
+
+        let srcAmountBN = new BigNumber(srcAmount);
+        if (srcTokenDetails.chain !== Chain.Ethereum) {
+            srcAmountBN = removeRenVMFee(srcAmountBN);
+        }
+
+        const srdAmountShifted = (srcAmountBN.times(new BigNumber(10).pow(srcTokenDetails.decimals))).toFixed(0);
+
+        if (exchangeTab === ExchangeTabs.Swap) {
+
             const dstAmount = await exchange.methods.calculateReceiveAmount(srcTokenAddress, dstTokenAddress, srdAmountShifted).call();
 
-            let dstAmountBN = new BigNumber(dstAmount);
+            dstAmountBN = new BigNumber(dstAmount);
             if (dstTokenDetails.chain !== Chain.Ethereum) {
                 dstAmountBN = removeRenVMFee(dstAmountBN);
             }
 
-            const dstAmountShifted = (new BigNumber(dstAmountBN).div(new BigNumber(10).pow(dstTokenDetails.decimals))).toString();
-
-            // const reserves = balanceReserves.get(market);
-
-            // let srcAmountAfterFees = new BigNumber(srcAmount);
-            // if (srcToken === Token.BTC) {
-            //     // Remove BTC transfer fees
-            //     srcAmountAfterFees = BigNumber.max(srcAmountAfterFees.minus(0.0001), 0);
-            // }
-
-            // const dstAmount = await estimatePrice(
-            //     srcToken,
-            //     dstToken,
-            //     srcAmountAfterFees,
-            //     reserves,
-            // );
-            await this.setState({ orderInputs: { ...this.state.orderInputs, dstAmount: dstAmountShifted } });
+        } else if (exchangeTab === ExchangeTabs.Liquidity) {
+            const reserveAddress = await exchange.methods.reserves(syncGetTokenAddress(networkID, srcToken)).call();
+            const reserve = getReserve(web3, networkID, reserveAddress);
+            dstAmountBN = new BigNumber(await reserve.methods.expectedBaseTokenAmount(srdAmountShifted).call());
+        } else {
+            return;
         }
+
+        const dstAmountShifted = (new BigNumber(dstAmountBN).div(new BigNumber(10).pow(dstTokenDetails.decimals))).toString();
+
+        // const reserves = balanceReserves.get(market);
+
+        // let srcAmountAfterFees = new BigNumber(srcAmount);
+        // if (srcToken === Token.BTC) {
+        //     // Remove BTC transfer fees
+        //     srcAmountAfterFees = BigNumber.max(srcAmountAfterFees.minus(0.0001), 0);
+        // }
+
+        // const dstAmount = await estimatePrice(
+        //     srcToken,
+        //     dstToken,
+        //     srcAmountAfterFees,
+        //     reserves,
+        // );
+        await this.setState({ orderInputs: { ...this.state.orderInputs, dstAmount: dstAmountShifted } });
+        // }
     }
 
     private readonly updateHistory = async (): Promise<void> => {

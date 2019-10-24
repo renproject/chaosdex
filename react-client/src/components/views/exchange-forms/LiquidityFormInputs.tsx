@@ -90,7 +90,7 @@ export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer]>
                 onClick={toggleSide}
             >
                 {/* <img alt="Swap side" role="button" src={arrow} /> */}
-                &
+                +
             </span>
         </div>;
 
@@ -126,12 +126,21 @@ export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer]>
             onValueChange={null}
             className="order-inputs--second"
         >
-            <SelectMarketWrapper top={false} thisToken={orderInputs.dstToken} otherToken={orderInputs.srcToken} />
+            <SelectMarketWrapper top={false} thisToken={orderInputs.dstToken} otherToken={orderInputs.srcToken} locked={true} />
         </TokenValueInput>;
 
         return <div className="order--wrapper--wrapper">
             <div className="order--wrapper">
+                <div className="liquidity--options">
+                    <span className="liquidity--option liquidity--option--selected">Add liquidity</span>
+                    <span className="liquidity--option">Remove liquidity</span>
+                </div>
                 {first}{toggle}{second}
+                <div className="liquidity-details">
+                    <div className="liquidity-detail"><span>Exchange rate</span><span>-</span></div>
+                    <div className="liquidity-detail"><span>Current pool size</span><span>-</span></div>
+                    <div className="liquidity-detail"><span>Your pool share</span><span>-</span></div>
+                </div>
             </div>
         </div>;
     }

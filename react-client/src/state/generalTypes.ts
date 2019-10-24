@@ -78,5 +78,5 @@ export const getERC20 = (web3: Web3, network: NetworkDetails, tokenAddress: stri
     new (web3.eth.Contract)(network.contracts.addresses.erc.ERC20.abi, tokenAddress);
 export const getAdapter = (web3: Web3, networkID: number): DEXAdapter =>
     new (web3.eth.Contract)(DEXAdapterABI as AbiItem[], syncGetDEXAdapterAddress(networkID));
-export const getReserve = (web3: Web3, networkID: number, token: Token): DEXReserve =>
-    new (web3.eth.Contract)(DEXReserveABI as AbiItem[], syncGetDEXReserveAddress(networkID, token));
+export const getReserve = (web3: Web3, networkID: number, tokenAddress: string): DEXReserve =>
+    new (web3.eth.Contract)(DEXReserveABI as AbiItem[], tokenAddress); // syncGetDEXReserveAddress(networkID, token));
