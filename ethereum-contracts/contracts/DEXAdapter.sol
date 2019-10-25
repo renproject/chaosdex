@@ -19,13 +19,8 @@ contract DEXAdapter {
     }
 
     /// @notice Allow anyone to recover funds accidentally sent to the contract.
-    /// To withdraw ETH, the token should be set to `0x0`.
     function recoverTokens(address _token) external {
-        if (_token == address(0x0)) {
-            msg.sender.transfer(address(this).balance);
-        } else {
-            ERC20(_token).transfer(msg.sender, ERC20(_token).balanceOf(address(this)));
-        }
+        ERC20(_token).transfer(msg.sender, ERC20(_token).balanceOf(address(this)));
     }
 
     // TODO: Fix "Stack too deep" error!
@@ -67,13 +62,6 @@ contract DEXAdapter {
         uint256 _refundBN, bytes memory _refundAddress
     ) public pure returns (bytes32) {
         return keccak256(abi.encode(_liquidityProvider, _maxBaseToken, _token, _refundBN, _refundAddress));
-    }
-
-    function encodePayload(
-        /*uint256 _relayerFee,*/ ERC20 _src, ERC20 _dst, uint256 _minDstAmt, bytes memory _to,
-        uint256 _refundBN, bytes memory _refundAddress
-    ) public pure returns (bytes memory) {
-        return abi.encode(_src, _dst, _minDstAmt, _to, _refundBN, _refundAddress);
     }
 
     function addLiquidity(
@@ -138,11 +126,8 @@ contract DEXAdapter {
         IShifter shifter = shifterRegistry.getShifterByToken(address(_src));
         if (shifter != IShifter(0x0)) {
             return shifter.shiftIn(_pHash, _amount, _nHash, _sig);
-        } else if (_src == dex.ethereum()) {
-            require(msg.value >= _amount, "insufficient eth amount");
-            return msg.value;
         } else {
-            require(ERC20(_src).transferFrom(msg.sender, address(this), _amount), "source token transfer failed");
+            ERC20(_src).transferFrom(msg.sender, address(this), _amount);
             return _amount;
         }
     }

@@ -21,7 +21,6 @@ contract DEXReserve is ERC20 {
         require(totalSupply() != 0, "reserve has no funds");
         uint256 rcvAmount = calculateBuyRcvAmt(_baseTokenAmount);
         BaseToken.transferFrom(_from, address(this), _baseTokenAmount);
-        require(rcvAmount < Token.balanceOf(address(this)), "insufficient balance");
         require(Token.transfer(_to, rcvAmount), "failed to transfer quote token");
         return rcvAmount;
     }
@@ -79,13 +78,13 @@ contract DEXReserve is ERC20 {
     }
 
     function calculateBaseTokenValue(uint256 _liquidity) public view returns (uint256) {
-        require(totalSupply() != 0, "Division by Zero");
+        require(totalSupply() != 0, "division by zero");
         uint256 daiReserve = BaseToken.balanceOf(address(this));
         return (_liquidity * daiReserve)/totalSupply();
     }
 
     function calculateQuoteTokenValue(uint256 _liquidity) public view returns (uint256) {
-        require(totalSupply() != 0, "Division by Zero");
+        require(totalSupply() != 0,  "division by zero");
         uint256 tokenReserve = Token.balanceOf(address(this));
         return (_liquidity * tokenReserve)/totalSupply();
     }

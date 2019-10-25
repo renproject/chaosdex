@@ -6,7 +6,6 @@ import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 contract DEX {
     mapping (address=>DEXReserve) public reserves;
     address public BaseToken;
-    address public ethereum = address(0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee);
 
     event LogTrade(address _src, address _dst, uint256 _sendAmount, uint256 _recvAmount);
 
@@ -15,13 +14,8 @@ contract DEX {
     }
 
     /// @notice Allow anyone to recover funds accidentally sent to the contract.
-    /// To withdraw ETH, the token should be set to `0x0`.
     function recoverTokens(address _token) external {
-        if (_token == address(0x0)) {
-            msg.sender.transfer(address(this).balance);
-        } else {
-            ERC20(_token).transfer(msg.sender, ERC20(_token).balanceOf(address(this)));
-        }
+        ERC20(_token).transfer(msg.sender, ERC20(_token).balanceOf(address(this)));
     }
 
     function registerReserve(address _erc20, DEXReserve _reserve) external {
