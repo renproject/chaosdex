@@ -42,6 +42,7 @@ contract("DEX", (accounts) => {
     let mintAuthority;
     let privKey;
     const feeRecipeint = accounts[1];
+    const randomAddress = accounts[7];
 
     const shifterFees = new BN(10);
     const dexFees = new BN(10);
@@ -89,6 +90,22 @@ contract("DEX", (accounts) => {
         await reserve.addLiquidity(accounts[0], value, removeFee(value, 10), 10000000000000);
     };
 
+    const depositToReserveWOToken = async (value: BN, token: ERC20Instance, reserve: DEXReserveInstance) => {
+        await dai.approve(reserve.address, value);
+        await reserve.addLiquidity(accounts[0], value, 0, 10000000000000).should.be.rejectedWith(/token amount is less than allowed min amount/);
+    };
+
+    const depositToReserveWODAI = async (value: BN, token: ERC20Instance, reserve: DEXReserveInstance) => {
+        await token.approve(reserve.address, removeFee(value, shifterFees));
+        await reserve.addLiquidity(accounts[0], value, removeFee(value, 10), 10000000000000).should.be.rejectedWith(/revert/);
+    };
+
+    const depositToReserveExpired = async (value: BN, token: ERC20Instance, reserve: DEXReserveInstance) => {
+        await dai.approve(reserve.address, value);
+        await token.approve(reserve.address, removeFee(value, shifterFees));
+        await reserve.addLiquidity(accounts[0], value, removeFee(value, 10), 0).should.be.rejectedWith(/addLiquidity request expired/);
+    };
+
     const shiftToReserve = async (value: BN, token: ERC20Instance, reserve: DEXReserveInstance, shifter: ShifterInstance) => {
         const nHash = `0x${randomBytes(32).toString("hex")}`;
         const pHash = await dexAdapter.hashLiquidityPayload.call(accounts[0], value, token.address, 10000000000000, "0x002002002");
@@ -99,6 +116,18 @@ contract("DEX", (accounts) => {
         const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
         await dai.approve(reserve.address, value);
         await dexAdapter.addLiquidity(accounts[0], value, token.address, 10000000000000, "0x002002002", value, nHash, sigString);
+    };
+
+    const shiftToReserveExpired = async (value: BN, token: ERC20Instance, reserve: DEXReserveInstance, shifter: ShifterInstance) => {
+        const nHash = `0x${randomBytes(32).toString("hex")}`;
+        const pHash = await dexAdapter.hashLiquidityPayload.call(accounts[0], value, token.address, 0, "0x002002002");
+        // const types = ["address", "uint256", "address", "uint256", "uint256", "bytes"];
+        // const pHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(types, [accounts[0], value.toString(), token.address, value.toString(), 0, "0x002002002"]));
+        const hash = await shifter.hashForSignature.call(pHash, value, dexAdapter.address, nHash);
+        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
+        const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
+        await dai.approve(reserve.address, value);
+        await dexAdapter.addLiquidity(accounts[0], value, token.address, 0, "0x002002002", value, nHash, sigString);
     };
 
     const shiftFromReserve = async (token: ERC20Instance, reserve: DEXReserveInstance) => {
@@ -112,9 +141,14 @@ contract("DEX", (accounts) => {
         await reserve.removeLiquidity(liquidity);
     }
 
+    const maliciousWithdrawFromReserve = async (reserve: DEXReserveInstance) => {
+        const liquidity = await reserve.balanceOf.call(accounts[0]);
+        await reserve.removeLiquidity(liquidity, { from: accounts[1] }).should.be.rejectedWith(/insufficient balance/);
+    }
+
     const sellBaseToken = async (srcToken: ERC20Instance, dstToken: ERC20Instance) => {
         const value = new BN(225000);
-        const amount = await dex.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
+        const amount = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
         const nHash = `0x${randomBytes(32).toString("hex")}`;
         const pHash = `0x${randomBytes(32).toString("hex")}`;
         await srcToken.approve(dexAdapter.address, value);
@@ -132,6 +166,78 @@ contract("DEX", (accounts) => {
         console.log(initialBalance.sub(finalBalance).toString(), " == ", amount.toString());
     }
 
+    const sellShiftedTokenExpired = async (srcToken: ERC20Instance, srcShifter: ShifterInstance, dstToken: ERC20Instance) => {
+        const nHash = `0x${randomBytes(32).toString("hex")}`
+        const value = new BN(22500);
+        const commitment = await dexAdapter.hashTradePayload.call(
+            srcToken.address, dstToken.address, 0, accounts[3],
+            0, "0x010101010101",
+        );
+        const hash = await srcShifter.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
+        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
+        const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
+        const reserve = await dex.reserves.call(dstToken.address);
+        const initialBalance = new BN((await dstToken.balanceOf.call(reserve)).toString());
+        await dexAdapter.trade(
+            // Payload:
+            srcToken.address, dstToken.address, 0, accounts[3],
+            0, "0x010101010101",
+            // Required
+            value, nHash, sigString,
+        );
+        const finalBalance = new BN((await dstToken.balanceOf.call(reserve)).toString());
+        // initialBalance.sub(finalBalance).should.bignumber.equal(amount);
+        console.log(initialBalance.sub(finalBalance).toString(), " == ", 0);
+    }
+
+    const sellShiftedToken = async (srcToken: ERC20Instance, srcShifter: ShifterInstance, dstToken: ERC20Instance) => {
+        const nHash = `0x${randomBytes(32).toString("hex")}`
+        const value = new BN(22500);
+        const amount = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
+        const commitment = await dexAdapter.hashTradePayload.call(
+            srcToken.address, dstToken.address, 0, accounts[3],
+            100000, "0x010101010101",
+        );
+        const hash = await srcShifter.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
+        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
+        const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
+        const reserve = await dex.reserves.call(dstToken.address);
+        const initialBalance = new BN((await dstToken.balanceOf.call(reserve)).toString());
+        await dexAdapter.trade(
+            // Payload:
+            srcToken.address, dstToken.address, 0, accounts[3],
+            100000, "0x010101010101",
+            // Required
+            value, nHash, sigString,
+        );
+        const finalBalance = new BN((await dstToken.balanceOf.call(reserve)).toString());
+        // initialBalance.sub(finalBalance).should.bignumber.equal(amount);
+        console.log(initialBalance.sub(finalBalance).toString(), " == ", amount.toString());
+    }
+
+    const tradeShiftedTokens = async (srcToken: ERC20ShiftedInstance, srcShifter: ShifterInstance, dstToken: ERC20ShiftedInstance) => {
+        const nHash = `0x${randomBytes(32).toString("hex")}`
+        const value = new BN(22500);
+        const amount = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
+        const commitment = await dexAdapter.hashTradePayload.call(
+            srcToken.address, dstToken.address, 0, "0x002200220022",
+            100000, "0x010101010101",
+        );
+        const reserve = await dex.reserves.call(dstToken.address);
+        const hash = await srcShifter.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
+        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
+        const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
+        const initialBalance = new BN((await dstToken.balanceOf.call(reserve)).toString());
+        await dexAdapter.trade(
+            // Payload
+            srcToken.address, dstToken.address, 0, "0x002200220022", 100000,
+            "0x010101010101",
+            // Required
+            value, nHash, sigString,
+        );
+        const finalBalance = new BN((await dstToken.balanceOf.call(reserve)).toString());
+        console.log(initialBalance.sub(finalBalance).toString(), " == ", amount.toString());
+    }
 
     it("should fail when trying to trade dai to token1 on DEX before funding the reserve", async () => {
         const value = new BN(225000);
@@ -166,6 +272,40 @@ contract("DEX", (accounts) => {
         ).should.be.rejectedWith(/reserve has no funds/);
     });
 
+    it("should fail to overwrite an existing reserve", async () => {
+        await dex.registerReserve(token1.address, accounts[3]).should.be.rejectedWith(/token reserve already registered/);
+    });
+
+    it("should fail to calculate the base token value", async () => {
+        const value = new BN(20000000000);
+        await dexReserve1.calculateBaseTokenValue(value).should.be.rejectedWith(/division by zero/);
+    });
+
+    it("should fail to calculate the base token value", async () => {
+        const value = new BN(20000000000);
+        await dexReserve1.calculateQuoteTokenValue(value).should.be.rejectedWith(/division by zero/);
+    });
+
+    it("should fail to trade unsupported tokens", async () => {
+        await dex.trade(accounts[0], dai.address, randomAddress, 1000).should.be.rejectedWith(/unsupported token/);
+    });
+
+    it("should fail to trade unsupported tokens", async () => {
+        await dex.trade(accounts[0], randomAddress, dai.address, 1000).should.be.rejectedWith(/unsupported token/);
+    });
+
+    it("should fail to trade unsupported tokens", async () => {
+        await dex.trade(accounts[0], randomAddress, randomAddress, 1000).should.be.rejectedWith(/unsupported token/);
+    });
+
+    it("should fail to add liquidity unsupported tokens", async () => {
+        await dexAdapter.addLiquidity(accounts[0], 0, randomAddress, 10000000, "0x20220200202020", 1000, `0x${randomBytes(32).toString("hex")}`, "0x0000").should.be.rejectedWith(/unsupported token/);
+    });
+
+    it("should fail to remove liquidity unsupported tokens", async () => {
+        await dexAdapter.removeLiquidity(randomAddress, 0, "0x22020202020020202").should.be.rejectedWith(/unsupported token/);
+    });
+
     it("should deposit token1 to the reserve1", async () => {
         const value = new BN(20000000000);
         await shiftToReserve(value, token1, dexReserve1, shifter1);
@@ -176,9 +316,54 @@ contract("DEX", (accounts) => {
         await shiftToReserve(value, token2, dexReserve2, shifter2);
     });
 
+    it("should fail to deposit token1 to the reserve1 after expiry", async () => {
+        const value = new BN(20000000000);
+        await shiftToReserveExpired(value, token1, dexReserve1, shifter1);
+    });
+
+    it("should fail to deposit token2 to the reserve2 after expiry", async () => {
+        const value = new BN(20000000000);
+        await shiftToReserveExpired(value, token2, dexReserve2, shifter2);
+    });
+
+    it("should deposit token3 to the reserve3", async () => {
+        const value = new BN(20000000000);
+        await depositToReserveWODAI(value, token3, dexReserve3);
+    });
+
     it("should deposit token3 to the reserve3", async () => {
         const value = new BN(20000000000);
         await depositToReserve(value, token3, dexReserve3);
+    });
+
+    it("should deposit token3 to the reserve3", async () => {
+        const value = new BN(20000000000);
+        await depositToReserveWODAI(value, token3, dexReserve3);
+    });
+
+    it("should deposit token3 to the reserve3", async () => {
+        const value = new BN(20000000000);
+        await depositToReserveWOToken(value, token3, dexReserve3);
+    });
+
+    it("should deposit token1 to the reserve1 when it has liquidity", async () => {
+        const value = new BN(20000000000);
+        await shiftToReserve(value, token1, dexReserve1, shifter1);
+    });
+
+    it("should deposit token2 to the reserve2 when it has liquidity", async () => {
+        const value = new BN(20000000000);
+        await shiftToReserve(value, token2, dexReserve2, shifter2);
+    });
+
+    it("should deposit token3 to the reserve3 when it has liquidity", async () => {
+        const value = new BN(20000000000);
+        await depositToReserve(value, token3, dexReserve3);
+    });
+
+    it("should deposit token3 to the reserve3 when it has liquidity", async () => {
+        const value = new BN(20000000000);
+        await depositToReserveExpired(value, token3, dexReserve3);
     });
 
     it("should trade dai to token1 on DEX", async () => {
@@ -194,120 +379,64 @@ contract("DEX", (accounts) => {
     });
 
     it("should trade token1 to token2 on DEX", async () => {
-        const nHash = `0x${randomBytes(32).toString("hex")}`
-        const value = new BN(22500);
-        const commitment = await dexAdapter.hashTradePayload.call(
-            token1.address, token2.address, 0, "0x002200220022",
-            100000, "0x010101010101",
-        );
-        const hash = await shifter1.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
-        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
-        const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
-        await dexAdapter.trade(
-            // Payload
-            token1.address, token2.address, 0, "0x002200220022", 100000,
-            "0x010101010101",
-            // Required
-            value, nHash, sigString,
-        );
+        await tradeShiftedTokens(token1, shifter1, token2);
     });
 
     it("should trade token2 to token1 on DEX", async () => {
-        const nHash = `0x${randomBytes(32).toString("hex")}`
-        const value = new BN(22500);
-        const commitment = await dexAdapter.hashTradePayload.call(
-            token2.address, token1.address, 0, "0x002200220022",
-            100000, "0x010101010101",
-        );
-        const hash = await shifter2.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
-        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
-        const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
-        await dexAdapter.trade(
-            // Payload:
-            token2.address, token1.address, 0, "0x002200220022", 100000,
-            "0x010101010101",
-            // Required
-            value, nHash, sigString,
-        );
+        await tradeShiftedTokens(token2, shifter2, token1);
     });
 
     it("should trade token1 to dai on DEX", async () => {
-        const nHash = `0x${randomBytes(32).toString("hex")}`
-        const value = new BN(22500);
-        const commitment = await dexAdapter.hashTradePayload.call(
-            token1.address, dai.address, 0, accounts[3],
-            100000, "0x010101010101",
-        );
-        const hash = await shifter1.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
-        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
-        const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
-        await dexAdapter.trade(
-            // Payload:
-            token1.address, dai.address, 0, accounts[3],
-            100000, "0x010101010101",
-            // Required
-            value, nHash, sigString,
-        );
+        await sellShiftedToken(token1, shifter1, dai)
     });
 
     it("should trade token2 to dai on DEX", async () => {
-        const nHash = `0x${randomBytes(32).toString("hex")}`
-        const value = new BN(22500);
-        const commitment = await dexAdapter.hashTradePayload.call(
-            token2.address, dai.address, 0, accounts[3],
-            100000, "0x010101010101",
-        );
-        const hash = await shifter2.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
-        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
-        const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
-        await dexAdapter.trade(
-            // Payload:
-            token2.address, dai.address, 0, accounts[3],
-            100000, "0x010101010101",
-            // Required
-            value, nHash, sigString,
-        );
+        await sellShiftedToken(token2, shifter2, dai)
     });
 
     it("should trade token1 to token3 on DEX", async () => {
-        const nHash = `0x${randomBytes(32).toString("hex")}`
-        const value = new BN(22500);
-        const commitment = await dexAdapter.hashTradePayload.call(
-            token1.address, token3.address, 0, accounts[3],
-            100000, "0x010101010101",
-        );
-        const hash = await shifter1.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
-        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
-        const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
-        await dexAdapter.trade(
-            // Payload:
-            token1.address, token3.address, 0, accounts[3], 100000,
-            "0x010101010101",
-            // Required
-            value, nHash, sigString,
-        );
+        await sellShiftedToken(token1, shifter1, token3)
     });
 
     it("should trade token2 to token3 on DEX", async () => {
-        const nHash = `0x${randomBytes(32).toString("hex")}`
-        const value = new BN(22500);
-        const commitment = await dexAdapter.hashTradePayload.call(
-            token2.address, token3.address, 0, accounts[3],
-            100000, "0x010101010101",
-        );
-        const hash = await shifter2.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
-        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
-        const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
-        await dexAdapter.trade(
-            // Payload:
-            token2.address, token3.address, 0, accounts[3], 100000,
-            "0x010101010101",
-            // Required
-            value, nHash, sigString,
-        );
+        await sellShiftedToken(token2, shifter2, token3)
     });
+
+    it("should fail to trade token1 to dai on DEX after expiry", async () => {
+        await sellShiftedTokenExpired(token1, shifter1, dai)
+    });
+
+    it("should fail to trade token2 to dai on DEX after expiry", async () => {
+        await sellShiftedTokenExpired(token2, shifter2, dai)
+    });
+
+    it("should fail to trade token1 to token3 on DEX after expiry", async () => {
+        await sellShiftedTokenExpired(token1, shifter1, token3)
+    });
+
+    it("should fail to trade token2 to token3 on DEX after expiry", async () => {
+        await sellShiftedTokenExpired(token2, shifter2, token3)
+    });
+
+    it("should not withdraw dai and token3 from the reserve3 if the user does not have liquidity tokens", async () => await maliciousWithdrawFromReserve(dexReserve3));
 
     it("should withdraw dai and token1 from the reserve1", async () => await shiftFromReserve(token1, dexReserve1));
     it("should withdraw dai and token2 from the reserve2", async () => await shiftFromReserve(token2, dexReserve2));
     it("should withdraw dai and token3 from the reserve3", async () => await withdrawFromReserve(dexReserve3));
+
+    it("should be able to withdraw funds that are mistakenly sent to dex adapter", async () => {
+        await dai.transfer(dexAdapter.address, 1000);
+        const initialBalance = new BN((await dai.balanceOf.call(accounts[1])).toString());
+        await dexAdapter.recoverTokens(dai.address, { from: accounts[1] });
+        const finalBalance = new BN((await dai.balanceOf.call(accounts[1])).toString());
+        console.log(finalBalance.sub(initialBalance), 1000)
+    });
+
+    it("should be able to withdraw funds that are mistakenly sent to dex", async () => {
+        await dai.transfer(dex.address, 1000);
+        const initialBalance = new BN((await dai.balanceOf.call(accounts[1])).toString());
+        await dex.recoverTokens(dai.address, { from: accounts[1] });
+        const finalBalance = new BN((await dai.balanceOf.call(accounts[1])).toString());
+        console.log(finalBalance.sub(initialBalance), 1000)
+    });
 });
