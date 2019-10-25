@@ -11,7 +11,7 @@ const config = {
     shifterFees: 10,
     zBTCMinShiftOutAmount: 10000,
     zZECMinShiftOutAmount: 10000,
-    dexFees: 0,
+    dexFees: 20,
     renNetwork: {
         addresses: {
             tokens: {

@@ -1,0 +1,1163 @@
+{
+  "contractName": "Bindings",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "fileName",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "name": "lineNumber",
+          "type": "uint256"
+        }
+      ],
+      "name": "__CoverageBindings",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "fileName",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "name": "fnId",
+          "type": "uint256"
+        }
+      ],
+      "name": "__FunctionCoverageBindings",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "fileName",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "name": "statementId",
+          "type": "uint256"
+        }
+      ],
+      "name": "__StatementCoverageBindings",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "fileName",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "name": "branchId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "locationIdx",
+          "type": "uint256"
+        }
+      ],
+      "name": "__BranchCoverageBindings",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "fileName",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "name": "branchId",
+          "type": "uint256"
+        }
+      ],
+      "name": "__AssertPreCoverageBindings",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "fileName",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "name": "branchId",
+          "type": "uint256"
+        }
+      ],
+      "name": "__AssertPostCoverageBindings",
+      "type": "event"
+    }
+  ],
+  "metadata": "{\"compiler\":{\"version\":\"0.5.8+commit.23d335f2\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"fileName\",\"type\":\"string\"},{\"indexed\":false,\"name\":\"lineNumber\",\"type\":\"uint256\"}],\"name\":\"__CoverageBindings\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"fileName\",\"type\":\"string\"},{\"indexed\":false,\"name\":\"fnId\",\"type\":\"uint256\"}],\"name\":\"__FunctionCoverageBindings\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"fileName\",\"type\":\"string\"},{\"indexed\":false,\"name\":\"statementId\",\"type\":\"uint256\"}],\"name\":\"__StatementCoverageBindings\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"fileName\",\"type\":\"string\"},{\"indexed\":false,\"name\":\"branchId\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"locationIdx\",\"type\":\"uint256\"}],\"name\":\"__BranchCoverageBindings\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"fileName\",\"type\":\"string\"},{\"indexed\":false,\"name\":\"branchId\",\"type\":\"uint256\"}],\"name\":\"__AssertPreCoverageBindings\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"fileName\",\"type\":\"string\"},{\"indexed\":false,\"name\":\"branchId\",\"type\":\"uint256\"}],\"name\":\"__AssertPostCoverageBindings\",\"type\":\"event\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{},\"notice\":\"Bindings imports all of the contracts for generating bindings.\"}},\"settings\":{\"compilationTarget\":{\"/home/susruth/ren/renvm-demo/ethereum-contracts/coverageEnv/contracts/Bindings.sol\":\"Bindings\"},\"evmVersion\":\"petersburg\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/susruth/ren/renvm-demo/ethereum-contracts/coverageEnv/contracts/Bindings.sol\":{\"keccak256\":\"0xdd1af2aedaca134b9f446058aa6747dfe0ec77badca2c075019a4dc66c86918b\",\"urls\":[\"bzzr://56879dbf3b274ac59dbeb5e66e172c20e704ed495aaa8ac1794e546533590890\"]},\"/home/susruth/ren/renvm-demo/ethereum-contracts/coverageEnv/contracts/DEX.sol\":{\"keccak256\":\"0x21be3bebe2bce3940feffc0642ca2ebbb14dd35aef2a42281836e49fe98ed437\",\"urls\":[\"bzzr://bcfaad783d5c92915f7c708ffdbc04dc3944995ebbb53c339b62eeb6b92d44e3\"]},\"/home/susruth/ren/renvm-demo/ethereum-contracts/coverageEnv/contracts/DEXAdapter.sol\":{\"keccak256\":\"0x0194704c701ea9da19fb7f7e3cc6900217b5cd1d0a220001732743de3decc6fd\",\"urls\":[\"bzzr://12d2cc29a5dd1d0b8220c3f0a715d6a7257aba6134e6d207b9492917044a699a\"]},\"/home/susruth/ren/renvm-demo/ethereum-contracts/coverageEnv/contracts/DEXReserve.sol\":{\"keccak256\":\"0x6894c4f4f65a09e19c786729ea991257fc31fbd1db657ff1c03d8cd5e57c53da\",\"urls\":[\"bzzr://bf12f857d91052955ac2e5c1b8f99209e7872d67ff4197309bc3b21cb521ed73\"]},\"darknode-sol/contracts/Shifter/ERC20Shifted.sol\":{\"keccak256\":\"0xb2659b5b673717451337791caa1059c3a65466ef9d11546d438669f48b6130ec\",\"urls\":[\"bzzr://83034ec45854ffbbfc8046171f7147dc9debb8f673f8fd3631b8cbed9f47e0c0\"]},\"darknode-sol/contracts/Shifter/IShifter.sol\":{\"keccak256\":\"0x401971511b7ab4f784cac3073adfb1d03610e7ae4117f8da4a5044b5130fc65b\",\"urls\":[\"bzzr://50190502bd6cdd85765b89632ca0178532ba759f126a90dc5c8a9124d5fff193\"]},\"darknode-sol/contracts/Shifter/Shifter.sol\":{\"keccak256\":\"0x702b7d90a7bce6f4a617767fa3adbf0b280b1cc9540d9fe2ca57ef9f80711485\",\"urls\":[\"bzzr://a84fa5c8d86010bd58e05c1088478f9b4238f0e56a9bb5bf4153849062bed2da\"]},\"darknode-sol/contracts/Shifter/ShifterRegistry.sol\":{\"keccak256\":\"0x08e7c5609e6bb1449c3ff7531f1d44896852a340fd85719d4916f065f4294e8b\",\"urls\":[\"bzzr://5e930dd01cfdb9fbb1b1091259641fe79b45c72b669a90a0f2b8b16c67c80810\"]},\"darknode-sol/contracts/libraries/Claimable.sol\":{\"keccak256\":\"0xc245e5f955003a6cec9aef0b31231a596e883a16bdf4882814364a260bb3aa84\",\"urls\":[\"bzzr://c0fcd091632e6bc8bcc39efef3c58543dd3d81826efe2481e51aabb6687b8cbd\"]},\"darknode-sol/contracts/libraries/LinkedList.sol\":{\"keccak256\":\"0xf35868b4331fe85e610edd823475275af6dd05f0584402616e2590e8930a39d9\",\"urls\":[\"bzzr://fa7a8ba330e02e1527df07ec3ba0c7bdec29076e7479b220552c56243e641b73\"]},\"darknode-sol/contracts/libraries/String.sol\":{\"keccak256\":\"0x08cb53a4b481c8a778195448d7268b60c4757f60574268d06e1a120efe44e21c\",\"urls\":[\"bzzr://6edfd06601d4b417879f413a97fb69385a78d079f194c0d4b74d57c10517be60\"]},\"openzeppelin-solidity/contracts/cryptography/ECDSA.sol\":{\"keccak256\":\"0xa2bfa601103b8cad5936588bceb4b50ff1087b419fef2f8d6c30538ad5bd279b\",\"urls\":[\"bzzr://9b6a46086411e446368cd15deffc307b2856faa8d277c1e7c893b100658837e2\"]},\"openzeppelin-solidity/contracts/math/SafeMath.sol\":{\"keccak256\":\"0xf28b1ba2c5938733b35c4cf431f9f23eac815d73ce35e59d8a01097d21408fd4\",\"urls\":[\"bzzr://deceb4014254d48a51ee2d314f8ed1e1abe53a952e195455c45e4b303de68c1f\"]},\"openzeppelin-solidity/contracts/ownership/Ownable.sol\":{\"keccak256\":\"0x756872961eddb6e765a188a36e0b3fc6785d1810d17a7a944a309359c3e909d3\",\"urls\":[\"bzzr://a28a68f77ad3d301b7d61dc448e8f5483195a7a4c2a64cff2d682a2b98db47b0\"]},\"openzeppelin-solidity/contracts/token/ERC20/ERC20.sol\":{\"keccak256\":\"0x68302b2fc060e662e1b28c7d383b4b8fe99b249f4dc7326625e1de80c4fca752\",\"urls\":[\"bzzr://c5d2729ad1d328ec585bdd207578da052d5bcf712d74db021cec9ad9a63681d6\"]},\"openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol\":{\"keccak256\":\"0x385238bdd76312be6101c940500b55738f2729e4c6105a1707a418582802cf01\",\"urls\":[\"bzzr://ef509c1cc4e42a139fd6521863fa99d5aeb8737c3b06523bbe12e13d649df597\"]},\"openzeppelin-solidity/contracts/token/ERC20/IERC20.sol\":{\"keccak256\":\"0x815fbf93134ab29409085b3eaeac5edec284a35a62e6e92bb1ace0341f1b9025\",\"urls\":[\"bzzr://8767abd66f1d1a8d3b3e2a5ca7796e9961cc2c0eab46b835760130d226aeaece\"]}},\"version\":1}",
+  "bytecode": "0x6080604052348015600f57600080fd5b50603580601d6000396000f3fe6080604052600080fdfea165627a7a72305820c7241f2ecaf56394078f6da845255501eb07304bd87d290a80f19e01d6cb1b440029",
+  "deployedBytecode": "0x6080604052600080fdfea165627a7a72305820c7241f2ecaf56394078f6da845255501eb07304bd87d290a80f19e01d6cb1b440029",
+  "sourceMap": "222:450:0:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;222:450:0;;;;;;;",
+  "deployedSourceMap": "222:450:0:-;;;;;",
+  "source": "pragma solidity ^0.5.8;\n\nimport \"./DEX.sol\";\nimport \"./DEXAdapter.sol\";\nimport \"./DEXReserve.sol\";\n\n/// @notice Bindings imports all of the contracts for generating bindings.\n/* solium-disable-next-line no-empty-blocks */\ncontract Bindings {event __CoverageBindings(string fileName, uint256 lineNumber);\nevent __FunctionCoverageBindings(string fileName, uint256 fnId);\nevent __StatementCoverageBindings(string fileName, uint256 statementId);\nevent __BranchCoverageBindings(string fileName, uint256 branchId, uint256 locationIdx);\nevent __AssertPreCoverageBindings(string fileName, uint256 branchId);\nevent __AssertPostCoverageBindings(string fileName, uint256 branchId);\n}\n",
+  "sourcePath": "/home/susruth/ren/renvm-demo/ethereum-contracts/coverageEnv/contracts/Bindings.sol",
+  "ast": {
+    "absolutePath": "/home/susruth/ren/renvm-demo/ethereum-contracts/coverageEnv/contracts/Bindings.sol",
+    "exportedSymbols": {
+      "Bindings": [
+        43
+      ]
+    },
+    "id": 44,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 1,
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".8"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:23:0"
+      },
+      {
+        "absolutePath": "/home/susruth/ren/renvm-demo/ethereum-contracts/coverageEnv/contracts/DEX.sol",
+        "file": "./DEX.sol",
+        "id": 2,
+        "nodeType": "ImportDirective",
+        "scope": 44,
+        "sourceUnit": 680,
+        "src": "25:19:0",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "/home/susruth/ren/renvm-demo/ethereum-contracts/coverageEnv/contracts/DEXAdapter.sol",
+        "file": "./DEXAdapter.sol",
+        "id": 3,
+        "nodeType": "ImportDirective",
+        "scope": 44,
+        "sourceUnit": 2075,
+        "src": "45:26:0",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "/home/susruth/ren/renvm-demo/ethereum-contracts/coverageEnv/contracts/DEXReserve.sol",
+        "file": "./DEXReserve.sol",
+        "id": 4,
+        "nodeType": "ImportDirective",
+        "scope": 44,
+        "sourceUnit": 3445,
+        "src": "72:26:0",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": "@notice Bindings imports all of the contracts for generating bindings.",
+        "fullyImplemented": true,
+        "id": 43,
+        "linearizedBaseContracts": [
+          43
+        ],
+        "name": "Bindings",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "anonymous": false,
+            "documentation": null,
+            "id": 10,
+            "name": "__CoverageBindings",
+            "nodeType": "EventDefinition",
+            "parameters": {
+              "id": 9,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 6,
+                  "indexed": false,
+                  "name": "fileName",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 10,
+                  "src": "266:15:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_memory_ptr",
+                    "typeString": "string"
+                  },
+                  "typeName": {
+                    "id": 5,
+                    "name": "string",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "266:6:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_string_storage_ptr",
+                      "typeString": "string"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 8,
+                  "indexed": false,
+                  "name": "lineNumber",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 10,
+                  "src": "283:18:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 7,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "283:7:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "265:37:0"
+            },
+            "src": "241:62:0"
+          },
+          {
+            "anonymous": false,
+            "documentation": null,
+            "id": 16,
+            "name": "__FunctionCoverageBindings",
+            "nodeType": "EventDefinition",
+            "parameters": {
+              "id": 15,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 12,
+                  "indexed": false,
+                  "name": "fileName",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 16,
+                  "src": "337:15:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_memory_ptr",
+                    "typeString": "string"
+                  },
+                  "typeName": {
+                    "id": 11,
+                    "name": "string",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "337:6:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_string_storage_ptr",
+                      "typeString": "string"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 14,
+                  "indexed": false,
+                  "name": "fnId",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 16,
+                  "src": "354:12:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 13,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "354:7:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "336:31:0"
+            },
+            "src": "304:64:0"
+          },
+          {
+            "anonymous": false,
+            "documentation": null,
+            "id": 22,
+            "name": "__StatementCoverageBindings",
+            "nodeType": "EventDefinition",
+            "parameters": {
+              "id": 21,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 18,
+                  "indexed": false,
+                  "name": "fileName",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 22,
+                  "src": "403:15:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_memory_ptr",
+                    "typeString": "string"
+                  },
+                  "typeName": {
+                    "id": 17,
+                    "name": "string",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "403:6:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_string_storage_ptr",
+                      "typeString": "string"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 20,
+                  "indexed": false,
+                  "name": "statementId",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 22,
+                  "src": "420:19:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 19,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "420:7:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "402:38:0"
+            },
+            "src": "369:72:0"
+          },
+          {
+            "anonymous": false,
+            "documentation": null,
+            "id": 30,
+            "name": "__BranchCoverageBindings",
+            "nodeType": "EventDefinition",
+            "parameters": {
+              "id": 29,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 24,
+                  "indexed": false,
+                  "name": "fileName",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 30,
+                  "src": "473:15:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_memory_ptr",
+                    "typeString": "string"
+                  },
+                  "typeName": {
+                    "id": 23,
+                    "name": "string",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "473:6:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_string_storage_ptr",
+                      "typeString": "string"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 26,
+                  "indexed": false,
+                  "name": "branchId",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 30,
+                  "src": "490:16:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 25,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "490:7:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 28,
+                  "indexed": false,
+                  "name": "locationIdx",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 30,
+                  "src": "508:19:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 27,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "508:7:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "472:56:0"
+            },
+            "src": "442:87:0"
+          },
+          {
+            "anonymous": false,
+            "documentation": null,
+            "id": 36,
+            "name": "__AssertPreCoverageBindings",
+            "nodeType": "EventDefinition",
+            "parameters": {
+              "id": 35,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32,
+                  "indexed": false,
+                  "name": "fileName",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 36,
+                  "src": "564:15:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_memory_ptr",
+                    "typeString": "string"
+                  },
+                  "typeName": {
+                    "id": 31,
+                    "name": "string",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "564:6:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_string_storage_ptr",
+                      "typeString": "string"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 34,
+                  "indexed": false,
+                  "name": "branchId",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 36,
+                  "src": "581:16:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 33,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "581:7:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "563:35:0"
+            },
+            "src": "530:69:0"
+          },
+          {
+            "anonymous": false,
+            "documentation": null,
+            "id": 42,
+            "name": "__AssertPostCoverageBindings",
+            "nodeType": "EventDefinition",
+            "parameters": {
+              "id": 41,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 38,
+                  "indexed": false,
+                  "name": "fileName",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 42,
+                  "src": "635:15:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_memory_ptr",
+                    "typeString": "string"
+                  },
+                  "typeName": {
+                    "id": 37,
+                    "name": "string",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "635:6:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_string_storage_ptr",
+                      "typeString": "string"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 40,
+                  "indexed": false,
+                  "name": "branchId",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 42,
+                  "src": "652:16:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 39,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "652:7:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "634:35:0"
+            },
+            "src": "600:70:0"
+          }
+        ],
+        "scope": 44,
+        "src": "222:450:0"
+      }
+    ],
+    "src": "0:673:0"
+  },
+  "legacyAST": {
+    "absolutePath": "/home/susruth/ren/renvm-demo/ethereum-contracts/coverageEnv/contracts/Bindings.sol",
+    "exportedSymbols": {
+      "Bindings": [
+        43
+      ]
+    },
+    "id": 44,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 1,
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".8"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:23:0"
+      },
+      {
+        "absolutePath": "/home/susruth/ren/renvm-demo/ethereum-contracts/coverageEnv/contracts/DEX.sol",
+        "file": "./DEX.sol",
+        "id": 2,
+        "nodeType": "ImportDirective",
+        "scope": 44,
+        "sourceUnit": 680,
+        "src": "25:19:0",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "/home/susruth/ren/renvm-demo/ethereum-contracts/coverageEnv/contracts/DEXAdapter.sol",
+        "file": "./DEXAdapter.sol",
+        "id": 3,
+        "nodeType": "ImportDirective",
+        "scope": 44,
+        "sourceUnit": 2075,
+        "src": "45:26:0",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "/home/susruth/ren/renvm-demo/ethereum-contracts/coverageEnv/contracts/DEXReserve.sol",
+        "file": "./DEXReserve.sol",
+        "id": 4,
+        "nodeType": "ImportDirective",
+        "scope": 44,
+        "sourceUnit": 3445,
+        "src": "72:26:0",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": "@notice Bindings imports all of the contracts for generating bindings.",
+        "fullyImplemented": true,
+        "id": 43,
+        "linearizedBaseContracts": [
+          43
+        ],
+        "name": "Bindings",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "anonymous": false,
+            "documentation": null,
+            "id": 10,
+            "name": "__CoverageBindings",
+            "nodeType": "EventDefinition",
+            "parameters": {
+              "id": 9,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 6,
+                  "indexed": false,
+                  "name": "fileName",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 10,
+                  "src": "266:15:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_memory_ptr",
+                    "typeString": "string"
+                  },
+                  "typeName": {
+                    "id": 5,
+                    "name": "string",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "266:6:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_string_storage_ptr",
+                      "typeString": "string"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 8,
+                  "indexed": false,
+                  "name": "lineNumber",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 10,
+                  "src": "283:18:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 7,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "283:7:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "265:37:0"
+            },
+            "src": "241:62:0"
+          },
+          {
+            "anonymous": false,
+            "documentation": null,
+            "id": 16,
+            "name": "__FunctionCoverageBindings",
+            "nodeType": "EventDefinition",
+            "parameters": {
+              "id": 15,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 12,
+                  "indexed": false,
+                  "name": "fileName",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 16,
+                  "src": "337:15:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_memory_ptr",
+                    "typeString": "string"
+                  },
+                  "typeName": {
+                    "id": 11,
+                    "name": "string",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "337:6:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_string_storage_ptr",
+                      "typeString": "string"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 14,
+                  "indexed": false,
+                  "name": "fnId",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 16,
+                  "src": "354:12:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 13,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "354:7:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "336:31:0"
+            },
+            "src": "304:64:0"
+          },
+          {
+            "anonymous": false,
+            "documentation": null,
+            "id": 22,
+            "name": "__StatementCoverageBindings",
+            "nodeType": "EventDefinition",
+            "parameters": {
+              "id": 21,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 18,
+                  "indexed": false,
+                  "name": "fileName",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 22,
+                  "src": "403:15:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_memory_ptr",
+                    "typeString": "string"
+                  },
+                  "typeName": {
+                    "id": 17,
+                    "name": "string",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "403:6:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_string_storage_ptr",
+                      "typeString": "string"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 20,
+                  "indexed": false,
+                  "name": "statementId",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 22,
+                  "src": "420:19:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 19,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "420:7:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "402:38:0"
+            },
+            "src": "369:72:0"
+          },
+          {
+            "anonymous": false,
+            "documentation": null,
+            "id": 30,
+            "name": "__BranchCoverageBindings",
+            "nodeType": "EventDefinition",
+            "parameters": {
+              "id": 29,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 24,
+                  "indexed": false,
+                  "name": "fileName",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 30,
+                  "src": "473:15:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_memory_ptr",
+                    "typeString": "string"
+                  },
+                  "typeName": {
+                    "id": 23,
+                    "name": "string",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "473:6:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_string_storage_ptr",
+                      "typeString": "string"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 26,
+                  "indexed": false,
+                  "name": "branchId",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 30,
+                  "src": "490:16:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 25,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "490:7:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 28,
+                  "indexed": false,
+                  "name": "locationIdx",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 30,
+                  "src": "508:19:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 27,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "508:7:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "472:56:0"
+            },
+            "src": "442:87:0"
+          },
+          {
+            "anonymous": false,
+            "documentation": null,
+            "id": 36,
+            "name": "__AssertPreCoverageBindings",
+            "nodeType": "EventDefinition",
+            "parameters": {
+              "id": 35,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32,
+                  "indexed": false,
+                  "name": "fileName",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 36,
+                  "src": "564:15:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_memory_ptr",
+                    "typeString": "string"
+                  },
+                  "typeName": {
+                    "id": 31,
+                    "name": "string",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "564:6:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_string_storage_ptr",
+                      "typeString": "string"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 34,
+                  "indexed": false,
+                  "name": "branchId",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 36,
+                  "src": "581:16:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 33,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "581:7:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "563:35:0"
+            },
+            "src": "530:69:0"
+          },
+          {
+            "anonymous": false,
+            "documentation": null,
+            "id": 42,
+            "name": "__AssertPostCoverageBindings",
+            "nodeType": "EventDefinition",
+            "parameters": {
+              "id": 41,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 38,
+                  "indexed": false,
+                  "name": "fileName",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 42,
+                  "src": "635:15:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_memory_ptr",
+                    "typeString": "string"
+                  },
+                  "typeName": {
+                    "id": 37,
+                    "name": "string",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "635:6:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_string_storage_ptr",
+                      "typeString": "string"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 40,
+                  "indexed": false,
+                  "name": "branchId",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 42,
+                  "src": "652:16:0",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 39,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "652:7:0",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "634:35:0"
+            },
+            "src": "600:70:0"
+          }
+        ],
+        "scope": 44,
+        "src": "222:450:0"
+      }
+    ],
+    "src": "0:673:0"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.5.8+commit.23d335f2.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "3.0.16",
+  "updatedAt": "2019-10-25T05:03:01.629Z",
+  "devdoc": {
+    "methods": {}
+  },
+  "userdoc": {
+    "methods": {},
+    "notice": "Bindings imports all of the contracts for generating bindings."
+  }
+}
