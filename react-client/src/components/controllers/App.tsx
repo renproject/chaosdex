@@ -5,12 +5,11 @@ import { RouteComponentProps, withRouter } from "react-router-dom";
 import createPersistedState from "use-persisted-state";
 import { FeedbackButton } from "@renproject/react-components";
 
-import { ETHEREUM_NETWORK, ETHEREUM_NETWORK_ID } from "../../lib/environmentVariables";
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
 import { getWeb3 } from "../../lib/getWeb3";
 import { connect, ConnectedProps } from "../../state/connect";
 import { Token } from "../../state/generalTypes";
-import { SDKContainer } from "../../state/sdkContainer";
+import { network, SDKContainer } from "../../state/sdkContainer";
 import { UIContainer } from "../../state/uiContainer";
 import { HeaderController } from "../views/HeaderController";
 import { Tutorial } from "../views/tutorial-popup/Tutorial";
@@ -38,8 +37,8 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
         const login = React.useCallback(async () => {
             const web3 = await getWeb3();
             const networkID = await web3.eth.net.getId();
-            if (ETHEREUM_NETWORK_ID && networkID.toString() !== ETHEREUM_NETWORK_ID) {
-                alert(`Please switch to the ${ETHEREUM_NETWORK} Ethereum network.`);
+            if (network.contracts.networkID && networkID !== network.contracts.networkID) {
+                alert(`Please switch to the ${network.contracts.chainLabel} Ethereum network.`);
                 return;
             }
             const addresses = await web3.eth.getAccounts();

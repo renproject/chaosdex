@@ -2,7 +2,6 @@ import * as React from "react";
 
 import { CurrencyIcon, TokenValueInput } from "@renproject/react-components";
 import BigNumber from "bignumber.js";
-import { debounce } from "throttle-debounce";
 
 import { _catchInteractionErr_ } from "../../../lib/errors";
 import { connect, ConnectedProps } from "../../../state/connect";
@@ -10,6 +9,7 @@ import { UIContainer } from "../../../state/uiContainer";
 import arrow from "../../../styles/images/arrow.svg";
 import { SelectMarketWrapper } from "../SelectMarketWrapper";
 import { TokenBalance } from "../TokenBalance";
+import { useDebounce } from "../../../lib/debounce";
 
 const normalizeDecimals = (inputIn: string | null): string | null => {
     return inputIn === null ? inputIn : new BigNumber(inputIn).decimalPlaces(8).toFixed();
@@ -25,6 +25,7 @@ export const OrderFormInputs = connect<Props & ConnectedProps<[UIContainer]>>([U
         // Store `srcAmount` as state so we can debounce storing it in the
         // container
         const [srcAmountState, setSrcAmountState] = React.useState(uiContainer.state.orderInputs.srcAmount);
+        const debouncedSrcAmountState = useDebounce(srcAmountState, 250);
         // See `toggleSide`
         const [oldSrcAmount, setOldSrcAmount] = React.useState<string | undefined>(undefined);
 
@@ -44,13 +45,12 @@ export const OrderFormInputs = connect<Props & ConnectedProps<[UIContainer]>>([U
             }
         }, [setInitialized, initialized, srcAmountState, uiContainer]);
 
-        /**
-         * Waits 100ms to update the send volume in case the user is still typing
-         */
-        const debouncedVolumeChange = async (value: string) =>
-            debounce(100, false, async () =>
-                uiContainer.updateSrcAmount(value).catch(_catchInteractionErr_)
-            )();
+        React.useEffect(
+            () => {
+                uiContainer.updateSrcAmount(debouncedSrcAmountState).catch(_catchInteractionErr_);
+            },
+            [debouncedSrcAmountState]
+        );
 
         const onVolumeChange = (value: string, options: { blur: boolean }) => {
             // If the value is in scientific notation, fix it
@@ -59,8 +59,6 @@ export const OrderFormInputs = connect<Props & ConnectedProps<[UIContainer]>>([U
             }
 
             setSrcAmountState(value);
-            // tslint:disable-next-line: no-floating-promises
-            debouncedVolumeChange(value);
 
             if (oldSrcAmount) {
                 setOldSrcAmount(undefined);

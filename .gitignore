@@ -33,3 +33,6 @@ types
 /react-client/src/contracts/development
 # Contract typings
 /react-client/src/lib/contracts
+
+react-client/package-lock.json
+react-client/.gitignore

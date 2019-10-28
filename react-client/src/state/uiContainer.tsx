@@ -222,7 +222,6 @@ export class UIContainer extends Container<typeof initialState> {
     }
 
     public updateCommitmentType = async (commitmentType: CommitmentType) => {
-        console.log(`Setting commitmentType to ${commitmentType}!`);
         await this.setState({ commitmentType });
     }
     public updateToAddress = async (toAddress: string) => {
@@ -278,7 +277,7 @@ export class UIContainer extends Container<typeof initialState> {
                 commitment = {
                     type: commitmentType,
                     liquidityProvider: hexToAddress,
-                    maxDAIAmount: new BigNumber(order.dstAmount).multipliedBy(new BigNumber(10).exponentiatedBy(dstTokenDetails.decimals)).toFixed(),
+                    maxDAIAmount: new BigNumber(order.dstAmount).multipliedBy(new BigNumber(10).exponentiatedBy(dstTokenDetails.decimals)).decimalPlaces(0).toFixed(),
                     token: syncGetTokenAddress(networkID, order.srcToken),
                     amount: new BigNumber(order.srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals)).toNumber(),
                     refundBlockNumber: blockNumber + 360 * 48, // assuming 0.1bps 360 blocks is about 1 hour
@@ -342,23 +341,32 @@ export class UIContainer extends Container<typeof initialState> {
     }
 
     public sufficientBalance = (): boolean => {
-        const { orderInputs: { srcToken, srcAmount }, accountBalances } = this.state;
+        const { orderInputs: { srcToken, srcAmount, dstAmount, dstToken }, exchangeTab, accountBalances } = this.state;
+
+        let amount = srcAmount;
+        let token = srcToken;
+
+        if (exchangeTab === ExchangeTabs.Liquidity) {
+            amount = dstAmount;
+            token = dstToken;
+        }
+
         // We can't know the balance if it's not an Ethereum token
-        if (!isEthereumBased(srcToken)) {
+        if (!isEthereumBased(token)) {
             return true;
         }
 
-        // Fetch information about srcToken
-        const srcTokenDetails = Tokens.get(srcToken);
-        if (!srcTokenDetails) {
+        // Fetch information about token
+        const tokenDetails = Tokens.get(token);
+        if (!tokenDetails) {
             return false;
         }
-        const srcAmountBN = new BigNumber(srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals));
-        const balance = accountBalances.get(srcToken) || new BigNumber(0);
-        if (srcAmountBN.isNaN()) {
+        const amountBN = new BigNumber(amount).multipliedBy(new BigNumber(10).exponentiatedBy(tokenDetails.decimals));
+        const balance = accountBalances.get(token) || new BigNumber(0);
+        if (amountBN.isNaN()) {
             return true;
         }
-        return srcAmountBN.lte(balance);
+        return amountBN.lte(balance);
     }
 
     // Check the the volume isn't below the minimum required volume
@@ -382,6 +390,10 @@ export class UIContainer extends Container<typeof initialState> {
             submitting,
             confirmedOrderInputs: { ...this.state.orderInputs },
         });
+    }
+
+    public resetReceiveValue = async (): Promise<void> => {
+        await this.setState({ orderInputs: { ...this.state.orderInputs, dstAmount: "0" } });
     }
 
     public updateReceiveValue = async (): Promise<void> => {
@@ -412,27 +424,63 @@ export class UIContainer extends Container<typeof initialState> {
                 srcAmountBN = removeRenVMFee(srcAmountBN);
             }
 
-            const srdAmountShifted = (srcAmountBN.times(new BigNumber(10).pow(srcTokenDetails.decimals))).toFixed(0);
-
-            const dstAmount = await exchange.methods.calculateReceiveAmount(srcTokenAddress, dstTokenAddress, srdAmountShifted).call();
-
-            dstAmountBN = new BigNumber(dstAmount);
-            if (dstTokenDetails.chain !== Chain.Ethereum) {
-                dstAmountBN = removeRenVMFee(dstAmountBN);
+            let srcAmountShifted = (srcAmountBN.times(new BigNumber(10).pow(srcTokenDetails.decimals))).decimalPlaces(0).toFixed();
+            if (srcAmountShifted === "NaN") {
+                srcAmountShifted = "0";
             }
 
+            const dstAmount = await exchange.methods.calculateReceiveAmount(srcTokenAddress, dstTokenAddress, srcAmountShifted).call();
+
+            let dstAmountShiftedBN = new BigNumber(dstAmount);
+            if (dstTokenDetails.chain !== Chain.Ethereum) {
+                dstAmountShiftedBN = removeRenVMFee(dstAmountShiftedBN);
+            }
+
+            dstAmountBN = (new BigNumber(dstAmountShiftedBN).div(new BigNumber(10).pow(dstTokenDetails.decimals)));
         } else if (exchangeTab === ExchangeTabs.Liquidity) {
             const reserveAddress = await exchange.methods.reserves(syncGetTokenAddress(networkID, srcToken)).call();
             const reserve = getReserve(web3, networkID, reserveAddress);
 
-            const srdAmountShifted = (srcAmountBN.times(new BigNumber(10).pow(srcTokenDetails.decimals))).toFixed(0);
+            let srcAmountShifted = (srcAmountBN.times(new BigNumber(10).pow(srcTokenDetails.decimals)));
+            if (srcAmountShifted.isNaN()) {
+                srcAmountShifted = new BigNumber(0);
+            }
 
-            dstAmountBN = new BigNumber(await reserve.methods.expectedBaseTokenAmount(srdAmountShifted).call());
+            try {
+                const dstAmountShiftedBN = new BigNumber(await reserve.methods.expectedBaseTokenAmount(srcAmountShifted.decimalPlaces(0).toFixed()).call());
+
+                dstAmountBN = (new BigNumber(dstAmountShiftedBN).div(new BigNumber(10).pow(dstTokenDetails.decimals)));
+                if (dstAmountBN.isNaN()) {
+                    // On Mainnet, an execution error results in a null result returned
+                    throw new Error("VM execution error");
+                }
+            } catch (error) {
+                if (String(error.message || error).match(/VM execution error/)) {
+                    const { tokenPrices } = this.state;
+                    const srcTokenPrices = tokenPrices.get(srcToken);
+                    const dstTokenPrices = tokenPrices.get(dstToken);
+                    if (srcTokenPrices && dstTokenPrices) {
+                        const srcTokenPrice = srcTokenPrices.get(Currency.USD) || 0;
+                        const dstTokenPrice = dstTokenPrices.get(Currency.USD) || 0;
+                        // console.log(`Using prices for ${srcToken}: $${srcTokenPrice} & ${dstToken}: $${dstTokenPrice}`);
+                        dstAmountBN = srcAmountBN.times(srcTokenPrice).dividedBy(dstTokenPrice);
+                    } else {
+                        dstAmountBN = new BigNumber(0);
+                    }
+
+                } else {
+                    throw error;
+                }
+            }
+
+            // Bump-it up in-case the amounts change while shifting.
+            // Only the required amount will actually be transferred.
+            dstAmountBN = dstAmountBN.times(1.05);
         } else {
             return;
         }
 
-        const dstAmountShifted = (new BigNumber(dstAmountBN).div(new BigNumber(10).pow(dstTokenDetails.decimals))).toString();
+        // const dstAmountShifted = (new BigNumber(dstAmountBN).div(new BigNumber(10).pow(dstTokenDetails.decimals))).toString();
 
         // const reserves = balanceReserves.get(market);
 
@@ -448,7 +496,7 @@ export class UIContainer extends Container<typeof initialState> {
         //     srcAmountAfterFees,
         //     reserves,
         // );
-        await this.setState({ orderInputs: { ...this.state.orderInputs, dstAmount: dstAmountShifted } });
+        await this.setState({ orderInputs: { ...this.state.orderInputs, dstAmount: dstAmountBN.toFixed() } });
         // }
     }
 

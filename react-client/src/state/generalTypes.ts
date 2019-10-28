@@ -29,9 +29,9 @@ export enum MarketPair {
     // ZEC_BTC = "ZEC/BTC",
 }
 
-const btcValidator = (address: string) => validate(address, "btc", "testnet");
-const zecValidator = (address: string) => validate(address, "zec", "testnet");
-const ethValidator = (address: string) => validate(address, "eth", "testnet");
+const btcValidator = (address: string, isTestnet: boolean) => validate(address, "btc", isTestnet ? "testnet" : "prod");
+const zecValidator = (address: string, isTestnet: boolean) => validate(address, "zec", isTestnet ? "testnet" : "prod");
+const ethValidator = (address: string, isTestnet: boolean) => validate(address, "eth", isTestnet ? "testnet" : "prod");
 
 export const Tokens = Map<Token, TokenDetails>()
     .set(Token.DAI, { symbol: Token.DAI, name: "Dai", decimals: 18, priority: 100, chain: Chain.Ethereum, validator: ethValidator })
@@ -57,13 +57,12 @@ export interface TokenDetails {
     decimals: number;
     priority: number;
     chain: Chain;
-    validator: (address: string) => boolean;
+    validator: (address: string, isTestnet: boolean) => boolean;
 }
 
 export type TokenPrices = Map<Token, Map<Currency, number>>;
 
 // tslint:disable: non-literal-require
-console.log(process.env);
 const network = process.env.REACT_APP_NETWORK || "testnet";
 const DEXABI = require(`../contracts/${network}/DEX.json`).abi;
 const DEXAdapterABI = require(`../contracts/${network}/DEXAdapter.json`).abi;

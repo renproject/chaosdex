@@ -1,30 +1,28 @@
 import { sleep } from "@renproject/react-components";
 import RenVM, {
-    Chain, NetworkDetails, NetworkDevnet, NetworkLocalnet, NetworkTestnet, Ox, ShiftInObject,
-    Signature, Tokens as ShiftActions,
+    btcAddressFrom, Chain, NetworkChaosnet, NetworkDetails, NetworkDevnet, NetworkLocalnet,
+    NetworkTestnet, Ox, ShiftInObject, Signature, Tokens as ShiftActions, zecAddressFrom,
 } from "@renproject/ren";
 import { TxStatus } from "@renproject/ren/dist/renVM/transaction";
 import BigNumber from "bignumber.js";
-import bs58 from "bs58";
 import { Container } from "unstated";
 import Web3 from "web3";
-import { TransactionReceipt } from "web3-core";
+import { PromiEvent, TransactionReceipt } from "web3-core";
 
 import {
     syncGetDEXAdapterAddress, syncGetDEXAddress, syncGetTokenAddress,
 } from "../lib/contractAddresses";
 import { ERC20Detailed } from "../lib/contracts/ERC20Detailed";
 import { NETWORK } from "../lib/environmentVariables";
-import {
-    getAdapter, getERC20, getExchange, getReserve, NULL_BYTES32, Token, Tokens,
-} from "./generalTypes";
+import { _catchBackgroundErr_ } from "../lib/errors";
+import { getAdapter, getERC20, getExchange, NULL_BYTES32, Token, Tokens } from "./generalTypes";
 import {
     AddLiquidityCommitment, CommitmentType, HistoryEvent, OrderCommitment, PersistentContainer,
     ShiftInStatus, ShiftOutStatus,
 } from "./persistentContainer";
 
 const BitcoinTx = (hash: string) => ({ hash, chain: Chain.Bitcoin });
-// const ZCashTx = (hash: string) => ({ hash, chain: Chain.ZCash });
+const ZCashTx = (hash: string) => ({ hash, chain: Chain.Zcash });
 const EthereumTx = (hash: string) => ({ hash, chain: Chain.Ethereum });
 
 export let network: NetworkDetails = NetworkTestnet;
@@ -35,6 +33,8 @@ switch (NETWORK) {
         network = NetworkDevnet; break;
     case "testnet":
         network = NetworkTestnet; break;
+    case "chaosnet":
+        network = NetworkChaosnet; break;
 }
 
 const initialState = {
@@ -82,6 +82,10 @@ export class SDKContainer extends Container<typeof initialState> {
     // 3. Submit the burn to the darknodes
 
     public approveTokenTransfer = async (orderID: string) => {
+
+        // TODO: Check that the sdkAddress is the same as the address in the
+        // commitment - otherwise this step fails.
+
         const { sdkAddress: address, sdkWeb3: web3, sdkNetworkID: networkID, network } = this.state;
         if (!web3 || !address) {
             throw new Error("Web3 address is not defined");
@@ -93,12 +97,12 @@ export class SDKContainer extends Container<typeof initialState> {
 
         let amountBN: BigNumber;
         let tokenInstance: ERC20Detailed;
-        let reserveAddress: string;
+        let receivingAddress: string;
 
         const dex = getExchange(web3, networkID);
 
         if (order.commitment.type === CommitmentType.Trade) {
-            const { srcToken, srcAmount, dstToken } = order.orderInputs;
+            const { srcToken, srcAmount } = order.orderInputs;
             const srcTokenDetails = Tokens.get(srcToken);
             if (!srcTokenDetails) {
                 throw new Error(`Unable to retrieve details for ${srcToken}`);
@@ -107,27 +111,25 @@ export class SDKContainer extends Container<typeof initialState> {
 
             tokenInstance = getERC20(web3, network, syncGetTokenAddress(networkID, srcToken));
 
-            reserveAddress = await dex.methods.reserves(syncGetTokenAddress(networkID, dstToken)).call();
+            receivingAddress = syncGetDEXAdapterAddress(networkID);
         } else if (order.commitment.type === CommitmentType.AddLiquidity) {
             const { dstToken, srcToken } = order.orderInputs;
             amountBN = new BigNumber(order.commitment.maxDAIAmount);
             tokenInstance = getERC20(web3, network, syncGetTokenAddress(networkID, dstToken));
-            reserveAddress = await dex.methods.reserves(syncGetTokenAddress(networkID, srcToken)).call();
+            receivingAddress = await dex.methods.reserves(syncGetTokenAddress(networkID, srcToken)).call();
         } else {
             throw new Error("Token approval not required");
         }
-
-        console.log(reserveAddress);
 
         // Check the allowance of the token.
         // If it's not sufficient, approve the required amount.
         // NOTE: Some tokens require the allowance to be 0 before being able to
         // approve a new amount.
-        const allowance = new BigNumber((await tokenInstance.methods.allowance(address, reserveAddress).call()).toString());
+        const allowance = new BigNumber((await tokenInstance.methods.allowance(address, receivingAddress).call()).toString());
         if (allowance.lt(amountBN)) {
             // We don't have enough allowance so approve more
             const promiEvent = tokenInstance.methods.approve(
-                reserveAddress,
+                receivingAddress,
                 amountBN.toString()
             ).send({ from: address });
             await new Promise((resolve, reject) => promiEvent.on("transactionHash", async (transactionHash: string) => {
@@ -176,9 +178,10 @@ export class SDKContainer extends Container<typeof initialState> {
             const txHash = NULL_BYTES32;
             const signatureBytes = NULL_BYTES32;
             let amount;
-            let promiEvent: any;
+            // tslint:disable-next-line: no-any
+            let promiEvent: PromiEvent<unknown>;
 
-            if (order.commitment.type == CommitmentType.Trade) {
+            if (order.commitment.type === CommitmentType.Trade) {
                 amount = order.commitment.srcAmount.toString();
                 promiEvent = getAdapter(web3, networkID).methods.trade(
                     order.commitment.srcToken, // _src: string
@@ -191,7 +194,7 @@ export class SDKContainer extends Container<typeof initialState> {
                     txHash, // _hash: string
                     signatureBytes, // _sig: string
                 ).send({ from: address, gas: 350000 });
-            } else if (order.commitment.type == CommitmentType.RemoveLiquidity) {
+            } else if (order.commitment.type === CommitmentType.RemoveLiquidity) {
                 promiEvent = getAdapter(web3, networkID).methods.removeLiquidity(
                     order.commitment.token, // _token: string
                     order.commitment.liquidity,  // _liquidity: number
@@ -267,19 +270,23 @@ export class SDKContainer extends Container<typeof initialState> {
                 this.persistentContainer.updateHistoryItem(order.id, {
                     messageID,
                     status: ShiftOutStatus.SubmittedToRenVM,
-                }).catch(console.error);
+                }).catch(_catchBackgroundErr_);
             })
             .on("status", (renVMStatus: TxStatus) => {
                 this.persistentContainer.updateHistoryItem(order.id, {
                     renVMStatus,
-                }).catch(console.error);
+                }).catch(_catchBackgroundErr_);
             });
         const receivedAmount = order.orderInputs.dstAmount; // new BigNumber(response.amount).dividedBy(new BigNumber(10).exponentiatedBy(8)).toString();
+        // tslint:disable-next-line: no-any
+        const address = (response as any).tx.args[1].value;
         await this.persistentContainer.updateHistoryItem(order.id, {
             receivedAmount,
-            outTx: BitcoinTx(bs58.encode(Buffer.from((response as any).tx.args[1].value, "base64"))),
+            outTx: order.orderInputs.dstToken === Token.ZEC ?
+                ZCashTx(zecAddressFrom(address, "base64")) :
+                BitcoinTx(btcAddressFrom(address, "base64")),
             status: ShiftOutStatus.ReturnedFromRenVM,
-        }).catch(console.error);
+        }).catch(_catchBackgroundErr_);
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -297,7 +304,7 @@ export class SDKContainer extends Container<typeof initialState> {
             return [
                 { name: "srcToken", type: "address", value: commitment.srcToken },
                 { name: "dstToken", type: "address", value: commitment.dstToken },
-                { name: "minDestinationAmount", type: "uint256", value: commitment.minDestinationAmount.toFixed() },
+                { name: "minDestinationAmount", type: "uint256", value: commitment.minDestinationAmount },
                 { name: "toAddress", type: "bytes", value: commitment.toAddress },
                 { name: "refundBlockNumber", type: "uint256", value: commitment.refundBlockNumber },
                 { name: "refundAddress", type: "bytes", value: commitment.refundAddress },
@@ -324,10 +331,6 @@ export class SDKContainer extends Container<typeof initialState> {
             throw new Error("Order not set");
         }
 
-        console.log(order);
-        console.log(order.commitment);
-        console.log(order.commitment.type);
-
         if (order.commitment.type === CommitmentType.Trade) {
             return renVM.shiftIn({
                 sendToken: order.orderInputs.srcToken === Token.ZEC ? ShiftActions.ZEC.Zec2Eth : ShiftActions.BTC.Btc2Eth,
@@ -340,7 +343,7 @@ export class SDKContainer extends Container<typeof initialState> {
             });
         } else if (order.commitment.type === CommitmentType.AddLiquidity) {
             return renVM.shiftIn({
-                sendToken: order.commitment.token === Token.ZEC ? ShiftActions.ZEC.Zec2Eth : ShiftActions.BTC.Btc2Eth,
+                sendToken: order.orderInputs.srcToken === Token.ZEC ? ShiftActions.ZEC.Zec2Eth : ShiftActions.BTC.Btc2Eth,
                 sendTo: syncGetDEXAdapterAddress(networkID),
                 sendAmount: order.commitment.amount,
                 contractFn: "addLiquidity",

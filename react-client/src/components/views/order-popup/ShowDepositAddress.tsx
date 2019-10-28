@@ -4,6 +4,7 @@ import { InfoLabel, Loading, TokenIcon } from "@renproject/react-components";
 import QRCode from "qrcode.react";
 import CopyToClipboard from "react-copy-to-clipboard";
 
+import { IS_TESTNET } from "../../../lib/environmentVariables";
 import { Token } from "../../../state/generalTypes";
 import { ReactComponent as Copy } from "../../../styles/images/copy.svg";
 import { ReactComponent as QR } from "../../../styles/images/qr.svg";
@@ -85,8 +86,8 @@ export const ShowDepositAddress: React.StatelessComponent<Props> =
                 <div className="popup--body">
                     <TokenIcon className="token-icon" token={token} />
                     <h2>Deposit {amount} {token.toUpperCase()}{
-                        token === Token.BTC ? <InfoLabel><span className="infolabel--p"><span className="hint">Hint</span>: If you don't have a Testnet BTC wallet, send Testnet BTC from the <a className="blue" href={BTC_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>.</span></InfoLabel> :
-                            token === Token.ZEC ? <InfoLabel><span className="infolabel--p"><span className="hint">Hint</span>: If you don't have a Testnet ZEC wallet, send Testnet ZEC from the <a className="blue" href={TAZ_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>.</span></InfoLabel> :
+                        token === Token.BTC && IS_TESTNET ? <InfoLabel><span className="infolabel--p"><span className="hint">Hint</span>: If you don't have a Testnet BTC wallet, send Testnet BTC from the <a className="blue" href={BTC_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>.</span></InfoLabel> :
+                            token === Token.ZEC && IS_TESTNET ? <InfoLabel><span className="infolabel--p"><span className="hint">Hint</span>: If you don't have a Testnet ZEC wallet, send Testnet ZEC from the <a className="blue" href={TAZ_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>.</span></InfoLabel> :
                                 <></>
                     }</h2>
                     <div className="address-input--message">

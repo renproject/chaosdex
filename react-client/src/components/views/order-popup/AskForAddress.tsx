@@ -3,6 +3,7 @@ import * as React from "react";
 import { TokenIcon } from "@renproject/react-components";
 import { Chain } from "@renproject/ren";
 
+import { IS_TESTNET } from "../../../lib/environmentVariables";
 import { Token, Tokens } from "../../../state/generalTypes";
 import { ReactComponent as MetaMask } from "../../../styles/images/metamask.svg";
 import { Popup } from "../Popup";
@@ -23,7 +24,7 @@ export const AskForAddress: React.StatelessComponent<{
 
     const submit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (!error && tokenDetails && !tokenDetails.validator(address)) {
+        if (!error && tokenDetails && !tokenDetails.validator(address, IS_TESTNET)) {
             updateError(`Invalid ${tokenDetails.chain.toUpperCase()} address`);
             return;
         }

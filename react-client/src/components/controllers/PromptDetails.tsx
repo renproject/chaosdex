@@ -2,10 +2,10 @@ import * as React from "react";
 
 import { InfoLabel } from "@renproject/react-components";
 
+import { IS_TESTNET } from "../../lib/environmentVariables";
 import { _catchInteractionErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
 import { Token } from "../../state/generalTypes";
-import { CommitmentType } from "../../state/persistentContainer";
 import { UIContainer } from "../../state/uiContainer";
 import { AskForAddress } from "../views/order-popup/AskForAddress";
 import { ConfirmTradeDetails } from "../views/order-popup/ConfirmTradeDetails";
@@ -60,7 +60,7 @@ export const PromptDetails = connect<Props & ConnectedProps<[UIContainer]>>([UIC
                 token={confirmedOrderInputs.dstToken}
                 message={<>
                     Enter the {confirmedOrderInputs.dstToken} public address you want to receive your tokens to.
-                    {confirmedOrderInputs.dstToken === Token.BTC ? <InfoLabel><span className="hint">Hint</span>: If you don't have a Testnet BTC wallet, use the <a className="blue" href={BTC_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>'s return address.</InfoLabel> : <></>}
+                    {confirmedOrderInputs.dstToken === Token.BTC && IS_TESTNET ? <InfoLabel><span className="hint">Hint</span>: If you don't have a Testnet BTC wallet, use the <a className="blue" href={BTC_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>'s return address.</InfoLabel> : <></>}
                 </>}
                 onAddress={uiContainer.updateToAddress}
                 cancel={onCancel}
@@ -75,8 +75,8 @@ export const PromptDetails = connect<Props & ConnectedProps<[UIContainer]>>([UIC
             token={confirmedOrderInputs.srcToken}
             message={<>
                 Enter your {confirmedOrderInputs.srcToken} refund address in case the trade doesn't go through.
-                {confirmedOrderInputs.srcToken === Token.BTC ? <InfoLabel><span className="hint">Hint</span>: If you don't have a Testnet BTC wallet, use the <a className="blue" href={BTC_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>'s return address.</InfoLabel> : <></>}
-                {confirmedOrderInputs.srcToken === Token.ZEC ? <InfoLabel><span className="hint">Hint</span>: If you don't have a Testnet ZEC wallet, use the <a className="blue" href={TAZ_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>'s return address.</InfoLabel> : <></>}
+                {confirmedOrderInputs.srcToken === Token.BTC && IS_TESTNET ? <InfoLabel><span className="hint">Hint</span>: If you don't have a Testnet BTC wallet, use the <a className="blue" href={BTC_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>'s return address.</InfoLabel> : <></>}
+                {confirmedOrderInputs.srcToken === Token.ZEC && IS_TESTNET ? <InfoLabel><span className="hint">Hint</span>: If you don't have a Testnet ZEC wallet, use the <a className="blue" href={TAZ_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>'s return address.</InfoLabel> : <></>}
             </>}
             onAddress={onRefundAddress}
             cancel={onCancel}

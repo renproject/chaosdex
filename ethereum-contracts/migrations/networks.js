@@ -11,7 +11,7 @@ const config = {
     shifterFees: 10,
     zBTCMinShiftOutAmount: 10000,
     zZECMinShiftOutAmount: 10000,
-    dexFees: 0,
+    dexFees: 20,
     renNetwork: {
         addresses: {
             tokens: {
@@ -48,8 +48,10 @@ module.exports = {
     },
     chaosnet: {
         renNetwork: ren.chaosnet,
-        DEX: "0xe4Ec27Bc47F006A1b79Da8E3e35051FEd5A00f80",
-        DEXAdapter: "0xf218f90c71Bb03C23ca1d88f57FB2cF256176AD5",
+        DEX: '0xbD0C94BC27824A76C1eBDaAc3a9f5FAbEc6985B7',
+        DEXAdapter: '0xaF0EfC4E638A43a27A21d218d07c7499f85F8042',
+        BTC_DAI_Reserve: '0x11716a1F51FaD053E9B43dA1025E8ace32aee110',
+        ZEC_DAI_Reserve: '0x7B3b7383Bc88b645bdEfD7624d9c6FB981407bf9',
         config: {
             ...config,
             mintAuthority: ren.chaosnet.renVM.mintAuthority,

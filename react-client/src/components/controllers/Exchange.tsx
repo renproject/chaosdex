@@ -5,6 +5,7 @@ import { Loading } from "@renproject/react-components";
 import { className } from "../../lib/className";
 import { _catchInteractionErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
+import { Token } from "../../state/generalTypes";
 import { ExchangeTabs, UIContainer } from "../../state/uiContainer";
 import { _catch_ } from "../ErrorBoundary";
 import { LiquidityForm } from "../views/exchange-forms/LiquidityForm";
@@ -23,8 +24,22 @@ interface Props {
 export const Exchange = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer])(
     ({ handleLogin, containers: [uiContainer] }) => {
 
-        const onSwapTab = React.useCallback(() => { uiContainer.setExchangeTab(ExchangeTabs.Swap).catch(_catchInteractionErr_); }, [uiContainer]);
-        const onLiquidityTab = React.useCallback(() => { uiContainer.setExchangeTab(ExchangeTabs.Liquidity).catch(_catchInteractionErr_); }, [uiContainer]);
+        const onSwapTab = React.useCallback(async () => {
+            (async () => {
+                await uiContainer.resetReceiveValue();
+                await uiContainer.setExchangeTab(ExchangeTabs.Swap);
+            })().catch(_catchInteractionErr_);
+        }, [uiContainer]);
+        const onLiquidityTab = React.useCallback(() => {
+            const { srcToken, dstToken } = uiContainer.state.orderInputs;
+
+            // If src token is DAI, set it to the dst token - unless it's also DAI
+            const newSrcToken = srcToken === Token.DAI ? (dstToken === Token.DAI ? Token.BTC : dstToken) : srcToken;
+            uiContainer.resetReceiveValue().then(() => {
+                uiContainer.updateBothTokens(newSrcToken, Token.DAI).catch(_catchInteractionErr_);
+                uiContainer.setExchangeTab(ExchangeTabs.Liquidity).catch(_catchInteractionErr_);
+            }).catch(_catchInteractionErr_);
+        }, [uiContainer]);
 
         const cancel = React.useCallback(async () => {
             await uiContainer.setSubmitting(false);
