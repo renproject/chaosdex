@@ -59,10 +59,15 @@
   dependencies:
     "@types/chai" "*"
 
-"@types/chai@*", "@types/chai@^4.1.4", "@types/chai@^4.2.3":
+"@types/chai@*", "@types/chai@^4.1.4":
   version "4.2.3"
   resolved "https://registry.yarnpkg.com/@types/chai/-/chai-4.2.3.tgz#419477a3d5202bad19e14c787940a61dc9ea6407"
   integrity sha512-VRw2xEGbll3ZiTQ4J02/hUjNqZoue1bMhoo2dgM2LXjDdyaq4q80HgBDHwpI0/VKlo4Eg+BavyQMv/NYgTetzA==
+
+"@types/chai@^4.2.4":
+  version "4.2.4"
+  resolved "https://registry.yarnpkg.com/@types/chai/-/chai-4.2.4.tgz#8936cffad3c96ec470a2dc26a38c3ba8b9b6f619"
+  integrity sha512-7qvf9F9tMTzo0akeswHPGqgUx/gIaJqrOEET/FCD8CFRkSUHlygQiM5yB6OvjrtdxBVLSyw7COJubsFYs0683g==
 
 "@types/concat-stream@^1.6.0":
   version "1.6.0"
@@ -107,10 +112,10 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.14.22.tgz#34bcdf6b6cb5fc0db33d24816ad9d3ece22feea4"
   integrity sha512-9taxKC944BqoTVjE+UT3pQH0nHZlTvITwfsOZqyc+R3sfJuxaTtxWjfn1K2UlxyPcKHf0rnaXcVFrS9F9vf0bw==
 
-"@types/node@^12.11.2":
-  version "12.11.2"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.11.2.tgz#75ba3beda30d690b89a5089ca1c6e8e386150b76"
-  integrity sha512-dsfE4BHJkLQW+reOS6b17xhZ/6FB1rB8eRRvO08nn5o+voxf3i74tuyFWNH6djdfgX7Sm5s6LD8t6mJug4dpDw==
+"@types/node@^12.11.6":
+  version "12.11.6"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.11.6.tgz#2f8d551aef252de78f42acdccd53f5a8ce0cac4d"
+  integrity sha512-4uPUyY1Aofo1YzoypalYHNd2SnKYxH2b6LzXwpryZCJKA2XlagZSynXx5C8sfPH0r1cSltUpaVHV2q5sYXschQ==
 
 "@types/node@^8.0.0":
   version "8.10.55"
@@ -6014,6 +6019,18 @@ sol-merger@^1.1.0:
     glob "^7.1.2"
     strip-json-comments "^3.0.1"
 
+sol-merger@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/sol-merger/-/sol-merger-1.1.1.tgz#5ba48dd0e21982af3855daa7a4a1719ef6b6564d"
+  integrity sha512-Wm0sFXauDzJmZgxZ3a3ATfRf8OvBIt1Q+lqJw/UO5aqRbXKnBCt7TzSSLvSWl91uqub4MUubFzq6Bk/tRKnO2Q==
+  dependencies:
+    cli-color "^1.4.0"
+    commander "^2.19.0"
+    debug "^4.1.1"
+    fs-extra "^8.0.1"
+    glob "^7.1.2"
+    strip-json-comments "^3.0.1"
+
 solc@0.5.12:
   version "0.5.12"
   resolved "https://registry.yarnpkg.com/solc/-/solc-0.5.12.tgz#e63047dce04c82ec6f469f6e28febfbde713b808"
@@ -6778,10 +6795,10 @@ typechain-target-web3-v1@^1.0.0:
   dependencies:
     lodash "^4.17.15"
 
-typechain@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/typechain/-/typechain-1.0.2.tgz#c260bb412a829b58856ef4f76899824510b7511a"
-  integrity sha512-gwEPRiWuskLQ22c+UdPRTiMX5ytkZ/TwG5RoieNZIKanWzUzXQa/Mq/FaoJVAMGDtNkFaVl3r2CmsgxP5MBgJQ==
+typechain@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/typechain/-/typechain-1.0.3.tgz#c4465cdc27526989c735774ad96fadbb908bfe01"
+  integrity sha512-GG/isuyXy0vtm4fwfboMqnApU3hUF+XdrpQMMVUIhlHgm1kXxxf+w8+v8shn4gfhRoiATCZGDOt9fbE+/hMhjQ==
   dependencies:
     command-line-args "^4.0.7"
     debug "^3.0.1"

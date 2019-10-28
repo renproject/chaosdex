@@ -48,8 +48,10 @@ module.exports = {
     },
     chaosnet: {
         renNetwork: ren.chaosnet,
-        DEX: "0xe4Ec27Bc47F006A1b79Da8E3e35051FEd5A00f80",
-        DEXAdapter: "0xf218f90c71Bb03C23ca1d88f57FB2cF256176AD5",
+        DEX: '0xbD0C94BC27824A76C1eBDaAc3a9f5FAbEc6985B7',
+        DEXAdapter: '0xaF0EfC4E638A43a27A21d218d07c7499f85F8042',
+        BTC_DAI_Reserve: '0x11716a1F51FaD053E9B43dA1025E8ace32aee110',
+        ZEC_DAI_Reserve: '0x7B3b7383Bc88b645bdEfD7624d9c6FB981407bf9',
         config: {
             ...config,
             mintAuthority: ren.chaosnet.renVM.mintAuthority,
@@ -57,10 +59,10 @@ module.exports = {
     },
     testnet: {
         renNetwork: ren.testnet,
-        DEX: '0x6Be14F3ce70c72876aBb07b54F5DA8E75Be7F4a7',
-        DEXAdapter: '0x467371C80B4d92837876E40d9610E893D26C36BA',
-        BTC_DAI_Reserve: '0x0a3ea20A2942677df300361e0F32c296b0AC2158',
-        ZEC_DAI_Reserve: '0xA100f837b913901AeD82EcB011891b75e9842Ce5',
+        DEX: '0x8da562d3d67B5832a834181Fc3345B306689DDbE',
+        DEXAdapter: '0x0246DB1836c0fad9b6B5f3c4E642Af81b444Bbf8',
+        BTC_DAI_Reserve: '0x426034F4B7C82b2DF1c06349A995E70F35B0C57B',
+        ZEC_DAI_Reserve: '0xF2Ac666b592A2debEB0EceC60e3cdB0302B6266E',
         config: {
             ...config,
             mintAuthority: ren.testnet.renVM.mintAuthority,
