@@ -4,11 +4,11 @@ import "./DEX.sol";
 import "./DEXReserve.sol";
 import "darknode-sol/contracts/Shifter/ShifterRegistry.sol";
 import "darknode-sol/contracts/Shifter/IShifter.sol";
-import "darknode-sol/contracts/libraries/CompatibleERC20Functions.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 
 contract DEXAdapter {
-    using CompatibleERC20Functions for ERC20;
+    using SafeERC20 for ERC20;
 
     DEX public dex;
     ShifterRegistry public shifterRegistry;

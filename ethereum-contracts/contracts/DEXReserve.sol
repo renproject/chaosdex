@@ -1,13 +1,13 @@
 pragma solidity ^0.5.8;
 
 import "darknode-sol/contracts/Shifter/Shifter.sol";
-import "darknode-sol/contracts/libraries/CompatibleERC20Functions.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 contract DEXReserve is ERC20 {
     using SafeMath for uint256;
-    using CompatibleERC20Functions for ERC20;
+    using SafeERC20 for ERC20;
 
     uint256 FeeInBIPS;
     ERC20 public BaseToken;
