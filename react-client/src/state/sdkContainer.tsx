@@ -86,7 +86,7 @@ export class SDKContainer extends Container<typeof initialState> {
         // TODO: Check that the sdkAddress is the same as the address in the
         // commitment - otherwise this step fails.
 
-        const { sdkAddress: address, sdkWeb3: web3, sdkNetworkID: networkID, network } = this.state;
+        const { sdkAddress: address, sdkWeb3: web3, sdkNetworkID: networkID, network: networkDetails } = this.state;
         if (!web3 || !address) {
             throw new Error("Web3 address is not defined");
         }
@@ -109,13 +109,13 @@ export class SDKContainer extends Container<typeof initialState> {
             }
             amountBN = new BigNumber(srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals));
 
-            tokenInstance = getERC20(web3, network, syncGetTokenAddress(networkID, srcToken));
+            tokenInstance = getERC20(web3, networkDetails, syncGetTokenAddress(networkID, srcToken));
 
             receivingAddress = syncGetDEXAdapterAddress(networkID);
         } else if (order.commitment.type === CommitmentType.AddLiquidity) {
             const { dstToken, srcToken } = order.orderInputs;
             amountBN = new BigNumber(order.commitment.maxDAIAmount);
-            tokenInstance = getERC20(web3, network, syncGetTokenAddress(networkID, dstToken));
+            tokenInstance = getERC20(web3, networkDetails, syncGetTokenAddress(networkID, dstToken));
             receivingAddress = await dex.methods.reserves(syncGetTokenAddress(networkID, srcToken)).call();
         } else {
             throw new Error("Token approval not required");
@@ -279,7 +279,7 @@ export class SDKContainer extends Container<typeof initialState> {
             });
         const receivedAmount = order.orderInputs.dstAmount; // new BigNumber(response.amount).dividedBy(new BigNumber(10).exponentiatedBy(8)).toString();
         // tslint:disable-next-line: no-any
-        const address = (response as any).tx.args[1].value;
+        const address = (response as unknown as any).tx.args[1].value;
         await this.persistentContainer.updateHistoryItem(order.id, {
             receivedAmount,
             outTx: order.orderInputs.dstToken === Token.ZEC ?

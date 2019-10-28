@@ -1,6 +1,6 @@
 .overlay {
     display: block;
-    background-color: transparentize($color: $grey-1, $amount: 0.1);
+    background-color: transparentize($color: $background, $amount: 0.1);
     // top: 120px;
     top: 0;
     left: 0;
@@ -24,7 +24,7 @@
 .popup {
     max-width: 94vw;
     color: $grey-12;
-    background-color: $grey-1;
+    background-color: $background;
     border-radius: 12px;
 
     box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
@@ -50,7 +50,7 @@
 }
 
 .popup--header h2 {
-    color: $grey-1;
+    color: $background;
     margin: 0;
     font-weight: 500; // used to be 600
     font-size: 15px;
@@ -176,7 +176,7 @@
     position: absolute;
     z-index: 10;
     margin-left: calc(100% - 35px);
-    background: $grey-1;
+    background: $background;
     margin-top: -35px;
 
     svg {

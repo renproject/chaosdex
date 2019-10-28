@@ -22,7 +22,7 @@ body {
 
 html,
 body {
-    background: $grey-5;
+    background: $background;
 }
 
 h1 {
@@ -51,7 +51,7 @@ label {
 input[type=number],
 input[type=text],
 input[type=password] {
-    border: 1px solid $grey-8;
+    border: 1px solid $background;
     height: 35px;
     padding: 0 8px;
 
@@ -86,7 +86,7 @@ input[type=checkbox] {
 }
 
 select:focus {
-    background-color: $grey-5;
+    background-color: $background;
     outline: none;
 }
 
@@ -104,7 +104,7 @@ button:not(:disabled):hover {
 }
 
 button:not(:disabled):active {
-    background-color: $grey-5;
+    background-color: $background;
 }
 
 button .loading:after {
@@ -172,7 +172,7 @@ details {
     text-align: left;
     white-space: pre-wrap;
     font-family: monospace;
-    color: $var5;
+    color: $grey-09;
 }
 
 .mobile-only {
@@ -206,7 +206,7 @@ details {
 }
 
 button {
-    border: 1px solid $grey-8;
+    border: 1px solid $background;
     height: 35px;
     min-width: 120px;
     position: relative;
@@ -219,8 +219,8 @@ button {
 }
 
 pre {
-    background-color: $grey-14;
-    color: $grey-0;
+    background-color: $foreground;
+    color: $background;
     padding: 8px;
     border-radius: 4px;
 }

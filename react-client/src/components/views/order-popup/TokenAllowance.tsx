@@ -5,6 +5,7 @@ import { InfoLabel, LabelLevel, Loading } from "@renproject/react-components";
 import { _catchInteractionErr_ } from "../../../lib/errors";
 import { Token } from "../../../state/generalTypes";
 import { Commitment } from "../../../state/persistentContainer";
+import { network } from "../../../state/sdkContainer";
 import { Popup } from "../Popup";
 
 export const TokenAllowance: React.StatelessComponent<{
@@ -22,21 +23,21 @@ export const TokenAllowance: React.StatelessComponent<{
     const onSubmit = () => {
         setError(null);
         setSubmitting(true);
-        submit(orderID).catch((error) => {
+        submit(orderID).catch((err) => {
             setSubmitting(false);
 
             // Ignore user denying error in MetaMask.
-            if (String(error.message || error).match(/User denied transaction signature/)) {
+            if (String(err.message || err).match(/User denied transaction signature/)) {
                 return;
             }
 
-            _catchInteractionErr_(error);
-            const match = String(error.message || error).match(/"transactionHash": "(0x[a-fA-F0-9]{64})"/);
+            _catchInteractionErr_(err);
+            const match = String(err.message || err).match(/"transactionHash": "(0x[a-fA-F0-9]{64})"/);
             if (match && match.length >= 2) {
                 setFailedTransaction(match[1]);
-                error = new Error("Transaction reverted.");
+                err = new Error("Transaction reverted.");
             }
-            setError(error);
+            setError(err);
         });
     };
     return <Popup cancel={!submitting ? hide : undefined}>
@@ -52,7 +53,7 @@ export const TokenAllowance: React.StatelessComponent<{
                     Error submitting to Ethereum <InfoLabel level={LabelLevel.Warning}>{`${error.message || error}`}</InfoLabel>
                     {failedTransaction ? <>
                         <br />
-                        See the <a className="blue" href={`https://dashboard.tenderly.dev/tx/kovan/${failedTransaction}/error`}>Transaction Stack Trace</a> for more details.
+                        See the <a className="blue" href={`https://dashboard.tenderly.dev/tx/${network.contracts.chain}/${failedTransaction}/error`}>Transaction Stack Trace</a> for more details.
                     </> : null}
                 </span> : null}
                 <div className="popup--buttons">

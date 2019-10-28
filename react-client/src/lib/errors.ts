@@ -4,8 +4,6 @@ import * as Sentry from "@sentry/browser";
 
 import { naturalTime } from "@renproject/react-components";
 
-import { ENVIRONMENT } from "./environmentVariables";
-
 interface Details {
     description?: string;
     category?: string;

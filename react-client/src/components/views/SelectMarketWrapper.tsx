@@ -30,7 +30,11 @@ export const SelectMarketWrapper = connect<Props & ConnectedProps<[UIContainer]>
         };
 
         const newTokens = new Map<Token, TokenDetails>(Tokens);
-        const lockedToken = new Map<Token, TokenDetails>().set(thisToken, newTokens.get(thisToken)!);
+        const newTokenDetails = newTokens.get(thisToken);
+        let lockedToken = new Map<Token, TokenDetails>();
+        if (newTokenDetails) {
+            lockedToken = lockedToken.set(thisToken, newTokenDetails);
+        }
         return <SelectMarket
             className={locked ? "select-market--locked" : ""}
             top={top}

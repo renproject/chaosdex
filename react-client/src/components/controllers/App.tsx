@@ -1,9 +1,9 @@
 import * as React from "react";
 
+import { FeedbackButton } from "@renproject/react-components";
 import { parse as parseLocation } from "qs";
 import { RouteComponentProps, withRouter } from "react-router-dom";
 import createPersistedState from "use-persisted-state";
-import { FeedbackButton } from "@renproject/react-components";
 
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
 import { getWeb3 } from "../../lib/getWeb3";

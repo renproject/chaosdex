@@ -189,12 +189,12 @@
     justify-content: space-between;
     align-items: center;
     background-color: $background;
-    border: 1px solid $grey-8;
+    border: 1px solid $background;
     position: relative;
 }
 
 .order--input-item.disabled {
-    background-color: $grey-5;
+    background-color: $background;
 }
 
 .order--input-item:not(.disabled):hover {
@@ -282,7 +282,7 @@
 
 .order--button:disabled {
     background-color: $background;
-    border: 1px solid $grey-8;
+    border: 1px solid $background;
 }
 
 .order--button.submitting {
@@ -292,7 +292,7 @@
     }
 
     .loading:after {
-        border-color: $grey-0 transparent white transparent;
+        border-color: $background transparent white transparent;
     }
 }
 

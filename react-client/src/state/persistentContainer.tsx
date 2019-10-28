@@ -2,7 +2,6 @@ import { Chain } from "@renproject/ren";
 import { TxStatus } from "@renproject/ren/dist/renVM/transaction";
 import localForage from "localforage";
 import { PersistContainer } from "unstated-persist";
-import BigNumber from "bignumber.js";
 
 // import { Chain } from "@renproject/ren";
 // import { Token } from "./generalTypes";

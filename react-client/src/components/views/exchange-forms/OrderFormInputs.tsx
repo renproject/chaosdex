@@ -3,13 +3,13 @@ import * as React from "react";
 import { CurrencyIcon, TokenValueInput } from "@renproject/react-components";
 import BigNumber from "bignumber.js";
 
+import { useDebounce } from "../../../lib/debounce";
 import { _catchInteractionErr_ } from "../../../lib/errors";
 import { connect, ConnectedProps } from "../../../state/connect";
 import { UIContainer } from "../../../state/uiContainer";
 import arrow from "../../../styles/images/arrow.svg";
 import { SelectMarketWrapper } from "../SelectMarketWrapper";
 import { TokenBalance } from "../TokenBalance";
-import { useDebounce } from "../../../lib/debounce";
 
 const normalizeDecimals = (inputIn: string | null): string | null => {
     return inputIn === null ? inputIn : new BigNumber(inputIn).decimalPlaces(8).toFixed();

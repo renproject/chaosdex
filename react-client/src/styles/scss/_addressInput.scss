@@ -14,7 +14,7 @@
 
     input[type=text] {
         width: 100%; // calc(100% - 16px); // padding
-        background: $grey-5;
+        background: $background;
         color: $grey-12;
         border: 1px solid $grey-10;
         box-sizing: border-box;
@@ -31,7 +31,7 @@
             display: flex;
             align-items: center;
 
-            color: $grey-9;
+            color: $background;
 
         }
     }
@@ -52,7 +52,7 @@
         font-weight: 500;
         font-size: 18px;
         line-height: 24px;
-        color: $grey-13;
+        color: $foreground;
     }
 
 
@@ -79,7 +79,7 @@
         font-size: 75%;
         transform: translate3d(0, -19px, 0);
         opacity: 1;
-        background: $grey-1;
+        background: $background;
         color: $blue-bright;
     }
 
@@ -116,7 +116,7 @@
         align-items: center;
         text-align: center;
 
-        color: $grey-13;
+        color: $foreground;
     }
 
     input {
@@ -137,13 +137,13 @@
             position: absolute;
             margin-top: 10px;
             margin-left: -30px;
-            background: $grey-1;
+            background: $background;
 
             &:first-of-type {
                 width: 17px;
                 height: 17px;
                 margin-left: -52px;
-                background: $grey-1;
+                background: $background;
             }
         }
 
@@ -168,7 +168,7 @@
         font-size: 75%;
         transform: translate3d(0, -21px, 0);
         opacity: 1;
-        background: $grey-1;
+        background: $background;
         color: $blue-bright;
     }
 

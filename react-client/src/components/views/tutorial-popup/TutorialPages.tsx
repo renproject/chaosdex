@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import { IS_TESTNET } from "../../../lib/environmentVariables";
 import { ReactComponent as Logo } from "../../../styles/images/logo.svg";
 import { ReactComponent as MetaMask } from "../../../styles/images/metamask.svg";
 
@@ -39,8 +40,8 @@ const Overview: TutorialPage = ({ nextPage, previousPage }) => {
     return <Page>
         <Body>
             <h2>Overview</h2>
-            <p>The RenVM Testnet Demo is a simple DEX the team created to showcase interoperability facilitated by RenVM.</p>
-            <p>Users will be able to exchange DAI & BTC in a completely trustless, decentralized, and permissionless manner. </p>
+            <p>The RenVM ChaosDEX is a DEX built by the Ren team to showcase interoperability facilitated by RenVM.</p>
+            <p>Users will be able to exchange DAI, BTC & ZEC in a completely trustless, decentralized, and permissionless manner. </p>
         </Body>
         <Buttons>
             <button className="button--white" onClick={previousPage}>Previous</button>
@@ -56,7 +57,6 @@ const GettingStarted: TutorialPage = ({ nextPage, previousPage }) => {
             <p>Before you can use the demo, you'll need to:</p>
             <ol>
                 <li>Install <a href={METAMASK_LINK} target="_blank" rel="noopener noreferrer"><MetaMask />MetaMask</a>. MetaMask is a browser extension that allows you to interact with Ethereum apps.</li>
-                <li>Send some Kovan Testnet ETH to your MetaMask from a <a href={KOVAN_FAUCET_LINK} target="_blank" rel="noopener noreferrer">Kovan ETH Faucet</a>.</li>
                 <li>Get some Testnet BTC from a <a href={BTC_FAUCET_LINK} target="_blank" rel="noopener noreferrer">Testnet BTC Faucet</a>. If you don't have a Testnet Bitcoin wallet, skip this step until later.</li>
             </ol>
             {/*<p>make sure you have a Bitcoin wallet that supports the Bitcoin Testnet and some Testnet Bitcoin. You’ll also need a MetaMask wallet and some Testnet Ether. </p>
@@ -70,8 +70,12 @@ const GettingStarted: TutorialPage = ({ nextPage, previousPage }) => {
     </Page>;
 };
 
-export const tutorialPages: Array<{ name: string, node: TutorialPage }> = [
-    { name: "Welcome", node: Welcome, },
-    { name: "Overview", node: Overview, },
-    { name: "Getting started", node: GettingStarted, },
-];
+export const tutorialPages: Array<{ name: string, node: TutorialPage }> = IS_TESTNET ?
+    [
+        { name: "Welcome", node: Welcome, },
+        { name: "Overview", node: Overview, },
+        { name: "Getting started", node: GettingStarted }
+    ] : [
+        { name: "Welcome", node: Welcome, },
+        { name: "Overview", node: Overview, },
+    ];

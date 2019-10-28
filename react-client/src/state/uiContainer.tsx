@@ -8,9 +8,9 @@ import Web3 from "web3";
 import { syncGetTokenAddress } from "../lib/contractAddresses";
 import { removeRenVMFee } from "../lib/estimatePrice";
 import { history } from "../lib/history";
-import { getMarket, getTokenPricesInCurrencies } from "../lib/market";
+import { getTokenPricesInCurrencies } from "../lib/market";
 import {
-    getERC20, getExchange, getReserve, isERC20, isEthereumBased, MarketPair, Token, Tokens,
+    getERC20, getExchange, getReserve, isERC20, isEthereumBased, Token, Tokens,
 } from "./generalTypes";
 import {
     Commitment, CommitmentType, HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus,
@@ -121,16 +121,16 @@ export class UIContainer extends Container<typeof initialState> {
     // }
 
     public fetchEthereumTokenBalance = async (token: Token, address: string): Promise<BigNumber> => {
-        const { web3, networkID, network } = this.state;
+        const { web3, networkID, network: networkDetails } = this.state;
         if (!web3) {
-            throw new Error("Web3 not set yet.");
+            throw new Error("Web3 not seen yet.");
         }
         let balance: string;
         if (token === Token.ETH) {
             balance = await web3.eth.getBalance(address);
         } else if (isERC20(token)) {
             const tokenAddress = syncGetTokenAddress(networkID, token);
-            const tokenInstance = getERC20(web3, network, tokenAddress);
+            const tokenInstance = getERC20(web3, networkDetails, tokenAddress);
             balance = (await tokenInstance.methods.balanceOf(address).call()).toString();
         } else {
             throw new Error(`Invalid Ethereum token: ${token}`);
@@ -139,7 +139,7 @@ export class UIContainer extends Container<typeof initialState> {
     }
 
     public updateAccountBalances = async (): Promise<void> => {
-        const { address, network } = this.state;
+        const { address, network: networkDetails } = this.state;
         if (!address) {
             return;
         }
@@ -151,7 +151,7 @@ export class UIContainer extends Container<typeof initialState> {
             accountBalances = accountBalances.set(ethTokens[index], bal);
         });
 
-        await this.setState({ accountBalances, network });
+        await this.setState({ accountBalances, network: networkDetails });
     }
 
     /**
@@ -162,7 +162,7 @@ export class UIContainer extends Container<typeof initialState> {
     // public getReserveBalance = async (marketPairs: MarketPair[]): Promise<ReserveBalances[]> => {
     //     const { web3, networkID, network } = this.state;
     //     if (!web3) {
-    //         throw new Error("Web3 not set yet.");
+    //         return;
     //     }
     //     const exchange = getExchange(web3, networkID);
 
@@ -406,7 +406,7 @@ export class UIContainer extends Container<typeof initialState> {
         // if (market) {
         const { web3, networkID } = this.state;
         if (!web3) {
-            throw new Error("Web3 not set yet.");
+            return;
         }
         const exchange = getExchange(web3, networkID);
         const srcTokenAddress = syncGetTokenAddress(networkID, srcToken);

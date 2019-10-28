@@ -5,9 +5,7 @@ import { validate } from "wallet-address-validator";
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
 
-import {
-    syncGetDEXAdapterAddress, syncGetDEXAddress, syncGetDEXReserveAddress,
-} from "../lib/contractAddresses";
+import { syncGetDEXAdapterAddress, syncGetDEXAddress } from "../lib/contractAddresses";
 import { DEX } from "../lib/contracts/DEX";
 import { DEXAdapter } from "../lib/contracts/DEXAdapter";
 import { DEXReserve } from "../lib/contracts/DEXReserve";
@@ -73,9 +71,9 @@ export const NULL_BYTES32 = "0x0000000000000000000000000000000000000000000000000
 /// Initialize Web3 and contracts
 export const getExchange = (web3: Web3, networkID: number): DEX =>
     new web3.eth.Contract(DEXABI as AbiItem[], syncGetDEXAddress(networkID));
-export const getERC20 = (web3: Web3, network: NetworkDetails, tokenAddress: string): ERC20Detailed =>
-    new (web3.eth.Contract)(network.contracts.addresses.erc.ERC20.abi, tokenAddress);
+export const getERC20 = (web3: Web3, networkDetails: NetworkDetails, tokenAddress: string): ERC20Detailed =>
+    new (web3.eth.Contract)(networkDetails.contracts.addresses.erc.ERC20.abi, tokenAddress);
 export const getAdapter = (web3: Web3, networkID: number): DEXAdapter =>
     new (web3.eth.Contract)(DEXAdapterABI as AbiItem[], syncGetDEXAdapterAddress(networkID));
-export const getReserve = (web3: Web3, networkID: number, tokenAddress: string): DEXReserve =>
+export const getReserve = (web3: Web3, _networkID: number, tokenAddress: string): DEXReserve =>
     new (web3.eth.Contract)(DEXReserveABI as AbiItem[], tokenAddress); // syncGetDEXReserveAddress(networkID, token));

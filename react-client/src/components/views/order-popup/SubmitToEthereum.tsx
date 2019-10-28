@@ -5,6 +5,7 @@ import { InfoLabel, LabelLevel, Loading } from "@renproject/react-components";
 import { _catchInteractionErr_ } from "../../../lib/errors";
 import { Token } from "../../../state/generalTypes";
 import { Tx } from "../../../state/persistentContainer";
+import { network } from "../../../state/sdkContainer";
 import { Popup } from "../Popup";
 
 export const SubmitToEthereum: React.StatelessComponent<{
@@ -68,7 +69,7 @@ export const SubmitToEthereum: React.StatelessComponent<{
                     Error submitting to Ethereum <InfoLabel level={LabelLevel.Warning}>{`${error.message || error}`}</InfoLabel>
                     {failedTransaction ? <>
                         <br />
-                        See the <a className="blue" href={`https://dashboard.tenderly.dev/tx/kovan/${failedTransaction}/error`}>Transaction Stack Trace</a> for more details.
+                        See the <a className="blue" href={`https://dashboard.tenderly.dev/tx/${network.contracts.chain}/${failedTransaction}/error`}>Transaction Stack Trace</a> for more details.
                         <br />
                         If you see <span className="monospace">"nonce hash already spent"</span> your trade may have already gone through.
                     </> : null}
