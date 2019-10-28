@@ -4,9 +4,12 @@ import "./DEX.sol";
 import "./DEXReserve.sol";
 import "darknode-sol/contracts/Shifter/ShifterRegistry.sol";
 import "darknode-sol/contracts/Shifter/IShifter.sol";
+import "darknode-sol/contracts/libraries/CompatibleERC20Functions.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 
 contract DEXAdapter {
+    using CompatibleERC20Functions for ERC20;
+
     DEX public dex;
     ShifterRegistry public shifterRegistry;
 
@@ -86,9 +89,9 @@ contract DEXAdapter {
     function removeLiquidity(address _token, uint256 _liquidity, bytes calldata _tokenAddress) external {
         DEXReserve reserve = dex.reserves(_token);
         require(reserve != DEXReserve(0x0), "unsupported token");
-        reserve.transferFrom(msg.sender, address(this), _liquidity);
+        ERC20(reserve).safeTransferFrom(msg.sender, address(this), _liquidity);
         (uint256 baseTokenAmount, uint256 quoteTokenAmount) = reserve.removeLiquidity(_liquidity);
-        reserve.BaseToken().transfer(msg.sender, baseTokenAmount);
+        reserve.BaseToken().safeTransfer(msg.sender, baseTokenAmount);
         shifterRegistry.getShifterByToken(address(reserve.Token())).shiftOut(_tokenAddress, quoteTokenAmount);
     }
 
@@ -127,7 +130,7 @@ contract DEXAdapter {
         if (shifter != IShifter(0x0)) {
             return shifter.shiftIn(_pHash, _amount, _nHash, _sig);
         } else {
-            ERC20(_src).transferFrom(msg.sender, address(this), _amount);
+            ERC20(_src).safeTransferFrom(msg.sender, address(this), _amount);
             return _amount;
         }
     }

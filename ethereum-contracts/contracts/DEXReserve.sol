@@ -1,10 +1,14 @@
 pragma solidity ^0.5.8;
 
 import "darknode-sol/contracts/Shifter/Shifter.sol";
+import "darknode-sol/contracts/libraries/CompatibleERC20Functions.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 contract DEXReserve is ERC20 {
+    using SafeMath for uint256;
+    using CompatibleERC20Functions for ERC20;
+
     uint256 FeeInBIPS;
     ERC20 public BaseToken;
     ERC20 public Token;
@@ -27,16 +31,16 @@ contract DEXReserve is ERC20 {
     function buy(address _to, address _from, uint256 _baseTokenAmount) external returns (uint256)  {
         require(totalSupply() != 0, "reserve has no funds");
         uint256 rcvAmount = calculateBuyRcvAmt(_baseTokenAmount);
-        BaseToken.transferFrom(_from, address(this), _baseTokenAmount);
-        require(Token.transfer(_to, rcvAmount), "failed to transfer quote token");
+        BaseToken.safeTransferFrom(_from, address(this), _baseTokenAmount);
+        Token.safeTransfer(_to, rcvAmount);
         return rcvAmount;
     }
 
     function sell(address _to, address _from, uint256 _tokenAmount) external returns (uint256) {
         require(totalSupply() != 0, "reserve has no funds");
         uint256 rcvAmount = calculateSellRcvAmt(_tokenAmount);
-        Token.transferFrom(_from, address(this), _tokenAmount);
-        require(BaseToken.transfer(_to, rcvAmount), "failed to transfer base token");
+        Token.safeTransferFrom(_from, address(this), _tokenAmount);
+        BaseToken.safeTransfer(_to, rcvAmount);
         return rcvAmount;
     }
 
@@ -61,8 +65,8 @@ contract DEXReserve is ERC20 {
         uint256 baseTokenAmount = calculateBaseTokenValue(_liquidity);
         uint256 quoteTokenAmount = calculateQuoteTokenValue(_liquidity);
         _burn(msg.sender, _liquidity);
-        BaseToken.transfer(msg.sender, baseTokenAmount);
-        Token.transfer(msg.sender, quoteTokenAmount);
+        BaseToken.safeTransfer(msg.sender, baseTokenAmount);
+        Token.safeTransfer(msg.sender, quoteTokenAmount);
         return (baseTokenAmount, quoteTokenAmount);
     }
 
@@ -74,13 +78,13 @@ contract DEXReserve is ERC20 {
             require(_tokenAmount > 0, "token amount is less than allowed min amount");
             uint256 baseAmount = expectedBaseTokenAmount(_tokenAmount);
             require(baseAmount <= _maxBaseToken, "calculated base amount exceeds the maximum amount set");
-            require(BaseToken.transferFrom(_liquidityProvider, address(this), baseAmount), "failed to transfer base token");
+            BaseToken.safeTransferFrom(_liquidityProvider, address(this), baseAmount);
             emit LogAddLiquidity(_liquidityProvider, _tokenAmount, baseAmount);
         } else {
-            require(BaseToken.transferFrom(_liquidityProvider, address(this), _maxBaseToken), "failed to transfer base token");
+            BaseToken.safeTransferFrom(_liquidityProvider, address(this), _maxBaseToken);
             emit LogAddLiquidity(_liquidityProvider, _tokenAmount, _maxBaseToken);
         }
-        Token.transferFrom(msg.sender, address(this), _tokenAmount);
+        Token.safeTransferFrom(msg.sender, address(this), _tokenAmount);
         _mint(_liquidityProvider, _tokenAmount*2);
         return _tokenAmount*2;
     }
