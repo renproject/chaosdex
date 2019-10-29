@@ -90,7 +90,6 @@ contract("DEXAdapter", (accounts) => {
         await dai.approve(reserve.address, baseValue);
 
         const shifter = await shifterRegistry.getShifterByToken.call(token.address);
-        console.log(shifter);
         if (shifter === NULL) {
             await token.approve(reserve.address, removeFee(tokenValue, shifterFees));
             await reserve.addLiquidity(accounts[0], baseValue, removeFee(tokenValue, shifterFees), deadline);
@@ -148,7 +147,7 @@ contract("DEXAdapter", (accounts) => {
     }
 
     const tradeShiftedTokens = async (srcToken: ERC20Instance, dstToken: ERC20Instance) => {
-        let receivingValue, sigString;
+        let receivingValue, sigString, receivingValueAfterFees;
         const recipient = accounts[3];
         const value = new BN(22500);
         const nHash = `0x${randomBytes(32).toString("hex")}`
@@ -156,11 +155,13 @@ contract("DEXAdapter", (accounts) => {
         const dstShifter = await shifterRegistry.getShifterByToken(dstToken.address);
         const srcShifter = await shifterRegistry.getShifterByToken(srcToken.address);
         if (srcShifter === NULL) {
-            receivingValue = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
+            receivingValue = await dex.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
+            receivingValueAfterFees = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
             await srcToken.approve(dexAdapter.address, value);
             sigString = `0x${randomBytes(32).toString("hex")}`;
         } else {
-            receivingValue = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, removeFee(value, shifterFees));
+            receivingValue = await dex.calculateReceiveAmount.call(srcToken.address, dstToken.address, removeFee(value, shifterFees));
+            receivingValueAfterFees = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, removeFee(value, shifterFees));
             const commitment = await dexAdapter.hashTradePayload.call(
                 srcToken.address, dstToken.address, 0, recipient,
                 100000, "0x010101010101",
