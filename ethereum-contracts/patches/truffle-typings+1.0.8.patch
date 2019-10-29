@@ -1,0 +1,13 @@
+diff --git a/node_modules/truffle-typings/index.d.ts b/node_modules/truffle-typings/index.d.ts
+index eae5e74..5014462 100644
+--- a/node_modules/truffle-typings/index.d.ts
++++ b/node_modules/truffle-typings/index.d.ts
+@@ -66,7 +66,7 @@ declare namespace Truffle {
+ 
+   interface Contract<T> extends ContractNew<any[]> {
+     deployed(): Promise<T>;
+-    at(address: string): T;
++    at(address: string): Promise<T>;
+     address: string;
+     contractName: string;
+   }

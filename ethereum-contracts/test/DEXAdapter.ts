@@ -147,24 +147,26 @@ contract("DEXAdapter", (accounts) => {
     }
 
     const tradeShiftedTokens = async (srcToken: ERC20Instance, dstToken: ERC20Instance) => {
-        let amount, sigString;
+        let receivingValue, sigString;
+        const recipient = accounts[3];
         const value = new BN(22500);
         const nHash = `0x${randomBytes(32).toString("hex")}`
 
-        const shifter = await shifterRegistry.getShifterByToken(srcToken.address);
-        if (shifter === NULL) {
-            amount = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
+        const dstShifter = await shifterRegistry.getShifterByToken(dstToken.address);
+        const srcShifter = await shifterRegistry.getShifterByToken(srcToken.address);
+        if (srcShifter === NULL) {
+            receivingValue = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
             await srcToken.approve(dexAdapter.address, value);
             sigString = `0x${randomBytes(32).toString("hex")}`;
         } else {
-            amount = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, removeFee(value, shifterFees));
+            receivingValue = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, removeFee(value, shifterFees));
 
             const commitment = await dexAdapter.hashTradePayload.call(
-                srcToken.address, dstToken.address, 0, accounts[3],
+                srcToken.address, dstToken.address, 0, recipient,
                 100000, "0x010101010101",
             );
 
-            const hash = await (await Shifter.at(shifter)).hashForSignature.call(commitment, value, dexAdapter.address, nHash);
+            const hash = await (await Shifter.at(srcShifter)).hashForSignature.call(commitment, value, dexAdapter.address, nHash);
             const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
             sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
         }
@@ -180,6 +182,8 @@ contract("DEXAdapter", (accounts) => {
         const dstReserveDstBalanceBefore = new BN((await dstToken.balanceOf.call(dstReserve)).toString());
         const dstReserveBaseBalanceBefore = new BN((await dai.balanceOf.call(dstReserve)).toString());
         const dstReserveSrcBalanceBefore = new BN((await srcToken.balanceOf.call(dstReserve)).toString());
+        // Recipient
+        const recipientDstBalanceBefore = new BN((await dstToken.balanceOf.call(recipient)).toString());
 
         { // Perform trade
             await dexAdapter.trade(
@@ -200,6 +204,8 @@ contract("DEXAdapter", (accounts) => {
         const dstReserveDstBalanceAfter = new BN((await dstToken.balanceOf.call(dstReserve)).toString());
         const dstReserveBaseBalanceAfter = new BN((await dai.balanceOf.call(dstReserve)).toString());
         const dstReserveSrcBalanceAfter = new BN((await srcToken.balanceOf.call(dstReserve)).toString());
+        // Recipient
+        const recipientDstBalanceAfter = new BN((await dstToken.balanceOf.call(recipient)).toString());
 
         if (srcReserve !== NULL && dstReserve !== NULL) {
             // If the trade goes across two reserves, check that the base
@@ -210,20 +216,26 @@ contract("DEXAdapter", (accounts) => {
 
         if (srcReserve !== NULL) {
             // Check that the src reserve's balances have changed correctly.
-            let expectedSrcDifference = shifter === NULL ? value : removeFee(value, shifterFees);
+            let expectedSrcDifference = srcShifter === NULL ? value : removeFee(value, shifterFees);
             srcReserveSrcBalanceAfter.sub(srcReserveSrcBalanceBefore).should.bignumber.equal(expectedSrcDifference);
+            // Only one shifter involved
             if (dstReserve === NULL) {
-                srcReserveDstBalanceBefore.sub(srcReserveDstBalanceAfter).should.bignumber.equal(amount);
+                srcReserveDstBalanceBefore.sub(srcReserveDstBalanceAfter).should.bignumber.equal(receivingValue);
             }
         }
 
         if (dstReserve !== NULL) {
             // Check that the dst reserve's balances have changed correctly.
-            dstReserveDstBalanceBefore.sub(dstReserveDstBalanceAfter).should.bignumber.equal(amount);
+            dstReserveDstBalanceBefore.sub(dstReserveDstBalanceAfter).should.bignumber.equal(receivingValue);
+            // Only one shifter involved
             if (srcReserve === NULL) {
                 dstReserveSrcBalanceAfter.sub(dstReserveSrcBalanceBefore).should.bignumber.equal(value);
             }
         }
+
+        // If the token is shifted, the receiving address would be off-chain.
+        let expectedReceivedValue = dstShifter === NULL ? receivingValue : 0;
+        recipientDstBalanceAfter.sub(recipientDstBalanceBefore).should.bignumber.equal(expectedReceivedValue);
     }
 
     it("should fail when trying to trade dai to token1 on DEX before funding the reserve", async () => {
