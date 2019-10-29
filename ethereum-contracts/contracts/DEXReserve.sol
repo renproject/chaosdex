@@ -86,7 +86,7 @@ contract DEXReserve is ERC20, Ownable {
     }
 
     function removeLiquidity(uint256 _liquidity) external returns (uint256, uint256) {
-        require(balanceOf(msg.sender) >= _liquidity, "insufficient balance");
+        require(balanceOf(msg.sender) >= _liquidity, "insufficient liquidity");
         uint256 baseTokenAmount = calculateBaseTokenValue(_liquidity);
         uint256 quoteTokenAmount = calculateQuoteTokenValue(_liquidity);
         _burn(msg.sender, _liquidity);

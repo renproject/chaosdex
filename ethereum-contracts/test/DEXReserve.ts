@@ -1,14 +1,17 @@
 import BN from "bn.js";
+import BigNumber from "bignumber.js";
 
 import {
-    DaiTokenInstance, DEXReserveInstance, ERC20Instance, RenTokenInstance, TestTokenInstance,
+    DaiTokenInstance, DEXInstance, DEXReserveInstance, ERC20Instance, RenTokenInstance,
+    TestTokenInstance,
 } from "../types/truffle-contracts";
-import { advanceBlocks } from "./helper/testUtils";
+import { advanceBlocks, NULL } from "./helper/testUtils";
 
 const TestToken = artifacts.require("TestToken");
 const DAI = artifacts.require("DaiToken");
 const DEXReserve = artifacts.require("DEXReserve");
 const Ren = artifacts.require("RenToken");
+const DEX = artifacts.require("DEX");
 
 contract("DEXReserve", (accounts) => {
     let dai: DaiTokenInstance;
@@ -65,13 +68,13 @@ contract("DEXReserve", (accounts) => {
         await depositToReserve(daiValue, tokenValue, token3, dexReserve3);
     });
 
-    it("should deposit token3 to the reserve3", async () => {
+    it("can't deposit without approving base token", async () => {
         const value = new BN(20000000000);
         await token3.approve(dexReserve3.address, value);
         await dexReserve3.addLiquidity(accounts[0], value, value, deadline).should.be.rejectedWith(/SafeERC20: low-level call failed/);
     });
 
-    it("should deposit token3 to the reserve3", async () => {
+    it("can't deposit without approving quote token", async () => {
         const value = new BN(20000000000);
         await dai.approve(dexReserve3.address, value);
         await dexReserve3.addLiquidity(accounts[0], value, 0, deadline).should.be.rejectedWith(/token amount is less than allowed min amount/);
@@ -143,4 +146,80 @@ contract("DEXReserve", (accounts) => {
         await dexReserve3.updateFee(1, { from: accounts[1] })
             .should.be.rejectedWith(/caller is not the owner/);
     })
+});
+
+contract("DEXReserve - share token", (accounts) => {
+    let dai: DaiTokenInstance;
+    let token: TestTokenInstance;
+    let reserve: DEXReserveInstance;
+    let dex: DEXInstance;
+
+    const dexFees = new BN(10);
+
+    const deadline = 10000000000000;
+
+    before(async () => {
+        dai = await DAI.new();
+        token = await TestToken.new("TestToken1", "TST", 18);
+        reserve = await DEXReserve.new(dai.address, token.address, dexFees);
+
+        dex = await DEX.new(dai.address);
+        await dex.registerReserve(token.address, reserve.address);
+
+        for (const account of [accounts[1], accounts[2], accounts[3]]) {
+            await dai.transfer(account, new BN(2000000000));
+            await token.transfer(account, new BN(30000000000));
+        }
+    });
+
+    const depositToReserve = async (from: string, tokenValue: BN, baseValue?: BN) => {
+        baseValue = baseValue || new BN(await reserve.expectedBaseTokenAmount(tokenValue));
+
+        await dai.approve(reserve.address, baseValue, { from });
+        await token.approve(reserve.address, tokenValue, { from });
+        await reserve.addLiquidity(from, baseValue, tokenValue, deadline, { from });
+
+        return baseValue.mul(new BN(100)).div(new BN(await dai.balanceOf(reserve.address)));
+    };
+
+    const withdrawFromReserve = async (from: string, amount: BN): Promise<BN> => {
+        const balanceBefore = new BN(await token.balanceOf(from));
+        await reserve.removeLiquidity(amount, { from });
+        const balanceAfter = new BN(await token.balanceOf(from));
+        return new BN(balanceAfter.sub(balanceBefore));
+    };
+
+    const tradeTokens = async (srcToken: ERC20Instance, dstToken: ERC20Instance, srcValue: BN) => {
+        const srcReserve = await dex.reserves.call(srcToken.address);
+        const dstReserve = await dex.reserves.call(dstToken.address);
+
+        await srcToken.approve(srcReserve === NULL ? dstReserve : srcReserve, srcValue);
+
+        await dex.trade(
+            accounts[0], srcToken.address, dstToken.address, srcValue,
+        );
+    }
+
+    const share = async (from: string) => {
+        return new BN(await reserve.balanceOf(from)).mul(new BN(100)).div(new BN(await reserve.totalSupply()));
+    }
+
+    it("should trade dai to token1 on DEX", async () => {
+        const tokenProportion1 = await depositToReserve(accounts[1], new BN(15000000000) /* token1 */, new BN(200000000) /* DAI */);
+        (await share(accounts[1])).should.bignumber.equal(tokenProportion1);
+        const tokenProportion2 = await depositToReserve(accounts[2], new BN(15000000000) /* token1 */);
+        (await share(accounts[2])).should.bignumber.equal(tokenProportion2);
+
+
+        // await tradeTokens(token, dai, new BN(15000000000));
+        await tradeTokens(dai, token, new BN(400000000));
+
+        const tokenProportion3 = await depositToReserve(accounts[3], new BN(15000000000) /* token1 */);
+        (await share(accounts[3])).should.bignumber.equal(tokenProportion3);
+
+        console.log((await token.balanceOf(reserve.address)).toString());
+
+        (await withdrawFromReserve(accounts[1], new BN(await reserve.balanceOf(accounts[1]))))
+            .should.bignumber.equal(15367680000);
+    });
 });
