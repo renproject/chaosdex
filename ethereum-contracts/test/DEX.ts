@@ -47,7 +47,7 @@ contract("DEX", (accounts) => {
 
     const depositToReserveWODAI = async (value: BN, token: ERC20Instance, reserve: DEXReserveInstance) => {
         await token.approve(reserve.address, value);
-        await reserve.addLiquidity(accounts[0], value, value, deadline).should.be.rejectedWith(/revert/);
+        await reserve.addLiquidity(accounts[0], value, value, deadline).should.be.rejectedWith(/SafeERC20: low-level call failed/);
     };
 
     const depositToReserveExpired = async (value: BN, token: ERC20Instance, reserve: DEXReserveInstance) => {
