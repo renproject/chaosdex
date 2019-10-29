@@ -26,11 +26,11 @@ contract("DEX", (accounts) => {
 
     before(async () => {
         dai = await DAI.new();
-        token1 = await TestToken.new("TestToken1", "TST", 18);
-        dexReserve1 = await DEXReserve.new(dai.address, token1.address, dexFees);
+        token1 = await TestToken.new("TestToken1", "TST1", 18);
+        dexReserve1 = await DEXReserve.new("TestToken1 Liquidity Token", "TST1LT", 18, dai.address, token1.address, dexFees);
 
-        token2 = await TestToken.new("TestToken2", "TST", 8);
-        dexReserve2 = await DEXReserve.new(dai.address, token2.address, dexFees);
+        token2 = await TestToken.new("TestToken2", "TST2", 8);
+        dexReserve2 = await DEXReserve.new("TestToken2 Liquidity Token", "TST2LT", 8, dai.address, token2.address, dexFees);
 
         dex = await DEX.new(dai.address);
         await dex.registerReserve(token1.address, dexReserve1.address);

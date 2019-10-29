@@ -3,13 +3,14 @@ pragma solidity ^0.5.8;
 import "darknode-sol/contracts/Shifter/Shifter.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 /// @title DEXReserve
 /// @notice The DEX Reserve holds the liquidity for a single token pair for the
 /// DEX. Anyone can add liquidity, receiving in return a token representing
 /// a share in the funds held by the reserve.
-contract DEXReserve is ERC20, Ownable {
+contract DEXReserve is ERC20, ERC20Detailed, Ownable {
     using SafeMath for uint256;
     using SafeERC20 for ERC20;
 
@@ -23,7 +24,7 @@ contract DEXReserve is ERC20, Ownable {
     event LogDebug(uint256 _rcvAmount);
     event LogFeesChanged(uint256 _previousFeeInBIPS, uint256 _newFeeInBIPS);
 
-    constructor (ERC20 _baseToken, ERC20 _token, uint256 _feeInBIPS) public {
+    constructor (string memory _name, string memory _symbol, uint8 _decimals, ERC20 _baseToken, ERC20 _token, uint256 _feeInBIPS) public ERC20Detailed(_name, _symbol, _decimals) {
         baseToken = _baseToken;
         token = _token;
         feeInBIPS = _feeInBIPS;
@@ -31,7 +32,6 @@ contract DEXReserve is ERC20, Ownable {
     }
 
     /// @notice Allow anyone to recover funds accidentally sent to the contract.
-    /// To withdraw ETH, the token should be set to `0x0`.
     function recoverTokens(address _token) external onlyOwner {
         require(ERC20(_token) != baseToken && ERC20(_token) != token, "not allowed to recover reserve tokens");
         ERC20(_token).transfer(msg.sender, ERC20(_token).balanceOf(address(this)));
@@ -99,6 +99,7 @@ contract DEXReserve is ERC20, Ownable {
         address _liquidityProvider, uint256 _maxBaseToken, uint256 _tokenAmount, uint256 _deadline
         ) external returns (uint256) {
         require(block.number <= _deadline, "addLiquidity request expired");
+        uint256 liquidity = calculateExpectedLiquidity(_tokenAmount); 
         if (totalSupply() > 0) {
             require(_tokenAmount > 0, "token amount is less than allowed min amount");
             uint256 baseAmount = expectedBaseTokenAmount(_tokenAmount);
@@ -110,8 +111,8 @@ contract DEXReserve is ERC20, Ownable {
             emit LogAddLiquidity(_liquidityProvider, _tokenAmount, _maxBaseToken);
         }
         token.safeTransferFrom(msg.sender, address(this), _tokenAmount);
-        _mint(_liquidityProvider, _tokenAmount*2);
-        return _tokenAmount*2;
+        _mint(_liquidityProvider, liquidity);
+        return liquidity;
     }
 
     function calculateBaseTokenValue(uint256 _liquidity) public view returns (uint256) {
@@ -132,6 +133,13 @@ contract DEXReserve is ERC20, Ownable {
         return (_quoteTokenAmount * baseReserve)/tokenReserve;
     }
 
+    function calculateExpectedLiquidity(uint256 _tokenAmount) public view returns (uint256) {
+        if (totalSupply() == 0) {
+            return _tokenAmount*2;
+        }
+        return ((totalSupply()*_tokenAmount)/token.balanceOf(address(this)));
+    }
+
     function _removeFees(uint256 _amount) internal view returns (uint256) {
         return (_amount * (10000 - feeInBIPS))/10000;
     }
@@ -139,12 +147,18 @@ contract DEXReserve is ERC20, Ownable {
 
 /* solhint-disable-next-line */ /* solium-disable-next-line */
 contract BTC_DAI_Reserve is DEXReserve {
-    constructor (ERC20 _baseToken, ERC20 _token, uint256 _feeInBIPS) public DEXReserve(_baseToken, _token, _feeInBIPS) {
+    constructor (ERC20 _baseToken, ERC20 _token, uint256 _feeInBIPS) public DEXReserve("Bitcoin Liquidity Token", "BTCLT", 8, _baseToken, _token, _feeInBIPS) {
     }
 }
 
 /* solhint-disable-next-line */ /* solium-disable-next-line */
 contract ZEC_DAI_Reserve is DEXReserve {
-    constructor (ERC20 _baseToken, ERC20 _token, uint256 _feeInBIPS) public DEXReserve(_baseToken, _token, _feeInBIPS) {
+    constructor (ERC20 _baseToken, ERC20 _token, uint256 _feeInBIPS) public DEXReserve("ZCash Liquidity Token", "ZECLT", 8, _baseToken, _token, _feeInBIPS) {
+    }
+}
+
+/* solhint-disable-next-line */ /* solium-disable-next-line */
+contract BCH_DAI_Reserve is DEXReserve {
+    constructor (ERC20 _baseToken, ERC20 _token, uint256 _feeInBIPS) public DEXReserve("BitcoinCash Liquidity Token", "BCHLT", 8, _baseToken, _token, _feeInBIPS) {
     }
 }

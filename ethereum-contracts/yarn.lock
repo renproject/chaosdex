@@ -1475,15 +1475,15 @@ d@1, d@^1.0.1:
     es5-ext "^0.10.50"
     type "^1.0.1"
 
-"darknode-sol@https://github.com/renproject/darknode-sol#7ff6489776ded39019873d1db6bfe66bfc47c648":
+"darknode-sol@https://github.com/renproject/darknode-sol#192fff860ca018da1de4ca2150a7ff0d1e0a0838":
   version "0.0.3"
-  resolved "https://github.com/renproject/darknode-sol#7ff6489776ded39019873d1db6bfe66bfc47c648"
+  resolved "https://github.com/renproject/darknode-sol#192fff860ca018da1de4ca2150a7ff0d1e0a0838"
   dependencies:
     openzeppelin-solidity "2.3.0"
 
-"darknode-sol@https://github.com/renproject/darknode-sol#be15db5d3720b8050a3a379c37260d87026e3626":
+"darknode-sol@https://github.com/renproject/darknode-sol#7ff6489776ded39019873d1db6bfe66bfc47c648":
   version "0.0.3"
-  resolved "https://github.com/renproject/darknode-sol#be15db5d3720b8050a3a379c37260d87026e3626"
+  resolved "https://github.com/renproject/darknode-sol#7ff6489776ded39019873d1db6bfe66bfc47c648"
   dependencies:
     openzeppelin-solidity "2.3.0"
 

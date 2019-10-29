@@ -72,7 +72,8 @@ module.exports = async function (deployer, network, accounts) {
             zBTC.address,
             _feeRecipient,
             _mintAuthority,
-            config.shifterFees,
+            config.shiftInFee,
+            config.shiftOutFee,
             config.zBTCMinShiftOutAmount,
         );
     }
@@ -105,7 +106,8 @@ module.exports = async function (deployer, network, accounts) {
             zZEC.address,
             _feeRecipient,
             _mintAuthority,
-            config.shifterFees,
+            config.shiftInFee,
+            config.shiftOutFee,
             config.zZECMinShiftOutAmount,
         );
     }

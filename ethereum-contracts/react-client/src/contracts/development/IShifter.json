@@ -54,27 +54,55 @@
       "payable": false,
       "stateMutability": "nonpayable",
       "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "shiftInFee",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "shiftOutFee",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.5.8+commit.23d335f2\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":false,\"inputs\":[{\"name\":\"_to\",\"type\":\"bytes\"},{\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"shiftOut\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_pHash\",\"type\":\"bytes32\"},{\"name\":\"_amount\",\"type\":\"uint256\"},{\"name\":\"_nHash\",\"type\":\"bytes32\"},{\"name\":\"_sig\",\"type\":\"bytes\"}],\"name\":\"shiftIn\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"darknode-sol/contracts/Shifter/IShifter.sol\":\"IShifter\"},\"evmVersion\":\"petersburg\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"darknode-sol/contracts/Shifter/IShifter.sol\":{\"keccak256\":\"0x401971511b7ab4f784cac3073adfb1d03610e7ae4117f8da4a5044b5130fc65b\",\"urls\":[\"bzzr://50190502bd6cdd85765b89632ca0178532ba759f126a90dc5c8a9124d5fff193\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.8+commit.23d335f2\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":false,\"inputs\":[{\"name\":\"_to\",\"type\":\"bytes\"},{\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"shiftOut\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"shiftOutFee\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_pHash\",\"type\":\"bytes32\"},{\"name\":\"_amount\",\"type\":\"uint256\"},{\"name\":\"_nHash\",\"type\":\"bytes32\"},{\"name\":\"_sig\",\"type\":\"bytes\"}],\"name\":\"shiftIn\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"shiftInFee\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"darknode-sol/contracts/Shifter/IShifter.sol\":\"IShifter\"},\"evmVersion\":\"petersburg\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"darknode-sol/contracts/Shifter/IShifter.sol\":{\"keccak256\":\"0x30f223e19fcc0d5503154f644581013e6fa4b50b69be01b91e65b3cff578f5ee\",\"urls\":[\"bzzr://3eeb84455c57b20d544d5e82ab6002785d8ed38ffff92288b670dbf95b53fa8b\"]}},\"version\":1}",
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "sourceMap": "",
   "deployedSourceMap": "",
-  "source": "pragma solidity ^0.5.8;\n\ninterface IShifter {\n    function shiftIn(bytes32 _pHash, uint256 _amount, bytes32 _nHash, bytes calldata _sig) external returns (uint256);\n    function shiftOut(bytes calldata _to, uint256 _amount) external returns (uint256);\n}",
+  "source": "pragma solidity ^0.5.8;\n\ninterface IShifter {\n    function shiftIn(bytes32 _pHash, uint256 _amount, bytes32 _nHash, bytes calldata _sig) external returns (uint256);\n    function shiftOut(bytes calldata _to, uint256 _amount) external returns (uint256);\n    function shiftInFee() external      returns (uint256);\n    function shiftOutFee() external      returns (uint256);\n}",
   "sourcePath": "darknode-sol/contracts/Shifter/IShifter.sol",
   "ast": {
     "absolutePath": "darknode-sol/contracts/Shifter/IShifter.sol",
     "exportedSymbols": {
       "IShifter": [
-        3639
+        4183
       ]
     },
-    "id": 3640,
+    "id": 4184,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 3616,
+        "id": 4150,
         "literals": [
           "solidity",
           "^",
@@ -90,9 +118,9 @@
         "contractKind": "interface",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 3639,
+        "id": 4183,
         "linearizedBaseContracts": [
-          3639
+          4183
         ],
         "name": "IShifter",
         "nodeType": "ContractDefinition",
@@ -100,22 +128,22 @@
           {
             "body": null,
             "documentation": null,
-            "id": 3629,
+            "id": 4163,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "shiftIn",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 3625,
+              "id": 4159,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 3618,
+                  "id": 4152,
                   "name": "_pHash",
                   "nodeType": "VariableDeclaration",
-                  "scope": 3629,
+                  "scope": 4163,
                   "src": "67:14:7",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -124,7 +152,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 3617,
+                    "id": 4151,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "67:7:7",
@@ -138,10 +166,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 3620,
+                  "id": 4154,
                   "name": "_amount",
                   "nodeType": "VariableDeclaration",
-                  "scope": 3629,
+                  "scope": 4163,
                   "src": "83:15:7",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -150,7 +178,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 3619,
+                    "id": 4153,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "83:7:7",
@@ -164,10 +192,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 3622,
+                  "id": 4156,
                   "name": "_nHash",
                   "nodeType": "VariableDeclaration",
-                  "scope": 3629,
+                  "scope": 4163,
                   "src": "100:14:7",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -176,7 +204,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 3621,
+                    "id": 4155,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "100:7:7",
@@ -190,10 +218,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 3624,
+                  "id": 4158,
                   "name": "_sig",
                   "nodeType": "VariableDeclaration",
-                  "scope": 3629,
+                  "scope": 4163,
                   "src": "116:19:7",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -202,7 +230,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 3623,
+                    "id": 4157,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "116:5:7",
@@ -218,15 +246,15 @@
               "src": "66:70:7"
             },
             "returnParameters": {
-              "id": 3628,
+              "id": 4162,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 3627,
+                  "id": 4161,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 3629,
+                  "scope": 4163,
                   "src": "155:7:7",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -235,7 +263,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 3626,
+                    "id": 4160,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "155:7:7",
@@ -250,7 +278,7 @@
               ],
               "src": "154:9:7"
             },
-            "scope": 3639,
+            "scope": 4183,
             "src": "50:114:7",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -259,22 +287,22 @@
           {
             "body": null,
             "documentation": null,
-            "id": 3638,
+            "id": 4172,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "shiftOut",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 3634,
+              "id": 4168,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 3631,
+                  "id": 4165,
                   "name": "_to",
                   "nodeType": "VariableDeclaration",
-                  "scope": 3638,
+                  "scope": 4172,
                   "src": "187:18:7",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -283,7 +311,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 3630,
+                    "id": 4164,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "187:5:7",
@@ -297,10 +325,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 3633,
+                  "id": 4167,
                   "name": "_amount",
                   "nodeType": "VariableDeclaration",
-                  "scope": 3638,
+                  "scope": 4172,
                   "src": "207:15:7",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -309,7 +337,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 3632,
+                    "id": 4166,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "207:7:7",
@@ -325,15 +353,15 @@
               "src": "186:37:7"
             },
             "returnParameters": {
-              "id": 3637,
+              "id": 4171,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 3636,
+                  "id": 4170,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 3638,
+                  "scope": 4172,
                   "src": "242:7:7",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -342,7 +370,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 3635,
+                    "id": 4169,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "242:7:7",
@@ -357,31 +385,139 @@
               ],
               "src": "241:9:7"
             },
-            "scope": 3639,
+            "scope": 4183,
             "src": "169:82:7",
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "body": null,
+            "documentation": null,
+            "id": 4177,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "shiftInFee",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 4173,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "275:2:7"
+            },
+            "returnParameters": {
+              "id": 4176,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4175,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4177,
+                  "src": "301:7:7",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 4174,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "301:7:7",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "300:9:7"
+            },
+            "scope": 4183,
+            "src": "256:54:7",
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "body": null,
+            "documentation": null,
+            "id": 4182,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "shiftOutFee",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 4178,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "335:2:7"
+            },
+            "returnParameters": {
+              "id": 4181,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4180,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4182,
+                  "src": "361:7:7",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 4179,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "361:7:7",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "360:9:7"
+            },
+            "scope": 4183,
+            "src": "315:55:7",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           }
         ],
-        "scope": 3640,
-        "src": "25:228:7"
+        "scope": 4184,
+        "src": "25:347:7"
       }
     ],
-    "src": "0:253:7"
+    "src": "0:372:7"
   },
   "legacyAST": {
     "absolutePath": "darknode-sol/contracts/Shifter/IShifter.sol",
     "exportedSymbols": {
       "IShifter": [
-        3639
+        4183
       ]
     },
-    "id": 3640,
+    "id": 4184,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 3616,
+        "id": 4150,
         "literals": [
           "solidity",
           "^",
@@ -397,9 +533,9 @@
         "contractKind": "interface",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 3639,
+        "id": 4183,
         "linearizedBaseContracts": [
-          3639
+          4183
         ],
         "name": "IShifter",
         "nodeType": "ContractDefinition",
@@ -407,22 +543,22 @@
           {
             "body": null,
             "documentation": null,
-            "id": 3629,
+            "id": 4163,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "shiftIn",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 3625,
+              "id": 4159,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 3618,
+                  "id": 4152,
                   "name": "_pHash",
                   "nodeType": "VariableDeclaration",
-                  "scope": 3629,
+                  "scope": 4163,
                   "src": "67:14:7",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -431,7 +567,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 3617,
+                    "id": 4151,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "67:7:7",
@@ -445,10 +581,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 3620,
+                  "id": 4154,
                   "name": "_amount",
                   "nodeType": "VariableDeclaration",
-                  "scope": 3629,
+                  "scope": 4163,
                   "src": "83:15:7",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -457,7 +593,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 3619,
+                    "id": 4153,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "83:7:7",
@@ -471,10 +607,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 3622,
+                  "id": 4156,
                   "name": "_nHash",
                   "nodeType": "VariableDeclaration",
-                  "scope": 3629,
+                  "scope": 4163,
                   "src": "100:14:7",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -483,7 +619,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 3621,
+                    "id": 4155,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "100:7:7",
@@ -497,10 +633,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 3624,
+                  "id": 4158,
                   "name": "_sig",
                   "nodeType": "VariableDeclaration",
-                  "scope": 3629,
+                  "scope": 4163,
                   "src": "116:19:7",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -509,7 +645,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 3623,
+                    "id": 4157,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "116:5:7",
@@ -525,15 +661,15 @@
               "src": "66:70:7"
             },
             "returnParameters": {
-              "id": 3628,
+              "id": 4162,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 3627,
+                  "id": 4161,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 3629,
+                  "scope": 4163,
                   "src": "155:7:7",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -542,7 +678,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 3626,
+                    "id": 4160,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "155:7:7",
@@ -557,7 +693,7 @@
               ],
               "src": "154:9:7"
             },
-            "scope": 3639,
+            "scope": 4183,
             "src": "50:114:7",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -566,22 +702,22 @@
           {
             "body": null,
             "documentation": null,
-            "id": 3638,
+            "id": 4172,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "shiftOut",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 3634,
+              "id": 4168,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 3631,
+                  "id": 4165,
                   "name": "_to",
                   "nodeType": "VariableDeclaration",
-                  "scope": 3638,
+                  "scope": 4172,
                   "src": "187:18:7",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -590,7 +726,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 3630,
+                    "id": 4164,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "187:5:7",
@@ -604,10 +740,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 3633,
+                  "id": 4167,
                   "name": "_amount",
                   "nodeType": "VariableDeclaration",
-                  "scope": 3638,
+                  "scope": 4172,
                   "src": "207:15:7",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -616,7 +752,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 3632,
+                    "id": 4166,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "207:7:7",
@@ -632,15 +768,15 @@
               "src": "186:37:7"
             },
             "returnParameters": {
-              "id": 3637,
+              "id": 4171,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 3636,
+                  "id": 4170,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 3638,
+                  "scope": 4172,
                   "src": "242:7:7",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -649,7 +785,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 3635,
+                    "id": 4169,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "242:7:7",
@@ -664,18 +800,126 @@
               ],
               "src": "241:9:7"
             },
-            "scope": 3639,
+            "scope": 4183,
             "src": "169:82:7",
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "body": null,
+            "documentation": null,
+            "id": 4177,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "shiftInFee",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 4173,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "275:2:7"
+            },
+            "returnParameters": {
+              "id": 4176,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4175,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4177,
+                  "src": "301:7:7",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 4174,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "301:7:7",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "300:9:7"
+            },
+            "scope": 4183,
+            "src": "256:54:7",
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "body": null,
+            "documentation": null,
+            "id": 4182,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "shiftOutFee",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 4178,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "335:2:7"
+            },
+            "returnParameters": {
+              "id": 4181,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4180,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4182,
+                  "src": "361:7:7",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 4179,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "361:7:7",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "360:9:7"
+            },
+            "scope": 4183,
+            "src": "315:55:7",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           }
         ],
-        "scope": 3640,
-        "src": "25:228:7"
+        "scope": 4184,
+        "src": "25:347:7"
       }
     ],
-    "src": "0:253:7"
+    "src": "0:372:7"
   },
   "compiler": {
     "name": "solc",
@@ -683,7 +927,7 @@
   },
   "networks": {},
   "schemaVersion": "3.0.16",
-  "updatedAt": "2019-10-25T05:03:01.738Z",
+  "updatedAt": "2019-10-29T06:31:54.115Z",
   "devdoc": {
     "methods": {}
   },

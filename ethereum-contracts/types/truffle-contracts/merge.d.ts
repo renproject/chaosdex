@@ -25,6 +25,10 @@ declare global {
       require(name: "ZECShifter"): TruffleContracts.ZECShifterContract;
       require(name: "zZEC"): TruffleContracts.zZECContract;
       require(
+        name: "BCH_DAI_Reserve"
+      ): TruffleContracts.BCH_DAI_ReserveContract;
+      require(name: "BCHShifter"): TruffleContracts.BCHShifterContract;
+      require(
         name: "BTC_DAI_Reserve"
       ): TruffleContracts.BTC_DAI_ReserveContract;
       require(name: "BTCShifter"): TruffleContracts.BTCShifterContract;
@@ -47,6 +51,7 @@ declare global {
         name: "ShifterRegistry"
       ): TruffleContracts.ShifterRegistryContract;
       require(name: "TestToken"): TruffleContracts.TestTokenContract;
+      require(name: "zBCH"): TruffleContracts.zBCHContract;
       require(name: "zBTC"): TruffleContracts.zBTCContract;
       require(
         name: "ZEC_DAI_Reserve"
