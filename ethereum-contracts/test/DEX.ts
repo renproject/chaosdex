@@ -3,7 +3,7 @@ import BN from "bn.js";
 import {
     DaiTokenInstance, DEXInstance, DEXReserveInstance, ERC20Instance, TestTokenInstance,
 } from "../types/truffle-contracts";
-import "./helper/testUtils";
+import { NULL } from "./helper/testUtils";
 
 const TestToken = artifacts.require("TestToken");
 const DAI = artifacts.require("DaiToken");
@@ -12,8 +12,10 @@ const DEX = artifacts.require("DEX");
 
 contract("DEX", (accounts) => {
     let dai: DaiTokenInstance;
-    let token3: TestTokenInstance;
-    let dexReserve3: DEXReserveInstance;
+    let token1: TestTokenInstance;
+    let dexReserve1: DEXReserveInstance;
+    let token2: TestTokenInstance;
+    let dexReserve2: DEXReserveInstance;
     let dex: DEXInstance;
 
     const randomAddress = accounts[7];
@@ -24,12 +26,18 @@ contract("DEX", (accounts) => {
 
     before(async () => {
         dai = await DAI.new();
-        token3 = await TestToken.new("TestToken1", "TST", 18);
-        dexReserve3 = await DEXReserve.new(dai.address, token3.address, dexFees);
-        dex = await DEX.new(dai.address);
-        await dex.registerReserve(token3.address, dexReserve3.address);
+        token1 = await TestToken.new("TestToken1", "TST", 18);
+        dexReserve1 = await DEXReserve.new(dai.address, token1.address, dexFees);
 
-        await depositToReserve(new BN(20000000000) /* DAI */, new BN(20000000000) /* token3 */, token3, dexReserve3);
+        token2 = await TestToken.new("TestToken2", "TST", 8);
+        dexReserve2 = await DEXReserve.new(dai.address, token2.address, dexFees);
+
+        dex = await DEX.new(dai.address);
+        await dex.registerReserve(token1.address, dexReserve1.address);
+        await dex.registerReserve(token2.address, dexReserve2.address);
+
+        await depositToReserve(new BN(20000000000) /* DAI */, new BN(15000000000) /* token1 */, token1, dexReserve1);
+        await depositToReserve(new BN(20000000000) /* DAI */, new BN(200000000) /* token2 */, token2, dexReserve2);
     });
 
     const depositToReserve = async (baseValue: BN, tokenValue: BN, token: ERC20Instance, reserve: DEXReserveInstance) => {
@@ -40,15 +48,57 @@ contract("DEX", (accounts) => {
 
     const tradeTokens = async (srcToken: ERC20Instance, dstToken: ERC20Instance) => {
         const value = new BN(225000);
-        const reserve = await dex.reserves.call(dstToken.address);
-        const amount = await dex.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
-        await srcToken.approve(reserve, value);
-        const initialBalance = new BN((await dstToken.balanceOf.call(reserve)).toString());
+        const srcReserve = await dex.reserves.call(srcToken.address);
+        const dstReserve = await dex.reserves.call(dstToken.address);
+
+        const receivingValue = await dex.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
+        await srcToken.approve(srcReserve === NULL ? dstReserve : srcReserve, value);
+
+        // Balances before
+        const srcReserveSrcBalanceBefore = new BN((await srcToken.balanceOf.call(srcReserve)).toString());
+        const srcReserveBaseBalanceBefore = new BN((await dai.balanceOf.call(srcReserve)).toString());
+        const srcReserveDstBalanceBefore = new BN((await dstToken.balanceOf.call(srcReserve)).toString());
+        const dstReserveSrcBalanceBefore = new BN((await srcToken.balanceOf.call(dstReserve)).toString());
+        const dstReserveBaseBalanceBefore = new BN((await dai.balanceOf.call(dstReserve)).toString());
+        const dstReserveDstBalanceBefore = new BN((await dstToken.balanceOf.call(dstReserve)).toString());
+
         await dex.trade(
             accounts[0], srcToken.address, dstToken.address, value,
         );
-        const finalBalance = new BN((await dstToken.balanceOf.call(reserve)).toString());
-        initialBalance.sub(finalBalance).should.bignumber.equal(amount);
+
+        // Balances after
+        const srcReserveSrcBalanceAfter = new BN((await srcToken.balanceOf.call(srcReserve)).toString());
+        const srcReserveBaseBalanceAfter = new BN((await dai.balanceOf.call(srcReserve)).toString());
+        const srcReserveDstBalanceAfter = new BN((await dstToken.balanceOf.call(srcReserve)).toString());
+        const dstReserveSrcBalanceAfter = new BN((await srcToken.balanceOf.call(dstReserve)).toString());
+        const dstReserveBaseBalanceAfter = new BN((await dai.balanceOf.call(dstReserve)).toString());
+        const dstReserveDstBalanceAfter = new BN((await dstToken.balanceOf.call(dstReserve)).toString());
+
+
+        if (srcReserve !== NULL && dstReserve !== NULL) {
+            // If the trade goes across two reserves, check that the base
+            // token's amount has changed by the same value across both.
+            srcReserveBaseBalanceBefore.sub(srcReserveBaseBalanceAfter).should.bignumber.gt(0);
+            dstReserveBaseBalanceAfter.sub(dstReserveBaseBalanceBefore).should.bignumber.equal(srcReserveBaseBalanceBefore.sub(srcReserveBaseBalanceAfter));
+        }
+
+        if (srcReserve !== NULL) {
+            // Check that the src reserve's balances have changed correctly.
+            srcReserveSrcBalanceAfter.sub(srcReserveSrcBalanceBefore).should.bignumber.equal(value);
+            // Only one shifter involved
+            if (dstReserve === NULL) {
+                srcReserveDstBalanceBefore.sub(srcReserveDstBalanceAfter).should.bignumber.equal(receivingValue);
+            }
+        }
+
+        if (dstReserve !== NULL) {
+            // Check that the dst reserve's balances have changed correctly.
+            dstReserveDstBalanceBefore.sub(dstReserveDstBalanceAfter).should.bignumber.equal(receivingValue);
+            // Only one shifter involved
+            if (srcReserve === NULL) {
+                dstReserveSrcBalanceAfter.sub(dstReserveSrcBalanceBefore).should.bignumber.equal(value);
+            }
+        }
     }
 
     it("should fail to trade unsupported tokens", async () => {
@@ -63,9 +113,11 @@ contract("DEX", (accounts) => {
         await dex.trade(accounts[0], randomAddress, randomAddress, 1000).should.be.rejectedWith(/unsupported token/);
     });
 
-    it("should trade dai to token3 on DEX", async () => {
-        await tradeTokens(dai, token3);
-    });
+    it("should trade dai to token1 on DEX", async () => tradeTokens(dai, token1));
+    it("should trade token1 to dai on DEX", async () => tradeTokens(token1, dai));
+    it("should trade dai to token2 on DEX", async () => tradeTokens(dai, token2));
+    it("should trade token1 to token2 on DEX", async () => tradeTokens(token1, token2));
+    it("should trade token2 to token1 on DEX", async () => tradeTokens(token2, token1));
 
     it("should be able to withdraw funds that are mistakenly sent to dex", async () => {
         await dai.transfer(dex.address, 1000);

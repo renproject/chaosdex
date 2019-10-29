@@ -3,7 +3,7 @@ import BN from "bn.js";
 import {
     DaiTokenInstance, DEXReserveInstance, ERC20Instance, RenTokenInstance, TestTokenInstance,
 } from "../types/truffle-contracts";
-import "./helper/testUtils";
+import { advanceBlocks } from "./helper/testUtils";
 
 const TestToken = artifacts.require("TestToken");
 const DAI = artifacts.require("DaiToken");
@@ -33,16 +33,6 @@ contract("DEXReserve", (accounts) => {
         await reserve.addLiquidity(accounts[0], baseValue, tokenValue, deadline);
     };
 
-    const depositToReserveWOToken = async (value: BN, token: ERC20Instance, reserve: DEXReserveInstance) => {
-        await dai.approve(reserve.address, value);
-        await reserve.addLiquidity(accounts[0], value, 0, deadline).should.be.rejectedWith(/token amount is less than allowed min amount/);
-    };
-
-    const depositToReserveWODAI = async (value: BN, token: ERC20Instance, reserve: DEXReserveInstance) => {
-        await token.approve(reserve.address, value);
-        await reserve.addLiquidity(accounts[0], value, value, deadline).should.be.rejectedWith(/SafeERC20: low-level call failed/);
-    };
-
     const depositToReserveExpired = async (value: BN, token: ERC20Instance, reserve: DEXReserveInstance) => {
         await dai.approve(reserve.address, value);
         await token.approve(reserve.address, value);
@@ -70,11 +60,6 @@ contract("DEXReserve", (accounts) => {
     });
 
     it("should deposit token3 to the reserve3", async () => {
-        const value = new BN(20000000000);
-        await depositToReserveWODAI(value, token3, dexReserve3);
-    });
-
-    it("should deposit token3 to the reserve3", async () => {
         const daiValue = new BN(20000000000);
         const tokenValue = new BN(20000000000);
         await depositToReserve(daiValue, tokenValue, token3, dexReserve3);
@@ -82,12 +67,14 @@ contract("DEXReserve", (accounts) => {
 
     it("should deposit token3 to the reserve3", async () => {
         const value = new BN(20000000000);
-        await depositToReserveWODAI(value, token3, dexReserve3);
+        await token3.approve(dexReserve3.address, value);
+        await dexReserve3.addLiquidity(accounts[0], value, value, deadline).should.be.rejectedWith(/SafeERC20: low-level call failed/);
     });
 
     it("should deposit token3 to the reserve3", async () => {
         const value = new BN(20000000000);
-        await depositToReserveWOToken(value, token3, dexReserve3);
+        await dai.approve(dexReserve3.address, value);
+        await dexReserve3.addLiquidity(accounts[0], value, 0, deadline).should.be.rejectedWith(/token amount is less than allowed min amount/);
     });
 
     it("should deposit token3 to the reserve3 when it has liquidity", async () => {
@@ -120,6 +107,10 @@ contract("DEXReserve", (accounts) => {
         await dexReserve3.recoverTokens(token3.address, { from: accounts[0] })
             .should.be.rejectedWith(/not allowed to recover reserve tokens/);
 
+        // Only the owner can recover tokens
+        await dexReserve3.recoverTokens(ren.address, { from: accounts[1] })
+            .should.be.rejectedWith(/caller is not the owner/);
+
         // Can recover unrelated token
         await dexReserve3.recoverTokens(ren.address, { from: accounts[0] });
         const finalDaiBalance = new BN((await dai.balanceOf.call(accounts[0])).toString());
@@ -127,4 +118,29 @@ contract("DEXReserve", (accounts) => {
         finalDaiBalance.should.bignumber.equal(initialDaiBalance);
         finalTokenBalance.sub(initialTokenBalance).should.bignumber.equal(1000);
     });
+
+    it("should be able to change the reserve fees as the owner", async () => {
+        const fee = await dexReserve3.feeInBIPS();
+
+        // Fee is too high
+        await dexReserve3.updateFee(1000)
+            .should.be.rejectedWith(/fee must not exceed hard-coded limit/);
+
+        // Signal fee update
+        await dexReserve3.updateFee(0);
+
+        // Before waiting 100 blocks
+        await dexReserve3.updateFee(0)
+            .should.be.rejectedWith(/must wait 100 blocks before updating the fee/);
+        (await dexReserve3.feeInBIPS()).should.bignumber.equal(fee);
+
+        // Wait 100 blocks
+        await advanceBlocks(100);
+        (await dexReserve3.feeInBIPS()).should.bignumber.equal(fee);
+        await dexReserve3.updateFee(0);
+        (await dexReserve3.feeInBIPS()).should.bignumber.equal(0);
+
+        await dexReserve3.updateFee(1, { from: accounts[1] })
+            .should.be.rejectedWith(/caller is not the owner/);
+    })
 });

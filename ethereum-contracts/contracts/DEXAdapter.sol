@@ -79,7 +79,7 @@ contract DEXAdapter {
                 shifterRegistry.getShifterByToken(_token).shiftOut(_refundAddress, shiftedAmount);
                 return 0;
             }
-            require(ERC20(dex.BaseToken()).allowance(_liquidityProvider, address(reserve)) >= _maxBaseToken,
+            require(ERC20(dex.baseToken()).allowance(_liquidityProvider, address(reserve)) >= _maxBaseToken,
                 "insufficient base token allowance");
             uint256 transferredAmount = _transferIn(_token, _amount, _nHash, lpHash, _sig);
             ERC20(_token).approve(address(reserve), transferredAmount);
@@ -91,8 +91,8 @@ contract DEXAdapter {
         require(reserve != DEXReserve(0x0), "unsupported token");
         ERC20(reserve).safeTransferFrom(msg.sender, address(this), _liquidity);
         (uint256 baseTokenAmount, uint256 quoteTokenAmount) = reserve.removeLiquidity(_liquidity);
-        reserve.BaseToken().safeTransfer(msg.sender, baseTokenAmount);
-        shifterRegistry.getShifterByToken(address(reserve.Token())).shiftOut(_tokenAddress, quoteTokenAmount);
+        reserve.baseToken().safeTransfer(msg.sender, baseTokenAmount);
+        shifterRegistry.getShifterByToken(address(reserve.token())).shiftOut(_tokenAddress, quoteTokenAmount);
     }
 
     function _doTrade(
@@ -108,7 +108,7 @@ contract DEXAdapter {
             to = _bytesToAddress(_to);
         }
 
-        if (_src == dex.BaseToken()) {
+        if (_src == dex.baseToken()) {
             ERC20(_src).approve(address(dex.reserves(_dst)), _amount);
         } else {
             ERC20(_src).approve(address(dex.reserves(_src)), _amount);

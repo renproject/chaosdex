@@ -13,70 +13,73 @@ contract DEXReserve is ERC20, Ownable {
     using SafeMath for uint256;
     using SafeERC20 for ERC20;
 
-    uint256 FeeInBIPS;
-    uint256 PendingFeeInBIPS;
-    uint256 FeeChangeBlock;
+    uint256 public feeInBIPS;
+    uint256 public pendingFeeInBIPS;
+    uint256 public feeChangeBlock;
 
-    ERC20 public BaseToken;
-    ERC20 public Token;
+    ERC20 public baseToken;
+    ERC20 public token;
     event LogAddLiquidity(address _liquidityProvider, uint256 _tokenAmount, uint256 _baseTokenAmount);
     event LogDebug(uint256 _rcvAmount);
     event LogFeesChanged(uint256 _previousFeeInBIPS, uint256 _newFeeInBIPS);
 
     constructor (ERC20 _baseToken, ERC20 _token, uint256 _feeInBIPS) public {
-        BaseToken = _baseToken;
-        Token = _token;
-        FeeInBIPS = _feeInBIPS;
-        PendingFeeInBIPS = _feeInBIPS;
+        baseToken = _baseToken;
+        token = _token;
+        feeInBIPS = _feeInBIPS;
+        pendingFeeInBIPS = _feeInBIPS;
     }
 
     /// @notice Allow anyone to recover funds accidentally sent to the contract.
     /// To withdraw ETH, the token should be set to `0x0`.
     function recoverTokens(address _token) external onlyOwner {
-        require(ERC20(_token) != BaseToken && ERC20(_token) != Token, "not allowed to recover reserve tokens");
+        require(ERC20(_token) != baseToken && ERC20(_token) != token, "not allowed to recover reserve tokens");
         ERC20(_token).transfer(msg.sender, ERC20(_token).balanceOf(address(this)));
     }
 
     /// @notice Allow the reserve manager too update the contract fees.
     /// There is a 10 block delay to reduce the chance of front-running trades.
     function updateFee(uint256 _pendingFeeInBIPS) external onlyOwner {
-        if (_pendingFeeInBIPS == PendingFeeInBIPS) {
-            require(block.number >= FeeChangeBlock);
-            emit LogFeesChanged(FeeInBIPS, PendingFeeInBIPS);
-            FeeInBIPS = PendingFeeInBIPS;
+        if (_pendingFeeInBIPS == pendingFeeInBIPS) {
+            require(block.number >= feeChangeBlock, "must wait 100 blocks before updating the fee");
+            emit LogFeesChanged(feeInBIPS, pendingFeeInBIPS);
+            feeInBIPS = pendingFeeInBIPS;
         } else {
-            FeeChangeBlock = FeeChangeBlock + 100;
-            PendingFeeInBIPS = _pendingFeeInBIPS;
+            // @dev 500 was chosen as an arbitrary limit - the fee should be
+            // well below that.
+            require(_pendingFeeInBIPS < 500, "fee must not exceed hard-coded limit");
+            feeChangeBlock = block.number + 100;
+            pendingFeeInBIPS = _pendingFeeInBIPS;
         }
     }
 
     function buy(address _to, address _from, uint256 _baseTokenAmount) external returns (uint256)  {
         require(totalSupply() != 0, "reserve has no funds");
         uint256 rcvAmount = calculateBuyRcvAmt(_baseTokenAmount);
-        BaseToken.safeTransferFrom(_from, address(this), _baseTokenAmount);
-        Token.safeTransfer(_to, rcvAmount);
+        baseToken.safeTransferFrom(_from, address(this), _baseTokenAmount);
+        token.safeTransfer(_to, rcvAmount);
         return rcvAmount;
     }
 
     function sell(address _to, address _from, uint256 _tokenAmount) external returns (uint256) {
         require(totalSupply() != 0, "reserve has no funds");
         uint256 rcvAmount = calculateSellRcvAmt(_tokenAmount);
-        Token.safeTransferFrom(_from, address(this), _tokenAmount);
-        BaseToken.safeTransfer(_to, rcvAmount);
+        token.safeTransferFrom(_from, address(this), _tokenAmount);
+        baseToken.safeTransfer(_to, rcvAmount);
         return rcvAmount;
     }
 
     function calculateBuyRcvAmt(uint256 _sendAmt) public view returns (uint256) {
-        uint256 baseReserve = BaseToken.balanceOf(address(this));
-        uint256 tokenReserve = Token.balanceOf(address(this));
+        uint256 baseReserve = baseToken.balanceOf(address(this));
+        uint256 tokenReserve = token.balanceOf(address(this));
         uint256 finalQuoteTokenAmount = (baseReserve.mul(tokenReserve)).div(baseReserve.add(_sendAmt));
         uint256 rcvAmt = tokenReserve.sub(finalQuoteTokenAmount);
         return _removeFees(rcvAmt);
     }
 
     function calculateSellRcvAmt(uint256 _sendAmt) public view returns (uint256) {
-        uint256 baseReserve = BaseToken.balanceOf(address(this));
-        uint256 tokenReserve = Token.balanceOf(address(this));
+        uint256 baseReserve = baseToken.balanceOf(address(this));
+        uint256 tokenReserve = token.balanceOf(address(this));
         uint256 finalBaseTokenAmount = (baseReserve.mul(tokenReserve)).div(tokenReserve.add(_sendAmt));
         uint256 rcvAmt = baseReserve.sub(finalBaseTokenAmount);
         return _removeFees(rcvAmt);
@@ -87,8 +90,8 @@ contract DEXReserve is ERC20, Ownable {
         uint256 baseTokenAmount = calculateBaseTokenValue(_liquidity);
         uint256 quoteTokenAmount = calculateQuoteTokenValue(_liquidity);
         _burn(msg.sender, _liquidity);
-        BaseToken.safeTransfer(msg.sender, baseTokenAmount);
-        Token.safeTransfer(msg.sender, quoteTokenAmount);
+        baseToken.safeTransfer(msg.sender, baseTokenAmount);
+        token.safeTransfer(msg.sender, quoteTokenAmount);
         return (baseTokenAmount, quoteTokenAmount);
     }
 
@@ -100,37 +103,37 @@ contract DEXReserve is ERC20, Ownable {
             require(_tokenAmount > 0, "token amount is less than allowed min amount");
             uint256 baseAmount = expectedBaseTokenAmount(_tokenAmount);
             require(baseAmount <= _maxBaseToken, "calculated base amount exceeds the maximum amount set");
-            BaseToken.safeTransferFrom(_liquidityProvider, address(this), baseAmount);
+            baseToken.safeTransferFrom(_liquidityProvider, address(this), baseAmount);
             emit LogAddLiquidity(_liquidityProvider, _tokenAmount, baseAmount);
         } else {
-            BaseToken.safeTransferFrom(_liquidityProvider, address(this), _maxBaseToken);
+            baseToken.safeTransferFrom(_liquidityProvider, address(this), _maxBaseToken);
             emit LogAddLiquidity(_liquidityProvider, _tokenAmount, _maxBaseToken);
         }
-        Token.safeTransferFrom(msg.sender, address(this), _tokenAmount);
+        token.safeTransferFrom(msg.sender, address(this), _tokenAmount);
         _mint(_liquidityProvider, _tokenAmount*2);
         return _tokenAmount*2;
     }
 
     function calculateBaseTokenValue(uint256 _liquidity) public view returns (uint256) {
         require(totalSupply() != 0, "division by zero");
-        uint256 baseReserve = BaseToken.balanceOf(address(this));
+        uint256 baseReserve = baseToken.balanceOf(address(this));
         return (_liquidity * baseReserve)/totalSupply();
     }
 
     function calculateQuoteTokenValue(uint256 _liquidity) public view returns (uint256) {
         require(totalSupply() != 0,  "division by zero");
-        uint256 tokenReserve = Token.balanceOf(address(this));
+        uint256 tokenReserve = token.balanceOf(address(this));
         return (_liquidity * tokenReserve)/totalSupply();
     }
 
     function expectedBaseTokenAmount(uint256 _quoteTokenAmount) public view returns (uint256) {
-        uint256 baseReserve = BaseToken.balanceOf(address(this));
-        uint256 tokenReserve = Token.balanceOf(address(this));
+        uint256 baseReserve = baseToken.balanceOf(address(this));
+        uint256 tokenReserve = token.balanceOf(address(this));
         return (_quoteTokenAmount * baseReserve)/tokenReserve;
     }
 
     function _removeFees(uint256 _amount) internal view returns (uint256) {
-        return (_amount * (10000 - FeeInBIPS))/10000;
+        return (_amount * (10000 - feeInBIPS))/10000;
     }
 }
 

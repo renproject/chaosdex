@@ -17,13 +17,13 @@ import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 /// Once a reserve has been registered, it can't be updated.
 contract DEX is Ownable {
     mapping (address=>DEXReserve) public reserves;
-    address public BaseToken;
+    address public baseToken;
 
     event LogTrade(address _src, address _dst, uint256 _sendAmount, uint256 _recvAmount);
 
     /// @param _baseToken The reserves must all have a common base token.
     constructor(address _baseToken) public {
-        BaseToken = _baseToken;
+        baseToken = _baseToken;
     }
 
     /// @notice Allow anyone to recover funds accidentally sent to the contract.
@@ -47,16 +47,16 @@ contract DEX is Ownable {
     /// @param _sendAmount The amount of the source token being traded.
     function trade(address _to, address _src, address _dst, uint256 _sendAmount) public returns (uint256) {
         uint256 recvAmount;
-        if (_src == BaseToken) {
+        if (_src == baseToken) {
             require(reserves[_dst] != DEXReserve(0x0), "unsupported token");
             recvAmount = reserves[_dst].buy(_to, msg.sender, _sendAmount);
-        } else if (_dst == BaseToken) {
+        } else if (_dst == baseToken) {
             require(reserves[_src] != DEXReserve(0x0), "unsupported token");
             recvAmount = reserves[_src].sell(_to, msg.sender, _sendAmount);
         } else {
             require(reserves[_src] != DEXReserve(0x0) && reserves[_dst] != DEXReserve(0x0), "unsupported token");
             uint256 intermediteAmount = reserves[_src].sell(address(this), msg.sender, _sendAmount);
-            ERC20(BaseToken).approve(address(reserves[_dst]), intermediteAmount);
+            ERC20(baseToken).approve(address(reserves[_dst]), intermediteAmount);
             recvAmount = reserves[_dst].buy(_to, address(this), intermediteAmount);
         }
         emit LogTrade(_src, _dst, _sendAmount, recvAmount);
@@ -69,10 +69,10 @@ contract DEX is Ownable {
     /// @param _dst The address of the token being received.
     /// @param _sendAmount The amount of the source token being traded.
     function calculateReceiveAmount(address _src, address _dst, uint256 _sendAmount) public view returns (uint256) {
-        if (_src == BaseToken) {
+        if (_src == baseToken) {
             return reserves[_dst].calculateBuyRcvAmt(_sendAmount);
         }
-        if (_dst == BaseToken) {
+        if (_dst == baseToken) {
             return reserves[_src].calculateSellRcvAmt(_sendAmount);
         }
         return reserves[_dst].calculateBuyRcvAmt(reserves[_src].calculateSellRcvAmt(_sendAmount));

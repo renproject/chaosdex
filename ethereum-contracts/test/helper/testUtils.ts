@@ -22,3 +22,22 @@ export const NULL32 = "0x0000000000000000000000000000000000000000000000000000000
 export const randomBytes = (bytes: number): string => {
     return `0x${crypto.randomBytes(bytes).toString("hex")}`;
 };
+
+export const advanceBlock = () => {
+    return new Promise((resolve, reject) => {
+        (web3.currentProvider.send as any)({
+            jsonrpc: '2.0',
+            method: 'evm_mine',
+            id: new Date().getTime(),
+        }, ((err, result) => {
+            if (err) { return reject(err); }
+            return resolve()
+        }) as any)
+    })
+}
+
+export const advanceBlocks = async (blocks: number) => {
+    for (let i = 0; i < blocks; i++) {
+        await advanceBlock();
+    }
+}
