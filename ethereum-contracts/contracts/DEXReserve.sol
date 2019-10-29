@@ -5,27 +5,49 @@ import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-contract DEXReserve is ERC20 {
+/// @title DEXReserve
+/// @notice The DEX Reserve holds the liquidity for a single token pair for the
+/// DEX. Anyone can add liquidity, receiving in return a token representing
+/// a share in the funds held by the reserve.
+contract DEXReserve is ERC20, Ownable {
     using SafeMath for uint256;
     using SafeERC20 for ERC20;
 
     uint256 FeeInBIPS;
+    uint256 PendingFeeInBIPS;
+    uint256 FeeChangeBlock;
+
     ERC20 public BaseToken;
     ERC20 public Token;
     event LogAddLiquidity(address _liquidityProvider, uint256 _tokenAmount, uint256 _baseTokenAmount);
     event LogDebug(uint256 _rcvAmount);
+    event LogFeesChanged(uint256 _previousFeeInBIPS, uint256 _newFeeInBIPS);
 
     constructor (ERC20 _baseToken, ERC20 _token, uint256 _feeInBIPS) public {
         BaseToken = _baseToken;
         Token = _token;
         FeeInBIPS = _feeInBIPS;
+        PendingFeeInBIPS = _feeInBIPS;
     }
 
     /// @notice Allow anyone to recover funds accidentally sent to the contract.
     /// To withdraw ETH, the token should be set to `0x0`.
-    function recoverTokens(address _token) external {
+    function recoverTokens(address _token) external onlyOwner {
         require(ERC20(_token) != BaseToken && ERC20(_token) != Token, "not allowed to recover reserve tokens");
         ERC20(_token).transfer(msg.sender, ERC20(_token).balanceOf(address(this)));
+    }
+
+    /// @notice Allow the reserve manager too update the contract fees.
+    /// There is a 10 block delay to reduce the chance of front-running trades.
+    function updateFee(uint256 _pendingFeeInBIPS) external onlyOwner {
+        if (_pendingFeeInBIPS == PendingFeeInBIPS) {
+            require(block.number >= FeeChangeBlock);
+            emit LogFeesChanged(FeeInBIPS, PendingFeeInBIPS);
+            FeeInBIPS = PendingFeeInBIPS;
+        } else {
+            FeeChangeBlock = FeeChangeBlock + 100;
+            PendingFeeInBIPS = _pendingFeeInBIPS;
+        }
     }
 
     function buy(address _to, address _from, uint256 _baseTokenAmount) external returns (uint256)  {
