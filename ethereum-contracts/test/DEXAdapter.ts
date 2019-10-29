@@ -123,7 +123,7 @@ contract("DEXAdapter", (accounts) => {
         await dexAdapter.removeLiquidity(token.address, liquidity, "0x0011001100110011");
     }
 
-    const sellShiftedTokenExpired = async (srcToken: ERC20Instance, srcShifter: ShifterInstance, dstToken: ERC20Instance) => {
+    const tradeShiftedTokensExpired = async (srcToken: ERC20Instance, srcShifter: ShifterInstance, dstToken: ERC20Instance) => {
         const nHash = `0x${randomBytes(32).toString("hex")}`
         const value = new BN(22500);
         const commitment = await dexAdapter.hashTradePayload.call(
@@ -146,7 +146,7 @@ contract("DEXAdapter", (accounts) => {
         initialBalance.sub(finalBalance).should.bignumber.equal(0);
     }
 
-    const sellShiftedToken = async (srcToken: ERC20Instance, dstToken: ERC20Instance) => {
+    const tradeShiftedTokens = async (srcToken: ERC20Instance, dstToken: ERC20Instance) => {
         let amount, sigString;
         const value = new BN(22500);
         const nHash = `0x${randomBytes(32).toString("hex")}`
@@ -327,31 +327,31 @@ contract("DEXAdapter", (accounts) => {
         await shiftToReserve(daiValue, tokenValue, zToken2, dexReserve2);
     });
 
-    it("should trade dai to token1 on DEX", async () => sellShiftedToken(dai, zToken1));
-    it("should trade dai to token2 on DEX", async () => sellShiftedToken(dai, zToken2));
-    it("should trade token1 to token2 on DEX", async () => sellShiftedToken(zToken1, zToken2));
-    it("should trade token2 to token1 on DEX", async () => sellShiftedToken(zToken2, zToken1));
-    it("should trade token1 to dai on DEX", async () => sellShiftedToken(zToken1, dai));
-    it("should trade token2 to dai on DEX", async () => sellShiftedToken(zToken2, dai));
-    it("should trade token2 to token3 on DEX", async () => sellShiftedToken(zToken2, token3));
-    it("should trade token3 to token2 on DEX", async () => sellShiftedToken(token3, zToken2));
-    it("should trade token1 to token3 on DEX", async () => sellShiftedToken(zToken1, token3));
-    it("should trade token3 to token1 on DEX", async () => sellShiftedToken(token3, zToken1));
+    it("should trade dai to token1 on DEX", async () => tradeShiftedTokens(dai, zToken1));
+    it("should trade dai to token2 on DEX", async () => tradeShiftedTokens(dai, zToken2));
+    it("should trade token1 to token2 on DEX", async () => tradeShiftedTokens(zToken1, zToken2));
+    it("should trade token2 to token1 on DEX", async () => tradeShiftedTokens(zToken2, zToken1));
+    it("should trade token1 to dai on DEX", async () => tradeShiftedTokens(zToken1, dai));
+    it("should trade token2 to dai on DEX", async () => tradeShiftedTokens(zToken2, dai));
+    it("should trade token2 to token3 on DEX", async () => tradeShiftedTokens(zToken2, token3));
+    it("should trade token3 to token2 on DEX", async () => tradeShiftedTokens(token3, zToken2));
+    it("should trade token1 to token3 on DEX", async () => tradeShiftedTokens(zToken1, token3));
+    it("should trade token3 to token1 on DEX", async () => tradeShiftedTokens(token3, zToken1));
 
     it("should fail to trade token1 to dai on DEX after expiry", async () => {
-        await sellShiftedTokenExpired(zToken1, shifter1, dai)
+        await tradeShiftedTokensExpired(zToken1, shifter1, dai)
     });
 
     it("should fail to trade token2 to dai on DEX after expiry", async () => {
-        await sellShiftedTokenExpired(zToken2, shifter2, dai)
+        await tradeShiftedTokensExpired(zToken2, shifter2, dai)
     });
 
     it("should fail to trade token1 to token3 on DEX after expiry", async () => {
-        await sellShiftedTokenExpired(zToken1, shifter1, token3)
+        await tradeShiftedTokensExpired(zToken1, shifter1, token3)
     });
 
     it("should fail to trade token2 to token3 on DEX after expiry", async () => {
-        await sellShiftedTokenExpired(zToken2, shifter2, token3)
+        await tradeShiftedTokensExpired(zToken2, shifter2, token3)
     });
 
     it("should withdraw dai and token1 from the reserve1", async () => await removeShiftedLiquidity(zToken1, dexReserve1));
