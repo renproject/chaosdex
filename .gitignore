@@ -27,7 +27,6 @@ in_complete_tests
 build/development
 local_*
 bindings.go
-types
 
 # ABI location
 /react-client/src/contracts/development
