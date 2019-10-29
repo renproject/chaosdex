@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "typeRoots": [
-            "ethereum-contracts/types"
+            "types"
         ],
         "lib": [
             "es2015"
