@@ -52,20 +52,20 @@ contract("DEXAdapter", (accounts) => {
 
         dai = await DAI.new();
         zToken1 = await zBTC.new();
-        shifter1 = await Shifter.new(zToken1.address, feeRecipient, mintAuthority.address, shifterFees, zBTCMinShiftOutAmount);
+        shifter1 = await Shifter.new(zToken1.address, feeRecipient, mintAuthority.address, shifterFees, shifterFees, zBTCMinShiftOutAmount);
         await zToken1.transferOwnership(shifter1.address);
         await shifter1.claimTokenOwnership();
 
         zToken2 = await zZEC.new();
-        shifter2 = await Shifter.new(zToken2.address, feeRecipient, mintAuthority.address, shifterFees, zZECMinShiftOutAmount);
+        shifter2 = await Shifter.new(zToken2.address, feeRecipient, mintAuthority.address, shifterFees, shifterFees, zZECMinShiftOutAmount);
         await zToken2.transferOwnership(shifter2.address);
         await shifter2.claimTokenOwnership();
 
         token3 = await TestToken.new("TestToken1", "TST", 18);
 
-        dexReserve1 = await DEXReserve.new(dai.address, zToken1.address, dexFees);
-        dexReserve2 = await DEXReserve.new(dai.address, zToken2.address, dexFees);
-        dexReserve3 = await DEXReserve.new(dai.address, token3.address, dexFees);
+        dexReserve1 = await DEXReserve.new("Bitcoin Liquidity Token", "BTCLT", 8, dai.address, zToken1.address, dexFees);
+        dexReserve2 = await DEXReserve.new("ZCash Liquidity Token", "ZECLT", 8, dai.address, zToken2.address, dexFees);
+        dexReserve3 = await DEXReserve.new("TestToken1 Liquidity Token", "TSTLT", 18, dai.address, token3.address, dexFees);
 
         dex = await DEX.new(dai.address);
         await dex.registerReserve(zToken1.address, dexReserve1.address);
@@ -89,7 +89,8 @@ contract("DEXAdapter", (accounts) => {
     const shiftToReserve = async (baseValue: BN, tokenValue: BN, token: ERC20Instance, reserve: DEXReserveInstance) => {
         await dai.approve(reserve.address, baseValue);
 
-        const shifter = await shifterRegistry.getShifterByToken(token.address);
+        const shifter = await shifterRegistry.getShifterByToken.call(token.address);
+        console.log(shifter);
         if (shifter === NULL) {
             await token.approve(reserve.address, removeFee(tokenValue, shifterFees));
             await reserve.addLiquidity(accounts[0], baseValue, removeFee(tokenValue, shifterFees), deadline);
@@ -160,7 +161,6 @@ contract("DEXAdapter", (accounts) => {
             sigString = `0x${randomBytes(32).toString("hex")}`;
         } else {
             receivingValue = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, removeFee(value, shifterFees));
-
             const commitment = await dexAdapter.hashTradePayload.call(
                 srcToken.address, dstToken.address, 0, recipient,
                 100000, "0x010101010101",
