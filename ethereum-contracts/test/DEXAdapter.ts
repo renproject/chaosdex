@@ -18,7 +18,7 @@ const DEX = artifacts.require("DEX");
 const DEXAdapter = artifacts.require("DEXAdapter");
 const ShifterRegistry = artifacts.require("ShifterRegistry");
 
-contract.only("DEXAdapter", (accounts) => {
+contract("DEXAdapter", (accounts) => {
     let dai: DaiTokenInstance;
     let shifter1: ShifterInstance;
     let shifter2: ShifterInstance;
