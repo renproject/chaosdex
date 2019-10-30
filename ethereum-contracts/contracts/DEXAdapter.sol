@@ -145,18 +145,30 @@ contract DEXAdapter {
     }
 
     function calculateReceiveAmount(address _src, address _dst, uint256 _sendAmount) public view returns (uint256) {
-        IShifter shifter = shifterRegistry.getShifterByToken(_src);
-        if (shifter != IShifter(0x0)) {
-            _sendAmount = removeFee(_sendAmount, shifter.shiftInFee());
+        uint256 sendAmount = _sendAmount;
+
+        // Remove shift-in fees
+        IShifter srcShifter = shifterRegistry.getShifterByToken(_dst);
+        if (srcShifter != IShifter(0x0)) {
+            sendAmount = removeShiftInFee(srcShifter, _sendAmount);
         }
-        shifter = shifterRegistry.getShifterByToken(_dst);
-        if (shifter != IShifter(0x0)) {
-            return removeFee(dex.calculateReceiveAmount(_src, _dst, _sendAmount), shifter.shiftOutFee());
-        } 
-        return dex.calculateReceiveAmount(_src, _dst, _sendAmount);
+
+        uint256 receiveAmount = dex.calculateReceiveAmount(_src, _dst, sendAmount);
+
+        // Remove shift-out fees
+        IShifter dstShifter = shifterRegistry.getShifterByToken(_dst);
+        if (dstShifter != IShifter(0x0)) {
+            receiveAmount = removeShiftOutFee(dstShifter, receiveAmount);
+        }
+
+        return receiveAmount;
     }
 
-    function removeFee(uint256 _amount, uint256 _bips) private view returns (uint256) {
-        return _amount - ((_amount *_bips)/10000);
+    function removeShiftInFee(IShifter _shifter, uint256 _amount) private view returns (uint256) {
+        return (_amount * (10000 - _shifter.shiftInFee()))/10000;
+    }
+
+    function removeShiftOutFee(IShifter _shifter, uint256 _amount) private view returns (uint256) {
+        return (_amount * (10000 - _shifter.shiftOutFee()))/10000;
     }
 }
