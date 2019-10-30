@@ -7,6 +7,7 @@ import {
     ERC20ShiftedInstance, ShifterInstance, ShifterRegistryInstance, TestTokenInstance,
 } from "../types/truffle-contracts";
 import { NULL } from "./helper/testUtils";
+import { format } from "util";
 
 const TestToken = artifacts.require("TestToken");
 const DAI = artifacts.require("DaiToken");
@@ -152,22 +153,21 @@ contract("DEXAdapter", (accounts) => {
         const value = new BN(22500);
         const nHash = `0x${randomBytes(32).toString("hex")}`
 
-        const dstShifter = await shifterRegistry.getShifterByToken(dstToken.address);
-        const srcShifter = await shifterRegistry.getShifterByToken(srcToken.address);
+        const dstShifter = await shifterRegistry.getShifterByToken.call(dstToken.address);
+        const srcShifter = await shifterRegistry.getShifterByToken.call(srcToken.address);
         if (srcShifter === NULL) {
             receivingValue = await dex.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
             receivingValueAfterFees = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
             await srcToken.approve(dexAdapter.address, value);
             sigString = `0x${randomBytes(32).toString("hex")}`;
         } else {
-            receivingValue = await dex.calculateReceiveAmount.call(srcToken.address, dstToken.address, removeFee(value, shifterFees));
-            receivingValueAfterFees = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, removeFee(value, shifterFees));
+            receivingValue = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
             const commitment = await dexAdapter.hashTradePayload.call(
                 srcToken.address, dstToken.address, 0, recipient,
                 100000, "0x010101010101",
             );
-
-            const hash = await (await Shifter.at(srcShifter)).hashForSignature.call(commitment, value, dexAdapter.address, nHash);
+            const srcShifterContract = await Shifter.at(srcShifter);
+            const hash = await srcShifterContract.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
             const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
             sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
         }
@@ -227,7 +227,12 @@ contract("DEXAdapter", (accounts) => {
 
         if (dstReserve !== NULL) {
             // Check that the dst reserve's balances have changed correctly.
-            dstReserveDstBalanceBefore.sub(dstReserveDstBalanceAfter).should.bignumber.equal(receivingValue);
+            if (dstShifter !== NULL) {
+                dstReserveDstBalanceBefore.sub(dstReserveDstBalanceAfter).should.bignumber.equal(receivingValue);
+            } else {
+                dstReserveDstBalanceBefore.sub(dstReserveDstBalanceAfter).should.bignumber.equal(receivingValue);
+            }
+
             // Only one shifter involved
             if (srcReserve === NULL) {
                 dstReserveSrcBalanceAfter.sub(dstReserveSrcBalanceBefore).should.bignumber.equal(value);
