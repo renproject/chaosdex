@@ -28,6 +28,7 @@ build/development
 local_*
 bindings.go
 types/truffle-contracts
+ethereum-contracts/react-client
 
 # ABI location
 /react-client/src/contracts/development
