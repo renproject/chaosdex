@@ -7,6 +7,7 @@ import {
     ERC20ShiftedInstance, ShifterInstance, ShifterRegistryInstance, TestTokenInstance,
 } from "../types/truffle-contracts";
 import { NULL } from "./helper/testUtils";
+import { format } from "util";
 
 const TestToken = artifacts.require("TestToken");
 const DAI = artifacts.require("DaiToken");
@@ -147,7 +148,7 @@ contract("DEXAdapter", (accounts) => {
     }
 
     const tradeShiftedTokens = async (srcToken: ERC20Instance, dstToken: ERC20Instance) => {
-        let receivingValue, sigString;
+        let receivingValue, sigString, receivingValueAfterFees;
         const recipient = accounts[3];
         const value = new BN(22500);
         const nHash = `0x${randomBytes(32).toString("hex")}`
@@ -155,7 +156,8 @@ contract("DEXAdapter", (accounts) => {
         const dstShifter = await shifterRegistry.getShifterByToken.call(dstToken.address);
         const srcShifter = await shifterRegistry.getShifterByToken.call(srcToken.address);
         if (srcShifter === NULL) {
-            receivingValue = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
+            receivingValue = await dex.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
+            receivingValueAfterFees = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
             await srcToken.approve(dexAdapter.address, value);
             sigString = `0x${randomBytes(32).toString("hex")}`;
         } else {
@@ -226,7 +228,7 @@ contract("DEXAdapter", (accounts) => {
         if (dstReserve !== NULL) {
             // Check that the dst reserve's balances have changed correctly.
             if (dstShifter !== NULL) {
-                removeFee(dstReserveDstBalanceBefore.sub(dstReserveDstBalanceAfter), shifterFees).should.bignumber.equal(receivingValue);
+                dstReserveDstBalanceBefore.sub(dstReserveDstBalanceAfter).should.bignumber.equal(receivingValue);
             } else {
                 dstReserveDstBalanceBefore.sub(dstReserveDstBalanceAfter).should.bignumber.equal(receivingValue);
             }
