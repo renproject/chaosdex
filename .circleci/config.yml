@@ -21,7 +21,7 @@ commands:
             - v2-dependencies-{{ checksum "yarn.lock" }}
       - run:
           name: Install Dependencies
-          command: yarn install
+          command: yarn install --network-concurrency 1
       - save_cache:
           name: Save node_modules
           paths:
