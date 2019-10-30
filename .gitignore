@@ -27,7 +27,7 @@ in_complete_tests
 build/development
 local_*
 bindings.go
-types/truffle-contracts
+ethereum-contracts/types/truffle-contracts
 ethereum-contracts/react-client
 
 # ABI location

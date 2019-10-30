@@ -1,5 +1,6 @@
 pragma solidity ^0.5.12;
 
+import "darknode-sol/contracts/libraries/Claimable.sol";
 import "./DEXReserve.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
@@ -15,7 +16,7 @@ import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 ///
 /// The DEX is ownable, allowing a DEX operator to register new reserves.
 /// Once a reserve has been registered, it can't be updated.
-contract DEX is Ownable {
+contract DEX is Claimable {
     mapping (address=>DEXReserve) public reserves;
     address public baseToken;
 
