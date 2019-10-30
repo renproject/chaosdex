@@ -145,14 +145,18 @@ contract DEXAdapter {
     }
 
     function calculateReceiveAmount(address _src, address _dst, uint256 _sendAmount) public view returns (uint256) {
-        IShifter shifter = shifterRegistry.getShifterByToken(_dst);
+        IShifter shifter = shifterRegistry.getShifterByToken(_src);
         if (shifter != IShifter(0x0)) {
-            return removeShifterFee(shifter, dex.calculateReceiveAmount(_src, _dst, _sendAmount));
+            _sendAmount = removeFee(_sendAmount, shifter.shiftInFee());
+        }
+        shifter = shifterRegistry.getShifterByToken(_dst);
+        if (shifter != IShifter(0x0)) {
+            return removeFee(dex.calculateReceiveAmount(_src, _dst, _sendAmount), shifter.shiftOutFee());
         } 
         return dex.calculateReceiveAmount(_src, _dst, _sendAmount);
     }
 
-    function removeShifterFee(IShifter _shifter, uint256 _amount) private view returns (uint256) {
-        return (_amount * (10000 - _shifter.shiftOutFee()))/10000;
+    function removeFee(uint256 _amount, uint256 _bips) private view returns (uint256) {
+        return _amount - ((_amount *_bips)/10000);
     }
 }

@@ -90,7 +90,6 @@ contract("DEXAdapter", (accounts) => {
         await dai.approve(reserve.address, baseValue);
 
         const shifter = await shifterRegistry.getShifterByToken.call(token.address);
-        console.log(shifter);
         if (shifter === NULL) {
             await token.approve(reserve.address, removeFee(tokenValue, shifterFees));
             await reserve.addLiquidity(accounts[0], baseValue, removeFee(tokenValue, shifterFees), deadline);
@@ -153,20 +152,20 @@ contract("DEXAdapter", (accounts) => {
         const value = new BN(22500);
         const nHash = `0x${randomBytes(32).toString("hex")}`
 
-        const dstShifter = await shifterRegistry.getShifterByToken(dstToken.address);
-        const srcShifter = await shifterRegistry.getShifterByToken(srcToken.address);
+        const dstShifter = await shifterRegistry.getShifterByToken.call(dstToken.address);
+        const srcShifter = await shifterRegistry.getShifterByToken.call(srcToken.address);
         if (srcShifter === NULL) {
             receivingValue = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
             await srcToken.approve(dexAdapter.address, value);
             sigString = `0x${randomBytes(32).toString("hex")}`;
         } else {
-            receivingValue = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, removeFee(value, shifterFees));
+            receivingValue = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
             const commitment = await dexAdapter.hashTradePayload.call(
                 srcToken.address, dstToken.address, 0, recipient,
                 100000, "0x010101010101",
             );
-
-            const hash = await (await Shifter.at(srcShifter)).hashForSignature.call(commitment, value, dexAdapter.address, nHash);
+            const srcShifterContract = await Shifter.at(srcShifter);
+            const hash = await srcShifterContract.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
             const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
             sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
         }
@@ -226,7 +225,12 @@ contract("DEXAdapter", (accounts) => {
 
         if (dstReserve !== NULL) {
             // Check that the dst reserve's balances have changed correctly.
-            dstReserveDstBalanceBefore.sub(dstReserveDstBalanceAfter).should.bignumber.equal(receivingValue);
+            if (dstShifter !== NULL) {
+                removeFee(dstReserveDstBalanceBefore.sub(dstReserveDstBalanceAfter), shifterFees).should.bignumber.equal(receivingValue);
+            } else {
+                dstReserveDstBalanceBefore.sub(dstReserveDstBalanceAfter).should.bignumber.equal(receivingValue);
+            }
+
             // Only one shifter involved
             if (srcReserve === NULL) {
                 dstReserveSrcBalanceAfter.sub(dstReserveSrcBalanceBefore).should.bignumber.equal(value);
