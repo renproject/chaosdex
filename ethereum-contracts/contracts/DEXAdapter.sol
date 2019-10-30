@@ -22,8 +22,13 @@ contract DEXAdapter {
     }
 
     /// @notice Allow anyone to recover funds accidentally sent to the contract.
+    /// To withdraw ETH, the token should be set to `0x0`.
     function recoverTokens(address _token) external {
-        ERC20(_token).transfer(msg.sender, ERC20(_token).balanceOf(address(this)));
+        if (_token == address(0x0)) {
+            msg.sender.transfer(address(this).balance);
+        } else {
+            ERC20(_token).transfer(msg.sender, ERC20(_token).balanceOf(address(this)));
+        }
     }
 
     // TODO: Fix "Stack too deep" error!
