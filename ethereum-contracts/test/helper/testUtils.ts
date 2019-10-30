@@ -29,7 +29,7 @@ export const advanceBlock = () => {
             jsonrpc: '2.0',
             method: 'evm_mine',
             id: new Date().getTime(),
-        }, ((err, result) => {
+        }, ((err: Error, result: any) => {
             if (err) { return reject(err); }
             return resolve()
         }) as any)

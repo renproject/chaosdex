@@ -1,13 +1,13 @@
 import BN from "bn.js";
 import { randomBytes } from "crypto";
 import { ecsign } from "ethereumjs-util";
+import { Account } from "web3/eth/accounts";
 
 import {
     DaiTokenInstance, DEXAdapterInstance, DEXInstance, DEXReserveInstance, ERC20Instance,
     ERC20ShiftedInstance, ShifterInstance, ShifterRegistryInstance, TestTokenInstance,
 } from "../types/truffle-contracts";
 import { NULL } from "./helper/testUtils";
-import { format } from "util";
 
 const TestToken = artifacts.require("TestToken");
 const DAI = artifacts.require("DaiToken");
@@ -35,12 +35,13 @@ contract("DEXAdapter", (accounts) => {
 
     // We generate a new account so that we have access to its private key for
     // `ecsign`. Web3's sign functions all prefix the message being signed.
-    let mintAuthority;
-    let privKey;
+    let mintAuthority: Account;
+    let privKey: Buffer;
     const feeRecipient = accounts[1];
     const randomAddress = accounts[7];
 
-    const shifterFees = new BN(5);
+    const shiftInFees = new BN(5);
+    const shiftOutFees = new BN(15);
     const dexFees = new BN(10);
     const zBTCMinShiftOutAmount = new BN(10000);
     const zZECMinShiftOutAmount = new BN(10000);
@@ -53,12 +54,12 @@ contract("DEXAdapter", (accounts) => {
 
         dai = await DAI.new();
         zToken1 = await zBTC.new();
-        shifter1 = await Shifter.new(zToken1.address, feeRecipient, mintAuthority.address, shifterFees, shifterFees, zBTCMinShiftOutAmount);
+        shifter1 = await Shifter.new(zToken1.address, feeRecipient, mintAuthority.address, shiftInFees, shiftOutFees, zBTCMinShiftOutAmount);
         await zToken1.transferOwnership(shifter1.address);
         await shifter1.claimTokenOwnership();
 
         zToken2 = await zZEC.new();
-        shifter2 = await Shifter.new(zToken2.address, feeRecipient, mintAuthority.address, shifterFees, shifterFees, zZECMinShiftOutAmount);
+        shifter2 = await Shifter.new(zToken2.address, feeRecipient, mintAuthority.address, shiftInFees, shiftOutFees, zZECMinShiftOutAmount);
         await zToken2.transferOwnership(shifter2.address);
         await shifter2.claimTokenOwnership();
 
@@ -92,11 +93,11 @@ contract("DEXAdapter", (accounts) => {
 
         const shifter = await shifterRegistry.getShifterByToken.call(token.address);
         if (shifter === NULL) {
-            await token.approve(reserve.address, removeFee(tokenValue, shifterFees));
-            await reserve.addLiquidity(accounts[0], baseValue, removeFee(tokenValue, shifterFees), deadline);
+            await token.approve(reserve.address, removeFee(tokenValue, shiftInFees));
+            await reserve.addLiquidity(accounts[0], baseValue, removeFee(tokenValue, shiftInFees), deadline);
         } else {
             const nHash = `0x${randomBytes(32).toString("hex")}`;
-            const pHash = await dexAdapter.hashLiquidityPayload.call(accounts[0], baseValue, token.address, deadline, "0x002002002");
+            const pHash = await (dexAdapter.hashLiquidityPayload as any).call(accounts[0], baseValue, token.address, deadline, "0x002002002");
             // const types = ["address", "uint256", "address", "uint256", "uint256", "bytes"];
             // const pHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(types, [accounts[0], value.toString(), token.address, value.toString(), deadline, "0x002002002"]));
             const hash = await (await Shifter.at(shifter)).hashForSignature.call(pHash, tokenValue, dexAdapter.address, nHash);
@@ -108,7 +109,7 @@ contract("DEXAdapter", (accounts) => {
 
     const shiftToReserveExpired = async (value: BN, token: ERC20Instance, reserve: DEXReserveInstance, shifter: ShifterInstance) => {
         const nHash = `0x${randomBytes(32).toString("hex")}`;
-        const pHash = await dexAdapter.hashLiquidityPayload.call(accounts[0], value, token.address, 0, "0x002002002");
+        const pHash = await (dexAdapter.hashLiquidityPayload as any).call(accounts[0], value, token.address, 0, "0x002002002");
         // const types = ["address", "uint256", "address", "uint256", "uint256", "bytes"];
         // const pHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(types, [accounts[0], value.toString(), token.address, value.toString(), 0, "0x002002002"]));
         const hash = await shifter.hashForSignature.call(pHash, value, dexAdapter.address, nHash);
@@ -156,12 +157,13 @@ contract("DEXAdapter", (accounts) => {
         const dstShifter = await shifterRegistry.getShifterByToken.call(dstToken.address);
         const srcShifter = await shifterRegistry.getShifterByToken.call(srcToken.address);
         if (srcShifter === NULL) {
-            receivingValue = await dex.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
+            receivingValue = new BN(await dex.calculateReceiveAmount.call(srcToken.address, dstToken.address, value));
             receivingValueAfterFees = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
             await srcToken.approve(dexAdapter.address, value);
             sigString = `0x${randomBytes(32).toString("hex")}`;
         } else {
-            receivingValue = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
+            receivingValue = new BN(await dex.calculateReceiveAmount.call(srcToken.address, dstToken.address, removeFee(value, shiftInFees)));
+            receivingValueAfterFees = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
             const commitment = await dexAdapter.hashTradePayload.call(
                 srcToken.address, dstToken.address, 0, recipient,
                 100000, "0x010101010101",
@@ -217,7 +219,7 @@ contract("DEXAdapter", (accounts) => {
 
         if (srcReserve !== NULL) {
             // Check that the src reserve's balances have changed correctly.
-            let expectedSrcDifference = srcShifter === NULL ? value : removeFee(value, shifterFees);
+            let expectedSrcDifference = srcShifter === NULL ? value : removeFee(value, shiftInFees);
             srcReserveSrcBalanceAfter.sub(srcReserveSrcBalanceBefore).should.bignumber.equal(expectedSrcDifference);
             // Only one shifter involved
             if (dstReserve === NULL) {
@@ -227,11 +229,7 @@ contract("DEXAdapter", (accounts) => {
 
         if (dstReserve !== NULL) {
             // Check that the dst reserve's balances have changed correctly.
-            if (dstShifter !== NULL) {
-                dstReserveDstBalanceBefore.sub(dstReserveDstBalanceAfter).should.bignumber.equal(receivingValue);
-            } else {
-                dstReserveDstBalanceBefore.sub(dstReserveDstBalanceAfter).should.bignumber.equal(receivingValue);
-            }
+            dstReserveDstBalanceBefore.sub(dstReserveDstBalanceAfter).should.bignumber.equal(receivingValue);
 
             // Only one shifter involved
             if (srcReserve === NULL) {
@@ -283,12 +281,12 @@ contract("DEXAdapter", (accounts) => {
 
     it("should fail to calculate the base token value", async () => {
         const value = new BN(20000000000);
-        await dexReserve1.calculateBaseTokenValue(value).should.be.rejectedWith(/division by zero/);
+        await dexReserve1.calculateBaseTokenValue.call(value).should.be.rejectedWith(/division by zero/);
     });
 
     it("should fail to calculate the base token value", async () => {
         const value = new BN(20000000000);
-        await dexReserve1.calculateQuoteTokenValue(value).should.be.rejectedWith(/division by zero/);
+        await dexReserve1.calculateQuoteTokenValue.call(value).should.be.rejectedWith(/division by zero/);
     });
 
     it("should fail to trade unsupported tokens", async () => {

@@ -33,6 +33,7 @@ declare global {
       ): TruffleContracts.BTC_DAI_ReserveContract;
       require(name: "BTCShifter"): TruffleContracts.BTCShifterContract;
       require(name: "Claimable"): TruffleContracts.ClaimableContract;
+      require(name: "Context"): TruffleContracts.ContextContract;
       require(name: "DaiToken"): TruffleContracts.DaiTokenContract;
       require(name: "DEX"): TruffleContracts.DEXContract;
       require(name: "DEXAdapter"): TruffleContracts.DEXAdapterContract;

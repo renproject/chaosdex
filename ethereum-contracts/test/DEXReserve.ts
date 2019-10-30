@@ -54,12 +54,12 @@ contract("DEXReserve", (accounts) => {
 
     it("should fail to calculate the base token value", async () => {
         const value = new BN(20000000000);
-        await dexReserve3.calculateBaseTokenValue(value).should.be.rejectedWith(/division by zero/);
+        await dexReserve3.calculateBaseTokenValue.call(value).should.be.rejectedWith(/division by zero/);
     });
 
     it("should fail to calculate the base token value", async () => {
         const value = new BN(20000000000);
-        await dexReserve3.calculateQuoteTokenValue(value).should.be.rejectedWith(/division by zero/);
+        await dexReserve3.calculateQuoteTokenValue.call(value).should.be.rejectedWith(/division by zero/);
     });
 
     it("should deposit token3 to the reserve3", async () => {
@@ -123,7 +123,7 @@ contract("DEXReserve", (accounts) => {
     });
 
     it("should be able to change the reserve fees as the owner", async () => {
-        const fee = await dexReserve3.feeInBIPS();
+        const fee = await dexReserve3.feeInBIPS.call();
 
         // Fee is too high
         await dexReserve3.updateFee(1000)
@@ -135,13 +135,13 @@ contract("DEXReserve", (accounts) => {
         // Before waiting 100 blocks
         await dexReserve3.updateFee(0)
             .should.be.rejectedWith(/must wait 100 blocks before updating the fee/);
-        (await dexReserve3.feeInBIPS()).should.bignumber.equal(fee);
+        (await dexReserve3.feeInBIPS.call()).should.bignumber.equal(fee);
 
         // Wait 100 blocks
         await advanceBlocks(100);
-        (await dexReserve3.feeInBIPS()).should.bignumber.equal(fee);
+        (await dexReserve3.feeInBIPS.call()).should.bignumber.equal(fee);
         await dexReserve3.updateFee(0);
-        (await dexReserve3.feeInBIPS()).should.bignumber.equal(0);
+        (await dexReserve3.feeInBIPS.call()).should.bignumber.equal(0);
 
         await dexReserve3.updateFee(1, { from: accounts[1] })
             .should.be.rejectedWith(/caller is not the owner/);
@@ -173,21 +173,21 @@ contract("DEXReserve - share token", (accounts) => {
     });
 
     const depositToReserve = async (from: string, tokenValue: BN, baseValue?: BN) => {
-        baseValue = baseValue || new BN(await reserve.expectedBaseTokenAmount(tokenValue));
+        baseValue = baseValue || new BN(await reserve.expectedBaseTokenAmount.call(tokenValue));
 
         await dai.approve(reserve.address, baseValue, { from });
         await token.approve(reserve.address, tokenValue, { from });
         await reserve.addLiquidity(from, baseValue, tokenValue, deadline, { from });
 
-        return baseValue.mul(new BN(100)).div(new BN(await dai.balanceOf(reserve.address)));
+        return baseValue.mul(new BN(100)).div(new BN(await dai.balanceOf.call(reserve.address)));
     };
 
     const withdrawFromReserve = async (from: string, amount: BN): Promise<{ tokenBalance: string, daiBalance: string }> => {
-        const tokenBalanceBefore = new BN(await token.balanceOf(from));
-        const daiBalanceBefore = new BN(await dai.balanceOf(from));
+        const tokenBalanceBefore = new BN(await token.balanceOf.call(from));
+        const daiBalanceBefore = new BN(await dai.balanceOf.call(from));
         await reserve.removeLiquidity(amount, { from });
-        const tokenBalanceAfter = new BN(await token.balanceOf(from));
-        const daiBalanceAfter = new BN(await dai.balanceOf(from));
+        const tokenBalanceAfter = new BN(await token.balanceOf.call(from));
+        const daiBalanceAfter = new BN(await dai.balanceOf.call(from));
         return { tokenBalance: new BN(tokenBalanceAfter.sub(tokenBalanceBefore)).toString(), daiBalance: new BN(daiBalanceAfter.sub(daiBalanceBefore)).toString() };
     };
 
@@ -203,7 +203,7 @@ contract("DEXReserve - share token", (accounts) => {
     }
 
     const share = async (from: string) => {
-        return new BN(await reserve.balanceOf(from)).mul(new BN(100)).div(new BN(await reserve.totalSupply()));
+        return new BN(await reserve.balanceOf.call(from)).mul(new BN(100)).div(new BN(await reserve.totalSupply.call()));
     }
 
     it("liquidity token should be fair", async () => {
@@ -239,27 +239,27 @@ contract("DEXReserve - share token", (accounts) => {
         (await share(accounts[2])).should.bignumber.equal(newTokenProportion2);
         (await share(accounts[3])).should.bignumber.equal(tokenProportion3);
 
-        const totalTokenBalance = new BN(await token.balanceOf(reserve.address));
-        const totalDaiBalance = new BN(await dai.balanceOf(reserve.address));
+        const totalTokenBalance = new BN(await token.balanceOf.call(reserve.address));
+        const totalDaiBalance = new BN(await dai.balanceOf.call(reserve.address));
 
         // .should.bignumber.equal(15367680000);
         {
-            const { daiBalance, tokenBalance } = (await withdrawFromReserve(accounts[1], new BN(await reserve.balanceOf(accounts[1]))));
+            const { daiBalance, tokenBalance } = (await withdrawFromReserve(accounts[1], new BN(await reserve.balanceOf.call(accounts[1]))));
             isApproximately(daiBalance, totalDaiBalance.mul(newNewTokenProportion1).div(new BN(100)));
             isApproximately(tokenBalance, totalTokenBalance.mul(newNewTokenProportion1).div(new BN(100)));
         }
         {
-            const { daiBalance, tokenBalance } = (await withdrawFromReserve(accounts[2], new BN(await reserve.balanceOf(accounts[2]))));
+            const { daiBalance, tokenBalance } = (await withdrawFromReserve(accounts[2], new BN(await reserve.balanceOf.call(accounts[2]))));
             isApproximately(daiBalance, totalDaiBalance.mul(newTokenProportion2).div(new BN(100)));
             isApproximately(tokenBalance, totalTokenBalance.mul(newTokenProportion2).div(new BN(100)));
         }
         {
-            const { daiBalance, tokenBalance } = (await withdrawFromReserve(accounts[3], new BN(await reserve.balanceOf(accounts[3]))));
+            const { daiBalance, tokenBalance } = (await withdrawFromReserve(accounts[3], new BN(await reserve.balanceOf.call(accounts[3]))));
             isApproximately(daiBalance, totalDaiBalance.mul(tokenProportion3).div(new BN(100)));
             isApproximately(tokenBalance, totalTokenBalance.mul(tokenProportion3).div(new BN(100)));
         }
 
-        (await token.balanceOf(reserve.address)).toString();
+        (await token.balanceOf.call(reserve.address)).toString();
     });
 });
 
