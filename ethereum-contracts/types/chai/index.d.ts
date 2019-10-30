@@ -51,4 +51,3 @@ declare namespace Chai {
         lte<BN extends BigNumber>(actual?: BN, expected?: BN, msg?: string): void;
     }
 }
-

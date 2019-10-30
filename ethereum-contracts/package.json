@@ -18,7 +18,7 @@
         "prepare": "patch-package"
     },
     "dependencies": {
-        "darknode-sol": "https://github.com/renproject/darknode-sol#00488554450e50f37d566defa1fce94bbdea0c56",
+        "darknode-sol": "https://github.com/renproject/darknode-sol#261d6381f56581f18e665d34c0422081578c85d6",
         "openzeppelin-solidity": "2.4.0"
     },
     "devDependencies": {
