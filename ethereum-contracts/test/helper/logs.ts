@@ -1,7 +1,6 @@
 import * as chai from "chai";
 
 import BigNumber from "bignumber.js";
-
 import BN from "bn.js";
 
 interface Log {
@@ -37,6 +36,11 @@ interface TransactionReceipt {
     }>;
 }
 
+export const log = (event: string, args: object) => ({
+    event,
+    args,
+});
+
 // Chai helper for comparing logs
 // tslint:disable:only-arrow-functions
 chai.use(function (newChai: any, utils: any): void {
@@ -45,10 +49,10 @@ chai.use(function (newChai: any, utils: any): void {
         utils.flag(this, property, true);
     });
 
-    const override = function (fn) {
+    const override = function (fn: any) {
         // tslint:disable-next-line:variable-name
-        return function (_super) {
-            return function (value, ...args) {
+        return function (_super: any) {
+            return function (value: any, ...args: any[]) {
                 if (utils.flag(this, property)) {
                     const expected = value;
                     const actual = getLogsFromTx(this._obj);
@@ -76,22 +80,22 @@ chai.use(function (newChai: any, utils: any): void {
                 // skip if the property is from prototype
                 if (!expectedLog.args.hasOwnProperty(arg)) { continue; }
 
-                const expectedArg = expectedLog.args[arg];
-                const actualArg = actualLog.args[arg];
+                const expectedArg = (expectedLog.args as any)[arg];
+                const actualArg = (actualLog.args as any)[arg];
 
-                let sameValues;
+                let sameValues: boolean;
                 if (BN.isBN(expectedArg) || expectedArg.isBigNumber) {
                     sameValues = (new BigNumber(expectedArg).eq(new BigNumber(actualArg)));
                 } else {
-                    sameValues = (expectedArg === actualLog.args[arg]);
+                    sameValues = (expectedArg === (actualLog.args as any)[arg]);
                 }
 
                 this.assert(
                     sameValues,
                     `expected ${arg} to be #{exp} instead of #{act} in log ${expectedLog.event}`,
                     `expected ${arg} to be different from #{exp} in log ${expectedLog.event}`,
-                    expectedLog.args[arg].toString(),
-                    actualLog.args[arg].toString(),
+                    (expectedLog.args as any)[arg],
+                    (actualLog.args as any)[arg],
                 );
             }
         }
@@ -101,11 +105,11 @@ chai.use(function (newChai: any, utils: any): void {
 
 // Pretty-print logs
 const logsToString = (logs: Log[]): string => {
-    return `[${logs.map((log: Log) => log.event).join(", ")}]`;
+    return `[${logs.map((logItem: Log) => logItem.event).join(", ")}]`;
 };
-const logToString = (log: Log): string => {
-    return `${log.event} ${JSON.stringify(log.args)}`;
-};
+// const logToString = (logItem: Log): string => {
+//     return `${logItem.event} ${JSON.stringify(logItem.args)}`;
+// };
 
 // Compare logs
 const compareArrayOfLogs = (expected: Log[], actual: Log[]): boolean => {
@@ -123,18 +127,18 @@ const compareArrayOfLogs = (expected: Log[], actual: Log[]): boolean => {
 
 // Extract logs from transaction receipt in correct format.s
 export const getLogsFromTx = (tx: TransactionReceipt): Log[] => {
-    return tx.logs.map((log) => {
+    return tx.logs.map((logItem) => {
         const args = {};
-        for (const arg in log.args) {
+        for (const arg in logItem.args) {
             // skip if the property is from prototype
-            if (!log.args.hasOwnProperty(arg)) { continue; }
+            if (!logItem.args.hasOwnProperty(arg)) { continue; }
 
             if (isNaN(parseInt(arg, 10)) && arg !== "__length__") {
-                args[arg] = log.args[arg];
+                (args as any)[arg] = (logItem.args as any)[arg];
             }
         }
         return {
-            event: log.event,
+            event: logItem.event,
             args,
         };
     });

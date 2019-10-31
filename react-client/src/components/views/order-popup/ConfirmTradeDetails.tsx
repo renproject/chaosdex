@@ -4,8 +4,7 @@ import { Currency, CurrencyIcon, InfoLabel, TokenIcon } from "@renproject/react-
 import BigNumber from "bignumber.js";
 
 import { recoverRenVMFee } from "../../../lib/estimatePrice";
-import { Token, TokenPrices } from "../../../state/generalTypes";
-import { CommitmentType } from "../../../state/persistentContainer";
+import { Token, TokenPrices, Tokens } from "../../../state/generalTypes";
 import { OrderInputs } from "../../../state/uiContainer";
 import { ReactComponent as Arrow } from "../../../styles/images/arrow-right.svg";
 import { Popup } from "../Popup";
@@ -20,14 +19,16 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
     cancel(): void;
 }> = ({ tokenPrices, orderInputs, quoteCurrency, commitmentType, done, cancel }) => {
     const feeRow = (token: Token) => {
-        if (token === Token.BTC || token === Token.ZEC) {
+        if (token === Token.BTC || token === Token.ZEC || token === Token.BCH) {
             return <div>
                 <span className="swap-details--values--left">
                     {(token === Token.BTC) ?
                         "Bitcoin Transaction Fees" :
                         (token === Token.ZEC) ?
                             "ZCash Transaction Fees" :
-                            "Transaction Fees"
+                            (token === Token.BCH) ?
+                                "Bitcoin Cash Transaction Fees" :
+                                "Transaction Fees"
                     }
                 </span>
                 <div className="swap-details--values--right">

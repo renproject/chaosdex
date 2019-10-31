@@ -1,313 +1,129 @@
-import { ec } from "elliptic";
 import BN from "bn.js";
-import { randomBytes } from "crypto";
-import { ecsign } from "ethereumjs-util";
-import { format } from "url";
 
 import {
-    DaiTokenInstance, DEXAdapterInstance, DEXInstance, DEXReserveInstance, ERC20Instance,
-    ERC20ShiftedInstance, ShifterInstance, ShifterRegistryInstance, TestTokenInstance,
+    DaiTokenInstance, DEXInstance, DEXReserveInstance, ERC20Instance, TestTokenInstance,
 } from "../types/truffle-contracts";
-import { ETHEREUM_TOKEN_ADDRESS, NULL } from "./helper/testUtils";
+import { NULL } from "./helper/testUtils";
 
 const TestToken = artifacts.require("TestToken");
 const DAI = artifacts.require("DaiToken");
-const zBTC = artifacts.require("zBTC");
-const zZEC = artifacts.require("zZEC");
-const Shifter = artifacts.require("Shifter");
 const DEXReserve = artifacts.require("DEXReserve");
 const DEX = artifacts.require("DEX");
-const DEXAdapter = artifacts.require("DEXAdapter");
-const ShifterRegistry = artifacts.require("ShifterRegistry");
 
 contract("DEX", (accounts) => {
     let dai: DaiTokenInstance;
-    let shifter1: ShifterInstance;
-    let shifter2: ShifterInstance;
-    let token1: ERC20ShiftedInstance;
-    let token2: ERC20ShiftedInstance;
-    let token3: TestTokenInstance;
+    let token1: TestTokenInstance;
     let dexReserve1: DEXReserveInstance;
+    let token2: TestTokenInstance;
     let dexReserve2: DEXReserveInstance;
-    let dexReserve12: DEXReserveInstance;
-    let dexReserve13: DEXReserveInstance;
-    let dexReserve23: DEXReserveInstance;
-    let dexReserve3: DEXReserveInstance;
     let dex: DEXInstance;
-    let dexAdapter: DEXAdapterInstance;
-    let shifterRegistry: ShifterRegistryInstance;
 
-    // We generate a new account so that we have access to its private key for
-    // `ecsign`. Web3's sign functions all prefix the message being signed.
-    let mintAuthority;
-    let privKey;
-    const feeRecipeint = accounts[1];
+    const randomAddress = accounts[7];
 
-    const shifterFees = new BN(10);
     const dexFees = new BN(10);
-    const zBTCMinShiftOutAmount = new BN(10000);
-    const zZECMinShiftOutAmount = new BN(10000);
+
+    const deadline = 10000000000000;
 
     before(async () => {
-        mintAuthority = web3.eth.accounts.create();
-        privKey = Buffer.from(mintAuthority.privateKey.slice(2), "hex")
-
         dai = await DAI.new();
-        token1 = await zBTC.new();
-        shifter1 = await Shifter.new(token1.address, feeRecipeint, mintAuthority.address, shifterFees, zBTCMinShiftOutAmount);
-        await token1.transferOwnership(shifter1.address);
-        await shifter1.claimTokenOwnership();
+        token1 = await TestToken.new("TestToken1", "TST1", 18);
+        dexReserve1 = await DEXReserve.new("TestToken1 Liquidity Token", "TST1LT", 18, dai.address, token1.address, dexFees);
 
-        token2 = await zZEC.new();
-        shifter2 = await Shifter.new(token2.address, feeRecipeint, mintAuthority.address, shifterFees, zZECMinShiftOutAmount);
-        await token2.transferOwnership(shifter2.address);
-        await shifter2.claimTokenOwnership();
-
-        token3 = await TestToken.new("TestToken1", "TST", 18);
-
-        dexReserve1 = await DEXReserve.new(dai.address, token1.address, dexFees);
-        dexReserve2 = await DEXReserve.new(dai.address, token2.address, dexFees);
-        dexReserve3 = await DEXReserve.new(dai.address, token3.address, dexFees);
+        token2 = await TestToken.new("TestToken2", "TST2", 8);
+        dexReserve2 = await DEXReserve.new("TestToken2 Liquidity Token", "TST2LT", 8, dai.address, token2.address, dexFees);
 
         dex = await DEX.new(dai.address);
         await dex.registerReserve(token1.address, dexReserve1.address);
         await dex.registerReserve(token2.address, dexReserve2.address);
-        await dex.registerReserve(token3.address, dexReserve3.address);
 
-        shifterRegistry = await ShifterRegistry.new();
-        await shifterRegistry.setShifter(token1.address, shifter1.address);
-        await shifterRegistry.setShifter(token2.address, shifter2.address);
-
-        dexAdapter = await DEXAdapter.new(dex.address, shifterRegistry.address);
+        await depositToReserve(new BN(20000000000) /* DAI */, new BN(15000000000) /* token1 */, token1, dexReserve1);
+        await depositToReserve(new BN(20000000000) /* DAI */, new BN(200000000) /* token2 */, token2, dexReserve2);
     });
 
-    const removeFee = (value, bips) => value.sub(value.mul(new BN(bips)).div(new BN(10000)))
-
-    const depositToReserve = async (value: BN, token: ERC20Instance, reserve: DEXReserveInstance) => {
-        await dai.approve(reserve.address, value);
-        await token.approve(reserve.address, removeFee(value, shifterFees));
-        await reserve.addLiquidity(accounts[0], value, removeFee(value, 10), 10000000000000);
+    const depositToReserve = async (baseValue: BN, tokenValue: BN, token: ERC20Instance, reserve: DEXReserveInstance) => {
+        await dai.approve(reserve.address, baseValue);
+        await token.approve(reserve.address, tokenValue);
+        await reserve.addLiquidity(accounts[0], baseValue, tokenValue, deadline);
     };
 
-    const shiftToReserve = async (value: BN, token: ERC20Instance, reserve: DEXReserveInstance, shifter: ShifterInstance) => {
-        const nHash = `0x${randomBytes(32).toString("hex")}`;
-        const pHash = await dexAdapter.hashLiquidityPayload.call(accounts[0], value, token.address, 10000000000000, "0x002002002");
-        // const types = ["address", "uint256", "address", "uint256", "uint256", "bytes"];
-        // const pHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(types, [accounts[0], value.toString(), token.address, value.toString(), 10000000000000, "0x002002002"]));
-        const hash = await shifter.hashForSignature.call(pHash, value, dexAdapter.address, nHash);
-        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
-        const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
-        await dai.approve(reserve.address, value);
-        await dexAdapter.addLiquidity(accounts[0], value, token.address, 10000000000000, "0x002002002", value, nHash, sigString);
-    };
-
-    const shiftFromReserve = async (token: ERC20Instance, reserve: DEXReserveInstance) => {
-        const liquidity = await reserve.balanceOf.call(accounts[0]);
-        await reserve.approve(dexAdapter.address, liquidity);
-        await dexAdapter.removeLiquidity(token.address, liquidity, "0x0011001100110011");
-    }
-
-    const withdrawFromReserve = async (reserve: DEXReserveInstance) => {
-        const liquidity = await reserve.balanceOf.call(accounts[0]);
-        await reserve.removeLiquidity(liquidity);
-    }
-
-    const sellBaseToken = async (srcToken: ERC20Instance, dstToken: ERC20Instance) => {
+    const tradeTokens = async (srcToken: ERC20Instance, dstToken: ERC20Instance) => {
         const value = new BN(225000);
-        const amount = await dex.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
-        const nHash = `0x${randomBytes(32).toString("hex")}`;
-        const pHash = `0x${randomBytes(32).toString("hex")}`;
-        await srcToken.approve(dexAdapter.address, value);
-        const reserve = await dex.reserves.call(dstToken.address);
-        const initialBalance = new BN((await dstToken.balanceOf.call(reserve)).toString());
-        await dexAdapter.trade(
-            // Payload:
-            srcToken.address, dstToken.address, 0, "0x002200220022", 100000,
-            "0x010101010101",
-            // Required
-            value, nHash, pHash,
+        const srcReserve = await dex.reserves.call(srcToken.address);
+        const dstReserve = await dex.reserves.call(dstToken.address);
+
+        const receivingValue = await dex.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
+        await srcToken.approve(srcReserve === NULL ? dstReserve : srcReserve, value);
+
+        // Balances before
+        const srcReserveSrcBalanceBefore = new BN((await srcToken.balanceOf.call(srcReserve)).toString());
+        const srcReserveBaseBalanceBefore = new BN((await dai.balanceOf.call(srcReserve)).toString());
+        const srcReserveDstBalanceBefore = new BN((await dstToken.balanceOf.call(srcReserve)).toString());
+        const dstReserveSrcBalanceBefore = new BN((await srcToken.balanceOf.call(dstReserve)).toString());
+        const dstReserveBaseBalanceBefore = new BN((await dai.balanceOf.call(dstReserve)).toString());
+        const dstReserveDstBalanceBefore = new BN((await dstToken.balanceOf.call(dstReserve)).toString());
+
+        await dex.trade(
+            accounts[0], srcToken.address, dstToken.address, value,
         );
-        const finalBalance = new BN((await dstToken.balanceOf.call(reserve)).toString());
-        // initialBalance.sub(finalBalance).should.bignumber.equal(amount);
-        console.log(initialBalance.sub(finalBalance).toString(), " == ", amount.toString());
+
+        // Balances after
+        const srcReserveSrcBalanceAfter = new BN((await srcToken.balanceOf.call(srcReserve)).toString());
+        const srcReserveBaseBalanceAfter = new BN((await dai.balanceOf.call(srcReserve)).toString());
+        const srcReserveDstBalanceAfter = new BN((await dstToken.balanceOf.call(srcReserve)).toString());
+        const dstReserveSrcBalanceAfter = new BN((await srcToken.balanceOf.call(dstReserve)).toString());
+        const dstReserveBaseBalanceAfter = new BN((await dai.balanceOf.call(dstReserve)).toString());
+        const dstReserveDstBalanceAfter = new BN((await dstToken.balanceOf.call(dstReserve)).toString());
+
+
+        if (srcReserve !== NULL && dstReserve !== NULL) {
+            // If the trade goes across two reserves, check that the base
+            // token's amount has changed by the same value across both.
+            srcReserveBaseBalanceBefore.sub(srcReserveBaseBalanceAfter).should.bignumber.gt(0);
+            dstReserveBaseBalanceAfter.sub(dstReserveBaseBalanceBefore).should.bignumber.equal(srcReserveBaseBalanceBefore.sub(srcReserveBaseBalanceAfter));
+        }
+
+        if (srcReserve !== NULL) {
+            // Check that the src reserve's balances have changed correctly.
+            srcReserveSrcBalanceAfter.sub(srcReserveSrcBalanceBefore).should.bignumber.equal(value);
+            // Only one shifter involved
+            if (dstReserve === NULL) {
+                srcReserveDstBalanceBefore.sub(srcReserveDstBalanceAfter).should.bignumber.equal(receivingValue);
+            }
+        }
+
+        if (dstReserve !== NULL) {
+            // Check that the dst reserve's balances have changed correctly.
+            dstReserveDstBalanceBefore.sub(dstReserveDstBalanceAfter).should.bignumber.equal(receivingValue);
+            // Only one shifter involved
+            if (srcReserve === NULL) {
+                dstReserveSrcBalanceAfter.sub(dstReserveSrcBalanceBefore).should.bignumber.equal(value);
+            }
+        }
     }
 
-
-    it("should fail when trying to trade dai to token1 on DEX before funding the reserve", async () => {
-        const value = new BN(225000);
-        const nHash = `0x${randomBytes(32).toString("hex")}`;
-        const pHash = `0x${randomBytes(32).toString("hex")}`;
-        await dai.approve(dexAdapter.address, value);
-        await dexAdapter.trade(
-            // Payload:
-            dai.address, token1.address, 0, "0x002200220022", 100000,
-            "0x010101010101",
-            // Required
-            value, nHash, pHash,
-        ).should.be.rejectedWith(/reserve has no funds/);
+    it("should fail to trade unsupported tokens", async () => {
+        await dex.trade(accounts[0], dai.address, randomAddress, 1000).should.be.rejectedWith(/unsupported token/);
     });
 
-    it("should fail when trying to trade token1 to dai on DEX before funding the reserve", async () => {
-        const nHash = `0x${randomBytes(32).toString("hex")}`
-        const value = new BN(22500);
-        const commitment = await dexAdapter.hashTradePayload.call(
-            token1.address, dai.address, 0, accounts[3],
-            100000, "0x010101010101",
-        );
-        const hash = await shifter1.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
-        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
-        const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
-        await dexAdapter.trade(
-            // Payload:
-            token1.address, dai.address, 0, accounts[3],
-            100000, "0x010101010101",
-            // Required
-            value, nHash, sigString,
-        ).should.be.rejectedWith(/reserve has no funds/);
+    it("should fail to trade unsupported tokens", async () => {
+        await dex.trade(accounts[0], randomAddress, dai.address, 1000).should.be.rejectedWith(/unsupported token/);
     });
 
-    it("should deposit token1 to the reserve1", async () => {
-        const value = new BN(20000000000);
-        await shiftToReserve(value, token1, dexReserve1, shifter1);
+    it("should fail to trade unsupported tokens", async () => {
+        await dex.trade(accounts[0], randomAddress, randomAddress, 1000).should.be.rejectedWith(/unsupported token/);
     });
 
-    it("should deposit token2 to the reserve2", async () => {
-        const value = new BN(20000000000);
-        await shiftToReserve(value, token2, dexReserve2, shifter2);
-    });
+    it("should trade dai to token1 on DEX", async () => tradeTokens(dai, token1));
+    it("should trade token1 to dai on DEX", async () => tradeTokens(token1, dai));
+    it("should trade dai to token2 on DEX", async () => tradeTokens(dai, token2));
+    it("should trade token1 to token2 on DEX", async () => tradeTokens(token1, token2));
+    it("should trade token2 to token1 on DEX", async () => tradeTokens(token2, token1));
 
-    it("should deposit token3 to the reserve3", async () => {
-        const value = new BN(20000000000);
-        await depositToReserve(value, token3, dexReserve3);
+    it("should be able to withdraw funds that are mistakenly sent to dex", async () => {
+        await dai.transfer(dex.address, 1000);
+        const initialBalance = new BN((await dai.balanceOf.call(accounts[0])).toString());
+        await dex.recoverTokens(dai.address, { from: accounts[0] });
+        const finalBalance = new BN((await dai.balanceOf.call(accounts[0])).toString());
+        finalBalance.sub(initialBalance).should.bignumber.equal(1000);
     });
-
-    it("should trade dai to token1 on DEX", async () => {
-        await sellBaseToken(dai, token1);
-    });
-
-    it("should trade dai to token2 on DEX", async () => {
-        await sellBaseToken(dai, token2);
-    });
-
-    it("should trade dai to token3 on DEX", async () => {
-        await sellBaseToken(dai, token3);
-    });
-
-    it("should trade token1 to token2 on DEX", async () => {
-        const nHash = `0x${randomBytes(32).toString("hex")}`
-        const value = new BN(22500);
-        const commitment = await dexAdapter.hashTradePayload.call(
-            token1.address, token2.address, 0, "0x002200220022",
-            100000, "0x010101010101",
-        );
-        const hash = await shifter1.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
-        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
-        const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
-        await dexAdapter.trade(
-            // Payload
-            token1.address, token2.address, 0, "0x002200220022", 100000,
-            "0x010101010101",
-            // Required
-            value, nHash, sigString,
-        );
-    });
-
-    it("should trade token2 to token1 on DEX", async () => {
-        const nHash = `0x${randomBytes(32).toString("hex")}`
-        const value = new BN(22500);
-        const commitment = await dexAdapter.hashTradePayload.call(
-            token2.address, token1.address, 0, "0x002200220022",
-            100000, "0x010101010101",
-        );
-        const hash = await shifter2.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
-        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
-        const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
-        await dexAdapter.trade(
-            // Payload:
-            token2.address, token1.address, 0, "0x002200220022", 100000,
-            "0x010101010101",
-            // Required
-            value, nHash, sigString,
-        );
-    });
-
-    it("should trade token1 to dai on DEX", async () => {
-        const nHash = `0x${randomBytes(32).toString("hex")}`
-        const value = new BN(22500);
-        const commitment = await dexAdapter.hashTradePayload.call(
-            token1.address, dai.address, 0, accounts[3],
-            100000, "0x010101010101",
-        );
-        const hash = await shifter1.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
-        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
-        const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
-        await dexAdapter.trade(
-            // Payload:
-            token1.address, dai.address, 0, accounts[3],
-            100000, "0x010101010101",
-            // Required
-            value, nHash, sigString,
-        );
-    });
-
-    it("should trade token2 to dai on DEX", async () => {
-        const nHash = `0x${randomBytes(32).toString("hex")}`
-        const value = new BN(22500);
-        const commitment = await dexAdapter.hashTradePayload.call(
-            token2.address, dai.address, 0, accounts[3],
-            100000, "0x010101010101",
-        );
-        const hash = await shifter2.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
-        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
-        const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
-        await dexAdapter.trade(
-            // Payload:
-            token2.address, dai.address, 0, accounts[3],
-            100000, "0x010101010101",
-            // Required
-            value, nHash, sigString,
-        );
-    });
-
-    it("should trade token1 to token3 on DEX", async () => {
-        const nHash = `0x${randomBytes(32).toString("hex")}`
-        const value = new BN(22500);
-        const commitment = await dexAdapter.hashTradePayload.call(
-            token1.address, token3.address, 0, accounts[3],
-            100000, "0x010101010101",
-        );
-        const hash = await shifter1.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
-        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
-        const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
-        await dexAdapter.trade(
-            // Payload:
-            token1.address, token3.address, 0, accounts[3], 100000,
-            "0x010101010101",
-            // Required
-            value, nHash, sigString,
-        );
-    });
-
-    it("should trade token2 to token3 on DEX", async () => {
-        const nHash = `0x${randomBytes(32).toString("hex")}`
-        const value = new BN(22500);
-        const commitment = await dexAdapter.hashTradePayload.call(
-            token2.address, token3.address, 0, accounts[3],
-            100000, "0x010101010101",
-        );
-        const hash = await shifter2.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
-        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
-        const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
-        await dexAdapter.trade(
-            // Payload:
-            token2.address, token3.address, 0, accounts[3], 100000,
-            "0x010101010101",
-            // Required
-            value, nHash, sigString,
-        );
-    });
-
-    it("should withdraw dai and token1 from the reserve1", async () => await shiftFromReserve(token1, dexReserve1));
-    it("should withdraw dai and token2 from the reserve2", async () => await shiftFromReserve(token2, dexReserve2));
-    it("should withdraw dai and token3 from the reserve3", async () => await withdrawFromReserve(dexReserve3));
 });

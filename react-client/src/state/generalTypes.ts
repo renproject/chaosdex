@@ -16,12 +16,14 @@ export enum Token {
     BTC = "BTC",
     ETH = "ETH",
     // REN = "REN",
-    ZEC = "ZEC"
+    ZEC = "ZEC",
+    BCH = "BCH",
 }
 
 export enum MarketPair {
     DAI_BTC = "DAI/BTC",
     DAI_ZEC = "DAI/ZEC",
+    DAI_BCH = "DAI/BCH",
     // REN_BTC = "REN/BTC",
     // ETH_BTC = "ETH/BTC",
     // ZEC_BTC = "ZEC/BTC",
