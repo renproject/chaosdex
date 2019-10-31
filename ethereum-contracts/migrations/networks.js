@@ -12,7 +12,7 @@ const config = {
     shiftOutFee: 10,
     zBTCMinShiftOutAmount: 10000,
     zZECMinShiftOutAmount: 10000,
-    dexFees: 20,
+    dexFees: 10,
     renNetwork: {
         addresses: {
             tokens: {
@@ -49,10 +49,13 @@ module.exports = {
     },
     chaosnet: {
         renNetwork: ren.chaosnet,
-        DEX: '0xbD0C94BC27824A76C1eBDaAc3a9f5FAbEc6985B7',
-        DEXAdapter: '0xaF0EfC4E638A43a27A21d218d07c7499f85F8042',
-        BTC_DAI_Reserve: '0x11716a1F51FaD053E9B43dA1025E8ace32aee110',
-        ZEC_DAI_Reserve: '0x7B3b7383Bc88b645bdEfD7624d9c6FB981407bf9',
+        BTCShifter: '0x1258d7FF385d1d81017d4a3d464c02f74C61902a',
+        ZECShifter: '0x2b59Ef3Eb28c7388c7eC69d43a9b8E585C461d5b',
+        BCHShifter: '0xa76beA11766E0b66bD952bc357CF027742021a8C',
+        zBTC: '0x88C64A7D2ecC882D558DD16aBC1537515a78BB7D',
+        zZEC: '0x8dD8944320Eb76F8e39C58E7A30d34E7fbA9D719',
+        zBCH: '0x466Dd97F83b18aC23dDF16931f8171A817953fF1',
+        ShifterRegistry: '0x5d9bF2Bad3dD710e4D533681ed16eD1cfeAc9e6F',
         config: {
             ...config,
             mintAuthority: ren.chaosnet.renVM.mintAuthority,
@@ -71,8 +74,8 @@ module.exports = {
     },
     devnet: {
         renNetwork: ren.devnet,
-        DEX: "0x641aBd6CC3E5CbDDAf2586A906d7F694C4d1ee2E",
-        DEXAdapter: "0x33094b0124f8623A05ccB55c1840477B0019aAfB",
+        DEX: "",
+        DEXAdapter: "",
         config: {
             ...config,
             mintAuthority: ren.devnet.renVM.mintAuthority,

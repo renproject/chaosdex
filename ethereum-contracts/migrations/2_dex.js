@@ -1,12 +1,13 @@
 /// <reference types="../types/truffle-contracts" />
 
 const zBTC = artifacts.require("zBTC");
-
 const zZEC = artifacts.require("zZEC");
+const zBCH = artifacts.require("zBCH");
 const ShifterRegistry = artifacts.require("ShifterRegistry");
 
 const BTC_DAI_Reserve = artifacts.require("BTC_DAI_Reserve");
 const ZEC_DAI_Reserve = artifacts.require("ZEC_DAI_Reserve");
+const BCH_DAI_Reserve = artifacts.require("BCH_DAI_Reserve");
 const DEXAdapter = artifacts.require("DEXAdapter");
 const DEX = artifacts.require("DEX");
 const DaiToken = artifacts.require("DaiToken");
@@ -69,6 +70,14 @@ module.exports = async function (deployer, network, accounts) {
         deployer.logger.log(`[${"ZEC"}, ${"DAI"}]: ${ZEC_DAI_Reserve.address}`);
     } else {
         deployer.logger.log(`\nUsing existing reserve for [${"ZEC"}, ${"DAI"}]: ${ZEC_DAI_Reserve.address}\n`);
+    }
+
+    BCH_DAI_Reserve.address = await dex.reserves(zBCH.address);
+    if (BCH_DAI_Reserve.address === "0x0000000000000000000000000000000000000000") {
+        await deployReserve(zBCH, DaiToken, BCH_DAI_Reserve);
+        deployer.logger.log(`[${"BCH"}, ${"DAI"}]: ${BCH_DAI_Reserve.address}`);
+    } else {
+        deployer.logger.log(`\nUsing existing reserve for [${"BCH"}, ${"DAI"}]: ${BCH_DAI_Reserve.address}\n`);
     }
 
     // await web3.eth.sendTransaction({ to: "", from: accounts[0], value: web3.utils.toWei("1", "ether") });

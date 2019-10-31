@@ -37,8 +37,8 @@ module.exports = {
             // @ts-ignore
             provider: () => new HDWalletProvider(process.env.MNEMONIC_MAINNET, `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`),
             network_id: 1,
-            gas: 2000000,
-            gasPrice: 10 * GWEI,
+            gas: 6721975,
+            gasPrice: 5 * GWEI,
         },
         development: {
             host: "localhost",
