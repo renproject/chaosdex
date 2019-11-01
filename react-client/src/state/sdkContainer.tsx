@@ -15,7 +15,9 @@ import {
 import { ERC20Detailed } from "../lib/contracts/ERC20Detailed";
 import { NETWORK } from "../lib/environmentVariables";
 import { _catchBackgroundErr_ } from "../lib/errors";
-import { getAdapter, getERC20, getExchange, NULL_BYTES32, Token, Tokens } from "./generalTypes";
+import {
+    getAdapter, getERC20, getExchange, getReserve, NULL_BYTES32, Token, Tokens,
+} from "./generalTypes";
 import {
     AddLiquidityCommitment, CommitmentType, HistoryEvent, OrderCommitment, PersistentContainer,
     ShiftInStatus, ShiftOutStatus,
@@ -242,6 +244,17 @@ export class SDKContainer extends Container<typeof initialState> {
         await this.persistentContainer.updateHistoryItem(order.id, {
             status: ShiftOutStatus.ConfirmedOnEthereum,
         });
+    }
+
+    public liquidityBalance = async (srcToken: Token) => {
+        const { sdkAddress: address, sdkWeb3: web3, sdkRenVM: renVM, sdkNetworkID: networkID } = this.state;
+        if (!web3 || !address || !renVM) {
+            throw new Error(`Invalid values required to submit deposit`);
+        }
+        const exchange = getExchange(web3, networkID);
+        const reserveAddress = await exchange.methods.reserves(syncGetTokenAddress(networkID, srcToken)).call();
+        const reserve = getReserve(web3, networkID, reserveAddress);
+        return new BigNumber(await reserve.methods.balanceOf(address).call());
     }
 
     public submitBurnToRenVM = async (orderID: string, _resubmit = false) => {

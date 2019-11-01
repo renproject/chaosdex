@@ -67,7 +67,7 @@ const OrderHistoryEntry = ({ order, continueOrder, loggedIn }: {
     const srcAmount = <span className="token--amount">
         <TokenBalance
             token={order.orderInputs.srcToken}
-            amount={order.receivedAmount || order.orderInputs.srcAmount}
+            amount={order.orderInputs.srcAmount}
             digits={8}
         />{" "}
         {order.orderInputs.srcToken}
@@ -98,48 +98,59 @@ const OrderHistoryEntry = ({ order, continueOrder, loggedIn }: {
                     </> :
 
                     (
-                        order.status === ShiftInStatus.ConfirmedOnEthereum ||
-                        order.status === ShiftOutStatus.ReturnedFromRenVM
-                    ) ?
-                        <>
-                            <TokenIcon className="token-icon" token={order.orderInputs.dstToken} />
-                            <span className="received--text">Received</span>{amount}
+                        (order.status === ShiftInStatus.RefundedOnEthereum ||
+                            order.status === ShiftOutStatus.RefundedOnEthereum ||
+                            order.status === ShiftInStatus.ConfirmedOnEthereum ||
+                            order.status === ShiftOutStatus.ReturnedFromRenVM
+                        ) && order.commitment.type === CommitmentType.RemoveLiquidity
+                    ) ? <>
+                            <TokenIcon className="token-icon" token={order.orderInputs.srcToken} />
+                            <span className="received--text">Removed liquidity - </span>{srcAmount}
                         </> :
+
                         (
-                            order.status === ShiftInStatus.RefundedOnEthereum ||
-                            order.status === ShiftOutStatus.RefundedOnEthereum
+                            order.status === ShiftInStatus.ConfirmedOnEthereum ||
+                            order.status === ShiftOutStatus.ReturnedFromRenVM
                         ) ?
                             <>
                                 <TokenIcon className="token-icon" token={order.orderInputs.dstToken} />
-                                <span className="received--text">{order.orderInputs.srcToken} refunded</span> <InfoLabel>A swap will be refunded if too much time has passed or if the price has fallen too much.</InfoLabel>
+                                <span className="received--text">Received</span>{amount}
                             </> :
-                            <>
-                                {/*<span className="tx-pending tx-pending--solid" />*/}
-                                <CircularProgressbar
-                                    className="swap--progress"
-                                    value={shiftProgress(order.status)}
-                                    strokeWidth={18}
-                                    styles={{
-                                        path: {
-                                            stroke: "#006FE8",
-                                            strokeLinecap: "butt",
-                                            // strokeOpacity: 0.6,
-                                        },
-                                        trail: {
-                                            stroke: "#006FE8",
-                                            strokeOpacity: 0.2,
-                                        },
-                                    }}
-                                />
-                                <span className="received--text">Receiving</span>{amount}
-                                <button
-                                    disabled={!loggedIn}
-                                    className="button--plain"
-                                    onClick={onClick}
-                                >
-                                    {loggedIn ? <>Continue swap</> : <>: Connect to continue</>}
-                                </button>
-                            </>
+                            (
+                                order.status === ShiftInStatus.RefundedOnEthereum ||
+                                order.status === ShiftOutStatus.RefundedOnEthereum
+                            ) ?
+                                <>
+                                    <TokenIcon className="token-icon" token={order.orderInputs.dstToken} />
+                                    <span className="received--text">{order.orderInputs.srcToken} refunded</span> <InfoLabel>A swap will be refunded if too much time has passed or if the price has fallen too much.</InfoLabel>
+                                </> :
+                                <>
+                                    {/*<span className="tx-pending tx-pending--solid" />*/}
+                                    <CircularProgressbar
+                                        className="swap--progress"
+                                        value={shiftProgress(order.status)}
+                                        strokeWidth={18}
+                                        styles={{
+                                            path: {
+                                                stroke: "#006FE8",
+                                                strokeLinecap: "butt",
+                                                // strokeOpacity: 0.6,
+                                            },
+                                            trail: {
+                                                stroke: "#006FE8",
+                                                strokeOpacity: 0.2,
+                                            },
+                                        }}
+                                    />
+                                    <span className="received--text">Receiving</span>{amount}
+                                    <button
+                                        disabled={!loggedIn}
+                                        className="button--plain"
+                                        onClick={onClick}
+                                    >
+                                        {loggedIn ? <>Continue swap</> : <>: Connect to continue</>}
+                                    </button>
+                                </>
             }
 
         </div>

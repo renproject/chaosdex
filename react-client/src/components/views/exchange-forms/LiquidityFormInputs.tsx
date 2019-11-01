@@ -4,9 +4,11 @@ import { CurrencyIcon, TokenValueInput } from "@renproject/react-components";
 import BigNumber from "bignumber.js";
 
 import { useDebounce } from "../../../lib/debounce";
-import { _catchInteractionErr_ } from "../../../lib/errors";
+import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../../lib/errors";
 import { connect, ConnectedProps } from "../../../state/connect";
-import { UIContainer } from "../../../state/uiContainer";
+import { Tokens } from "../../../state/generalTypes";
+import { SDKContainer } from "../../../state/sdkContainer";
+import { LiquidityTabs, UIContainer } from "../../../state/uiContainer";
 import { SelectMarketWrapper } from "../SelectMarketWrapper";
 import { TokenBalance } from "../TokenBalance";
 
@@ -18,16 +20,18 @@ interface Props {
     marketPrice: number;
 }
 
-export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer])(
-    ({ containers: [uiContainer], }) => {
+export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer, SDKContainer]>>([UIContainer, SDKContainer])(
+    ({ containers: [uiContainer, sdkContainer], }) => {
 
         // Store `srcAmount` as state so we can debounce storing it in the
         // container
+        const [liquidityBalance, setLiquidityBalance] = React.useState<BigNumber | null>(null);
         const [srcAmountState, setSrcAmountState] = React.useState(uiContainer.state.orderInputs.srcAmount);
         const debouncedSrcAmountState = useDebounce(srcAmountState, 250);
         // See `toggleSide`
         const [oldSrcAmount, setOldSrcAmount] = React.useState<string | undefined>(undefined);
 
+        const liquidityTab = uiContainer.state.liquidityTab;
         const quoteCurrency = uiContainer.state.preferredCurrency;
         const orderInputs = uiContainer.state.orderInputs;
 
@@ -107,17 +111,47 @@ export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer]>
             <SelectMarketWrapper top={false} thisToken={orderInputs.dstToken} otherToken={orderInputs.srcToken} locked={true} />
         </TokenValueInput>;
 
+        React.useEffect(() => {
+            (async () => {
+                const liquidity = await sdkContainer.liquidityBalance(orderInputs.srcToken);
+                console.log(`liquidity: ${liquidity.toFixed()}`);
+                setLiquidityBalance(liquidity);
+            })().catch(_catchBackgroundErr_);
+        }, [uiContainer.state.address, orderInputs.srcToken]);
+
+        const selectAddTab = React.useCallback(() => {
+            uiContainer.setLiquidityTab(LiquidityTabs.Add).catch(_catchInteractionErr_);
+        }, [uiContainer]);
+
+        const selectRemoveTab = React.useCallback(() => {
+            uiContainer.setLiquidityTab(LiquidityTabs.Remove).catch(_catchInteractionErr_);
+        }, [uiContainer]);
+
         return <div className="order--wrapper--wrapper">
             <div className="order--wrapper">
                 <div className="liquidity--options">
-                    <span className="liquidity--option liquidity--option--selected">Add liquidity</span>
-                    <span className="liquidity--option">Remove liquidity</span>
+                    <span role="tab" onClick={selectAddTab} className={["liquidity--option", liquidityTab === LiquidityTabs.Add ? "liquidity--option--selected" : ""].join(" ")}>Add liquidity</span>
+                    <span role="tab" onClick={selectRemoveTab} className={["liquidity--option", liquidityTab === LiquidityTabs.Remove ? "liquidity--option--selected" : ""].join(" ")}>Remove liquidity</span>
                 </div>
                 {first}{toggle}{second}
                 <div className="liquidity-details">
                     <div className="liquidity-detail"><span>Exchange rate</span><span>-</span></div>
                     <div className="liquidity-detail"><span>Current pool size</span><span>-</span></div>
-                    <div className="liquidity-detail"><span>Your pool share</span><span>-</span></div>
+                    <div className="liquidity-detail"><span>Your pool share</span><span>
+                        <CurrencyIcon currency={quoteCurrency} />
+                        {" "}
+                        {liquidityBalance === null ?
+                            "-" :
+                            <TokenBalance
+                                token={orderInputs.srcToken}
+                                convertTo={quoteCurrency}
+                                tokenPrices={uiContainer.state.tokenPrices}
+                                amount={liquidityBalance || "0"}
+                                toReadable={true}
+                                decimals={Tokens.get(orderInputs.srcToken)!.decimals}
+                            />
+                        }
+                    </span></div>
                 </div>
             </div>
         </div>;

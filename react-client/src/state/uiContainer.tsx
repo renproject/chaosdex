@@ -38,6 +38,11 @@ export enum ExchangeTabs {
     Liquidity,
 }
 
+export enum LiquidityTabs {
+    Add,
+    Remove,
+}
+
 const initialState = {
     web3: null as Web3 | null,
     networkID: 0,
@@ -47,6 +52,7 @@ const initialState = {
     preferredCurrency: Currency.USD,
 
     exchangeTab: ExchangeTabs.Swap,
+    liquidityTab: LiquidityTabs.Add,
 
     address: null as string | null,
     tokenPrices: ImmutableMap<Token, ImmutableMap<Currency, number>>(),
@@ -93,6 +99,10 @@ export class UIContainer extends Container<typeof initialState> {
 
     public setExchangeTab = async (exchangeTab: ExchangeTabs) => {
         await this.setState({ exchangeTab });
+    }
+
+    public setLiquidityTab = async (liquidityTab: LiquidityTabs) => {
+        await this.setState({ liquidityTab });
     }
 
     // Token prices ////////////////////////////////////////////////////////////

@@ -5,6 +5,7 @@ import { Loading } from "@renproject/react-components";
 import { _catchBackgroundErr_ } from "../../../lib/errors";
 import { getMarket } from "../../../lib/market";
 import { connect, ConnectedProps } from "../../../state/connect";
+import { CommitmentType } from "../../../state/persistentContainer";
 import { UIContainer } from "../../../state/uiContainer";
 import { OrderFormInputs } from "./OrderFormInputs";
 
@@ -19,6 +20,7 @@ export const OrderForm = connect<Props & ConnectedProps<[UIContainer]>>([UIConta
     ({ handleLogin, containers: [uiContainer] }) => {
 
         const openOrder = async () => {
+            await uiContainer.updateCommitmentType(CommitmentType.Trade);
             uiContainer.setSubmitting(true).catch(_catchBackgroundErr_);
         };
 
