@@ -12,6 +12,7 @@ const config = {
     shiftOutFee: 10,
     zBTCMinShiftOutAmount: 10000,
     zZECMinShiftOutAmount: 10000,
+    zBCHMinShiftOutAmount: 10000,
     dexFees: 10,
     renNetwork: {
         addresses: {
