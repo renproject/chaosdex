@@ -34,13 +34,13 @@ module.exports = async function (deployer, network, accounts) {
     const _feeRecipient = accounts[0];
     const renNetwork = addresses.renNetwork || networks.config.renNetwork;
 
-    BTCShifter.address = renNetwork.addresses.shifter.BTCShifter.address || "";
-    ZECShifter.address = renNetwork.addresses.shifter.ZECShifter.address || "";
-    BCHShifter.address = renNetwork.addresses.shifter.BCHShifter.address || "";
-    ShifterRegistry.address = renNetwork.addresses.shifter.ShifterRegistry.address || "";
-    zBTC.address = renNetwork.addresses.shifter.zBTC.address || "";
-    zZEC.address = renNetwork.addresses.shifter.zZEC.address || "";
-    zBCH.address = renNetwork.addresses.shifter.zBCH.address || "";
+    BTCShifter.address = (renNetwork.addresses.shifter.BTCShifter || {}).address || "";
+    ZECShifter.address = (renNetwork.addresses.shifter.ZECShifter || {}).address || "";
+    BCHShifter.address = (renNetwork.addresses.shifter.BCHShifter || {}).address || "";
+    ShifterRegistry.address = (renNetwork.addresses.shifter.ShifterRegistry || {}).address || "";
+    zBTC.address = (renNetwork.addresses.shifter.zBTC || {}).address || "";
+    zZEC.address = (renNetwork.addresses.shifter.zZEC || {}).address || "";
+    zBCH.address = (renNetwork.addresses.shifter.zBCH || {}).address || "";
 
     deployer.logger.log("Using:");
     deployer.logger.log(`BTCShifter: ${BTCShifter.address}`);
