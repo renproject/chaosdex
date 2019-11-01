@@ -1,115 +1,175 @@
-pragma solidity ^0.5.8;
+pragma solidity ^0.5.12;
 
 import "./DEX.sol";
 import "./DEXReserve.sol";
+import "darknode-sol/contracts/Shifter/ShifterRegistry.sol";
+import "darknode-sol/contracts/Shifter/IShifter.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
-contract DEXAdapter is Ownable {
+contract DEXAdapter {
+    using SafeERC20 for ERC20;
+
     DEX public dex;
+    ShifterRegistry public shifterRegistry;
 
-    event LogTransferIn(ERC20 src, uint256 amount);
-    event LogTransferOut(ERC20 dst, uint256 amount);
+    event LogTransferIn(address src, uint256 amount);
+    event LogTransferOut(address dst, uint256 amount);
 
-    constructor(DEX _dex) public {
+    constructor(DEX _dex, ShifterRegistry _shifterRegistry) public {
+        shifterRegistry = _shifterRegistry;
         dex = _dex;
     }
 
-    // solhint-disable-next-line no-empty-blocks
-    function() external payable {
+    /// @notice Allow anyone to recover funds accidentally sent to the contract.
+    /// To withdraw ETH, the token should be set to `0x0`.
+    function recoverTokens(address _token) external {
+        if (_token == address(0x0)) {
+            msg.sender.transfer(address(this).balance);
+        } else {
+            ERC20(_token).transfer(msg.sender, ERC20(_token).balanceOf(address(this)));
+        }
     }
 
     // TODO: Fix "Stack too deep" error!
     uint256 transferredAmt;
-    bytes32 pHash;
 
     function trade(
         // Payload
-        /*uint256 _relayerFee,*/ ERC20 _src, ERC20 _dst, uint256 _minDstAmt, bytes calldata _to,
+        /*uint256 _relayerFee,*/ address _src, address _dst, uint256 _minDstAmt, bytes calldata _to,
         uint256 _refundBN, bytes calldata _refundAddress,
         // Required
         uint256 _amount, bytes32 _nHash, bytes calldata _sig
-    ) external payable {
-        pHash = hashPayload(_src, _dst, _minDstAmt, _to, _refundBN, _refundAddress);
-        transferredAmt = _transferIn(_src, _dst, _amount, _nHash, pHash, _sig);
-        emit LogTransferIn(_src, _amount);
-
+    ) external {
+        transferredAmt;
+        bytes32 pHash = hashTradePayload(_src, _dst, _minDstAmt, _to, _refundBN, _refundAddress);
         // Handle refunds if the refund block number has passed
         if (block.number >= _refundBN) {
-            if (DEXReserve(dex.reserve(_src, _dst)).isShifted(address(_src))) {
-                DEXReserve(dex.reserve(_src, _dst)).getShifter(address(_src)).shiftOut(_refundAddress, transferredAmt);
+            IShifter shifter = shifterRegistry.getShifterByToken(address(_src));
+            if (shifter != IShifter(0x0)) {
+                transferredAmt = shifter.shiftIn(pHash, _amount, _nHash, _sig);
+                shifter.shiftOut(_refundAddress, transferredAmt);
             }
-            // FIXME: Also handle the refunds for non-shifted tokens
             return;
         }
 
+        transferredAmt = _transferIn(_src, _amount, _nHash, pHash, _sig);
+        emit LogTransferIn(_src, transferredAmt);
         _doTrade(_src, _dst, _minDstAmt, _to, transferredAmt);
     }
 
-    function hashPayload(
-        /*uint256 _relayerFee,*/ ERC20 _src, ERC20 _dst, uint256 _minDstAmt, bytes memory _to,
+    function hashTradePayload(
+        /*uint256 _relayerFee,*/ address _src, address _dst, uint256 _minDstAmt, bytes memory _to,
         uint256 _refundBN, bytes memory _refundAddress
     ) public pure returns (bytes32) {
         return keccak256(abi.encode(_src, _dst, _minDstAmt, _to, _refundBN, _refundAddress));
     }
 
-    function encodePayload(
-        /*uint256 _relayerFee,*/ ERC20 _src, ERC20 _dst, uint256 _minDstAmt, bytes memory _to,
+    function hashLiquidityPayload(
+        address _liquidityProvider,  uint256 _maxBaseToken, address _token,
         uint256 _refundBN, bytes memory _refundAddress
-    ) public pure returns (bytes memory) {
-        return abi.encode(_src, _dst, _minDstAmt, _to, _refundBN, _refundAddress);
+    ) public pure returns (bytes32) {
+        return keccak256(abi.encode(_liquidityProvider, _maxBaseToken, _token, _refundBN, _refundAddress));
+    }
+
+    function addLiquidity(
+        address _liquidityProvider,  uint256 _maxBaseToken, address _token, uint256 _deadline, bytes calldata _refundAddress,
+        uint256 _amount, bytes32 _nHash, bytes calldata _sig
+        ) external returns (uint256) {
+            DEXReserve reserve = dex.reserves(_token);
+            require(reserve != DEXReserve(0x0), "unsupported token");
+            bytes32 lpHash = hashLiquidityPayload(_liquidityProvider, _maxBaseToken, _token, _deadline, _refundAddress);
+            if (block.number > _deadline) {
+                uint256 shiftedAmount = shifterRegistry.getShifterByToken(_token).shiftIn(lpHash, _amount, _nHash, _sig);
+                shifterRegistry.getShifterByToken(_token).shiftOut(_refundAddress, shiftedAmount);
+                return 0;
+            }
+            require(ERC20(dex.baseToken()).allowance(_liquidityProvider, address(reserve)) >= _maxBaseToken,
+                "insufficient base token allowance");
+            uint256 transferredAmount = _transferIn(_token, _amount, _nHash, lpHash, _sig);
+            ERC20(_token).approve(address(reserve), transferredAmount);
+            return reserve.addLiquidity(_liquidityProvider, _maxBaseToken, transferredAmount, _deadline);
+    }
+
+    function removeLiquidity(address _token, uint256 _liquidity, bytes calldata _tokenAddress) external {
+        DEXReserve reserve = dex.reserves(_token);
+        require(reserve != DEXReserve(0x0), "unsupported token");
+        ERC20(reserve).safeTransferFrom(msg.sender, address(this), _liquidity);
+        (uint256 baseTokenAmount, uint256 quoteTokenAmount) = reserve.removeLiquidity(_liquidity);
+        reserve.baseToken().safeTransfer(msg.sender, baseTokenAmount);
+        shifterRegistry.getShifterByToken(address(reserve.token())).shiftOut(_tokenAddress, quoteTokenAmount);
     }
 
     function _doTrade(
-        ERC20 _src, ERC20 _dst, uint256 _minDstAmt, bytes memory _to, uint256 _amount
+        address _src, address _dst, uint256 _minDstAmt, bytes memory _to, uint256 _amount
     ) internal {
         uint256 recvAmt;
-        address payable to;
-        DEXReserve reserve = DEXReserve(dex.reserve(_src, _dst));
+        address to;
+        IShifter shifter = shifterRegistry.getShifterByToken(address(_dst));
 
-        if (reserve.isShifted(address(_dst))) {
+        if (shifter != IShifter(0x0)) {
             to = address(this);
         } else {
             to = _bytesToAddress(_to);
         }
 
-        if (_src == dex.ethereum()) {
-            recvAmt = dex.trade.value(msg.value)(to, _src, _dst, _amount);
+        if (_src == dex.baseToken()) {
+            ERC20(_src).approve(address(dex.reserves(_dst)), _amount);
         } else {
-            _src.approve(address(dex), _amount);
-            recvAmt = dex.trade(to, _src, _dst, _amount);
+            ERC20(_src).approve(address(dex.reserves(_src)), _amount);
         }
+        recvAmt = dex.trade(to, _src, _dst, _amount);
 
-        require(recvAmt >= _minDstAmt, "invalid receive amount");
-        if (reserve.isShifted(address(_dst))) {
-            reserve.getShifter(address(_dst)).shiftOut(_to, recvAmt);
+        require(recvAmt > 0 && recvAmt >= _minDstAmt, "invalid receive amount");
+        if (shifter != IShifter(0x0)) {
+            shifter.shiftOut(_to, recvAmt);
         }
         emit LogTransferOut(_dst, recvAmt);
     }
 
     function _transferIn(
-        /*uint256 _relayerFee,*/ ERC20 _src, ERC20 _dst, uint256 _amount,
+        /*uint256 _relayerFee,*/ address _src, uint256 _amount,
         bytes32 _nHash, bytes32 _pHash, bytes memory _sig
     ) internal returns (uint256) {
-        DEXReserve reserve = DEXReserve(dex.reserve(_src, _dst));
-
-        if (reserve.isShifted(address(_src))) {
-            return reserve.getShifter(address(_src)).shiftIn(_pHash, _amount, _nHash, _sig);
-        } else if (_src == dex.ethereum()) {
-            require(msg.value >= _amount, "insufficient eth amount");
-            return msg.value;
+        IShifter shifter = shifterRegistry.getShifterByToken(address(_src));
+        if (shifter != IShifter(0x0)) {
+            return shifter.shiftIn(_pHash, _amount, _nHash, _sig);
         } else {
-            require(_src.transferFrom(msg.sender, address(this), _amount), "source token transfer failed");
+            ERC20(_src).safeTransferFrom(msg.sender, address(this), _amount);
             return _amount;
         }
     }
 
-    function _bytesToAddress(bytes memory _addr) internal pure returns (address payable) {
-        address payable addr;
+    function _bytesToAddress(bytes memory _addr) internal pure returns (address) {
+        address addr;
         /* solhint-disable-next-line */ /* solium-disable-next-line */
         assembly {
             addr := mload(add(_addr, 20))
         }
         return addr;
+    }
+
+    function calculateReceiveAmount(address _src, address _dst, uint256 _sendAmount) public view returns (uint256) {
+        uint256 sendAmount = _sendAmount;
+
+        // Remove shift-in fees
+        IShifter srcShifter = shifterRegistry.getShifterByToken(_dst);
+        if (srcShifter != IShifter(0x0)) {
+            sendAmount = removeFee(_sendAmount, srcShifter.shiftInFee());
+        }
+
+        uint256 receiveAmount = dex.calculateReceiveAmount(_src, _dst, sendAmount);
+
+        // Remove shift-out fees
+        IShifter dstShifter = shifterRegistry.getShifterByToken(_dst);
+        if (dstShifter != IShifter(0x0)) {
+            receiveAmount = removeFee(receiveAmount, dstShifter.shiftOutFee());
+        }
+
+        return receiveAmount;
+    }
+
+    function removeFee(uint256 _amount, uint256 _feeInBips) private view returns (uint256) {
+        return _amount - (_amount * _feeInBips)/10000;
     }
 }

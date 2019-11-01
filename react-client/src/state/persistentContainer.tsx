@@ -2,12 +2,14 @@ import { Chain } from "@renproject/ren";
 import { TxStatus } from "@renproject/ren/dist/renVM/transaction";
 import localForage from "localforage";
 import { PersistContainer } from "unstated-persist";
+import BigNumber from "bignumber.js";
 
 // import { Chain } from "@renproject/ren";
 // import { Token } from "./generalTypes";
 import { OrderInputs } from "./uiContainer";
 
-export interface Commitment {
+export interface OrderCommitment {
+    type: CommitmentType.Trade;
     srcToken: string;
     dstToken: string;
     minDestinationAmount: number;
@@ -15,6 +17,31 @@ export interface Commitment {
     toAddress: string;
     refundBlockNumber: number;
     refundAddress: string;
+}
+
+export interface AddLiquidityCommitment {
+    type: CommitmentType.AddLiquidity;
+    liquidityProvider: string;
+    maxDAIAmount: BigNumber;
+    token: string;
+    amount: number;
+    refundBlockNumber: number;
+    refundAddress: string;
+}
+
+export interface RemoveLiquidityCommitment {
+    type: CommitmentType.RemoveLiquidity;
+    token: string;
+    liquidity: number;
+    nativeAddress: string;
+}
+
+export type Commitment = OrderCommitment | AddLiquidityCommitment | RemoveLiquidityCommitment;
+
+export enum CommitmentType {
+    Trade,
+    AddLiquidity,
+    RemoveLiquidity
 }
 
 export interface Tx {
@@ -48,7 +75,7 @@ export interface HistoryEventCommon {
     outTx: Tx | null;
     receivedAmount: string | null;
     orderInputs: OrderInputs;
-    commitment: Commitment;
+    commitment: RemoveLiquidityCommitment | AddLiquidityCommitment | OrderCommitment;
     messageID: string | null;
     nonce: string;
     renVMStatus: TxStatus | null;
@@ -57,6 +84,7 @@ export interface HistoryEventCommon {
 export interface ShiftInEvent extends HistoryEventCommon {
     shiftIn: true;
     status: ShiftInStatus;
+    commitment: RemoveLiquidityCommitment | AddLiquidityCommitment | OrderCommitment;
 }
 
 export interface ShiftOutEvent extends HistoryEventCommon {

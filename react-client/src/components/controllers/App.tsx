@@ -3,6 +3,7 @@ import * as React from "react";
 import { parse as parseLocation } from "qs";
 import { RouteComponentProps, withRouter } from "react-router-dom";
 import createPersistedState from "use-persisted-state";
+import { FeedbackButton } from "@renproject/react-components";
 
 import { ETHEREUM_NETWORK, ETHEREUM_NETWORK_ID } from "../../lib/environmentVariables";
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
@@ -14,7 +15,6 @@ import { UIContainer } from "../../state/uiContainer";
 import { HeaderController } from "../views/HeaderController";
 import { Tutorial } from "../views/tutorial-popup/Tutorial";
 import { Exchange } from "./Exchange";
-import { FeedbackButton } from "@renproject/react-components";
 
 const useTutorialState = createPersistedState("show-tutorial");
 
@@ -48,7 +48,7 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
             await sdkContainer.connect(web3, address, networkID);
 
             uiContainer.updateTokenPrices().catch(_catchBackgroundErr_);
-            uiContainer.updateBalanceReserves().catch(_catchBackgroundErr_);
+            // uiContainer.updateBalanceReserves().catch(_catchBackgroundErr_);
             uiContainer.updateAccountBalances().catch(_catchBackgroundErr_);
         }, [sdkContainer, uiContainer]);
 
@@ -86,7 +86,7 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
 
                 // Start loops to update prices and balances
                 setInterval(() => uiContainer.updateTokenPrices().catch(() => { /* ignore */ }), 10 * 1000);
-                setInterval(() => uiContainer.updateBalanceReserves().catch(() => { /* ignore */ }), 10 * 1000);
+                // setInterval(() => uiContainer.updateBalanceReserves().catch(() => { /* ignore */ }), 10 * 1000);
                 setInterval(() => uiContainer.updateAccountBalances().catch(() => { /* ignore */ }), 10 * 1000);
                 if (!showingTutorial) {
                     login().then(() => {

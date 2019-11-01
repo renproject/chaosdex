@@ -7,12 +7,6 @@ const rl = readline.createInterface({
     output: process.stdout
 });
 
-function ask(question) {
-    return new Promise((resolve, reject) => {
-        rl.question(question, (input) => resolve(input));
-    });
-}
-
 const NULL = "0x0000000000000000000000000000000000000000";
 
 const ShifterRegistry = artifacts.require("ShifterRegistry");
@@ -22,6 +16,9 @@ const zBTC = artifacts.require("zBTC");
 
 const ZECShifter = artifacts.require("ZECShifter");
 const zZEC = artifacts.require("zZEC");
+
+const BCHShifter = artifacts.require("BCHShifter");
+const zBCH = artifacts.require("zBCH");
 
 
 const networks = require("./networks.js");
@@ -37,18 +34,22 @@ module.exports = async function (deployer, network, accounts) {
     const _feeRecipient = accounts[0];
     const renNetwork = addresses.renNetwork || networks.config.renNetwork;
 
-    BTCShifter.address = renNetwork.addresses.shifter.BTCShifter.address || "";
-    ZECShifter.address = renNetwork.addresses.shifter.ZECShifter.address || "";
-    ShifterRegistry.address = renNetwork.addresses.shifter.ShifterRegistry.address || "";
-    zZEC.address = renNetwork.addresses.shifter.zZEC.address || "";
-    zBTC.address = renNetwork.addresses.shifter.zBTC.address || "";
+    BTCShifter.address = (renNetwork.addresses.shifter.BTCShifter || {}).address || "";
+    ZECShifter.address = (renNetwork.addresses.shifter.ZECShifter || {}).address || "";
+    BCHShifter.address = (renNetwork.addresses.shifter.BCHShifter || {}).address || "";
+    ShifterRegistry.address = (renNetwork.addresses.shifter.ShifterRegistry || {}).address || "";
+    zBTC.address = (renNetwork.addresses.shifter.zBTC || {}).address || "";
+    zZEC.address = (renNetwork.addresses.shifter.zZEC || {}).address || "";
+    zBCH.address = (renNetwork.addresses.shifter.zBCH || {}).address || "";
 
     deployer.logger.log("Using:");
     deployer.logger.log(`BTCShifter: ${BTCShifter.address}`);
     deployer.logger.log(`ZECShifter: ${ZECShifter.address}`);
+    deployer.logger.log(`BCHShifter: ${BCHShifter.address}`);
     deployer.logger.log(`ShifterRegistry: ${ShifterRegistry.address}`);
     deployer.logger.log(`zZEC: ${zZEC.address}`);
     deployer.logger.log(`zBTC: ${zBTC.address}`);
+    deployer.logger.log(`zBCH: ${zBCH.address}`);
 
     /** Registry **************************************************************/
 
@@ -59,80 +60,74 @@ module.exports = async function (deployer, network, accounts) {
     }
     const registry = await ShifterRegistry.at(ShifterRegistry.address);
 
-    /** BTC *******************************************************************/
+    // try {
+    //     deployer.logger.log("Attempting to change cycle");
+    //     await darknodePayment.changeCycle();
+    // } catch (error) {
+    //     deployer.logger.log("Unable to call darknodePayment.changeCycle()");
+    // }
 
-    if (!zBTC.address) {
-        await deployer.deploy(zBTC, "Shifted Bitcoin", "zBTC", 8);
+    for (const [Token, Shifter, name, symbol, decimals, minShiftOutAmount] of [
+        [zBTC, BTCShifter, "Shifted Bitcoin", "zBTC", 8, config.zBTCMinShiftOutAmount],
+        [zZEC, ZECShifter, "Shifted ZCash", "zZEC", 8, config.zZECMinShiftOutAmount],
+        [zBCH, BCHShifter, "Shifted Bitcoin Cash", "zBCH", 8, config.zBCHMinShiftOutAmount],
+    ]) {
+        if (!Token.address) {
+            await deployer.deploy(Token, name, symbol, decimals);
+        }
+        const token = await Token.at(Token.address);
+
+        if (!Shifter.address) {
+            await deployer.deploy(
+                Shifter,
+                Token.address,
+                _feeRecipient,
+                _mintAuthority,
+                config.shiftInFee,
+                config.shiftOutFee,
+                minShiftOutAmount,
+            );
+        }
+        const tokenShifter = await Shifter.at(Shifter.address);
+
+        const shifterAuthority = await tokenShifter.mintAuthority.call();
+        if (shifterAuthority.toLowerCase() !== _mintAuthority.toLowerCase()) {
+            deployer.logger.log(`Updating fee recipient for ${symbol} shifter. Was ${shifterAuthority.toLowerCase()}, now is ${_mintAuthority.toLowerCase()}`);
+            deployer.logger.log(`Updating mint authority in ${symbol} shifter`);
+            await tokenShifter.updateMintAuthority(_mintAuthority);
+        }
+
+        if (await token.owner() !== Shifter.address) {
+            deployer.logger.log(`Transferring ${symbol} ownership`);
+            await token.transferOwnership(Shifter.address);
+            deployer.logger.log(`Claiming ${symbol} ownership in shifter`);
+            await tokenShifter.claimTokenOwnership();
+        }
+
+        const registered = await registry.getShifterByToken.call(Token.address);
+        if (registered === NULL) {
+            const otherRegistration = (await registry.getShifterBySymbol.call(symbol));
+            if (otherRegistration === NULL) {
+                deployer.logger.log(`Registering ${symbol} shifter`);
+                await registry.setShifter(Token.address, Shifter.address);
+            } else {
+                deployer.logger.log(`Updating registered ${symbol} shifter`);
+                await registry.updateShifter(Token.address, Shifter.address);
+            }
+        } else {
+            deployer.logger.log(`${symbol} shifter is already registered: ${await registry.getShifterByToken.call(Token.address)}`);
+        }
     }
-    const zbtc = await zBTC.at(zBTC.address);
-
-    if (!BTCShifter.address) {
-        await deployer.deploy(
-            BTCShifter,
-            zBTC.address,
-            _feeRecipient,
-            _mintAuthority,
-            config.shifterFees,
-            config.zBTCMinShiftOutAmount,
-        );
-    }
-    const btcShifter = await BTCShifter.at(BTCShifter.address);
-
-    if (await zbtc.owner() !== BTCShifter.address) {
-        deployer.logger.log(`Transferring ownership of BTCShifter`);
-        await zbtc.transferOwnership(BTCShifter.address);
-        deployer.logger.log(`Claiming token ownership in BTCShifter`);
-        await btcShifter.claimTokenOwnership();
-    }
-
-    if ((await registry.getShifterByToken(zBTC.address)) === NULL) {
-        deployer.logger.log(`Registering BTC shifter`);
-        await registry.setShifter(zBTC.address, BTCShifter.address);
-    } else {
-        deployer.logger.log(`BTC shifter is already registered: ${await registry.getShifterByToken(zBTC.address)}`);
-    }
-
-    /** ZEC *******************************************************************/
-
-    if (!zZEC.address) {
-        await deployer.deploy(zZEC, "Shifted ZCash", "zZEC", 8);
-    }
-    const zzec = await zZEC.at(zZEC.address);
-
-    if (!ZECShifter.address) {
-        await deployer.deploy(
-            ZECShifter,
-            zZEC.address,
-            _feeRecipient,
-            _mintAuthority,
-            config.shifterFees,
-            config.zZECMinShiftOutAmount,
-        );
-    }
-    const zecShifter = await ZECShifter.at(ZECShifter.address);
-
-    if (await zzec.owner() !== ZECShifter.address) {
-        deployer.logger.log(`Transferring ownership of ZECShifter`);
-        await zzec.transferOwnership(ZECShifter.address);
-        deployer.logger.log(`Claiming token ownership in ZECShifter`);
-        await zecShifter.claimTokenOwnership();
-    }
-
-    if ((await registry.getShifterByToken(zZEC.address)) === NULL) {
-        deployer.logger.log(`Registering ZEC shifter`);
-        await registry.setShifter(zZEC.address, ZECShifter.address);
-    } else {
-        deployer.logger.log(`ZEC shifter is already registered: ${await registry.getShifterByToken(zZEC.address)}`);
-    }
-
 
     /** LOG *******************************************************************/
 
     deployer.logger.log({
         BTCShifter: BTCShifter.address,
         ZECShifter: ZECShifter.address,
+        BCHShifter: BCHShifter.address,
         zBTC: zBTC.address,
         zZEC: zZEC.address,
+        zBCH: zBCH.address,
         ShifterRegistry: ShifterRegistry.address,
     });
 }

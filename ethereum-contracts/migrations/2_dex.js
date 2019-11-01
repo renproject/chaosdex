@@ -1,15 +1,13 @@
 /// <reference types="../types/truffle-contracts" />
 
-const BN = require("bn.js");
-
-const BTCShifter = artifacts.require("BTCShifter");
 const zBTC = artifacts.require("zBTC");
-
-const ZECShifter = artifacts.require("ZECShifter");
 const zZEC = artifacts.require("zZEC");
+const zBCH = artifacts.require("zBCH");
+const ShifterRegistry = artifacts.require("ShifterRegistry");
 
 const BTC_DAI_Reserve = artifacts.require("BTC_DAI_Reserve");
 const ZEC_DAI_Reserve = artifacts.require("ZEC_DAI_Reserve");
+const BCH_DAI_Reserve = artifacts.require("BCH_DAI_Reserve");
 const DEXAdapter = artifacts.require("DEXAdapter");
 const DEX = artifacts.require("DEX");
 const DaiToken = artifacts.require("DaiToken");
@@ -35,7 +33,7 @@ module.exports = async function (deployer, network, accounts) {
     if (!DEX.address) {
         await deployer.deploy(
             DEX,
-            config.dexFees, // uint256 _feeinBIPs
+            DaiToken.address,
         );
     }
     const dex = await DEX.at(DEX.address);
@@ -44,40 +42,45 @@ module.exports = async function (deployer, network, accounts) {
         await deployer.deploy(
             DEXAdapter,
             DEX.address,
+            ShifterRegistry.address,
         );
     }
 
     deployer.logger.log("Deploying reserves...");
 
-    const deployReserve = async (leftToken, rightToken, Reserve, shifter) => {
-        await deployer.deploy(Reserve);
+    const deployReserve = async (quoteToken, baseToken, Reserve) => {
+        await deployer.deploy(Reserve, baseToken.address, quoteToken.address, config.dexFees);
         const res = await Reserve.at(Reserve.address);
-        await res.setShifter(leftToken.address, shifter.address);
-        await dex.registerReserve(leftToken.address, rightToken.address, Reserve.address);
-        const maxApproval = new BN(2).pow(new BN(256)).sub(new BN(1)).toString();
-        await res.approve(leftToken.address, dex.address, maxApproval);
-        await res.approve(rightToken.address, dex.address, maxApproval);
+        await dex.registerReserve(quoteToken.address, Reserve.address);
         // const dai = await rightToken.at(rightToken.address);
         // await dai.transfer(Reserve.address, "100000000000000000000");
     }
 
-    BTC_DAI_Reserve.address = await dex.reserve(zBTC.address, DaiToken.address);
+    BTC_DAI_Reserve.address = await dex.reserves(zBTC.address);
     if (BTC_DAI_Reserve.address === "0x0000000000000000000000000000000000000000") {
-        await deployReserve(zBTC, DaiToken, BTC_DAI_Reserve, BTCShifter);
+        await deployReserve(zBTC, DaiToken, BTC_DAI_Reserve);
         deployer.logger.log(`[${"BTC"}, ${"DAI"}]: ${BTC_DAI_Reserve.address}`);
     } else {
         deployer.logger.log(`\nUsing existing reserve for [${"BTC"}, ${"DAI"}]: ${BTC_DAI_Reserve.address}\n`);
     }
 
-    ZEC_DAI_Reserve.address = await dex.reserve(zZEC.address, DaiToken.address);
+    ZEC_DAI_Reserve.address = await dex.reserves(zZEC.address);
     if (ZEC_DAI_Reserve.address === "0x0000000000000000000000000000000000000000") {
-        await deployReserve(zZEC, DaiToken, ZEC_DAI_Reserve, ZECShifter);
+        await deployReserve(zZEC, DaiToken, ZEC_DAI_Reserve);
         deployer.logger.log(`[${"ZEC"}, ${"DAI"}]: ${ZEC_DAI_Reserve.address}`);
     } else {
         deployer.logger.log(`\nUsing existing reserve for [${"ZEC"}, ${"DAI"}]: ${ZEC_DAI_Reserve.address}\n`);
     }
 
-    // await web3.eth.sendTransaction({ to: "0x797522Fb74d42bB9fbF6b76dEa24D01A538d5D66", from: accounts[0], value: web3.utils.toWei("1", "ether") });
+    BCH_DAI_Reserve.address = await dex.reserves(zBCH.address);
+    if (BCH_DAI_Reserve.address === "0x0000000000000000000000000000000000000000") {
+        await deployReserve(zBCH, DaiToken, BCH_DAI_Reserve);
+        deployer.logger.log(`[${"BCH"}, ${"DAI"}]: ${BCH_DAI_Reserve.address}`);
+    } else {
+        deployer.logger.log(`\nUsing existing reserve for [${"BCH"}, ${"DAI"}]: ${BCH_DAI_Reserve.address}\n`);
+    }
+
+    // await web3.eth.sendTransaction({ to: "", from: accounts[0], value: web3.utils.toWei("1", "ether") });
 
     /** LOG *******************************************************************/
 

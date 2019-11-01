@@ -1,59 +1,86 @@
-pragma solidity ^0.5.8;
+pragma solidity ^0.5.12;
 
+import "darknode-sol/contracts/libraries/Claimable.sol";
 import "./DEXReserve.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
-contract DEX {
-    mapping (bytes32=>address payable) public reserves;
-    ERC20 public ethereum = ERC20(0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee);
+/// @title DEX
+/// @notice The DEX contract stores the reserves for each token pair and
+/// provides functions for interacting with them:
+///   1) the view-function `calculateReceiveAmount` for calculating how much
+///      the user will receive in exchange for their tokens
+///   2) the function `trade` for executing a swap. If one of the tokens is the
+///      base token, this will only talk to one reserve. If neither of the
+///      tokens are, then the trade will settle across two reserves.
+///
+/// The DEX is ownable, allowing a DEX operator to register new reserves.
+/// Once a reserve has been registered, it can't be updated.
+contract DEX is Claimable {
+    mapping (address=>DEXReserve) public reserves;
+    address public baseToken;
 
-    event LogTrade(ERC20 _src, ERC20 _dst, uint256 _sendAmount, uint256 _recvAmount); 
-    uint256 public feeinBIPs;
+    event LogTrade(address _src, address _dst, uint256 _sendAmount, uint256 _recvAmount);
 
-    constructor(uint256 _feeinBIPs) public {
-        feeinBIPs = _feeinBIPs;
+    /// @param _baseToken The reserves must all have a common base token.
+    constructor(address _baseToken) public {
+        baseToken = _baseToken;
     }
 
-    function trade(address payable _to, ERC20 _src, ERC20 _dst, uint256 _sendAmount) public payable returns (uint256) {
-        address payable reserve = reserve(_src, _dst);
-        require(reserve != address(0x0), "unsupported token pair");
-        uint256 recvAmount = calculateReceiveAmount(_src, _dst, _sendAmount);
-
-        if (_src != ethereum) {
-            require(_src.transferFrom(msg.sender, reserve, _sendAmount), "source token transfer failed");
+    /// @notice Allow the owner to recover funds accidentally sent to the
+    /// contract. To withdraw ETH, the token should be set to `0x0`.
+    function recoverTokens(address _token) external onlyOwner {
+        if (_token == address(0x0)) {
+            msg.sender.transfer(address(this).balance);
         } else {
-            require(msg.value >= _sendAmount, "invalid msg.value");
-            reserve.transfer(msg.value);
+            ERC20(_token).transfer(msg.sender, ERC20(_token).balanceOf(address(this)));
         }
+    }
 
-        if (_dst != ethereum) {
-            require(_dst.transferFrom(reserve, _to, recvAmount), "destination token transfer failed");
+    /// @notice The DEX operator is able to register new reserves.
+    /// @param _erc20 The token that can be traded against the base token.
+    /// @param _reserve The address of the reserve contract. It must follow the
+    ///        DEXReserve interface.
+    function registerReserve(address _erc20, DEXReserve _reserve) external onlyOwner {
+        require(reserves[_erc20] == DEXReserve(0x0), "token reserve already registered");
+        reserves[_erc20] = _reserve;
+    }
+
+    /// @notice The main trade function to execute swaps.
+    /// @param _to The address at which the DST tokens should be sent to.
+    /// @param _src The address of the token being spent.
+    /// @param _dst The address of the token being received.
+    /// @param _sendAmount The amount of the source token being traded.
+    function trade(address _to, address _src, address _dst, uint256 _sendAmount) public returns (uint256) {
+        uint256 recvAmount;
+        if (_src == baseToken) {
+            require(reserves[_dst] != DEXReserve(0x0), "unsupported token");
+            recvAmount = reserves[_dst].buy(_to, msg.sender, _sendAmount);
+        } else if (_dst == baseToken) {
+            require(reserves[_src] != DEXReserve(0x0), "unsupported token");
+            recvAmount = reserves[_src].sell(_to, msg.sender, _sendAmount);
         } else {
-            DEXReserve(reserve).transfer(_to, recvAmount);
+            require(reserves[_src] != DEXReserve(0x0) && reserves[_dst] != DEXReserve(0x0), "unsupported token");
+            uint256 intermediteAmount = reserves[_src].sell(address(this), msg.sender, _sendAmount);
+            ERC20(baseToken).approve(address(reserves[_dst]), intermediteAmount);
+            recvAmount = reserves[_dst].buy(_to, address(this), intermediteAmount);
         }
-
         emit LogTrade(_src, _dst, _sendAmount, recvAmount);
         return recvAmount;
     }
 
-    function registerReserve(ERC20 _a, ERC20 _b, address payable _reserve) public {
-        reserves[tokenPairID(_a, _b)] = _reserve;
-    }
-
-    function calculateReceiveAmount(ERC20 _src, ERC20 _dst, uint256 _sendAmount) public view returns (uint256) {
-        address reserve = reserve(_src, _dst);
-        uint256 srcAmount = _src == ethereum ? reserve.balance : _src.balanceOf(reserve);
-        uint256 dstAmount = _dst == ethereum ? reserve.balance : _dst.balanceOf(reserve);
-        uint256 rcvAmount = dstAmount - ((srcAmount*dstAmount)/(srcAmount+_sendAmount));
-        return (rcvAmount * (10000 - feeinBIPs))/10000;
-    }
-
-    function reserve(ERC20 _a, ERC20 _b) public view returns (address payable) {
-        return reserves[tokenPairID(_a, _b)];
-    }
-    
-    function tokenPairID(ERC20 _a, ERC20 _b) public pure returns (bytes32) {
-        return uint160(address(_a)) < uint160(address(_b)) ? 
-            keccak256(abi.encodePacked(_a, _b)) : keccak256(abi.encodePacked(_b, _a));
+    /// @notice A read-only function to estimate the amount of DST tokens the
+    /// trader would receive for the send amount.
+    /// @param _src The address of the token being spent.
+    /// @param _dst The address of the token being received.
+    /// @param _sendAmount The amount of the source token being traded.
+    function calculateReceiveAmount(address _src, address _dst, uint256 _sendAmount) public view returns (uint256) {
+        if (_src == baseToken) {
+            return reserves[_dst].calculateBuyRcvAmt(_sendAmount);
+        }
+        if (_dst == baseToken) {
+            return reserves[_src].calculateSellRcvAmt(_sendAmount);
+        }
+        return reserves[_dst].calculateBuyRcvAmt(reserves[_src].calculateSellRcvAmt(_sendAmount));
     }
 }

@@ -50,11 +50,11 @@ ETHERSCAN_KEY="..."
 Deploy to Kovan:
 
 ```sh
-NETWORK=kovan yarn run deploy
+NETWORK=testnet yarn run deploy
 ```
 
 ## Verifying Contract Code
 
 ```sh
-NETWORK=kovan yarn run verify DEX DEXAdapter
+NETWORK=testnet yarn run verify DEX DEXAdapter BTC_DAI_Reserve ZEC_DAI_Reserve
 ```
