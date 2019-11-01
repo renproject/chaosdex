@@ -31,6 +31,7 @@ export enum MarketPair {
 
 const btcValidator = (address: string, isTestnet: boolean) => validate(address, "btc", isTestnet ? "testnet" : "prod");
 const zecValidator = (address: string, isTestnet: boolean) => validate(address, "zec", isTestnet ? "testnet" : "prod");
+const bchValidator = (address: string, isTestnet: boolean) => validate(address, "bch", isTestnet ? "testnet" : "prod");
 const ethValidator = (address: string, isTestnet: boolean) => validate(address, "eth", isTestnet ? "testnet" : "prod");
 
 export const Tokens = Map<Token, TokenDetails>()
@@ -39,6 +40,7 @@ export const Tokens = Map<Token, TokenDetails>()
     // .set(Token.ETH, { symbol: Token.ETH, name: "Ethereum", decimals: 18, priority: 1024, chain: Chain.Ethereum, validator: ethValidator })
     // .set(Token.REN, { symbol: Token.REN, name: "Ren", decimals: 18, priority: 1025, chain: Chain.Ethereum, validator: ethValidator })
     .set(Token.ZEC, { symbol: Token.ZEC, name: "Zcash", decimals: 8, priority: 201, chain: Chain.Zcash, validator: zecValidator })
+    .set(Token.BCH, { symbol: Token.BCH, name: "BCash", decimals: 8, priority: 202, chain: Chain.BCash, validator: bchValidator })
     ;
 
 export const isEthereumBased = (token: Token) => {

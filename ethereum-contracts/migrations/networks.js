@@ -49,13 +49,8 @@ module.exports = {
     },
     chaosnet: {
         renNetwork: ren.chaosnet,
-        BTCShifter: '0x1258d7FF385d1d81017d4a3d464c02f74C61902a',
-        ZECShifter: '0x2b59Ef3Eb28c7388c7eC69d43a9b8E585C461d5b',
-        BCHShifter: '0xa76beA11766E0b66bD952bc357CF027742021a8C',
-        zBTC: '0x88C64A7D2ecC882D558DD16aBC1537515a78BB7D',
-        zZEC: '0x8dD8944320Eb76F8e39C58E7A30d34E7fbA9D719',
-        zBCH: '0x466Dd97F83b18aC23dDF16931f8171A817953fF1',
-        ShifterRegistry: '0x5d9bF2Bad3dD710e4D533681ed16eD1cfeAc9e6F',
+        DEX: "0xf65d91333B1d4d3887016b17741aD602d7768594",
+        DEXAdapter: "0x9992e9341e496bE5bC8F424DFC1f78A7388D3A58",
         config: {
             ...config,
             mintAuthority: ren.chaosnet.renVM.mintAuthority,

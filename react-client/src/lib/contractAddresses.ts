@@ -12,14 +12,17 @@ export const syncGetTokenAddress = (networkID: number, token: Token): string => 
         case Token.ETH:
             return "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
         case Token.BTC:
-            const deployedBtcNetworks = require(`../contracts/${network}/zBTC.json`).networks;
-            return deployedBtcNetworks[networkID].address;
+            const deployedBTCNetworks = require(`../contracts/${network}/zBTC.json`).networks;
+            return deployedBTCNetworks[networkID].address;
         case Token.ZEC:
-            const deployedZecNetworks = require(`../contracts/${network}/zZEC.json`).networks;
-            return deployedZecNetworks[networkID].address;
+            const deployedZECNetworks = require(`../contracts/${network}/zZEC.json`).networks;
+            return deployedZECNetworks[networkID].address;
+        case Token.BCH:
+            const deployedBCHNetworks = require(`../contracts/${network}/zBCH.json`).networks;
+            return deployedBCHNetworks[networkID].address;
         // case Token.REN:
-        //     const deployedRenNetworks = require(`../contracts/${network}/RenToken.json`).networks;
-        //     return deployedRenNetworks[networkID].address;
+        //     const deployedRENNetworks = require(`../contracts/${network}/RenToken.json`).networks;
+        //     return deployedRENNetworks[networkID].address;
     }
 };
 
@@ -56,6 +59,8 @@ export const getTokenDecimals = (token: Token): number => {
         case Token.BTC:
             return 8;
         case Token.ZEC:
+            return 8;
+        case Token.BCH:
             return 8;
         // case Token.REN:
         //     return 18;

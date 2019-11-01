@@ -23,6 +23,7 @@ import {
 
 const BitcoinTx = (hash: string) => ({ hash, chain: Chain.Bitcoin });
 const ZCashTx = (hash: string) => ({ hash, chain: Chain.Zcash });
+const BCashTx = (hash: string) => ({ hash, chain: Chain.BCash });
 const EthereumTx = (hash: string) => ({ hash, chain: Chain.Ethereum });
 
 export let network: NetworkDetails = NetworkTestnet;
@@ -220,7 +221,10 @@ export class SDKContainer extends Container<typeof initialState> {
         try {
             await renVM.shiftOut({
                 web3Provider: web3.currentProvider,
-                sendToken: order.orderInputs.dstToken === Token.ZEC ? ShiftActions.ZEC.Eth2Zec : ShiftActions.BTC.Eth2Btc,
+                sendToken: order.orderInputs.dstToken === Token.ZEC ?
+                    ShiftActions.ZEC.Eth2Zec :
+                    order.orderInputs.dstToken === Token.BCH ? ShiftActions.BCH.Eth2Bch :
+                        ShiftActions.BTC.Eth2Btc,
                 txHash: transactionHash,
             }).readFromEthereum();
         } catch (error) {
@@ -261,7 +265,9 @@ export class SDKContainer extends Container<typeof initialState> {
 
         const shiftOutObject = await renVM.shiftOut({
             web3Provider: web3.currentProvider,
-            sendToken: order.orderInputs.dstToken === Token.ZEC ? ShiftActions.ZEC.Eth2Zec : ShiftActions.BTC.Eth2Btc,
+            sendToken: order.orderInputs.dstToken === Token.ZEC ? ShiftActions.ZEC.Eth2Zec :
+                order.orderInputs.dstToken === Token.BCH ? ShiftActions.BCH.Eth2Bch :
+                    ShiftActions.BTC.Eth2Btc,
             txHash: order.inTx.hash
         }).readFromEthereum();
 
@@ -284,7 +290,10 @@ export class SDKContainer extends Container<typeof initialState> {
             receivedAmount,
             outTx: order.orderInputs.dstToken === Token.ZEC ?
                 ZCashTx(zecAddressFrom(address, "base64")) :
-                BitcoinTx(btcAddressFrom(address, "base64")),
+                order.orderInputs.dstToken === Token.BCH ?
+                    // BCashTx(bchAddressFrom(address, "base64")) :
+                    BCashTx(address) :
+                    BitcoinTx(btcAddressFrom(address, "base64")),
             status: ShiftOutStatus.ReturnedFromRenVM,
         }).catch(_catchBackgroundErr_);
     }

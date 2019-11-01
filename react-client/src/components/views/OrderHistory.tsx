@@ -54,6 +54,8 @@ const txUrl = (tx: Tx | null): string => {
             return `https://chain.so/address/BTCTEST/${tx.hash}`;
         case Chain.Zcash:
             return `https://chain.so/address/ZECTEST/${tx.hash}`;
+        case Chain.BCash:
+            return `https://chain.so/address/BCH/${tx.hash}`;
     }
 };
 

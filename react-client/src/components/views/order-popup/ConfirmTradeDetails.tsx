@@ -4,7 +4,8 @@ import { Currency, CurrencyIcon, InfoLabel, TokenIcon } from "@renproject/react-
 import BigNumber from "bignumber.js";
 
 import { recoverRenVMFee } from "../../../lib/estimatePrice";
-import { Token, TokenPrices, Tokens } from "../../../state/generalTypes";
+import { Token, TokenPrices } from "../../../state/generalTypes";
+import { CommitmentType } from "../../../state/persistentContainer";
 import { OrderInputs } from "../../../state/uiContainer";
 import { ReactComponent as Arrow } from "../../../styles/images/arrow-right.svg";
 import { Popup } from "../Popup";
@@ -27,7 +28,7 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
                         (token === Token.ZEC) ?
                             "ZCash Transaction Fees" :
                             (token === Token.BCH) ?
-                                "Bitcoin Cash Transaction Fees" :
+                                "BCash Transaction Fees" :
                                 "Transaction Fees"
                     }
                 </span>
