@@ -17,6 +17,19 @@ import { ReactComponent as Next } from "../../styles/images/next.svg";
 import { ReactComponent as Previous } from "../../styles/images/previous.svg";
 import { TokenBalance } from "./TokenBalance";
 
+const continueText = (commitmentType: CommitmentType): string => {
+    switch(commitmentType) {
+        case CommitmentType.Trade:
+            return "Continue swap";
+        case CommitmentType.AddLiquidity:
+            return "Continue adding liquidity";
+        case CommitmentType.RemoveLiquidity:
+            return "Continue removing liquidity";
+        default:
+            return "Continue";
+    }
+};
+
 const shiftProgress = (status: ShiftInStatus | ShiftOutStatus) => {
     switch (status) {
         // Shift in
@@ -74,7 +87,7 @@ const OrderHistoryEntry = ({ order, continueOrder, loggedIn }: {
         />{" "}
         {order.orderInputs.srcToken}
     </span>;
-    const amount = <span className="token--amount">
+    const amount = order.commitment.type === CommitmentType.AddLiquidity ? srcAmount : <span className="token--amount">
         <TokenBalance
             token={order.orderInputs.dstToken}
             amount={order.receivedAmount || order.orderInputs.dstAmount}
@@ -85,6 +98,8 @@ const OrderHistoryEntry = ({ order, continueOrder, loggedIn }: {
     const onClick = () => {
         continueOrder(order.id);
     };
+    // tslint:disable-next-line: no-console
+    console.log(order.status);
     return <div className="swap--history--entry">
         <div className="token--info">
             {
@@ -144,13 +159,13 @@ const OrderHistoryEntry = ({ order, continueOrder, loggedIn }: {
                                             },
                                         }}
                                     />
-                                    <span className="received--text">Receiving</span>{amount}
+                                    <span className="received--text">{order.commitment.type === CommitmentType.AddLiquidity ? "Adding" : order.commitment.type === CommitmentType.RemoveLiquidity ? "Removing" : "Receiving"}</span>{amount}
                                     <button
                                         disabled={!loggedIn}
                                         className="button--plain"
                                         onClick={onClick}
                                     >
-                                        {loggedIn ? <>Continue swap</> : <>: Connect to continue</>}
+                                        {loggedIn ? continueText(order.commitment.type) : <>: Connect to continue</>}
                                     </button>
                                 </>
             }
