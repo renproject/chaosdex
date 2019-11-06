@@ -17,6 +17,8 @@ const networks = require("./networks.js");
 module.exports = async function (deployer, network, accounts) {
     deployer.logger.log(`Deploying to ${network}...`);
 
+    network = network.replace("-fork", "");
+
     const addresses = networks[network] || {};
     const config = networks[network] ? networks[network].config : networks.config;
 
@@ -89,5 +91,6 @@ module.exports = async function (deployer, network, accounts) {
         DEXAdapter: DEXAdapter.address,
         BTC_DAI_Reserve: BTC_DAI_Reserve.address,
         ZEC_DAI_Reserve: ZEC_DAI_Reserve.address,
+        BCH_DAI_Reserve: BCH_DAI_Reserve.address,
     });
 }

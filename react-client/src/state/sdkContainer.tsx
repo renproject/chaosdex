@@ -1,7 +1,8 @@
 import { sleep } from "@renproject/react-components";
 import RenVM, {
     btcAddressFrom, Chain, NetworkChaosnet, NetworkDetails, NetworkDevnet, NetworkLocalnet,
-    NetworkTestnet, Ox, ShiftInObject, Signature, Tokens as ShiftActions, TxStatus, zecAddressFrom,
+    NetworkTestnet, Ox, ShiftInObject, Signature, Tokens as ShiftActions, TxStatus, UTXO,
+    zecAddressFrom,
 } from "@renproject/ren";
 import BigNumber from "bignumber.js";
 import { Container } from "unstated";
@@ -393,10 +394,17 @@ export class SDKContainer extends Container<typeof initialState> {
     }
 
     // Retrieves unspent deposits at the provided address
-    public waitForDeposits = async (orderID: string, confirmations = 0) => {
-        await this
+    public waitForDeposits = async (orderID: string, onDeposit: (utxo: UTXO) => void) => {
+        const order = this.order(orderID);
+        if (!order) {
+            throw new Error("Order not set");
+        }
+
+        const promise = this
             .shiftInObject(orderID)
-            .waitForDeposit(confirmations);
+            .waitForDeposit(order.orderInputs.srcToken === Token.BTC || order.orderInputs.srcToken === Token.BCH ? 2 : 6);
+        promise.on("deposit", (utxo) => { console.log("got", utxo); onDeposit(utxo); });
+        await promise;
         await this.persistentContainer
             .updateHistoryItem(orderID, { status: ShiftInStatus.Deposited });
     }
@@ -416,9 +424,14 @@ export class SDKContainer extends Container<typeof initialState> {
                 renVMStatus,
             }).catch(console.error);
         };
+        const order = this.order(orderID);
+        if (!order) {
+            throw new Error("Order not set");
+        }
+        console.log("waitForDeposit");
         const shiftInObject = this
             .shiftInObject(orderID)
-            .waitForDeposit(0);
+            .waitForDeposit(order.orderInputs.srcToken === Token.BTC || order.orderInputs.srcToken === Token.BCH ? 2 : 6);
         await sleep(10 * 1000);
         const obj = await shiftInObject;
         const signature = await obj

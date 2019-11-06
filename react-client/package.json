@@ -21,7 +21,7 @@
     "dependencies": {
         "@renproject/fonts": "^1.0.1",
         "@renproject/react-components": "^1.0.35",
-        "@renproject/ren": "git+https://github.com/renproject/renvm-sdk-js.git#33cb98814da329b43d339b612dce0c72e6796f64",
+        "@renproject/ren": "git+https://github.com/renproject/renvm-sdk-js.git#54a7a72ad03ad4fb47f77fa6c54873235ca84959",
         "@sentry/browser": "^5.7.1",
         "@sentry/core": "^5.7.1",
         "@types/bchaddrjs": "^0.4.0",

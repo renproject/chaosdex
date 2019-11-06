@@ -65,6 +65,7 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
                     // Show the deposit address and wait for a deposit
                     return <ShowDepositAddress
                         orderID={orderID}
+                        order={order}
                         generateAddress={sdkContainer.generateAddress}
                         token={order.orderInputs.srcToken}
                         amount={order.orderInputs.srcAmount}

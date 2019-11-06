@@ -1246,9 +1246,9 @@
     react-router-dom "^5.1.2"
     react-select "^3.0.8"
 
-"@renproject/ren@git+https://github.com/renproject/renvm-sdk-js.git#33cb98814da329b43d339b612dce0c72e6796f64":
+"@renproject/ren@git+https://github.com/renproject/renvm-sdk-js.git#be9c50f789f34660757ac9844226422a59abf2b3":
   version "0.1.15"
-  resolved "git+https://github.com/renproject/renvm-sdk-js.git#33cb98814da329b43d339b612dce0c72e6796f64"
+  resolved "git+https://github.com/renproject/renvm-sdk-js.git#be9c50f789f34660757ac9844226422a59abf2b3"
   dependencies:
     "@renproject/contracts" "^0.3.24"
     "@types/bitcore-lib" "^0.15.1"

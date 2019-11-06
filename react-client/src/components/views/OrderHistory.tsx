@@ -19,6 +19,7 @@ import { TokenBalance } from "./TokenBalance";
 
 const shiftProgress = (status: ShiftInStatus | ShiftOutStatus) => {
     switch (status) {
+        // Shift in
         case ShiftInStatus.Committed:
             return 1 / 6 * 100;
         case ShiftInStatus.Deposited:
@@ -29,6 +30,8 @@ const shiftProgress = (status: ShiftInStatus | ShiftOutStatus) => {
             return 4 / 6 * 100;
         case ShiftInStatus.SubmittedToEthereum:
             return 5 / 6 * 100;
+
+        // Shift out
         case ShiftOutStatus.Committed:
             return 1 / 5 * 100;
         case ShiftOutStatus.SubmittedToEthereum:
@@ -37,14 +40,15 @@ const shiftProgress = (status: ShiftInStatus | ShiftOutStatus) => {
             return 3 / 5 * 100;
         case ShiftOutStatus.SubmittedToRenVM:
             return 4 / 5 * 100;
+
         default:
             return 100;
     }
 };
 
-const txUrl = (tx: Tx | null): string => {
+export const txUrl = (tx: Tx | null): string => {
     if (!tx) { return ""; }
-    const isTx = tx.hash && tx.hash.slice && tx.hash.slice(0, 2) === "0x";
+    const isTx = tx.hash && tx.hash.slice && tx.hash.match(/(0x)?[a-fA-F0-9]+/);
     switch (tx.chain) {
         case Chain.Ethereum:
             return `${network.contracts.etherscan}/tx/${tx.hash}`;

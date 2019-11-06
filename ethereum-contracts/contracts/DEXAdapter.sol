@@ -73,7 +73,9 @@ contract DEXAdapter {
     }
 
     function addLiquidity(
-        address _liquidityProvider,  uint256 _maxBaseToken, address _token, uint256 _deadline, bytes calldata _refundAddress,
+        // Payload
+        /*uint256 _relayerFee,*/ address _liquidityProvider,  uint256 _maxBaseToken, address _token, uint256 _deadline, bytes calldata _refundAddress,
+        // Required
         uint256 _amount, bytes32 _nHash, bytes calldata _sig
         ) external returns (uint256) {
             DEXReserve reserve = dex.reserves(_token);

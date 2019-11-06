@@ -42,7 +42,7 @@ export enum MarketPair {
     DAI_BTC = "DAI/BTC",
     DAI_ZEC = "DAI/ZEC",
     DAI_BCH = "DAI/BCH",
-    ZEC_BTC = "ZEC/BTC",
+    // ZEC_BTC = "ZEC/BTC",
 }
 
 interface MarketDetails {
@@ -56,7 +56,7 @@ const MarketPairs = OrderedMap<MarketPair, MarketDetails>()
     .set(MarketPair.DAI_BTC, { symbol: MarketPair.DAI_BTC, quote: Token.BTC, base: Token.DAI })
     .set(MarketPair.DAI_ZEC, { symbol: MarketPair.DAI_ZEC, quote: Token.ZEC, base: Token.DAI })
     .set(MarketPair.DAI_BCH, { symbol: MarketPair.DAI_BCH, quote: Token.BCH, base: Token.DAI })
-    .set(MarketPair.ZEC_BTC, { symbol: MarketPair.ZEC_BTC, quote: Token.BTC, base: Token.ZEC })
+    // .set(MarketPair.ZEC_BTC, { symbol: MarketPair.ZEC_BTC, quote: Token.BTC, base: Token.ZEC })
     ;
 
 export const getMarket = (left: Token, right: Token): MarketPair | undefined => {
