@@ -1,5 +1,5 @@
 .exchange {
-    $padding-top: 250px;
+    $padding-top: 150px;
     min-height: calc(100vh - 100px - #{$padding-top});
     padding-top: $padding-top;
 
@@ -86,4 +86,31 @@
     box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
     color: #E0E3EB;
     opacity: 1;
+}
+
+.unaudited {
+    margin: 0 -20px;
+
+    background: rgba(249, 59, 84, 0.2);
+    border: 1px solid #F93B54;
+    box-sizing: border-box;
+    border-radius: 16px;
+
+    margin-bottom: 40px;
+
+    font-weight: normal;
+    font-size: 12px;
+    line-height: 29px;
+    letter-spacing: 0.5px;
+
+    text-align: center;
+
+    color: #E0E3EB;
+
+    svg {
+        width: 12px;
+        height: 12px;
+    }
+
+
 }

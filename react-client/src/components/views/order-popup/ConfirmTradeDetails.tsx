@@ -51,6 +51,13 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
     switch (commitmentType) {
         case CommitmentType.Trade:
             title = <>Confirm Trade</>;
+            break;
+        case CommitmentType.AddLiquidity:
+            title = <>Add Liquidity</>;
+            break;
+        case CommitmentType.RemoveLiquidity:
+            title = <>Remove Liquidity</>;
+            break;
         default:
             title = <>Confirm</>;
     }
@@ -81,7 +88,7 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
                         </span>
                     </div>
                     <div className="swap-details--icons--arrow">
-                        <Arrow />
+                        {commitmentType === CommitmentType.Trade ? <Arrow /> : <>+</>}
                     </div>
                     <div>
                         <TokenIcon white={true} className="swap-details--icon" token={orderInputs.dstToken} />
@@ -131,19 +138,22 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
                         <hr />
                         {feeRow(orderInputs.dstToken)}
                         {feeRow(orderInputs.srcToken)}
-                        <div className="swap-details--rounded">
-                            <span className="swap-details--values--left bold">
-                                You will receive
-                                </span>
-                            <div className="swap-details--values--right bold">
-                                <TokenBalance
-                                    token={orderInputs.dstToken}
-                                    amount={orderInputs.dstAmount}
-                                />
-                                {" "}
-                                {orderInputs.dstToken}
-                            </div>
-                        </div>
+                        {commitmentType === CommitmentType.Trade ?
+                            <div className="swap-details--rounded">
+                                <span className="swap-details--values--left bold">
+                                    You will receive
+                            </span>
+                                <div className="swap-details--values--right bold">
+                                    <TokenBalance
+                                        token={orderInputs.dstToken}
+                                        amount={orderInputs.dstAmount}
+                                    />
+                                    {" "}
+                                    {orderInputs.dstToken}
+                                </div>
+                            </div> :
+                            <></>
+                        }
                     </div>
                 </div>
 

@@ -21,8 +21,8 @@ export const LiquidityForm = connect<Props & ConnectedProps<[UIContainer]>>([UIC
             uiContainer.setSubmitting(true).catch(_catchBackgroundErr_);
         };
 
-        const orderInput = uiContainer.state.orderInputs;
-        const market = getMarket(orderInput.srcToken, orderInput.dstToken);
+        const { liquidityTab, orderInputs } = uiContainer.state;
+        const market = getMarket(orderInputs.srcToken, orderInputs.dstToken);
 
         const marketPrice = 0;
 
@@ -53,7 +53,7 @@ export const LiquidityForm = connect<Props & ConnectedProps<[UIContainer]>>([UIC
                     !loggedIn ? "Connect to trade" :
                         !sufficientBalance ? "Insufficient balance" :
                             !validVolume ? "Volume too low" :
-                                "Add"
+                                liquidityTab === LiquidityTabs.Add ? "Add" : "Remove"
                 }
             </button>;
         }

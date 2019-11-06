@@ -1,11 +1,12 @@
 import { Currency } from "@renproject/react-components";
 import { Map, OrderedMap } from "immutable";
 
-import { MarketPair, Token, TokenPrices } from "../state/generalTypes";
+import { Token, TokenPrices } from "../state/generalTypes";
 
 const CoinGeckoIDs = Map<Token, string>()
     .set(Token.DAI, "dai")
     .set(Token.BTC, "bitcoin")
+    .set(Token.BCH, "bitcoin-cash")
     .set(Token.ETH, "ethereum")
     // .set(Token.REN, "republic-protocol")
     .set(Token.ZEC, "zcash");
@@ -37,6 +38,13 @@ export const getTokenPricesInCurrencies = async (): Promise<TokenPrices> => {
     return prices;
 };
 
+export enum MarketPair {
+    DAI_BTC = "DAI/BTC",
+    DAI_ZEC = "DAI/ZEC",
+    DAI_BCH = "DAI/BCH",
+    ZEC_BTC = "ZEC/BTC",
+}
+
 interface MarketDetails {
     symbol: MarketPair;
     quote: Token;
@@ -45,11 +53,10 @@ interface MarketDetails {
 
 const MarketPairs = OrderedMap<MarketPair, MarketDetails>()
     // BTC pairs
-    // .set(MarketPair.ETH_BTC, { symbol: MarketPair.ETH_BTC, quote: Token.BTC, base: Token.ETH })
-    // .set(MarketPair.REN_BTC, { symbol: MarketPair.REN_BTC, quote: Token.BTC, base: Token.REN })
     .set(MarketPair.DAI_BTC, { symbol: MarketPair.DAI_BTC, quote: Token.BTC, base: Token.DAI })
     .set(MarketPair.DAI_ZEC, { symbol: MarketPair.DAI_ZEC, quote: Token.ZEC, base: Token.DAI })
-    // .set(MarketPair.ZEC_BTC, { symbol: MarketPair.ZEC_BTC, quote: Token.BTC, base: Token.ZEC })
+    .set(MarketPair.DAI_BCH, { symbol: MarketPair.DAI_BCH, quote: Token.BCH, base: Token.DAI })
+    .set(MarketPair.ZEC_BTC, { symbol: MarketPair.ZEC_BTC, quote: Token.BTC, base: Token.ZEC })
     ;
 
 export const getMarket = (left: Token, right: Token): MarketPair | undefined => {

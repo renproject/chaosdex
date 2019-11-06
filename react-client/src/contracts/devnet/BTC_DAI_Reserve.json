@@ -1,5 +1,4 @@
 {
-  "contractName": "BTC_DAI_Reserve",
   "abi": [
     {
       "constant": true,
@@ -226,11 +225,11 @@
       "type": "function"
     }
   ],
-  "sourcePath": "/home/noah/github/renproject/dex-demo/ethereum-contracts/contracts/DEXReserve.sol",
   "compiler": {
     "name": "solc",
     "version": "0.5.8+commit.23d335f2.Emscripten.clang"
   },
+  "contractName": "BTC_DAI_Reserve",
   "networks": {
     "42": {
       "events": {
@@ -258,5 +257,6 @@
       "transactionHash": "0xbf3674f927ffb9e14c9c38d6d660f5d6379d87819ccfb068d9219a192eda578e"
     }
   },
-  "schemaVersion": "3.0.11"
+  "schemaVersion": "3.0.11",
+  "sourcePath": "/home/noah/github/renproject/dex-demo/ethereum-contracts/contracts/DEXReserve.sol"
 }

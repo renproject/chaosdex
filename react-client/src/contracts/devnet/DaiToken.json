@@ -1,5 +1,4 @@
 {
-  "contractName": "DaiToken",
   "abi": [
     {
       "constant": true,
@@ -263,11 +262,11 @@
       "type": "event"
     }
   ],
-  "sourcePath": "/home/noah/github/renproject/dex-demo/ethereum-contracts/contracts/test/TestToken.sol",
   "compiler": {
     "name": "solc",
     "version": "0.5.8+commit.23d335f2.Emscripten.clang"
   },
+  "contractName": "DaiToken",
   "networks": {
     "42": {
       "events": {},
@@ -275,5 +274,6 @@
       "address": "0xc4375b7de8af5a38a93548eb8453a498222c4ff2"
     }
   },
-  "schemaVersion": "3.0.11"
+  "schemaVersion": "3.0.11",
+  "sourcePath": "/home/noah/github/renproject/dex-demo/ethereum-contracts/contracts/test/TestToken.sol"
 }

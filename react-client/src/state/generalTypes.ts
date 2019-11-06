@@ -1,5 +1,6 @@
 import { Currency } from "@renproject/react-components";
 import { Chain, NetworkDetails } from "@renproject/ren";
+import { isMainnetAddress, isTestnetAddress } from "bchaddrjs";
 import { Map } from "immutable";
 import { validate } from "wallet-address-validator";
 import Web3 from "web3";
@@ -20,18 +21,15 @@ export enum Token {
     BCH = "BCH",
 }
 
-export enum MarketPair {
-    DAI_BTC = "DAI/BTC",
-    DAI_ZEC = "DAI/ZEC",
-    DAI_BCH = "DAI/BCH",
-    // REN_BTC = "REN/BTC",
-    // ETH_BTC = "ETH/BTC",
-    // ZEC_BTC = "ZEC/BTC",
-}
-
 const btcValidator = (address: string, isTestnet: boolean) => validate(address, "btc", isTestnet ? "testnet" : "prod");
 const zecValidator = (address: string, isTestnet: boolean) => validate(address, "zec", isTestnet ? "testnet" : "prod");
-const bchValidator = (address: string, isTestnet: boolean) => validate(address, "bch", isTestnet ? "testnet" : "prod");
+const bchValidator = (address: string, isTestnet: boolean) => {
+    try {
+        return isTestnet ? isTestnetAddress(address) : isMainnetAddress(address);
+    } catch (error) {
+        return false;
+    }
+};
 const ethValidator = (address: string, isTestnet: boolean) => validate(address, "eth", isTestnet ? "testnet" : "prod");
 
 export const Tokens = Map<Token, TokenDetails>()

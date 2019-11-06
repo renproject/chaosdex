@@ -1,11 +1,31 @@
 import * as React from "react";
 
 import { InfoLabel, LabelLevel, Loading, TokenIcon } from "@renproject/react-components";
-import { TxStatus } from "@renproject/ren/dist/renVM/transaction";
+import { TxStatus } from "@renproject/ren";
 
 import { _catchInteractionErr_ } from "../../../lib/errors";
 import { Token } from "../../../state/generalTypes";
 import { Popup } from "../Popup";
+import { INTEROP_LINK } from "../tutorial-popup/TutorialPages";
+
+const renderTxStatus = (status: TxStatus | null) => {
+    switch (status) {
+        case null:
+            return "Submitting";
+        case TxStatus.TxStatusNil:
+            return "Submitting";
+        case TxStatus.TxStatusConfirming:
+            return "Waiting for confirmations";
+        case TxStatus.TxStatusPending:
+            return "Executing";
+        case TxStatus.TxStatusExecuting:
+            return "Executing";
+        case TxStatus.TxStatusDone:
+            return "Done";
+        case TxStatus.TxStatusReverted:
+            return "Reverted";
+    }
+};
 
 export const DepositReceived: React.StatelessComponent<{
     token?: Token;
@@ -64,11 +84,14 @@ export const DepositReceived: React.StatelessComponent<{
         <div className="deposit-address">
             <div className="popup--body">
                 {token ? <TokenIcon className="token-icon" token={token} /> : null}
-                <h2>Submit to RenVM</h2>
-                {waiting ? <Loading /> : null}
+                <h2>{waiting ? <>Submitting to RenVM</> : <>Submit to RenVM</>}</h2>
+                {waiting ? <Loading className="loading--blue" /> : null}
                 {error ? <span className="red">Unable to submit to RenVM <InfoLabel level={LabelLevel.Warning}>{`${error.message || error}`}</InfoLabel></span> : null}
                 {waiting ? <div className="address-input--message">
-                    <>Submitting order to RenVM...<br />This can take a few minutes. <InfoLabel>Status: {renVMStatus || <Loading className="loading--small" />}{/* <button className="button--plain" onClick={onRetry}>(retry)</button>*/}</InfoLabel></>
+                    <>
+                        <p>This can take up to twenty minutes due to confirmation times on various blockchains. This will be improved for Mainnet via 3rd parties for more information, head <a className="blue" href={INTEROP_LINK} target="_blank" rel="noopener noreferrer">here</a>.</p>
+                        <p>Status: {<span>{renderTxStatus(renVMStatus)}.</span> || <Loading className="loading--small" />}</p>
+                    </>
                 </div> : <div className="popup--buttons">
                         <button className="button open--confirm" onClick={onClick}>Submit to RenVM</button>
                     </div>

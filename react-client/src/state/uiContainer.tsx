@@ -5,13 +5,11 @@ import { Map as ImmutableMap } from "immutable";
 import { Container } from "unstated";
 import Web3 from "web3";
 
-import { syncGetTokenAddress } from "../lib/contractAddresses";
+import { syncGetDEXReserveAddress, syncGetTokenAddress } from "../lib/contractAddresses";
 import { removeRenVMFee } from "../lib/estimatePrice";
 import { history } from "../lib/history";
 import { getTokenPricesInCurrencies } from "../lib/market";
-import {
-    getERC20, getExchange, getReserve, isERC20, isEthereumBased, Token, Tokens,
-} from "./generalTypes";
+import { getERC20, getExchange, getReserve, isEthereumBased, Token, Tokens } from "./generalTypes";
 import {
     Commitment, CommitmentType, HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus,
 } from "./persistentContainer";
@@ -68,6 +66,11 @@ const initialState = {
     orderInputs: initialOrder,
     currentOrderID: null as string | null,
 
+    // Liquidity and reserve balances
+    liquidityBalances: ImmutableMap<Token, BigNumber>(),
+    reserveBalances: ImmutableMap<Token, { quote: BigNumber, base: BigNumber }>(),
+    reserveTotalSupply: ImmutableMap<Token, BigNumber>(),
+
     network,
 };
 
@@ -103,6 +106,7 @@ export class UIContainer extends Container<typeof initialState> {
 
     public setLiquidityTab = async (liquidityTab: LiquidityTabs) => {
         await this.setState({ liquidityTab });
+        await this.updateReceiveValue();
     }
 
     // Token prices ////////////////////////////////////////////////////////////
@@ -133,35 +137,100 @@ export class UIContainer extends Container<typeof initialState> {
     public fetchEthereumTokenBalance = async (token: Token, address: string): Promise<BigNumber> => {
         const { web3, networkID, network: networkDetails } = this.state;
         if (!web3) {
-            throw new Error("Web3 not seen yet.");
+            return new BigNumber(0);
         }
         let balance: string;
         if (token === Token.ETH) {
             balance = await web3.eth.getBalance(address);
-        } else if (isERC20(token)) {
+        } else {
+            // if (isERC20(token)) {
             const tokenAddress = syncGetTokenAddress(networkID, token);
             const tokenInstance = getERC20(web3, networkDetails, tokenAddress);
             balance = (await tokenInstance.methods.balanceOf(address).call()).toString();
-        } else {
-            throw new Error(`Invalid Ethereum token: ${token}`);
+            // } else {
+            //     throw new Error(`Invalid Ethereum token: ${token}`);
         }
         return new BigNumber(balance);
     }
 
     public updateAccountBalances = async (): Promise<void> => {
-        const { address, network: networkDetails } = this.state;
-        if (!address) {
+        const { address, web3, networkID, network: networkDetails } = this.state;
+        if (!web3 || !address) {
             return;
         }
+
         let accountBalances = this.state.accountBalances;
         const ethTokens = [Token.ETH, Token.DAI]; // , Token.REN];
-        const promises = ethTokens.map(token => this.fetchEthereumTokenBalance(token, address));
+        const promises = ethTokens.map(async token => {
+            try {
+                return await this.fetchEthereumTokenBalance(token, address);
+            } catch (error) {
+                console.error(error);
+                return new BigNumber(0);
+            }
+        });
         const balances = await Promise.all(promises);
         balances.forEach((bal, index) => {
             accountBalances = accountBalances.set(ethTokens[index], bal);
         });
 
-        await this.setState({ accountBalances, network: networkDetails });
+        // Update liquidity token balances
+        const tokensWithReserves = [Token.BTC, Token.ZEC, Token.BCH];
+        const liquidityBalancesAwaited = await Promise.all(tokensWithReserves.map(async token => {
+            const reserveAddress = syncGetDEXReserveAddress(networkID, token);
+            const tokenInstance = getERC20(web3, networkDetails, reserveAddress);
+            try {
+                return new BigNumber((await tokenInstance.methods.balanceOf(address).call()).toString());
+            } catch (error) {
+                console.error(error);
+                return new BigNumber(0);
+            }
+        }));
+        let liquidityBalances = this.state.liquidityBalances;
+        liquidityBalancesAwaited.forEach((bal, index) => {
+            liquidityBalances = liquidityBalances.set(tokensWithReserves[index], bal);
+        });
+
+        const reserveTotalSupplyAwaited = await Promise.all(tokensWithReserves.map(async token => {
+            const reserveAddress = syncGetDEXReserveAddress(networkID, token);
+            const tokenInstance = getERC20(web3, networkDetails, reserveAddress);
+            try {
+                return new BigNumber((await tokenInstance.methods.totalSupply().call()).toString());
+            } catch (error) {
+                console.error(error);
+                return new BigNumber(0);
+            }
+        }));
+        let reserveTotalSupply = this.state.reserveTotalSupply;
+        reserveTotalSupplyAwaited.forEach((bal, index) => {
+            reserveTotalSupply = reserveTotalSupply.set(tokensWithReserves[index], bal);
+        });
+
+        const reserveBalancesAwaited = await Promise.all(tokensWithReserves.map(async token => {
+            const reserveAddress = syncGetDEXReserveAddress(networkID, token);
+            let base = new BigNumber(0);
+            let quote = new BigNumber(0);
+            try {
+                base = await this.fetchEthereumTokenBalance(Token.DAI, reserveAddress);
+            } catch (error) {
+                console.error(error);
+            }
+            try {
+                quote = await this.fetchEthereumTokenBalance(token, reserveAddress);
+            } catch (error) {
+                console.error(error);
+            }
+            return { base, quote };
+        }));
+        let reserveBalances = this.state.reserveBalances;
+        reserveBalancesAwaited.forEach((bal, index) => {
+            reserveBalances = reserveBalances.set(tokensWithReserves[index], bal);
+        });
+
+        // liquidityBalances: ImmutableMap<Token, BigNumber>(),
+        // reserveBalances: ImmutableMap<Token, { token: BigNumber, base: BigNumber }>(),
+
+        await this.setState({ accountBalances, network: networkDetails, liquidityBalances, reserveTotalSupply, reserveBalances });
     }
 
     /**
@@ -259,12 +328,16 @@ export class UIContainer extends Container<typeof initialState> {
             hexRefundAddress = btcAddressToHex(refundAddress);
         } else if (order.srcToken === Token.ZEC) {
             hexRefundAddress = zecAddressToHex(refundAddress);
+        } else if (order.srcToken === Token.BCH) {
+            hexRefundAddress = RenSDK.Tokens.BCH.addressToHex(refundAddress);
         }
         let hexToAddress = toAddress;
         if (order.dstToken === Token.BTC) {
             hexToAddress = btcAddressToHex(toAddress);
         } else if (order.dstToken === Token.ZEC) {
             hexToAddress = zecAddressToHex(toAddress);
+        } else if (order.dstToken === Token.BCH) {
+            hexToAddress = RenSDK.Tokens.BCH.addressToHex(toAddress);
         }
 
         let commitment: Commitment;
@@ -294,6 +367,35 @@ export class UIContainer extends Container<typeof initialState> {
                     refundAddress: hexRefundAddress,
                 };
                 break;
+            case CommitmentType.RemoveLiquidity:
+                const { reserveBalances, reserveTotalSupply } = this.state;
+
+                const token = order.srcToken;
+                const reserveBalance = reserveBalances.get(token);
+                const totalSupply = reserveTotalSupply.get(token);
+
+                const srcAmountBN = new BigNumber(order.srcAmount);
+
+                let srcAmountShifted = (srcAmountBN.times(new BigNumber(10).pow(srcTokenDetails.decimals))).decimalPlaces(0);
+                if (srcAmountShifted.isNaN()) {
+                    srcAmountShifted = new BigNumber(0);
+                }
+
+                let liquidity;
+                if (!reserveBalance || !totalSupply || reserveBalance.quote.isZero()) {
+                    liquidity = new BigNumber(0);
+                } else {
+                    liquidity = srcAmountShifted.times(totalSupply).div(reserveBalance.quote).decimalPlaces(0);
+                }
+
+                commitment = {
+                    type: commitmentType,
+                    token: syncGetTokenAddress(networkID, token),
+                    liquidity: liquidity.toNumber(),
+                    nativeAddress: hexRefundAddress,
+                };
+
+                break;
             default:
                 throw new Error(`Unknown commitment type`);
         }
@@ -301,7 +403,7 @@ export class UIContainer extends Container<typeof initialState> {
         const time = Date.now() / 1000;
         const currentOrderID = String(time);
 
-        const shift = !isEthereumBased(orderInputs.srcToken) && isEthereumBased(orderInputs.dstToken) ? {
+        const shift = !isEthereumBased(orderInputs.srcToken) && isEthereumBased(orderInputs.dstToken) && commitmentType !== CommitmentType.RemoveLiquidity ? {
             // Cast required by TS to differentiate ShiftIn and ShiftOut types.
             shiftIn: true as true,
             status: ShiftInStatus.Committed,
@@ -350,29 +452,66 @@ export class UIContainer extends Container<typeof initialState> {
         });
     }
 
-    public sufficientBalance = (): boolean => {
-        const { orderInputs: { srcToken, srcAmount, dstAmount, dstToken }, exchangeTab, accountBalances } = this.state;
-
-        let amount = srcAmount;
-        let token = srcToken;
-
-        if (exchangeTab === ExchangeTabs.Liquidity) {
-            amount = dstAmount;
-            token = dstToken;
-        }
-
-        // We can't know the balance if it's not an Ethereum token
-        if (!isEthereumBased(token)) {
-            return true;
-        }
+    public getMaxInput = (token: Token): BigNumber => {
+        const { exchangeTab, liquidityTab, accountBalances, liquidityBalances, reserveBalances, reserveTotalSupply } = this.state;
 
         // Fetch information about token
         const tokenDetails = Tokens.get(token);
         if (!tokenDetails) {
+            return new BigNumber(0);
+        }
+
+        let balance;
+        if (exchangeTab === ExchangeTabs.Liquidity && liquidityTab === LiquidityTabs.Remove) {
+            const reserveBalance = reserveBalances.get(token);
+            const liquidityBalance = liquidityBalances.get(token);
+            const totalSupply = reserveTotalSupply.get(token);
+
+            if (!reserveBalance || !liquidityBalance || !totalSupply || totalSupply.isZero()) {
+                balance = new BigNumber(0);
+            } else {
+                balance = liquidityBalance.times(reserveBalance.quote).div(totalSupply);
+            }
+        } else {
+            // We can't know the balance if it's not an Ethereum token
+            if (!isEthereumBased(token)) {
+                throw new Error(`Unable to check ${token} balance.`);
+            }
+
+            balance = accountBalances.get(token) || new BigNumber(0);
+        }
+
+        return balance;
+    }
+
+    public sufficientBalance = (): boolean => {
+        const { orderInputs: { srcToken, srcAmount, dstAmount, dstToken }, exchangeTab, liquidityTab } = this.state;
+
+        let amount = srcAmount;
+        let token = srcToken;
+
+        if (exchangeTab === ExchangeTabs.Liquidity && liquidityTab === LiquidityTabs.Add) {
+            amount = dstAmount;
+            token = dstToken;
+        }
+
+        if (
+            (exchangeTab !== ExchangeTabs.Liquidity || liquidityTab !== LiquidityTabs.Remove) &&
+            !isEthereumBased(token)
+        ) {
+            return true;
+        }
+
+        const balance = this.getMaxInput(token);
+        console.log(`My balance is ${balance.toFixed()}`);
+
+        const tokenDetails = Tokens.get(token);
+        if (!tokenDetails) {
             return false;
         }
+
         const amountBN = new BigNumber(amount).multipliedBy(new BigNumber(10).exponentiatedBy(tokenDetails.decimals));
-        const balance = accountBalances.get(token) || new BigNumber(0);
+
         if (amountBN.isNaN()) {
             return true;
         }
@@ -407,7 +546,7 @@ export class UIContainer extends Container<typeof initialState> {
     }
 
     public updateReceiveValue = async (): Promise<void> => {
-        const { exchangeTab, orderInputs: { srcToken, dstToken, srcAmount } } = this.state;
+        const { exchangeTab, liquidityTab, orderInputs: { srcToken, dstToken, srcAmount } } = this.state;
 
         // const market = getMarket(
         //     srcToken,
@@ -447,8 +586,8 @@ export class UIContainer extends Container<typeof initialState> {
             }
 
             dstAmountBN = (new BigNumber(dstAmountShiftedBN).div(new BigNumber(10).pow(dstTokenDetails.decimals)));
-        } else if (exchangeTab === ExchangeTabs.Liquidity) {
-            const reserveAddress = await exchange.methods.reserves(syncGetTokenAddress(networkID, srcToken)).call();
+        } else if (exchangeTab === ExchangeTabs.Liquidity && liquidityTab === LiquidityTabs.Add) {
+            const reserveAddress = syncGetDEXReserveAddress(networkID, srcToken);
             const reserve = getReserve(web3, networkID, reserveAddress);
 
             let srcAmountShifted = (srcAmountBN.times(new BigNumber(10).pow(srcTokenDetails.decimals)));
@@ -486,6 +625,24 @@ export class UIContainer extends Container<typeof initialState> {
             // Bump-it up in-case the amounts change while shifting.
             // Only the required amount will actually be transferred.
             dstAmountBN = dstAmountBN.times(1.05);
+        } else if (exchangeTab === ExchangeTabs.Liquidity && liquidityTab === LiquidityTabs.Remove) {
+            const { reserveBalances } = this.state;
+
+            let srcAmountShifted = (srcAmountBN.times(new BigNumber(10).pow(srcTokenDetails.decimals))).decimalPlaces(0);
+            if (srcAmountShifted.isNaN()) {
+                srcAmountShifted = new BigNumber(0);
+            }
+
+            const reserveBalance = reserveBalances.get(srcToken);
+
+            let dstAmountShiftedBN;
+            if (!reserveBalance || reserveBalance.quote.isZero()) {
+                dstAmountShiftedBN = new BigNumber(0);
+            } else {
+                dstAmountShiftedBN = srcAmountShifted.div(reserveBalance.quote).times(reserveBalance.base);
+            }
+
+            dstAmountBN = (dstAmountShiftedBN.div(new BigNumber(10).pow(dstTokenDetails.decimals)));
         } else {
             return;
         }

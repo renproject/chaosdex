@@ -11,6 +11,7 @@ export const KOVAN_FAUCET_LINK = "https://github.com/kovan-testnet/faucet";
 export const BTC_FAUCET_LINK = "https://bitcoinfaucet.uo1.net/";
 export const TAZ_FAUCET_LINK = "https://faucet.zcash.garethtdavies.com/";
 export const METAMASK_LINK = "https://metamask.io/";
+export const INTEROP_LINK = "https://docs.renproject.io/ren/renvm/universal-interop";
 
 type TutorialPage = React.StatelessComponent<{
     nextPage: () => void;

@@ -21,12 +21,17 @@
         color: #FFFFFF;
         opacity: 0.4;
 
-        cursor: not-allowed;
+        cursor: pointer;
     }
 
     .liquidity--option--selected {
         opacity: 1;
-        cursor: pointer;
+    }
+}
+
+.order--wrapper {
+    .order--tabs--minus {
+        color: $red;
     }
 }
 

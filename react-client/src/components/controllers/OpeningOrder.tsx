@@ -1,15 +1,20 @@
 import * as React from "react";
 
+import { Loading } from "@renproject/react-components";
+
 import { _catchInteractionErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
 import { isERC20, isEthereumBased } from "../../state/generalTypes";
-import { ShiftInStatus, ShiftOutEvent, ShiftOutStatus } from "../../state/persistentContainer";
+import {
+    CommitmentType, ShiftInStatus, ShiftOutEvent, ShiftOutStatus,
+} from "../../state/persistentContainer";
 import { SDKContainer } from "../../state/sdkContainer";
 import { UIContainer } from "../../state/uiContainer";
 import { DepositReceived } from "../views/order-popup/DepositReceived";
 import { ShowDepositAddress } from "../views/order-popup/ShowDepositAddress";
 import { SubmitToEthereum } from "../views/order-popup/SubmitToEthereum";
 import { TokenAllowance } from "../views/order-popup/TokenAllowance";
+import { Popup } from "../views/Popup";
 
 interface Props extends ConnectedProps<[UIContainer, SDKContainer]> {
     orderID: string;
@@ -37,6 +42,17 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
         const hide = async () => {
             await uiContainer.handleOrder(null);
         };
+
+        const { sdkRenVM } = sdkContainer.state;
+
+        if (!sdkRenVM) {
+            return <Popup>
+                <div className="popup--body popup--loading">
+                    <Loading />
+                    <span>Loading</span>
+                </div>
+            </Popup>;
+        }
 
         const order = sdkContainer.order(orderID);
         if (!order) {
@@ -98,10 +114,12 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
             return <></>;
         };
 
-        if (!isEthereumBased(order.orderInputs.srcToken) && isEthereumBased(order.orderInputs.dstToken)) {
+        if (!isEthereumBased(order.orderInputs.srcToken) && isEthereumBased(order.orderInputs.dstToken) && (order.commitment.type !== CommitmentType.RemoveLiquidity)) {
             return shiftIn();
-        } else if (isEthereumBased(order.orderInputs.srcToken) && !isEthereumBased(order.orderInputs.dstToken)) {
+        } else if ((order.commitment.type === CommitmentType.RemoveLiquidity) || (isEthereumBased(order.orderInputs.srcToken) && !isEthereumBased(order.orderInputs.dstToken))) {
             return shiftOut();
+        } else if (!isEthereumBased(order.orderInputs.srcToken)) {
+            return shiftIn();
         } else {
             return <p>Unsupported token pair.</p>;
         }

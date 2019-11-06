@@ -1,5 +1,4 @@
-import { Chain } from "@renproject/ren";
-import { TxStatus } from "@renproject/ren/dist/renVM/transaction";
+import { Chain, TxStatus } from "@renproject/ren";
 import localForage from "localforage";
 import { PersistContainer } from "unstated-persist";
 

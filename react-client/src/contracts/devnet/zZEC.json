@@ -1,5 +1,4 @@
 {
-  "contractName": "zZEC",
   "abi": [
     {
       "constant": true,
@@ -376,11 +375,11 @@
       "type": "event"
     }
   ],
-  "sourcePath": "darknode-sol/contracts/Shifter/ERC20Shifted.sol",
   "compiler": {
     "name": "solc",
     "version": "0.5.8+commit.23d335f2.Emscripten.clang"
   },
+  "contractName": "zZEC",
   "networks": {
     "42": {
       "events": {},
@@ -388,5 +387,6 @@
       "address": "0x71b6A19Fc832bD9C739489EcBEa67ab41261026F"
     }
   },
-  "schemaVersion": "3.0.11"
+  "schemaVersion": "3.0.11",
+  "sourcePath": "darknode-sol/contracts/Shifter/ERC20Shifted.sol"
 }

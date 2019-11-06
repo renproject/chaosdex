@@ -27,7 +27,7 @@
     background-color: $background;
     border-radius: 12px;
 
-    box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
 
     text-align: center;
     position: fixed;
@@ -190,4 +190,17 @@
     line-height: 21px;
     text-align: center;
     color: $grey-12;
+}
+
+.popup--loading {
+    width: 200px;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-flow: column;
+
+    >span {
+        margin-top: 15px;
+    }
 }

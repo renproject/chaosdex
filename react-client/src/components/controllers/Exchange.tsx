@@ -7,6 +7,7 @@ import { _catchInteractionErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
 import { Token } from "../../state/generalTypes";
 import { ExchangeTabs, UIContainer } from "../../state/uiContainer";
+import { ReactComponent as Warning } from "../../styles/images/warning.svg";
 import { _catch_ } from "../ErrorBoundary";
 import { LiquidityForm } from "../views/exchange-forms/LiquidityForm";
 import { OrderForm } from "../views/exchange-forms/OrderForm";
@@ -51,6 +52,9 @@ export const Exchange = connect<Props & ConnectedProps<[UIContainer]>>([UIContai
             <div className="content container exchange-inner">
                 <div className="exchange--center">
                     <React.Suspense fallback={<Loading />}>
+                        <div className="unaudited">
+                            <Warning />️ Chaosnet is unaudited, please proceed with caution.
+                        </div>
                         <div className="exchange--tabs">
                             <button onClick={onSwapTab} className={className("exchange--tab", exchangeTab === ExchangeTabs.Swap ? "exchange--tab--selected" : "")}>Swap</button>
                             <button onClick={onLiquidityTab} className={className("exchange--tab", exchangeTab === ExchangeTabs.Liquidity ? "exchange--tab--selected" : "")}>Liquidity</button>

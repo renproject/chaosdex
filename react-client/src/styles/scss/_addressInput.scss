@@ -36,6 +36,10 @@
         }
     }
 
+    canvas {
+        border: 10px solid white;
+    }
+
     .address-input--message {
         font-weight: normal;
         font-size: 14px;
@@ -84,7 +88,7 @@
     }
 
     .form-control:valid+.form-control-placeholder {
-        color: initial;
+        color: $grey-12;
     }
 
     .form-control:focus:valid+.form-control-placeholder {
@@ -123,7 +127,7 @@
         font-weight: 500;
         font-size: 12px;
 
-        color: $grey-12;
+        color: white !important;
         transition: all 500ms;
     }
 
@@ -204,5 +208,13 @@
 
             color: $grey-12;
         }
+    }
+}
+
+.loading--blue {
+    &:after {
+        height: 25px !important;
+        width: 25px !important;
+        border-color: $blue-bright transparentize($color: $blue-bright, $amount: 0.5) transparentize($color: $blue-bright, $amount: 0.5) transparentize($color: $blue-bright, $amount: 0.5) !important;
     }
 }

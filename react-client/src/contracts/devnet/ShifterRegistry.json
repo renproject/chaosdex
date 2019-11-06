@@ -1,5 +1,4 @@
 {
-  "contractName": "ShifterRegistry",
   "abi": [
     {
       "constant": false,
@@ -308,11 +307,11 @@
       "type": "function"
     }
   ],
-  "sourcePath": "darknode-sol/contracts/Shifter/ShifterRegistry.sol",
   "compiler": {
     "name": "solc",
     "version": "0.5.8+commit.23d335f2.Emscripten.clang"
   },
+  "contractName": "ShifterRegistry",
   "networks": {
     "42": {
       "events": {},
@@ -320,5 +319,6 @@
       "address": "0xc7B310c18D78f175812CFfD8896d3cC959aC28d6"
     }
   },
-  "schemaVersion": "3.0.11"
+  "schemaVersion": "3.0.11",
+  "sourcePath": "darknode-sol/contracts/Shifter/ShifterRegistry.sol"
 }

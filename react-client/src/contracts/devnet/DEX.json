@@ -1,5 +1,4 @@
 {
-  "contractName": "DEX",
   "abi": [
     {
       "constant": true,
@@ -213,11 +212,11 @@
       "type": "function"
     }
   ],
-  "sourcePath": "/home/noah/github/renproject/dex-demo/ethereum-contracts/contracts/DEX.sol",
   "compiler": {
     "name": "solc",
     "version": "0.5.8+commit.23d335f2.Emscripten.clang"
   },
+  "contractName": "DEX",
   "networks": {
     "42": {
       "events": {},
@@ -226,5 +225,6 @@
       "transactionHash": "0x552d6bee96bf67aba2056b93172561539f0531084cc74a6d0443220d0f900ca2"
     }
   },
-  "schemaVersion": "3.0.11"
+  "schemaVersion": "3.0.11",
+  "sourcePath": "/home/noah/github/renproject/dex-demo/ethereum-contracts/contracts/DEX.sol"
 }

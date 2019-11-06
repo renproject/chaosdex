@@ -15,15 +15,16 @@ export const AskForAddress: React.StatelessComponent<{
     onAddress(address: string): void;
     cancel(): void;
 }> = ({ token, message, defaultAddress, onAddress, cancel }) => {
-    const [address, updateAddress] = React.useState("");
+    // tslint:disable-next-line: prefer-const
+    let [address, updateAddress] = React.useState("");
     const [error, updateError] = React.useState(null as string | null);
     const [submitting, updateSubmitting] = React.useState(false);
     const inputRef = React.useRef<HTMLInputElement | null>() as React.MutableRefObject<HTMLInputElement | null>;
 
     const tokenDetails = Tokens.get(token);
 
-    const submit = (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
+    const submit = (event?: React.FormEvent<HTMLFormElement>) => {
+        if (event) { event.preventDefault(); }
         if (!error && tokenDetails && !tokenDetails.validator(address, IS_TESTNET)) {
             updateError(`Invalid ${tokenDetails.chain.toUpperCase()} address`);
             return;
@@ -38,6 +39,7 @@ export const AskForAddress: React.StatelessComponent<{
     };
 
     const useDefaultAddress = () => {
+        address = defaultAddress;
         updateAddress(defaultAddress);
         const current = inputRef.current;
         if (current) {
@@ -49,6 +51,14 @@ export const AskForAddress: React.StatelessComponent<{
         updateError(null);
         updateAddress((event.target as HTMLInputElement).value);
     };
+
+    React.useEffect(() => {
+        if (tokenDetails && tokenDetails.chain === Chain.Ethereum) {
+            address = defaultAddress;
+            updateAddress(defaultAddress);
+            submit();
+        }
+    }, [tokenDetails]);
 
     return <Popup cancel={cancel}>
         <div className="address-input">
@@ -78,7 +88,7 @@ export const AskForAddress: React.StatelessComponent<{
                     </div>
                     {error ? <span className="red"><br />{error}</span> : null}
                     <div className="popup--buttons">
-                        <button className="button open--confirm" disabled={address === "" || submitting} type="submit"><span>{error ? "Use anyway" : "Confirm"}</span></button>
+                        <button className="button open--confirm" disabled={address === "" || submitting || error !== null} type="submit"><span>{"Confirm"}</span></button>
                     </div>
                 </form>
             </div>

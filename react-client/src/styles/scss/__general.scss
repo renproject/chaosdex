@@ -245,7 +245,7 @@ button {
 .exchange {
     .token-value {
         .select--market {
-            width: 122px;
+            width: 130px;
             margin-bottom: 30px;
         }
     }
@@ -288,4 +288,8 @@ button {
 .bold {
     font-weight: 600;
     letter-spacing: 0.5px;
+}
+
+.capitalize {
+    text-transform: capitalize;
 }

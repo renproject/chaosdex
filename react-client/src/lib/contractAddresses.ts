@@ -36,6 +36,9 @@ export const syncGetDEXReserveAddress = (networkID: number, token: Token): strin
         case Token.ZEC:
             const deployedZECReserveNetworks = require(`../contracts/${network}/ZEC_DAI_Reserve.json`).networks;
             return deployedZECReserveNetworks[networkID].address;
+        case Token.BCH:
+            const deployedBCHReserveNetworks = require(`../contracts/${network}/BCH_DAI_Reserve.json`).networks;
+            return deployedBCHReserveNetworks[networkID].address;
     }
     return "";
 };

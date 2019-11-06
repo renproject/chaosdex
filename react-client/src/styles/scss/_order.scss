@@ -330,3 +330,7 @@
 .Select--currency__input {
     width: 1px;
 }
+
+.Select--currency__option--is-disabled {
+    color: black !important;
+}

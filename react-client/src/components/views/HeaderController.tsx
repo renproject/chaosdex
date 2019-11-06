@@ -1,18 +1,15 @@
 import * as React from "react";
 
-import { currencies, CurrencyIcon } from "@renproject/react-components";
+import { Blocky, currencies, CurrencyIcon } from "@renproject/react-components";
 import { Nav, Navbar, NavDropdown } from "react-bootstrap";
 // import Nav from "react-bootstrap/Nav";
 // import Navbar from "react-bootstrap/Navbar";
 // import NavDropdown from "react-bootstrap/NavDropdown";
 import { Link } from "react-router-dom";
 
+import { DocsIcon, FAQIcon, HowItWorksIcon, TutorialIcon } from "../../lib/icons";
 import { connect, ConnectedProps } from "../../state/connect";
 import { UIContainer } from "../../state/uiContainer";
-import { ReactComponent as Docs } from "../../styles/images/icons/docs.svg";
-import { ReactComponent as FAQ } from "../../styles/images/icons/faq.svg";
-import { ReactComponent as HowItWorks } from "../../styles/images/icons/howitworks.svg";
-import { ReactComponent as Tutorial } from "../../styles/images/icons/tutorial.svg";
 import { ReactComponent as Logo } from "../../styles/images/logo.svg";
 import {
     BUILDWITHRENVM_LINK, FAQ_LINK, READTHEDOCS_LINK,
@@ -68,7 +65,7 @@ export const HeaderController = (connect<Props>([UIContainer])(
                 "header--account--disconnected"}`}
         >
             {address ?
-                <>{address.substring(0, 8)}...{address.slice(-5)}</> :
+                <div className="header--account--address"><Blocky address={address} /><span>{address.substring(0, 8)}...{address.slice(-5)}</span></div> :
                 <>Not connected</>
             }
         </div>;
@@ -92,27 +89,28 @@ export const HeaderController = (connect<Props>([UIContainer])(
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="links-navbar-nav">
                     <Nav>
-                        <Nav.Link className="nav--button nav--button-border" onClick={showTutorial}><Tutorial />Welcome Tutorial</Nav.Link>
+                        <Nav.Link className="nav--button nav--button-border" onClick={showTutorial}><TutorialIcon /><span>Welcome Tutorial</span></Nav.Link>
                         <div className="nav--divider" />
-                        <Nav.Link className="nav--button" target="_blank" rel="noopener noreferrer" href={BUILDWITHRENVM_LINK}><HowItWorks />Build with RenVM</Nav.Link>
-                        <Nav.Link className="nav--button" target="_blank" rel="noopener noreferrer" href={READTHEDOCS_LINK}><Docs />Read the docs</Nav.Link>
-                        <Nav.Link className="nav--button" target="_blank" rel="noopener noreferrer" href={FAQ_LINK}><FAQ />FAQs</Nav.Link>
+                        <Nav.Link className="nav--button" target="_blank" rel="noopener noreferrer" href={BUILDWITHRENVM_LINK}><HowItWorksIcon />Build with RenVM</Nav.Link>
+                        <Nav.Link className="nav--button" target="_blank" rel="noopener noreferrer" href={READTHEDOCS_LINK}><DocsIcon />Read the docs</Nav.Link>
+                        <Nav.Link className="nav--button" target="_blank" rel="noopener noreferrer" href={FAQ_LINK}><FAQIcon />FAQs</Nav.Link>
                     </Nav>
                 </Navbar.Collapse>
                 <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
                     <Nav>
-                        <NavDropdown title={<><CurrencyIcon currency={quoteCurrency} /> {quoteCurrency.toUpperCase()}</>} className="nav--bubble" id="currency-dropdown">
+                        <NavDropdown title={<span><CurrencyIcon currency={quoteCurrency} /> {quoteCurrency.toUpperCase()}</span>} className="nav--bubble" id="currency-dropdown">
                             {
                                 currencies.map(({ currency, description }) =>
                                     // tslint:disable-next-line: react-this-binding-issue jsx-no-lambda
                                     <NavDropdown.Item key={currency} onClick={() => uiContainer.setCurrency(currency)}>
                                         <CurrencyIcon currency={currency} />
-                                        {" "}{description}
+                                        {" "}
+                                        {description}
                                     </NavDropdown.Item>
                                 )
                             }
                         </NavDropdown>
-                        <NavDropdown title={account} className="nav--bubble" id="dropdown">
+                        <NavDropdown title={account} className="nav--bubble nav-dropdown--account" id="dropdown">
                             {address ?
                                 <>
                                     <NavDropdown.Item onClick={copyToClipboard}>Copy address</NavDropdown.Item>

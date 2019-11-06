@@ -1,5 +1,4 @@
 {
-  "contractName": "ZEC_DAI_Reserve",
   "abi": [
     {
       "constant": false,
@@ -226,11 +225,11 @@
       "type": "event"
     }
   ],
-  "sourcePath": "/home/noah/github/renproject/dex-demo/ethereum-contracts/contracts/DEXReserve.sol",
   "compiler": {
     "name": "solc",
     "version": "0.5.8+commit.23d335f2.Emscripten.clang"
   },
+  "contractName": "ZEC_DAI_Reserve",
   "networks": {
     "42": {
       "events": {
@@ -258,5 +257,6 @@
       "transactionHash": "0xa4874c72a437ce7ed2f16c1d76f602e457caf0f5ed4adca712b6133b7e6d7ac1"
     }
   },
-  "schemaVersion": "3.0.11"
+  "schemaVersion": "3.0.11",
+  "sourcePath": "/home/noah/github/renproject/dex-demo/ethereum-contracts/contracts/DEXReserve.sol"
 }

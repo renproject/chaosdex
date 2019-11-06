@@ -69,11 +69,8 @@ export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer, 
         };
 
         const toggle = <div className="order--tabs">
-            <span
-            >
-                {/* <img alt="Swap side" role="button" src={arrow} /> */}
-                +
-            </span>
+            {liquidityTab === LiquidityTabs.Add ? <span>+</span> : <span className="order--tabs--minus">-</span>}
+            {/* <img alt="Swap side" role="button" src={arrow} /> */}
         </div>;
 
         const firstSubtext = <>
@@ -114,10 +111,11 @@ export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer, 
         React.useEffect(() => {
             (async () => {
                 const liquidity = await sdkContainer.liquidityBalance(orderInputs.srcToken);
-                console.log(`liquidity: ${liquidity.toFixed()}`);
-                setLiquidityBalance(liquidity);
+                if (liquidity) {
+                    setLiquidityBalance(liquidity);
+                }
             })().catch(_catchBackgroundErr_);
-        }, [uiContainer.state.address, orderInputs.srcToken]);
+        }, [uiContainer.state.web3, uiContainer.state.address, orderInputs.srcToken]);
 
         const selectAddTab = React.useCallback(() => {
             uiContainer.setLiquidityTab(LiquidityTabs.Add).catch(_catchInteractionErr_);
@@ -126,6 +124,8 @@ export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer, 
         const selectRemoveTab = React.useCallback(() => {
             uiContainer.setLiquidityTab(LiquidityTabs.Remove).catch(_catchInteractionErr_);
         }, [uiContainer]);
+
+        const srcTokenDetails = Tokens.get(orderInputs.srcToken);
 
         return <div className="order--wrapper--wrapper">
             <div className="order--wrapper">
@@ -148,7 +148,7 @@ export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer, 
                                 tokenPrices={uiContainer.state.tokenPrices}
                                 amount={liquidityBalance || "0"}
                                 toReadable={true}
-                                decimals={Tokens.get(orderInputs.srcToken)!.decimals}
+                                decimals={srcTokenDetails ? srcTokenDetails.decimals : 0}
                             />
                         }
                     </span></div>

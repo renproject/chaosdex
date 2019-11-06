@@ -1,5 +1,4 @@
 {
-  "contractName": "ZECShifter",
   "abi": [
     {
       "constant": false,
@@ -418,11 +417,11 @@
       "type": "event"
     }
   ],
-  "sourcePath": "darknode-sol/contracts/Shifter/Shifter.sol",
   "compiler": {
     "name": "solc",
     "version": "0.5.8+commit.23d335f2.Emscripten.clang"
   },
+  "contractName": "ZECShifter",
   "networks": {
     "42": {
       "events": {},
@@ -430,5 +429,6 @@
       "address": "0x19Fe91276a992c2E85544C627583fcc535ff0661"
     }
   },
-  "schemaVersion": "3.0.11"
+  "schemaVersion": "3.0.11",
+  "sourcePath": "darknode-sol/contracts/Shifter/Shifter.sol"
 }

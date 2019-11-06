@@ -36,15 +36,21 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
 
         const login = React.useCallback(async () => {
             const web3 = await getWeb3();
-            const networkID = await web3.eth.net.getId();
+            const πNetworkID = web3.eth.net.getId();
+            const πAddresses = web3.eth.getAccounts();
+
+            const networkID = await πNetworkID;
             if (network.contracts.networkID && networkID !== network.contracts.networkID) {
                 alert(`Please switch to the ${network.contracts.chainLabel} Ethereum network.`);
                 return;
             }
-            const addresses = await web3.eth.getAccounts();
+            const addresses = await πAddresses;
             const address = addresses.length > 0 ? addresses[0] : null;
-            await uiContainer.connect(web3, address, networkID);
-            await sdkContainer.connect(web3, address, networkID);
+
+            await Promise.all([
+                uiContainer.connect(web3, address, networkID),
+                sdkContainer.connect(web3, address, networkID),
+            ]);
 
             uiContainer.updateTokenPrices().catch(_catchBackgroundErr_);
             // uiContainer.updateBalanceReserves().catch(_catchBackgroundErr_);
@@ -84,9 +90,9 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
                 }
 
                 // Start loops to update prices and balances
-                setInterval(() => uiContainer.updateTokenPrices().catch(() => { /* ignore */ }), 10 * 1000);
+                setInterval(() => uiContainer.updateTokenPrices().catch(() => { /* ignore */ }), 30 * 1000);
                 // setInterval(() => uiContainer.updateBalanceReserves().catch(() => { /* ignore */ }), 10 * 1000);
-                setInterval(() => uiContainer.updateAccountBalances().catch(() => { /* ignore */ }), 10 * 1000);
+                setInterval(() => uiContainer.updateAccountBalances().catch(() => { /* ignore */ }), 20 * 1000);
                 if (!showingTutorial) {
                     login().then(() => {
                         setInitialized(true);
