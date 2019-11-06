@@ -94,6 +94,8 @@ const OrderHistoryEntry = ({ order, continueOrder, loggedIn }: {
     const onClick = () => {
         continueOrder(order.id);
     };
+    // tslint:disable-next-line: no-console
+    console.log(order.status);
     return <div className="swap--history--entry">
         <div className="token--info">
             {
