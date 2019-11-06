@@ -83,7 +83,7 @@ const OrderHistoryEntry = ({ order, continueOrder, loggedIn }: {
         />{" "}
         {order.orderInputs.srcToken}
     </span>;
-    const amount = <span className="token--amount">
+    const amount = order.commitment.type === CommitmentType.AddLiquidity ? srcAmount : <span className="token--amount">
         <TokenBalance
             token={order.orderInputs.dstToken}
             amount={order.receivedAmount || order.orderInputs.dstAmount}
@@ -153,7 +153,7 @@ const OrderHistoryEntry = ({ order, continueOrder, loggedIn }: {
                                             },
                                         }}
                                     />
-                                    <span className="received--text">Receiving</span>{amount}
+                                    <span className="received--text">{order.commitment.type === CommitmentType.AddLiquidity ? "Adding" : order.commitment.type === CommitmentType.RemoveLiquidity ? "Removing" : "Receiving"}</span>{amount}
                                     <button
                                         disabled={!loggedIn}
                                         className="button--plain"
