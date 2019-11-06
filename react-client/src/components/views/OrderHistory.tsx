@@ -17,6 +17,19 @@ import { ReactComponent as Next } from "../../styles/images/next.svg";
 import { ReactComponent as Previous } from "../../styles/images/previous.svg";
 import { TokenBalance } from "./TokenBalance";
 
+const continueText = (commitmentType: CommitmentType): string => {
+    switch(commitmentType) {
+        case CommitmentType.Trade:
+            return "Continue swap";
+        case CommitmentType.AddLiquidity:
+            return "Continue adding liquidity";
+        case CommitmentType.RemoveLiquidity:
+            return "Continue removing liquidity";
+        default:
+            return "Continue";
+    }
+};
+
 const shiftProgress = (status: ShiftInStatus | ShiftOutStatus) => {
     switch (status) {
         case ShiftInStatus.Committed:
@@ -146,7 +159,7 @@ const OrderHistoryEntry = ({ order, continueOrder, loggedIn }: {
                                         className="button--plain"
                                         onClick={onClick}
                                     >
-                                        {loggedIn ? <>Continue swap</> : <>: Connect to continue</>}
+                                        {loggedIn ? continueText(order.commitment.type) : <>: Connect to continue</>}
                                     </button>
                                 </>
             }
