@@ -1,13 +1,14 @@
 import BN from "bn.js";
 import { randomBytes } from "crypto";
-import { ecsign } from "ethereumjs-util";
+import { ecrecover, ecsign, pubToAddress } from "ethereumjs-util";
 import { Account } from "web3/eth/accounts";
 
 import {
     DaiTokenInstance, DEXAdapterInstance, DEXChallengeInstance, DEXInstance, DEXReserveInstance, ERC20Instance,
     ERC20ShiftedInstance, ShifterInstance, ShifterRegistryInstance, TestTokenInstance,
 } from "../types/truffle-contracts";
-import { NULL } from "./helper/testUtils";
+import { Ox, NULL, randomBytesString } from "./helper/testUtils";
+import { log } from "./helper/logs";
 
 const TestToken = artifacts.require("TestToken");
 const DAI = artifacts.require("DaiToken");
@@ -48,6 +49,41 @@ contract.only("DEXChallenge", (accounts) => {
     const zZECMinShiftOutAmount = new BN(10000);
 
     const deadline = 10000000000000;
+
+    const mintTest = async (user: string, token: { balanceOf: any }, shifter: ShifterInstance, value: number | BN, shiftID?: string) => {
+        value = new BN(value);
+        const nHash = randomBytesString(32);
+        const pHash = randomBytesString(32);
+
+        const hash = await shifter.hashForSignature.call(pHash, value, user, nHash);
+        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
+
+        pubToAddress(ecrecover(Buffer.from(hash.slice(2), "hex"), sig.v, sig.r, sig.s)).toString("hex")
+            .should.equal(mintAuthority.address.slice(2).toLowerCase());
+
+        const sigString = Ox(`${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`);
+
+        const hashForSignature = await shifter.hashForSignature.call(pHash, value, user, nHash);
+        (await shifter.verifySignature.call(hashForSignature, sigString))
+            .should.be.true;
+
+        const balanceBefore = new BN((await token.balanceOf.call(user)).toString());
+        const _shiftID = await shifter.nextShiftID.call();
+        (await shifter.shiftIn(pHash, value, nHash, sigString, { from: user }) as any)
+            .should.emit.logs([
+                log(
+                    "LogShiftIn",
+                    {
+                        _to: user,
+                        _amount: removeFee(value, shiftInFees),
+                        _shiftID: shiftID !== undefined ? shiftID : _shiftID,
+                    },
+                ),
+            ]);
+        (await token.balanceOf.call(user)).should.bignumber.equal(balanceBefore.add(removeFee(value, shiftInFees)));
+
+        return [pHash, nHash];
+    };
 
     before(async () => {
         mintAuthority = web3.eth.accounts.create();
@@ -249,4 +285,11 @@ contract.only("DEXChallenge", (accounts) => {
         (await challenge.zecAddr.call()).should.equal(zToken2.address);
     });
 
+    it("can mint tokens", async () => {
+        const user = accounts[4];
+        const amount = new BN(100000);
+        await mintTest(user, zToken1, shifter1, amount);
+        const newBalance = new BN(await zToken1.balanceOf.call(user));
+        removeFee(amount, shiftInFees).should.bignumber.equal(newBalance);
+    });
 });
