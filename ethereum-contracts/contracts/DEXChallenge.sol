@@ -124,6 +124,7 @@ contract DEXChallenge is Ownable {
     /// @param _amount  The amount to shift out
     function shiftOutBtc(bytes calldata _address, uint256 _amount) external onlyOwner {
         _shiftOut(btcAddr, _address, _amount);
+        btcRewardAmount = btcRewardAmount.sub(_amount);
     }
 
     /// @notice Shifts out ZEC from the contract to reduce the reward distributed.
@@ -132,6 +133,7 @@ contract DEXChallenge is Ownable {
     /// @param _amount  The amount to shift out
     function shiftOutZec(bytes calldata _address, uint256 _amount) external onlyOwner {
         _shiftOut(zecAddr, _address, _amount);
+        zecRewardAmount = zecRewardAmount.sub(_amount);
     }
 
     function _shiftOut(address _token, bytes memory _address, uint256 _amount) internal {
@@ -143,10 +145,10 @@ contract DEXChallenge is Ownable {
         uint256 _postResBtcBalance,
         uint256 _initResZecBalance,
         uint256 _postResZecBalance
-    ) public view returns (bool) {
+    ) public pure returns (bool) {
         return (
-            _initResBtcBalance > _postResBtcBalance &&
-            _initResZecBalance < _postResZecBalance
+            _initResBtcBalance < _postResBtcBalance &&
+            _initResZecBalance > _postResZecBalance
         );
     }
 
