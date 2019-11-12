@@ -47,7 +47,7 @@ contract DEXChallenge is Ownable {
     ) public {
         require(_amount > 0, "amount must be greater than 0");
         uint256 transferAmount = registry.getShifterByToken(btcAddr).shiftIn(0x0, _amount, _nHash, _sig);
-        btcRewardAmount.add(transferAmount);
+        btcRewardAmount = btcRewardAmount.add(transferAmount);
     }
 
     /// @notice Funds the challenge contract with ZEC funds for rewards.
@@ -62,7 +62,7 @@ contract DEXChallenge is Ownable {
     ) public {
         require(_amount > 0, "amount must be greater than 0");
         uint256 transferAmount = registry.getShifterByToken(zecAddr).shiftIn(0x0, _amount, _nHash, _sig);
-        zecRewardAmount.add(transferAmount);
+        zecRewardAmount = zecRewardAmount.add(transferAmount);
     }
 
     /// @notice The function conducts the BTC <-> ZEC trade and if completes successfully

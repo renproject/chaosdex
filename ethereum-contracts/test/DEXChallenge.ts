@@ -342,22 +342,28 @@ contract.only("DEXChallenge", (accounts) => {
     });
 
     describe("when funding challenges", async () => {
-        it("can fund btc", async () => {
+        it("can add btc funds", async () => {
             const challenge = await DEXChallenge.new(dexAdapter.address);
             const oldBalance = new BN(await zBtcToken.balanceOf.call(challenge.address));
             const amount = new BN(100000000);
             await fundBtc(challenge, amount);
             const newBalance = new BN(await zBtcToken.balanceOf.call(challenge.address));
+            removeFee(amount, shiftInFees).should.bignumber.equal(newBalance);
             newBalance.gt(oldBalance).should.be.true;
+            const btcRewardAmount = new BN(await challenge.btcRewardAmount.call());
+            btcRewardAmount.should.bignumber.equal(newBalance);
         });
 
-        it("can fund zec", async () => {
+        it("can add zec funds", async () => {
             const challenge = await DEXChallenge.new(dexAdapter.address);
             const oldBalance = new BN(await zZecToken.balanceOf.call(challenge.address));
             const amount = new BN(100000000);
             await fundZec(challenge, amount);
             const newBalance = new BN(await zZecToken.balanceOf.call(challenge.address));
+            removeFee(amount, shiftInFees).should.bignumber.equal(newBalance);
             newBalance.gt(oldBalance).should.be.true;
+            const zecRewardAmount = new BN(await challenge.zecRewardAmount.call());
+            zecRewardAmount.should.bignumber.equal(newBalance);
         });
     });
 });
