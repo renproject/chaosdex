@@ -255,6 +255,11 @@ button {
     position: fixed;
     right: 55px;
     bottom: 35px;
+
+    @media(max-width: $max-xs) {
+        right: 10px;
+        bottom: 10px;
+    }
 }
 
 .disabled {

@@ -275,5 +275,5 @@
     }
   },
   "schemaVersion": "3.0.11",
-  "sourcePath": "/home/noah/github/renproject/dex-demo/ethereum-contracts/contracts/test/TestToken.sol"
+  "sourcePath": "dex-demo/ethereum-contracts/contracts/test/TestToken.sol"
 }

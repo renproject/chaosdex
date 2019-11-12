@@ -8,7 +8,7 @@ import { connect, ConnectedProps } from "../../state/connect";
 import { Token } from "../../state/generalTypes";
 import { ExchangeTabs, UIContainer } from "../../state/uiContainer";
 import { ReactComponent as Warning } from "../../styles/images/warning.svg";
-import { _catch_ } from "../ErrorBoundary";
+import { ErrorBoundary } from "../ErrorBoundary";
 import { LiquidityForm } from "../views/exchange-forms/LiquidityForm";
 import { OrderForm } from "../views/exchange-forms/OrderForm";
 import { OrderHistory } from "../views/OrderHistory";
@@ -60,10 +60,10 @@ export const Exchange = connect<Props & ConnectedProps<[UIContainer]>>([UIContai
                             <button onClick={onLiquidityTab} className={className("exchange--tab", exchangeTab === ExchangeTabs.Liquidity ? "exchange--tab--selected" : "")}>Liquidity</button>
                         </div>
                         {exchangeTab === ExchangeTabs.Swap ?
-                            _catch_(<OrderForm handleLogin={handleLogin} />) :
-                            _catch_(<LiquidityForm handleLogin={handleLogin} />)
+                            <ErrorBoundary><OrderForm handleLogin={handleLogin} /></ErrorBoundary> :
+                            <ErrorBoundary><LiquidityForm handleLogin={handleLogin} /></ErrorBoundary>
                         }
-                        {_catch_(<OrderHistory />)}
+                        <ErrorBoundary><OrderHistory /></ErrorBoundary>
                         {uiContainer.state.submitting ?
                             <PromptDetails cancel={cancel} /> :
                             <></>

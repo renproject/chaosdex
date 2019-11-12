@@ -8,7 +8,7 @@ const defaultState = { // Entries must be immutable
     errorInfo: null as null | React.ErrorInfo,
 };
 
-class ErrorBoundary extends React.Component<Props, typeof defaultState> {
+export class ErrorBoundary extends React.Component<Props, typeof defaultState> {
     constructor(props: Props) {
         super(props);
         this.state = defaultState;
@@ -70,10 +70,3 @@ interface Props {
      */
     onCancel?(): void;
 }
-
-export const _catch_ = (
-    children: React.ReactNode,
-    options?: { key?: string; popup?: boolean; onCancel?(): void }
-) => <ErrorBoundary key={options && options.key} popup={options && options.popup} onCancel={options && options.onCancel}>
-        {children}
-    </ErrorBoundary>;

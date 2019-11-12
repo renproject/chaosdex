@@ -2,14 +2,13 @@ import * as React from "react";
 
 import { InfoLabel, Loading, TokenIcon } from "@renproject/react-components";
 import { UTXO } from "@renproject/ren";
+import { OrderedMap } from "immutable";
 import QRCode from "qrcode.react";
 import CopyToClipboard from "react-copy-to-clipboard";
-import { OrderedMap } from "immutable";
 
 import { IS_TESTNET } from "../../../lib/environmentVariables";
 import { Token } from "../../../state/generalTypes";
 import { ShiftInEvent } from "../../../state/persistentContainer";
-import { UIContainer } from "../../../state/uiContainer";
 import { ReactComponent as Copy } from "../../../styles/images/copy.svg";
 import { ReactComponent as QR } from "../../../styles/images/qr.svg";
 import { txUrl } from "../OrderHistory";

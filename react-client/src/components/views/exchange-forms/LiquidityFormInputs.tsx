@@ -6,7 +6,7 @@ import BigNumber from "bignumber.js";
 import { useDebounce } from "../../../lib/debounce";
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../../lib/errors";
 import { connect, ConnectedProps } from "../../../state/connect";
-import { Tokens } from "../../../state/generalTypes";
+import { Token, Tokens } from "../../../state/generalTypes";
 import { SDKContainer } from "../../../state/sdkContainer";
 import { LiquidityTabs, UIContainer } from "../../../state/uiContainer";
 import { SelectMarketWrapper } from "../SelectMarketWrapper";
@@ -93,7 +93,7 @@ export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer, 
             error={false}
             onValueChange={onVolumeChange}
         >
-            <SelectMarketWrapper top={true} thisToken={orderInputs.srcToken} otherToken={orderInputs.dstToken} />
+            <SelectMarketWrapper except={orderInputs.dstToken} top={true} thisToken={orderInputs.srcToken} otherToken={orderInputs.dstToken} />
         </TokenValueInput >;
 
         const second = <TokenValueInput
@@ -108,15 +108,6 @@ export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer, 
             <SelectMarketWrapper top={false} thisToken={orderInputs.dstToken} otherToken={orderInputs.srcToken} locked={true} />
         </TokenValueInput>;
 
-        React.useEffect(() => {
-            (async () => {
-                const liquidity = await sdkContainer.liquidityBalance(orderInputs.srcToken);
-                if (liquidity) {
-                    setLiquidityBalance(liquidity);
-                }
-            })().catch(_catchBackgroundErr_);
-        }, [uiContainer.state.web3, uiContainer.state.address, orderInputs.srcToken]);
-
         const selectAddTab = React.useCallback(() => {
             uiContainer.setLiquidityTab(LiquidityTabs.Add).catch(_catchInteractionErr_);
         }, [uiContainer]);
@@ -126,6 +117,29 @@ export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer, 
         }, [uiContainer]);
 
         const srcTokenDetails = Tokens.get(orderInputs.srcToken);
+        const dstTokenDetails = Tokens.get(orderInputs.dstToken);
+
+        const reserveBalances = React.useMemo(
+            () => uiContainer.state.reserveBalances.get(orderInputs.srcToken, { quote: new BigNumber(0), base: new BigNumber(0) }),
+            [uiContainer.state.reserveBalances, orderInputs.srcToken],
+        );
+
+        const exchangeRate = React.useMemo(() => {
+            try {
+                return reserveBalances.base.div(new BigNumber(10).exponentiatedBy(dstTokenDetails ? dstTokenDetails.decimals : 0)).div(reserveBalances.quote.div(new BigNumber(10).exponentiatedBy(srcTokenDetails ? srcTokenDetails.decimals : 0)));
+            } catch (error) {
+                return new BigNumber(0);
+            }
+        }, [reserveBalances.base, reserveBalances.quote]);
+
+        React.useEffect(() => {
+            (async () => {
+                const liquidity = await sdkContainer.liquidityBalance(orderInputs.srcToken);
+                if (liquidity) {
+                    setLiquidityBalance(liquidity);
+                }
+            })().catch(_catchBackgroundErr_);
+        }, [uiContainer.state.web3, uiContainer.state.address, reserveBalances.base, reserveBalances.quote]);
 
         return <div className="order--wrapper--wrapper">
             <div className="order--wrapper">
@@ -135,8 +149,76 @@ export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer, 
                 </div>
                 {first}{toggle}{second}
                 <div className="liquidity-details">
-                    <div className="liquidity-detail"><span>Exchange rate</span><span>-</span></div>
-                    <div className="liquidity-detail"><span>Current pool size</span><span>-</span></div>
+                    <div className="liquidity-detail"><span>Exchange rate</span><span>
+                        <CurrencyIcon currency={quoteCurrency} />
+                        {" "}
+                        {!reserveBalances ?
+                            "-" :
+                            <TokenBalance
+                                token={Token.DAI}
+                                convertTo={quoteCurrency}
+                                tokenPrices={uiContainer.state.tokenPrices}
+                                amount={exchangeRate || "0"}
+                                digits={3}
+                            />
+                        }
+                    </span></div>
+                    <div className="liquidity-detail"><span>{orderInputs.srcToken} pool size</span><span>
+                        {!reserveBalances ?
+                            "-" :
+                            <TokenBalance
+                                token={orderInputs.srcToken}
+                                amount={reserveBalances.quote || "0"}
+                                toReadable={true}
+                                decimals={srcTokenDetails ? srcTokenDetails.decimals : 0}
+                            />
+                        }
+                        {" "}
+                        {orderInputs.srcToken}
+                        {" ("}
+                        <CurrencyIcon currency={quoteCurrency} />
+                        {" "}
+                        {!reserveBalances ?
+                            "-" :
+                            <TokenBalance
+                                token={orderInputs.srcToken}
+                                convertTo={quoteCurrency}
+                                tokenPrices={uiContainer.state.tokenPrices}
+                                amount={reserveBalances.quote || "0"}
+                                toReadable={true}
+                                decimals={srcTokenDetails ? srcTokenDetails.decimals : 0}
+                            />
+                        }
+                        {")"}
+                    </span></div>
+                    <div className="liquidity-detail"><span>{orderInputs.dstToken} pool size</span><span>
+                        {!reserveBalances ?
+                            "-" :
+                            <TokenBalance
+                                token={orderInputs.dstToken}
+                                amount={reserveBalances.base || "0"}
+                                toReadable={true}
+                                decimals={dstTokenDetails ? dstTokenDetails.decimals : 0}
+                                digits={2}
+                            />
+                        }
+                        {" "}{orderInputs.dstToken}
+                        {" ("}
+                        <CurrencyIcon currency={quoteCurrency} />
+                        {" "}
+                        {!reserveBalances ?
+                            "-" :
+                            <TokenBalance
+                                token={orderInputs.dstToken}
+                                convertTo={quoteCurrency}
+                                tokenPrices={uiContainer.state.tokenPrices}
+                                amount={reserveBalances.base || "0"}
+                                toReadable={true}
+                                decimals={dstTokenDetails ? dstTokenDetails.decimals : 0}
+                            />
+                        }
+                        {")"}
+                    </span></div>
                     <div className="liquidity-detail"><span>Your pool share</span><span>
                         <CurrencyIcon currency={quoteCurrency} />
                         {" "}

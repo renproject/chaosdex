@@ -23,20 +23,15 @@ const fetchDetails = async (geckoID: string) => {
     return response.json();
 };
 
-export const getTokenPricesInCurrencies = async (): Promise<TokenPrices> => {
-    let prices: TokenPrices = Map();
+export const getTokenPricesInCurrencies = async (): Promise<TokenPrices> =>
+    /*await*/ CoinGeckoIDs
+        .map((coinGeckoID) => fetchDetails(coinGeckoID))
+        .reduce(async (pricesPromise, detailsPromise, token) => {
+            const data = await detailsPromise;
+            const price = Map<Currency, number>(data.market_data.current_price);
 
-    for (const tokenAndDetails of CoinGeckoIDs.toSeq().toArray()) {
-        const [token, coinGeckoID] = tokenAndDetails;
-
-        const data = await fetchDetails(coinGeckoID);
-        const price = Map<Currency, number>(data.market_data.current_price);
-
-        prices = prices.set(token, price);
-    }
-
-    return prices;
-};
+            return (await pricesPromise).set(token, price);
+        }, Promise.resolve(Map<Token, Map<Currency, number>>()));
 
 export enum MarketPair {
     DAI_BTC = "DAI/BTC",

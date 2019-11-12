@@ -137,7 +137,12 @@ export class SDKContainer extends Container<typeof initialState> {
             ).send({ from: address });
             await new Promise((resolve, reject) => promiEvent.on("transactionHash", async (transactionHash: string) => {
                 resolve(transactionHash);
-            }).catch(reject));
+            }).catch((error: Error) => {
+                if (error && error.message && String(error.message).match(/Invalid "from" address/)) {
+                    error.message += ` (from address: ${address})`;
+                }
+                reject(error);
+            }));
         }
     }
 
@@ -403,7 +408,7 @@ export class SDKContainer extends Container<typeof initialState> {
         const promise = this
             .shiftInObject(orderID)
             .waitForDeposit(order.orderInputs.srcToken === Token.BTC || order.orderInputs.srcToken === Token.BCH ? 2 : 6);
-        promise.on("deposit", (utxo) => { console.log("got", utxo); onDeposit(utxo); });
+        promise.on("deposit", onDeposit);
         await promise;
         await this.persistentContainer
             .updateHistoryItem(orderID, { status: ShiftInStatus.Deposited });
@@ -428,7 +433,6 @@ export class SDKContainer extends Container<typeof initialState> {
         if (!order) {
             throw new Error("Order not set");
         }
-        console.log("waitForDeposit");
         const shiftInObject = this
             .shiftInObject(orderID)
             .waitForDeposit(order.orderInputs.srcToken === Token.BTC || order.orderInputs.srcToken === Token.BCH ? 2 : 6);
@@ -465,7 +469,7 @@ export class SDKContainer extends Container<typeof initialState> {
             }
 
             [receipt, transactionHash] = await new Promise<[TransactionReceipt, string]>(async (resolve, reject) => {
-                const promiEvent = (await this.submitMintToRenVM(orderID)).submitToEthereum(web3.currentProvider);
+                const promiEvent = (await this.submitMintToRenVM(orderID)).submitToEthereum(web3.currentProvider, { gas: order.commitment.type === CommitmentType.AddLiquidity ? 250000 : undefined });
                 promiEvent.catch((error) => {
                     reject(error);
                 });
@@ -485,9 +489,7 @@ export class SDKContainer extends Container<typeof initialState> {
         // Loop through logs to find exchange event from the DEX contract.
         // The event log always has the first topic as "0x8d10c7a1"
         // TODO: Calculate this instead of hard coding it.
-        console.log(`Looking through ${receipt.logs.length} logs`);
         for (const log of receipt.logs) {
-            console.log(log);
             // TODO: Replace hard-coded hash with call to web3.utils.sha3.
             if (
                 log.address.toLowerCase() === syncGetDEXAddress(networkID).toLowerCase() &&

@@ -13,6 +13,7 @@ import { getERC20, getExchange, getReserve, isEthereumBased, Token, Tokens } fro
 import {
     Commitment, CommitmentType, HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus,
 } from "./persistentContainer";
+import { PopupContainer } from "./popupContainer";
 import { network } from "./sdkContainer";
 
 export type ReserveBalances = Map<Token, BigNumber>;
@@ -44,6 +45,8 @@ export enum LiquidityTabs {
 const initialState = {
     web3: null as Web3 | null,
     networkID: 0,
+
+    loggedOut: null as string | null,
 
     confirmedOrderInputs: null as null | OrderInputs,
 
@@ -77,14 +80,16 @@ const initialState = {
 export class UIContainer extends Container<typeof initialState> {
     public state = initialState;
     public persistentContainer: PersistentContainer;
+    public popupContainer: PopupContainer;
 
-    constructor(persistentContainer: PersistentContainer) {
+    constructor(persistentContainer: PersistentContainer, popupContainer: PopupContainer) {
         super();
         this.persistentContainer = persistentContainer;
+        this.popupContainer = popupContainer;
     }
 
     public connect = async (web3: Web3, address: string | null, networkID: number): Promise<void> => {
-        await this.setState({ web3, networkID, address });
+        await this.setState({ web3, networkID, address, loggedOut: null, currentOrderID: null });
         await this.updateAccountBalances();
     }
 
@@ -503,7 +508,6 @@ export class UIContainer extends Container<typeof initialState> {
         }
 
         const balance = this.getMaxInput(token);
-        console.log(`My balance is ${balance.toFixed()}`);
 
         const tokenDetails = Tokens.get(token);
         if (!tokenDetails) {
@@ -665,6 +669,28 @@ export class UIContainer extends Container<typeof initialState> {
         // );
         await this.setState({ orderInputs: { ...this.state.orderInputs, dstAmount: dstAmountBN.toFixed() } });
         // }
+    }
+
+    public setLoggedOut = async (loggedOut?: string) => {
+        return this.setState({ loggedOut: loggedOut || null });
+    }
+
+    // lookForLogout detects if 1) the user has changed or logged out of their Web3
+    // wallet
+    public lookForLogout = async () => {
+        const { address, web3 } = this.state;
+
+        if (!address || !web3) {
+            return;
+        }
+
+        const accounts = (await web3.eth.getAccounts())
+            .map((web3Address: string) => web3Address.toLowerCase());
+
+        if (!accounts.includes(address.toLowerCase())) {
+            await this.clearAddress();
+            await this.setLoggedOut(address);
+        }
     }
 
     private readonly updateHistory = async (): Promise<void> => {

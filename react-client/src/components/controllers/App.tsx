@@ -9,9 +9,12 @@ import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
 import { getWeb3 } from "../../lib/getWeb3";
 import { connect, ConnectedProps } from "../../state/connect";
 import { Token } from "../../state/generalTypes";
+import { PopupContainer } from "../../state/popupContainer";
 import { network, SDKContainer } from "../../state/sdkContainer";
 import { UIContainer } from "../../state/uiContainer";
+import { ErrorBoundary } from "../ErrorBoundary";
 import { HeaderController } from "../views/HeaderController";
+import { LoggedOutPopup } from "../views/LoggedOutPopup";
 import { Tutorial } from "../views/tutorial-popup/Tutorial";
 import { Exchange } from "./Exchange";
 
@@ -21,8 +24,8 @@ const useTutorialState = createPersistedState("show-tutorial");
  * App is the main visual component responsible for displaying different routes
  * and running background app loops
  */
-export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UIContainer, SDKContainer]>>([UIContainer, SDKContainer])(
-    ({ containers: [uiContainer, sdkContainer], location }) => {
+export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UIContainer, SDKContainer, PopupContainer]>>([UIContainer, SDKContainer, PopupContainer])(
+    ({ containers: [uiContainer, sdkContainer, popupContainer], location }) => {
 
         const [showingTutorial, setShowTutorial] = useTutorialState(true);
 
@@ -93,6 +96,7 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
                 setInterval(() => uiContainer.updateTokenPrices().catch(() => { /* ignore */ }), 30 * 1000);
                 // setInterval(() => uiContainer.updateBalanceReserves().catch(() => { /* ignore */ }), 10 * 1000);
                 setInterval(() => uiContainer.updateAccountBalances().catch(() => { /* ignore */ }), 20 * 1000);
+                setInterval(() => uiContainer.lookForLogout(), 1 * 1000);
                 if (!showingTutorial) {
                     login().then(() => {
                         setInitialized(true);
@@ -104,12 +108,20 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
         }, [initialized, uiContainer, location.search, login, showingTutorial]);
 
         return <main>
-            <React.Suspense fallback={null}>
-                <HeaderController showTutorial={showTutorial} handleLogin={login} handleLogout={logout} />
-            </React.Suspense>
-            <Exchange handleLogin={login} />
-            {showingTutorial ? <Tutorial cancel={hideTutorial} /> : null}
-            <FeedbackButton url="https://renprotocol.typeform.com/to/YdmFyB" />
+            <ErrorBoundary>
+                <React.Suspense fallback={null}>
+                    <HeaderController showTutorial={showTutorial} handleLogin={login} handleLogout={logout} />
+                </React.Suspense>
+            </ErrorBoundary>
+            <ErrorBoundary><Exchange handleLogin={login} /></ErrorBoundary>
+            <ErrorBoundary>
+                {uiContainer.state.loggedOut ?
+                    <LoggedOutPopup oldAccount={uiContainer.state.loggedOut} /> :
+                    <></>
+                }
+            </ErrorBoundary>
+            <ErrorBoundary>{showingTutorial ? <Tutorial cancel={hideTutorial} /> : null}</ErrorBoundary>
+            <ErrorBoundary><FeedbackButton url="https://renprotocol.typeform.com/to/YdmFyB" /></ErrorBoundary>
         </main>;
     }
 ));

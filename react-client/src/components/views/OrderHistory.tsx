@@ -18,7 +18,7 @@ import { ReactComponent as Previous } from "../../styles/images/previous.svg";
 import { TokenBalance } from "./TokenBalance";
 
 const continueText = (commitmentType: CommitmentType): string => {
-    switch(commitmentType) {
+    switch (commitmentType) {
         case CommitmentType.Trade:
             return "Continue swap";
         case CommitmentType.AddLiquidity:
@@ -99,7 +99,6 @@ const OrderHistoryEntry = ({ order, continueOrder, loggedIn }: {
         continueOrder(order.id);
     };
     // tslint:disable-next-line: no-console
-    console.log(order.status);
     return <div className="swap--history--entry">
         <div className="token--info">
             {

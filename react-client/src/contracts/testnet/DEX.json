@@ -177,7 +177,7 @@
       "type": "function"
     }
   ],
-  "sourcePath": "/home/noah/github/renproject/dex-demo/ethereum-contracts/contracts/DEX.sol",
+  "sourcePath": "dex-demo/ethereum-contracts/contracts/DEX.sol",
   "compiler": {
     "name": "solc",
     "version": "0.5.8+commit.23d335f2.Emscripten.clang"

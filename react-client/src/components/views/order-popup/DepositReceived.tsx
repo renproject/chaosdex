@@ -6,7 +6,6 @@ import { TxStatus } from "@renproject/ren";
 import { _catchInteractionErr_ } from "../../../lib/errors";
 import { Token } from "../../../state/generalTypes";
 import { Popup } from "../Popup";
-import { INTEROP_LINK } from "../tutorial-popup/TutorialPages";
 
 const renderTxStatus = (status: TxStatus | null) => {
     switch (status) {

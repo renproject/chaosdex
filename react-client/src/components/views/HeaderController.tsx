@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 import { DocsIcon, FAQIcon, HowItWorksIcon, TutorialIcon } from "../../lib/icons";
 import { connect, ConnectedProps } from "../../state/connect";
 import { UIContainer } from "../../state/uiContainer";
+import { ReactComponent as LogoSmall } from "../../styles/images/logo-small.svg";
 import { ReactComponent as Logo } from "../../styles/images/logo.svg";
 import {
     BUILDWITHRENVM_LINK, FAQ_LINK, READTHEDOCS_LINK,
@@ -29,7 +30,8 @@ import {
 // })();
 
 const logo = <Link className="header--logo no-underline" to="/">
-    <Logo />
+    <Logo className="ren-logo-big" />
+    <LogoSmall className="ren-logo-small" />
 </Link>;
 
 interface Props extends ConnectedProps<[UIContainer]> {

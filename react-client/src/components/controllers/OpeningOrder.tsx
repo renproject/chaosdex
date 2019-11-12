@@ -77,7 +77,7 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
                     return <DepositReceived renVMStatus={order.renVMStatus} messageID={order.messageID} orderID={orderID} submitDeposit={sdkContainer.submitMintToRenVM} hide={hide} />;
                 case ShiftInStatus.ReturnedFromRenVM:
                 case ShiftInStatus.SubmittedToEthereum:
-                    return <SubmitToEthereum txHash={order.outTx} token={order.orderInputs.dstToken} orderID={orderID} submit={sdkContainer.submitMintToEthereum} hide={hide} />;
+                    return <SubmitToEthereum order={order} txHash={order.outTx} token={order.orderInputs.dstToken} orderID={orderID} submit={sdkContainer.submitMintToEthereum} hide={hide} />;
                 case ShiftInStatus.RefundedOnEthereum:
                 case ShiftInStatus.ConfirmedOnEthereum:
                     onDone().catch(_catchInteractionErr_);
@@ -99,10 +99,10 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
                     if (isERC20(order.orderInputs.srcToken) && !ERC20Approved) {
                         return <TokenAllowance token={order.orderInputs.srcToken} amount={order.orderInputs.srcAmount} orderID={orderID} submit={submit} commitment={commitment} hide={hide} />;
                     }
-                    return <SubmitToEthereum txHash={order.inTx} token={order.orderInputs.dstToken} orderID={orderID} submit={sdkContainer.submitBurnToEthereum} hide={hide} />;
+                    return <SubmitToEthereum order={order} txHash={order.inTx} token={order.orderInputs.dstToken} orderID={orderID} submit={sdkContainer.submitBurnToEthereum} hide={hide} />;
                 case ShiftOutStatus.SubmittedToEthereum:
                     // Submit the trade to Ethereum
-                    return <SubmitToEthereum txHash={order.inTx} token={order.orderInputs.dstToken} orderID={orderID} submit={sdkContainer.submitBurnToEthereum} hide={hide} />;
+                    return <SubmitToEthereum order={order} txHash={order.inTx} token={order.orderInputs.dstToken} orderID={orderID} submit={sdkContainer.submitBurnToEthereum} hide={hide} />;
                 case ShiftOutStatus.ConfirmedOnEthereum:
                 case ShiftOutStatus.SubmittedToRenVM:
                     return <DepositReceived renVMStatus={renVMStatus} messageID={messageID} orderID={orderID} submitDeposit={sdkContainer.submitBurnToRenVM} hide={hide} />;
