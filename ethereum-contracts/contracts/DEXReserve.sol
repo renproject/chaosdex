@@ -53,13 +53,6 @@ contract DEXReserve is ERC20, ERC20Detailed, Ownable {
         }
     }
 
-    /// @notice Allow anyone to recover funds accidentally sent to the contract.
-    /// To withdraw ETH, the token should be set to `0x0`.
-    function recoverTokens(address _token) external {
-        require(ERC20(_token) != BaseToken && ERC20(_token) != Token, "not allowed to recover reserve tokens");
-        ERC20(_token).transfer(msg.sender, ERC20(_token).balanceOf(address(this)));
-    }
-
     function buy(address _to, address _from, uint256 _baseTokenAmount) external returns (uint256)  {
         require(totalSupply() != 0, "reserve has no funds");
         uint256 rcvAmount = calculateBuyRcvAmt(_baseTokenAmount);
