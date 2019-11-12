@@ -29,8 +29,8 @@ contract DEXChallenge is Ownable {
     constructor(DEXAdapter _dexAdapter) public {
         dexAdapter = _dexAdapter;
         registry = ShifterRegistry(_dexAdapter.shifterRegistry());
-        btcAddr = registry.getTokenBySymbol("BTC");
-        zecAddr = registry.getTokenBySymbol("ZEC");
+        btcAddr = registry.getTokenBySymbol("zBTC");
+        zecAddr = registry.getTokenBySymbol("zZEC");
         btcDEXReserve = DEXReserve(DEX(dexAdapter.dex()).reserves(btcAddr));
         zecDEXReserve = DEXReserve(DEX(dexAdapter.dex()).reserves(zecAddr));
     }

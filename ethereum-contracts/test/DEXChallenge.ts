@@ -245,6 +245,8 @@ contract.only("DEXChallenge", (accounts) => {
 
     it("can deploy a challenge contract", async () => {
         const challenge = await DEXChallenge.new(dexAdapter.address);
+        (await challenge.btcAddr.call()).should.equal(zToken1.address);
+        (await challenge.zecAddr.call()).should.equal(zToken2.address);
     });
 
 });
