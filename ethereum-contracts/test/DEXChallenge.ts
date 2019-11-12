@@ -25,8 +25,8 @@ contract.only("DEXChallenge", (accounts) => {
     let dai: DaiTokenInstance;
     let shifter1: ShifterInstance;
     let shifter2: ShifterInstance;
-    let zToken1: ERC20ShiftedInstance;
-    let zToken2: ERC20ShiftedInstance;
+    let zBtcToken: ERC20ShiftedInstance;
+    let zZecToken: ERC20ShiftedInstance;
     let token3: TestTokenInstance;
     let dexReserve1: DEXReserveInstance;
     let dexReserve2: DEXReserveInstance;
@@ -49,6 +49,54 @@ contract.only("DEXChallenge", (accounts) => {
     const zZECMinShiftOutAmount = new BN(10000);
 
     const deadline = 10000000000000;
+
+    const fundBtc = async (challenge: DEXChallengeInstance, value: number | BN, shiftID?: string) => {
+        value = new BN(value);
+        const nHash = randomBytesString(32);
+        const pHash = NULL; // randomBytesString(32);
+
+        const user = challenge.address;
+        const hash = await shifter1.hashForSignature.call(pHash, value, user, nHash);
+        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
+
+        pubToAddress(ecrecover(Buffer.from(hash.slice(2), "hex"), sig.v, sig.r, sig.s)).toString("hex")
+            .should.equal(mintAuthority.address.slice(2).toLowerCase());
+
+        const sigString = Ox(`${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`);
+
+        const hashForSignature = await shifter1.hashForSignature.call(pHash, value, user, nHash);
+        (await shifter1.verifySignature.call(hashForSignature, sigString))
+            .should.be.true;
+
+        const balanceBefore = new BN((await zBtcToken.balanceOf.call(user)).toString());
+        (await challenge.fundBTC(value, nHash, sigString) as any);
+        (await zBtcToken.balanceOf.call(user)).should.bignumber.equal(balanceBefore.add(removeFee(value, shiftInFees)));
+        return [pHash, nHash];
+    };
+
+    const fundZec = async (challenge: DEXChallengeInstance, value: number | BN, shiftID?: string) => {
+        value = new BN(value);
+        const nHash = randomBytesString(32);
+        const pHash = NULL; // randomBytesString(32);
+
+        const user = challenge.address;
+        const hash = await shifter2.hashForSignature.call(pHash, value, user, nHash);
+        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
+
+        pubToAddress(ecrecover(Buffer.from(hash.slice(2), "hex"), sig.v, sig.r, sig.s)).toString("hex")
+            .should.equal(mintAuthority.address.slice(2).toLowerCase());
+
+        const sigString = Ox(`${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`);
+
+        const hashForSignature = await shifter2.hashForSignature.call(pHash, value, user, nHash);
+        (await shifter2.verifySignature.call(hashForSignature, sigString))
+            .should.be.true;
+
+        const balanceBefore = new BN((await zZecToken.balanceOf.call(user)).toString());
+        (await challenge.fundZEC(value, nHash, sigString) as any);
+        (await zZecToken.balanceOf.call(user)).should.bignumber.equal(balanceBefore.add(removeFee(value, shiftInFees)));
+        return [pHash, nHash];
+    };
 
     const mintTest = async (user: string, token: { balanceOf: any }, shifter: ShifterInstance, value: number | BN, shiftID?: string) => {
         value = new BN(value);
@@ -90,30 +138,30 @@ contract.only("DEXChallenge", (accounts) => {
         privKey = Buffer.from(mintAuthority.privateKey.slice(2), "hex")
 
         dai = await DAI.new();
-        zToken1 = await zBTC.new();
-        shifter1 = await Shifter.new(zToken1.address, feeRecipient, mintAuthority.address, shiftInFees, shiftOutFees, zBTCMinShiftOutAmount);
-        await zToken1.transferOwnership(shifter1.address);
+        zBtcToken = await zBTC.new();
+        shifter1 = await Shifter.new(zBtcToken.address, feeRecipient, mintAuthority.address, shiftInFees, shiftOutFees, zBTCMinShiftOutAmount);
+        await zBtcToken.transferOwnership(shifter1.address);
         await shifter1.claimTokenOwnership();
 
-        zToken2 = await zZEC.new();
-        shifter2 = await Shifter.new(zToken2.address, feeRecipient, mintAuthority.address, shiftInFees, shiftOutFees, zZECMinShiftOutAmount);
-        await zToken2.transferOwnership(shifter2.address);
+        zZecToken = await zZEC.new();
+        shifter2 = await Shifter.new(zZecToken.address, feeRecipient, mintAuthority.address, shiftInFees, shiftOutFees, zZECMinShiftOutAmount);
+        await zZecToken.transferOwnership(shifter2.address);
         await shifter2.claimTokenOwnership();
 
         token3 = await TestToken.new("TestToken1", "TST", 18);
 
-        dexReserve1 = await DEXReserve.new("Bitcoin Liquidity Token", "BTCLT", 8, dai.address, zToken1.address, dexFees);
-        dexReserve2 = await DEXReserve.new("ZCash Liquidity Token", "ZECLT", 8, dai.address, zToken2.address, dexFees);
+        dexReserve1 = await DEXReserve.new("Bitcoin Liquidity Token", "BTCLT", 8, dai.address, zBtcToken.address, dexFees);
+        dexReserve2 = await DEXReserve.new("ZCash Liquidity Token", "ZECLT", 8, dai.address, zZecToken.address, dexFees);
         dexReserve3 = await DEXReserve.new("TestToken1 Liquidity Token", "TSTLT", 18, dai.address, token3.address, dexFees);
 
         dex = await DEX.new(dai.address);
-        await dex.registerReserve(zToken1.address, dexReserve1.address);
-        await dex.registerReserve(zToken2.address, dexReserve2.address);
+        await dex.registerReserve(zBtcToken.address, dexReserve1.address);
+        await dex.registerReserve(zZecToken.address, dexReserve2.address);
         await dex.registerReserve(token3.address, dexReserve3.address);
 
         shifterRegistry = await ShifterRegistry.new();
-        await shifterRegistry.setShifter(zToken1.address, shifter1.address);
-        await shifterRegistry.setShifter(zToken2.address, shifter2.address);
+        await shifterRegistry.setShifter(zBtcToken.address, shifter1.address);
+        await shifterRegistry.setShifter(zZecToken.address, shifter2.address);
 
         dexAdapter = await DEXAdapter.new(dex.address, shifterRegistry.address);
 
@@ -281,15 +329,35 @@ contract.only("DEXChallenge", (accounts) => {
 
     it("can deploy a challenge contract", async () => {
         const challenge = await DEXChallenge.new(dexAdapter.address);
-        (await challenge.btcAddr.call()).should.equal(zToken1.address);
-        (await challenge.zecAddr.call()).should.equal(zToken2.address);
+        (await challenge.btcAddr.call()).should.equal(zBtcToken.address);
+        (await challenge.zecAddr.call()).should.equal(zZecToken.address);
     });
 
     it("can mint tokens", async () => {
         const user = accounts[4];
         const amount = new BN(100000);
-        await mintTest(user, zToken1, shifter1, amount);
-        const newBalance = new BN(await zToken1.balanceOf.call(user));
+        await mintTest(user, zBtcToken, shifter1, amount);
+        const newBalance = new BN(await zBtcToken.balanceOf.call(user));
         removeFee(amount, shiftInFees).should.bignumber.equal(newBalance);
+    });
+
+    describe("when funding challenges", async () => {
+        it("can fund btc", async () => {
+            const challenge = await DEXChallenge.new(dexAdapter.address);
+            const oldBalance = new BN(await zBtcToken.balanceOf.call(challenge.address));
+            const amount = new BN(100000000);
+            await fundBtc(challenge, amount);
+            const newBalance = new BN(await zBtcToken.balanceOf.call(challenge.address));
+            newBalance.gt(oldBalance).should.be.true;
+        });
+
+        it("can fund zec", async () => {
+            const challenge = await DEXChallenge.new(dexAdapter.address);
+            const oldBalance = new BN(await zZecToken.balanceOf.call(challenge.address));
+            const amount = new BN(100000000);
+            await fundZec(challenge, amount);
+            const newBalance = new BN(await zZecToken.balanceOf.call(challenge.address));
+            newBalance.gt(oldBalance).should.be.true;
+        });
     });
 });
