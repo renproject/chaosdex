@@ -349,15 +349,16 @@ contract.only("DEXChallenge", (accounts) => {
             await fundChallenge(challenge, "btc", amount);
         });
 
-        it.skip("can remove btc funds", async () => {
+        it("can remove btc funds", async () => {
             const challenge = await DEXChallenge.new(dexAdapter.address);
             const amount = new BN(100000000);
             await fundChallenge(challenge, "btc", amount);
             const shiftOutAddr = randomBytesString(35);
             const oldBalance = new BN(await zBtcToken.balanceOf.call(challenge.address));
-            await challenge.shiftOutBtc.call(shiftOutAddr, oldBalance).should.not.be.rejected;
-            // const newBalance = new BN(await zBtcToken.balanceOf.call(challenge.address));
-            // newBalance.should.bignumber.lt(oldBalance);
+            oldBalance.should.bignumber.gt(new BN(0));
+            await challenge.shiftOutBtc(shiftOutAddr, oldBalance);
+            const newBalance = new BN(await zBtcToken.balanceOf.call(challenge.address));
+            newBalance.should.bignumber.lt(oldBalance);
             const btcRewardAmount = new BN(await challenge.btcRewardAmount.call());
             btcRewardAmount.should.bignumber.equal(0);
         });
@@ -368,15 +369,15 @@ contract.only("DEXChallenge", (accounts) => {
             await fundChallenge(challenge, "zec", amount);
         });
 
-        it.skip("can remove zec funds", async () => {
+        it("can remove zec funds", async () => {
             const challenge = await DEXChallenge.new(dexAdapter.address);
             const amount = new BN(100000000);
             await fundChallenge(challenge, "zec", amount);
             const shiftOutAddr = randomBytesString(35);
             const oldBalance = new BN(await zZecToken.balanceOf.call(challenge.address));
-            await challenge.shiftOutZec.call(shiftOutAddr, oldBalance).should.not.be.rejected;
-            // const newBalance = new BN(await zZecToken.balanceOf.call(challenge.address));
-            // newBalance.should.bignumber.lt(oldBalance);
+            await challenge.shiftOutZec(shiftOutAddr, oldBalance);
+            const newBalance = new BN(await zZecToken.balanceOf.call(challenge.address));
+            newBalance.should.bignumber.lt(oldBalance);
             const zecRewardAmount = new BN(await challenge.zecRewardAmount.call());
             zecRewardAmount.should.bignumber.equal(0);
         });
@@ -404,7 +405,6 @@ contract.only("DEXChallenge", (accounts) => {
         });
 
     });
-
 
     const fundChallenge = async (challenge: DEXChallengeInstance, token: string, amount: BN) => {
         const fundFunc = token === "btc" ? fundBtc : fundZec;
