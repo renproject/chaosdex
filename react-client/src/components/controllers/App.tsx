@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { FeedbackButton } from "@renproject/react-components";
 import { parse as parseLocation } from "qs";
-import { RouteComponentProps, withRouter } from "react-router-dom";
+import { Route, RouteComponentProps, Switch, withRouter } from "react-router-dom";
 import createPersistedState from "use-persisted-state";
 
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
@@ -17,6 +17,7 @@ import { HeaderController } from "../views/HeaderController";
 import { LoggedOutPopup } from "../views/LoggedOutPopup";
 import { Tutorial } from "../views/tutorial-popup/Tutorial";
 import { Exchange } from "./Exchange";
+import { Stats } from "./Stats";
 
 const useTutorialState = createPersistedState("show-tutorial");
 
@@ -107,16 +108,25 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
             }
         }, [initialized, uiContainer, location.search, login, showingTutorial]);
 
+        const { loggedOut } = uiContainer.state;
+
         return <main>
             <ErrorBoundary>
                 <React.Suspense fallback={null}>
                     <HeaderController showTutorial={showTutorial} handleLogin={login} handleLogout={logout} />
                 </React.Suspense>
             </ErrorBoundary>
-            <ErrorBoundary><Exchange handleLogin={login} /></ErrorBoundary>
             <ErrorBoundary>
-                {uiContainer.state.loggedOut ?
-                    <LoggedOutPopup oldAccount={uiContainer.state.loggedOut} /> :
+                <Switch>
+                    {/* tslint:disable: jsx-no-lambda react-this-binding-issue */}
+                    <Route path="/stats" exact={true} render={() => <Stats />} />
+                    {/* tslint:disable: jsx-no-lambda react-this-binding-issue */}
+                    <Route render={() => <Exchange handleLogin={login} />} />
+                </Switch>
+            </ErrorBoundary>
+            <ErrorBoundary>
+                {loggedOut ?
+                    <LoggedOutPopup oldAccount={loggedOut} /> :
                     <></>
                 }
             </ErrorBoundary>

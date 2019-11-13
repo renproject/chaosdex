@@ -31,15 +31,16 @@ export class ErrorBoundary extends React.Component<Props, typeof defaultState> {
      * @dev Should have minimal computation, loops and anonymous functions.
      */
     public render(): React.ReactNode {
-        if (this.state.errorInfo) {
+        const { errorInfo, error } = this.state;
+        if (errorInfo) {
             // Error path
             return (
                 <div className={this.props.popup ? "popup" : ""}>
                     <h2>Something went wrong.</h2>
                     <details style={{ whiteSpace: "pre-wrap" }}>
-                        {this.state.error && this.state.error.toString()}
+                        {error && error.toString()}
                         <br />
-                        {this.state.errorInfo.componentStack}
+                        {errorInfo.componentStack}
                     </details>
                     {this.props.popup ? <div className="popup--buttons">
                         <button onClick={this.reportFeedback}>Report feedback</button>

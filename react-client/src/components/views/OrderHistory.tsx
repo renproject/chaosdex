@@ -193,15 +193,19 @@ const OrderHistoryEntry = ({ order, continueOrder, loggedIn }: {
  */
 export const OrderHistory = connect<{} & ConnectedProps<[PersistentContainer, UIContainer]>>([PersistentContainer, UIContainer])(
     ({ containers: [persistentContainer, uiContainer] }) => {
+
+        const { historyItems } = persistentContainer.state;
+        const { address } = uiContainer.state;
+
         // export const OrderHistory = ({ orders }: Props) => {
         const [start, setStart] = React.useState(0);
 
         const nextPage = () => { setStart(start + 5); };
         const previousPage = () => { setStart(Math.max(start - 5, 0)); };
 
-        const orders = Object.values(persistentContainer.state.historyItems).sort((a, b) => b.time - a.time);
+        const orders = Object.values(historyItems).sort((a, b) => b.time - a.time);
 
-        const loggedIn = uiContainer.state.address !== null;
+        const loggedIn = address !== null;
 
         if (orders.length === 0) {
             return <></>;

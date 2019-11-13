@@ -46,21 +46,8 @@ interface Props extends ConnectedProps<[UIContainer]> {
 export const HeaderController = (connect<Props>([UIContainer])(
     ({ showTutorial, handleLogout, handleLogin, containers: [uiContainer] }) => {
 
-        const quoteCurrency = uiContainer.state.preferredCurrency;
-        // const currencyDropdown = <Dropdown
-        //     key="currencyDropdown"
-        //     selected={{
-        //         value: quoteCurrency,
-        //         render: <>
-        //             <CurrencyIcon currency={quoteCurrency} />
-        //             {" "}{quoteCurrency.toUpperCase()}
-        //         </>
-        //     }}
-        //     options={currencyOptions}
-        //     setValue={uiContainer.setCurrency}
-        // />;
+        const { address, preferredCurrency: quoteCurrency } = uiContainer.state;
 
-        const { address } = uiContainer.state;
         const account = <div
             className={`header--account--type ${address ?
                 "header--account--connected" :

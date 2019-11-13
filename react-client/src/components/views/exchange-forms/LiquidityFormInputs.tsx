@@ -23,17 +23,18 @@ interface Props {
 export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer, SDKContainer]>>([UIContainer, SDKContainer])(
     ({ containers: [uiContainer, sdkContainer], }) => {
 
+        const {
+            web3, address, orderInputs, liquidityTab,
+            preferredCurrency: quoteCurrency, tokenPrices, reserveBalances,
+        } = uiContainer.state;
+
         // Store `srcAmount` as state so we can debounce storing it in the
         // container
         const [liquidityBalance, setLiquidityBalance] = React.useState<BigNumber | null>(null);
-        const [srcAmountState, setSrcAmountState] = React.useState(uiContainer.state.orderInputs.srcAmount);
+        const [srcAmountState, setSrcAmountState] = React.useState(orderInputs.srcAmount);
         const debouncedSrcAmountState = useDebounce(srcAmountState, 250);
         // See `toggleSide`
         const [oldSrcAmount, setOldSrcAmount] = React.useState<string | undefined>(undefined);
-
-        const liquidityTab = uiContainer.state.liquidityTab;
-        const quoteCurrency = uiContainer.state.preferredCurrency;
-        const orderInputs = uiContainer.state.orderInputs;
 
         // Calculate the receive amount on load in case the srcAmount was stored
         // in local storage.
@@ -80,7 +81,7 @@ export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer, 
             <TokenBalance
                 token={orderInputs.srcToken}
                 convertTo={quoteCurrency}
-                tokenPrices={uiContainer.state.tokenPrices}
+                tokenPrices={tokenPrices}
                 amount={orderInputs.srcAmount || "0"}
             />
         </>;
@@ -119,18 +120,18 @@ export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer, 
         const srcTokenDetails = Tokens.get(orderInputs.srcToken);
         const dstTokenDetails = Tokens.get(orderInputs.dstToken);
 
-        const reserveBalances = React.useMemo(
-            () => uiContainer.state.reserveBalances.get(orderInputs.srcToken, { quote: new BigNumber(0), base: new BigNumber(0) }),
-            [uiContainer.state.reserveBalances, orderInputs.srcToken],
+        const quoteReserveBalances = React.useMemo(
+            () => reserveBalances.get(orderInputs.srcToken, { quote: new BigNumber(0), base: new BigNumber(0) }),
+            [reserveBalances, orderInputs.srcToken],
         );
 
         const exchangeRate = React.useMemo(() => {
             try {
-                return reserveBalances.base.div(new BigNumber(10).exponentiatedBy(dstTokenDetails ? dstTokenDetails.decimals : 0)).div(reserveBalances.quote.div(new BigNumber(10).exponentiatedBy(srcTokenDetails ? srcTokenDetails.decimals : 0)));
+                return quoteReserveBalances.base.div(new BigNumber(10).exponentiatedBy(dstTokenDetails ? dstTokenDetails.decimals : 0)).div(quoteReserveBalances.quote.div(new BigNumber(10).exponentiatedBy(srcTokenDetails ? srcTokenDetails.decimals : 0)));
             } catch (error) {
                 return new BigNumber(0);
             }
-        }, [reserveBalances.base, reserveBalances.quote]);
+        }, [quoteReserveBalances.base, quoteReserveBalances.quote]);
 
         React.useEffect(() => {
             (async () => {
@@ -139,7 +140,7 @@ export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer, 
                     setLiquidityBalance(liquidity);
                 }
             })().catch(_catchBackgroundErr_);
-        }, [uiContainer.state.web3, uiContainer.state.address, reserveBalances.base, reserveBalances.quote]);
+        }, [web3, address, quoteReserveBalances.base, quoteReserveBalances.quote]);
 
         return <div className="order--wrapper--wrapper">
             <div className="order--wrapper">
@@ -152,23 +153,23 @@ export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer, 
                     <div className="liquidity-detail"><span>Exchange rate</span><span>
                         <CurrencyIcon currency={quoteCurrency} />
                         {" "}
-                        {!reserveBalances ?
+                        {!quoteReserveBalances ?
                             "-" :
                             <TokenBalance
                                 token={Token.DAI}
                                 convertTo={quoteCurrency}
-                                tokenPrices={uiContainer.state.tokenPrices}
+                                tokenPrices={tokenPrices}
                                 amount={exchangeRate || "0"}
                                 digits={3}
                             />
                         }
                     </span></div>
                     <div className="liquidity-detail"><span>{orderInputs.srcToken} pool size</span><span>
-                        {!reserveBalances ?
+                        {!quoteReserveBalances ?
                             "-" :
                             <TokenBalance
                                 token={orderInputs.srcToken}
-                                amount={reserveBalances.quote || "0"}
+                                amount={quoteReserveBalances.quote || "0"}
                                 toReadable={true}
                                 decimals={srcTokenDetails ? srcTokenDetails.decimals : 0}
                             />
@@ -178,13 +179,13 @@ export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer, 
                         {" ("}
                         <CurrencyIcon currency={quoteCurrency} />
                         {" "}
-                        {!reserveBalances ?
+                        {!quoteReserveBalances ?
                             "-" :
                             <TokenBalance
                                 token={orderInputs.srcToken}
                                 convertTo={quoteCurrency}
-                                tokenPrices={uiContainer.state.tokenPrices}
-                                amount={reserveBalances.quote || "0"}
+                                tokenPrices={tokenPrices}
+                                amount={quoteReserveBalances.quote || "0"}
                                 toReadable={true}
                                 decimals={srcTokenDetails ? srcTokenDetails.decimals : 0}
                             />
@@ -192,11 +193,11 @@ export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer, 
                         {")"}
                     </span></div>
                     <div className="liquidity-detail"><span>{orderInputs.dstToken} pool size</span><span>
-                        {!reserveBalances ?
+                        {!quoteReserveBalances ?
                             "-" :
                             <TokenBalance
                                 token={orderInputs.dstToken}
-                                amount={reserveBalances.base || "0"}
+                                amount={quoteReserveBalances.base || "0"}
                                 toReadable={true}
                                 decimals={dstTokenDetails ? dstTokenDetails.decimals : 0}
                                 digits={2}
@@ -206,13 +207,13 @@ export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer, 
                         {" ("}
                         <CurrencyIcon currency={quoteCurrency} />
                         {" "}
-                        {!reserveBalances ?
+                        {!quoteReserveBalances ?
                             "-" :
                             <TokenBalance
                                 token={orderInputs.dstToken}
                                 convertTo={quoteCurrency}
-                                tokenPrices={uiContainer.state.tokenPrices}
-                                amount={reserveBalances.base || "0"}
+                                tokenPrices={tokenPrices}
+                                amount={quoteReserveBalances.base || "0"}
                                 toReadable={true}
                                 decimals={dstTokenDetails ? dstTokenDetails.decimals : 0}
                             />
@@ -227,7 +228,7 @@ export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer, 
                             <TokenBalance
                                 token={orderInputs.srcToken}
                                 convertTo={quoteCurrency}
-                                tokenPrices={uiContainer.state.tokenPrices}
+                                tokenPrices={tokenPrices}
                                 amount={liquidityBalance || "0"}
                                 toReadable={true}
                                 decimals={srcTokenDetails ? srcTokenDetails.decimals : 0}

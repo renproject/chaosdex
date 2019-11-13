@@ -25,6 +25,8 @@ interface Props {
 export const Exchange = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer])(
     ({ handleLogin, containers: [uiContainer] }) => {
 
+        const { currentOrderID, submitting } = uiContainer.state;
+
         const onSwapTab = React.useCallback(async () => {
             (async () => {
                 await uiContainer.resetReceiveValue();
@@ -32,7 +34,7 @@ export const Exchange = connect<Props & ConnectedProps<[UIContainer]>>([UIContai
             })().catch(_catchInteractionErr_);
         }, [uiContainer]);
         const onLiquidityTab = React.useCallback(() => {
-            const { srcToken, dstToken } = uiContainer.state.orderInputs;
+            const { orderInputs: { srcToken, dstToken } } = uiContainer.state;
 
             // If src token is DAI, set it to the dst token - unless it's also DAI
             const newSrcToken = srcToken === Token.DAI ? (dstToken === Token.DAI ? Token.BTC : dstToken) : srcToken;
@@ -64,12 +66,12 @@ export const Exchange = connect<Props & ConnectedProps<[UIContainer]>>([UIContai
                             <ErrorBoundary><LiquidityForm handleLogin={handleLogin} /></ErrorBoundary>
                         }
                         <ErrorBoundary><OrderHistory /></ErrorBoundary>
-                        {uiContainer.state.submitting ?
+                        {submitting ?
                             <PromptDetails cancel={cancel} /> :
                             <></>
                         }
-                        {uiContainer.state.currentOrderID ?
-                            <OpeningOrder orderID={uiContainer.state.currentOrderID} /> :
+                        {currentOrderID ?
+                            <OpeningOrder orderID={currentOrderID} /> :
                             <></>
                         }
                     </React.Suspense>

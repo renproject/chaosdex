@@ -5,7 +5,9 @@ import { Map as ImmutableMap } from "immutable";
 import { Container } from "unstated";
 import Web3 from "web3";
 
+import { calculateReceiveAmount } from "../lib/chaosdex";
 import { syncGetDEXReserveAddress, syncGetTokenAddress } from "../lib/contractAddresses";
+import { _catchInteractionErr_ } from "../lib/errors";
 import { removeRenVMFee } from "../lib/estimatePrice";
 import { history } from "../lib/history";
 import { getTokenPricesInCurrencies } from "../lib/market";
@@ -237,43 +239,6 @@ export class UIContainer extends Container<typeof initialState> {
 
         await this.setState({ accountBalances, network: networkDetails, liquidityBalances, reserveTotalSupply, reserveBalances });
     }
-
-    /**
-     * getPrice returns the rate at which dstToken can be received per srcToken.
-     * @param srcToken The source token being spent
-     * @param dstToken The destination token being received
-     */
-    // public getReserveBalance = async (marketPairs: MarketPair[]): Promise<ReserveBalances[]> => {
-    //     const { web3, networkID, network } = this.state;
-    //     if (!web3) {
-    //         return;
-    //     }
-    //     const exchange = getExchange(web3, networkID);
-
-    //     const balance = async (token: Token, reserve: string): Promise<BigNumber> => {
-    //         if (token === Token.ETH) {
-    //             return new BigNumber((await web3.eth.getBalance(reserve)).toString());
-    //         }
-    //         const tokenAddress = syncGetTokenAddress(networkID, token);
-    //         const tokenInstance = getERC20(web3, network, tokenAddress);
-    //         const decimals = getTokenDecimals(token);
-    //         const rawBalance = new BigNumber((await tokenInstance.methods.balanceOf(reserve).call()).toString());
-    //         return rawBalance.dividedBy(new BigNumber(10).exponentiatedBy(decimals));
-    //     };
-
-    //     return Promise.all(
-    //         marketPairs.map(async (_marketPair) => {
-    //             const [left, right] = _marketPair.split("/") as [Token, Token];
-    //             const leftAddress = syncGetTokenAddress(networkID, left);
-    //             const rightAddress = syncGetTokenAddress(networkID, right);
-    //             const reserve = await exchange.methods.reserve(leftAddress, rightAddress).call();
-    //             const leftBalance = await balance(left, reserve);
-    //             const rightBalance = await balance(right, reserve);
-    //             // console.debug(`${_marketPair} reserve: ${leftBalance.toFixed()} ${left}, ${rightBalance.toFixed()} ${right} (${reserve})`);
-    //             return new Map().set(left, leftBalance).set(right, rightBalance);
-    //         })
-    //     );
-    // }
 
     // Inputs for swap /////////////////////////////////////////////////////////
 
@@ -550,125 +515,17 @@ export class UIContainer extends Container<typeof initialState> {
     }
 
     public updateReceiveValue = async (): Promise<void> => {
-        const { exchangeTab, liquidityTab, orderInputs: { srcToken, dstToken, srcAmount } } = this.state;
-
-        // const market = getMarket(
-        //     srcToken,
-        //     dstToken
-        // );
-        // if (market) {
-        const { web3, networkID } = this.state;
+        const { web3, networkID, exchangeTab, liquidityTab, orderInputs: { srcToken, dstToken, srcAmount }, tokenPrices, reserveBalances } = this.state;
         if (!web3) {
             return;
         }
-        const exchange = getExchange(web3, networkID);
-        const srcTokenAddress = syncGetTokenAddress(networkID, srcToken);
-        const dstTokenAddress = syncGetTokenAddress(networkID, dstToken);
-        const srcTokenDetails = Tokens.get(srcToken) || { decimals: 18, chain: Chain.Ethereum };
-        const dstTokenDetails = Tokens.get(dstToken) || { decimals: 18, chain: Chain.Ethereum };
 
-        let dstAmountBN: BigNumber;
-
-        let srcAmountBN = new BigNumber(srcAmount);
-
-        if (exchangeTab === ExchangeTabs.Swap) {
-
-            if (srcTokenDetails.chain !== Chain.Ethereum) {
-                srcAmountBN = removeRenVMFee(srcAmountBN);
-            }
-
-            let srcAmountShifted = (srcAmountBN.times(new BigNumber(10).pow(srcTokenDetails.decimals))).decimalPlaces(0).toFixed();
-            if (srcAmountShifted === "NaN") {
-                srcAmountShifted = "0";
-            }
-
-            const dstAmount = await exchange.methods.calculateReceiveAmount(srcTokenAddress, dstTokenAddress, srcAmountShifted).call();
-
-            let dstAmountShiftedBN = new BigNumber(dstAmount);
-            if (dstTokenDetails.chain !== Chain.Ethereum) {
-                dstAmountShiftedBN = removeRenVMFee(dstAmountShiftedBN);
-            }
-
-            dstAmountBN = (new BigNumber(dstAmountShiftedBN).div(new BigNumber(10).pow(dstTokenDetails.decimals)));
-        } else if (exchangeTab === ExchangeTabs.Liquidity && liquidityTab === LiquidityTabs.Add) {
-            const reserveAddress = syncGetDEXReserveAddress(networkID, srcToken);
-            const reserve = getReserve(web3, networkID, reserveAddress);
-
-            let srcAmountShifted = (srcAmountBN.times(new BigNumber(10).pow(srcTokenDetails.decimals)));
-            if (srcAmountShifted.isNaN()) {
-                srcAmountShifted = new BigNumber(0);
-            }
-
-            try {
-                const dstAmountShiftedBN = new BigNumber(await reserve.methods.expectedBaseTokenAmount(srcAmountShifted.decimalPlaces(0).toFixed()).call());
-
-                dstAmountBN = (new BigNumber(dstAmountShiftedBN).div(new BigNumber(10).pow(dstTokenDetails.decimals)));
-                if (dstAmountBN.isNaN()) {
-                    // On Mainnet, an execution error results in a null result returned
-                    throw new Error("VM execution error");
-                }
-            } catch (error) {
-                if (String(error.message || error).match(/VM execution error/)) {
-                    const { tokenPrices } = this.state;
-                    const srcTokenPrices = tokenPrices.get(srcToken);
-                    const dstTokenPrices = tokenPrices.get(dstToken);
-                    if (srcTokenPrices && dstTokenPrices) {
-                        const srcTokenPrice = srcTokenPrices.get(Currency.USD) || 0;
-                        const dstTokenPrice = dstTokenPrices.get(Currency.USD) || 0;
-                        // console.log(`Using prices for ${srcToken}: $${srcTokenPrice} & ${dstToken}: $${dstTokenPrice}`);
-                        dstAmountBN = srcAmountBN.times(srcTokenPrice).dividedBy(dstTokenPrice);
-                    } else {
-                        dstAmountBN = new BigNumber(0);
-                    }
-
-                } else {
-                    throw error;
-                }
-            }
-
-            // Bump-it up in-case the amounts change while shifting.
-            // Only the required amount will actually be transferred.
-            dstAmountBN = dstAmountBN.times(1.05);
-        } else if (exchangeTab === ExchangeTabs.Liquidity && liquidityTab === LiquidityTabs.Remove) {
-            const { reserveBalances } = this.state;
-
-            let srcAmountShifted = (srcAmountBN.times(new BigNumber(10).pow(srcTokenDetails.decimals))).decimalPlaces(0);
-            if (srcAmountShifted.isNaN()) {
-                srcAmountShifted = new BigNumber(0);
-            }
-
-            const reserveBalance = reserveBalances.get(srcToken);
-
-            let dstAmountShiftedBN;
-            if (!reserveBalance || reserveBalance.quote.isZero()) {
-                dstAmountShiftedBN = new BigNumber(0);
-            } else {
-                dstAmountShiftedBN = srcAmountShifted.div(reserveBalance.quote).times(reserveBalance.base);
-            }
-
-            dstAmountBN = (dstAmountShiftedBN.div(new BigNumber(10).pow(dstTokenDetails.decimals)));
-        } else {
-            return;
+        try {
+            const dstAmountBN = await calculateReceiveAmount(web3, networkID, exchangeTab, liquidityTab, { srcToken, dstToken, srcAmount }, tokenPrices, reserveBalances);
+            await this.setState({ orderInputs: { ...this.state.orderInputs, dstAmount: dstAmountBN.toFixed() } });
+        } catch (error) {
+            _catchInteractionErr_(error);
         }
-
-        // const dstAmountShifted = (new BigNumber(dstAmountBN).div(new BigNumber(10).pow(dstTokenDetails.decimals))).toString();
-
-        // const reserves = balanceReserves.get(market);
-
-        // let srcAmountAfterFees = new BigNumber(srcAmount);
-        // if (srcToken === Token.BTC) {
-        //     // Remove BTC transfer fees
-        //     srcAmountAfterFees = BigNumber.max(srcAmountAfterFees.minus(0.0001), 0);
-        // }
-
-        // const dstAmount = await estimatePrice(
-        //     srcToken,
-        //     dstToken,
-        //     srcAmountAfterFees,
-        //     reserves,
-        // );
-        await this.setState({ orderInputs: { ...this.state.orderInputs, dstAmount: dstAmountBN.toFixed() } });
-        // }
     }
 
     public setLoggedOut = async (loggedOut?: string) => {

@@ -24,7 +24,7 @@ export const PromptDetails = connect<Props & ConnectedProps<[UIContainer]>>([UIC
 
         const {
             toAddress, confirmedOrderInputs, confirmedTrade,
-            address, commitmentType,
+            address, commitmentType, preferredCurrency, tokenPrices
         } = uiContainer.state;
 
         const onRefundAddress = async (refundAddress: string) => {
@@ -48,8 +48,8 @@ export const PromptDetails = connect<Props & ConnectedProps<[UIContainer]>>([UIC
                 orderInputs={confirmedOrderInputs}
                 done={uiContainer.onConfirmedTrade}
                 cancel={onCancel}
-                quoteCurrency={uiContainer.state.preferredCurrency}
-                tokenPrices={uiContainer.state.tokenPrices}
+                quoteCurrency={preferredCurrency}
+                tokenPrices={tokenPrices}
                 commitmentType={commitmentType}
             />;
         }
