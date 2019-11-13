@@ -1,8 +1,8 @@
 pragma solidity ^0.5.12;
 
-import "./DEXAdapter.sol";
-import "./DEXReserve.sol";
-import "./DEX.sol";
+import "../DEXAdapter.sol";
+import "../DEXReserve.sol";
+import "../DEX.sol";
 import "darknode-sol/contracts/Shifter/ShifterRegistry.sol";
 import "darknode-sol/contracts/Shifter/IShifter.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";

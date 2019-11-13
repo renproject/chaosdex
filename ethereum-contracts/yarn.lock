@@ -45,7 +45,7 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
-"@types/bn.js@*", "@types/bn.js@^4.11.4":
+"@types/bn.js@*", "@types/bn.js@^4.11.3", "@types/bn.js@^4.11.4":
   version "4.11.5"
   resolved "https://registry.yarnpkg.com/@types/bn.js/-/bn.js-4.11.5.tgz#40e36197433f78f807524ec623afcf0169ac81dc"
   integrity sha512-AEAZcIZga0JgVMHNtl1CprA/hXX7/wPt79AgR4XqaDt7jyj3QWYw6LPoOiznPtugDmlubUnAahMs2PFxGcQrng==
@@ -82,6 +82,13 @@
   integrity sha512-9h+Bw+aNiLzcq9DGstHccNxSsJ5iNId7mzruid7+kwm7F1IGvb4rBOOPo3+twt9ZPhI3y+JJ2m1UfgU8cOEJuQ==
   dependencies:
     "@types/bn.js" "*"
+
+"@types/ethereumjs-abi@^0.6.3":
+  version "0.6.3"
+  resolved "https://registry.yarnpkg.com/@types/ethereumjs-abi/-/ethereumjs-abi-0.6.3.tgz#eb5ed09fd86b9e2b1c0eb75d1e9bc29c50715c86"
+  integrity sha512-DnHvqPkrJS5w4yZexTa5bdPNb8IyKPYciou0+zZCIg5fpzvGtyptTvshy0uZKzti2/k/markwjlxWRBWt7Mjuw==
+  dependencies:
+    "@types/node" "*"
 
 "@types/form-data@0.0.33":
   version "0.0.33"
@@ -2016,6 +2023,14 @@ eth-lib@^0.1.26:
     ws "^3.0.0"
     xhr-request-promise "^0.1.2"
 
+ethereumjs-abi@^0.6.8:
+  version "0.6.8"
+  resolved "https://registry.yarnpkg.com/ethereumjs-abi/-/ethereumjs-abi-0.6.8.tgz#71bc152db099f70e62f108b7cdfca1b362c6fcae"
+  integrity sha512-Tx0r/iXI6r+lRsdvkFDlut0N08jWMnKRZ6Gkq+Nmw75lZe4e6o3EkSnkaBP5NF6+m5PTGAr9JP43N3LyeoglsA==
+  dependencies:
+    bn.js "^4.11.8"
+    ethereumjs-util "^6.0.0"
+
 ethereumjs-testrpc-sc@6.5.1-sc.1:
   version "6.5.1-sc.1"
   resolved "https://registry.yarnpkg.com/ethereumjs-testrpc-sc/-/ethereumjs-testrpc-sc-6.5.1-sc.1.tgz#514020faa813d9f5cb9ae13739de7c8704ff0ec2"
@@ -2036,6 +2051,19 @@ ethereumjs-util@6.1.0, ethereumjs-util@^6.1.0:
     keccak "^1.0.2"
     rlp "^2.0.0"
     safe-buffer "^5.1.1"
+    secp256k1 "^3.0.1"
+
+ethereumjs-util@^6.0.0:
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/ethereumjs-util/-/ethereumjs-util-6.2.0.tgz#23ec79b2488a7d041242f01e25f24e5ad0357960"
+  integrity sha512-vb0XN9J2QGdZGIEKG2vXM+kUdEivUfU6Wmi5y0cg+LRhDYKnXIZ/Lz7XjFbHRR9VIKq2lVGLzGBkA++y2nOdOQ==
+  dependencies:
+    "@types/bn.js" "^4.11.3"
+    bn.js "^4.11.0"
+    create-hash "^1.1.2"
+    ethjs-util "0.1.6"
+    keccak "^2.0.0"
+    rlp "^2.2.3"
     secp256k1 "^3.0.1"
 
 ethers@4.0.0-beta.3:
@@ -3733,6 +3761,16 @@ keccak@^1.0.2:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/keccak/-/keccak-1.4.0.tgz#572f8a6dbee8e7b3aa421550f9e6408ca2186f80"
   integrity sha512-eZVaCpblK5formjPjeTBik7TAg+pqnDrMHIffSvi9Lh7PQgM1+hSzakUeZFCk9DVVG0dacZJuaz2ntwlzZUIBw==
+  dependencies:
+    bindings "^1.2.1"
+    inherits "^2.0.3"
+    nan "^2.2.1"
+    safe-buffer "^5.1.0"
+
+keccak@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/keccak/-/keccak-2.0.0.tgz#7456ea5023284271e6f362b4397e8df4d2bb994c"
+  integrity sha512-rKe/lRr0KGhjoz97cwg+oeT1Rj/Y4cjae6glArioUC8JBF9ROGZctwIaaruM7d7naovME4Q8WcQSO908A8qcyQ==
   dependencies:
     bindings "^1.2.1"
     inherits "^2.0.3"
@@ -5660,6 +5698,13 @@ rlp@^2.0.0:
   dependencies:
     bn.js "^4.11.1"
     safe-buffer "^5.1.1"
+
+rlp@^2.2.3:
+  version "2.2.4"
+  resolved "https://registry.yarnpkg.com/rlp/-/rlp-2.2.4.tgz#d6b0e1659e9285fc509a5d169a9bd06f704951c1"
+  integrity sha512-fdq2yYCWpAQBhwkZv+Z8o/Z4sPmYm1CUq6P7n6lVTOdb949CnqA0sndXal5C1NleSVSZm6q5F3iEbauyVln/iw==
+  dependencies:
+    bn.js "^4.11.1"
 
 run-queue@^1.0.0, run-queue@^1.0.3:
   version "1.0.3"
