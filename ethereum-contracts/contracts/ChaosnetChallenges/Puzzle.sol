@@ -41,7 +41,7 @@ contract Puzzle is Ownable {
     ) public {
         require(_amount > 0, "amount must be greater than 0");
         uint256 transferAmount = registry.getShifterBySymbol(tokenSymbol).shiftIn(0x0, _amount, _nHash, _sig);
-        rewardAmount.add(transferAmount);
+        rewardAmount = rewardAmount.add(transferAmount);
     }
 
     /// @notice Allows someone to try and claim the reward by submitting the secret.
@@ -74,6 +74,15 @@ contract Puzzle is Ownable {
             transferAmount = transferAmount.add(rewardAmount);
         }
         registry.getShifterBySymbol(tokenSymbol).shiftOut(_refundAddress, transferAmount);
+    }
+
+    /// @notice Shifts out tokens from the contract to reduce the reward distributed.
+    ///
+    /// @param _address The address to shift out to
+    /// @param _amount  The amount to shift out
+    function shiftOut(bytes calldata _address, uint256 _amount) external onlyOwner {
+        registry.getShifterBySymbol(tokenSymbol).shiftOut(_address, _amount);
+        rewardAmount = rewardAmount.sub(_amount);
     }
 
     function hashPayload(

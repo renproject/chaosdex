@@ -334,19 +334,20 @@ contract.only("DEXChallenge", (accounts) => {
         (await challenge.zecAddr.call()).should.equal(zZecToken.address);
     });
 
-    it("can mint tokens", async () => {
-        const user = accounts[4];
-        const amount = new BN(100000);
-        await mintTest(user, zBtcToken, btcShifter, amount);
-        const newBalance = new BN(await zBtcToken.balanceOf.call(user));
-        removeFee(amount, shiftInFees).should.bignumber.equal(newBalance);
-    });
-
     describe("when funding challenges", async () => {
         it("can add btc funds", async () => {
             const challenge = await DEXChallenge.new(dexAdapter.address);
             const amount = new BN(100000000);
             await fundChallenge(challenge, "btc", amount);
+        });
+
+        it("cannot fund with zero amounts", async () => {
+            const challenge = await DEXChallenge.new(dexAdapter.address);
+            const amount = new BN(0);
+            const nHash = randomBytesString(32);
+            const sigString = randomBytesString(32);
+            await challenge.fundBTC(amount, nHash, sigString).should.be.rejectedWith(/amount must be greater than 0/);
+            await challenge.fundZEC(amount, nHash, sigString).should.be.rejectedWith(/amount must be greater than 0/);
         });
 
         it("can remove btc funds", async () => {
@@ -410,13 +411,14 @@ contract.only("DEXChallenge", (accounts) => {
         const fundFunc = token === "btc" ? fundBtc : fundZec;
         const tokenContract = token === "btc" ? zBtcToken : zZecToken;
         const oldBalance = new BN(await tokenContract.balanceOf.call(challenge.address));
-        await fundFunc(challenge, amount);
+        const result = await fundFunc(challenge, amount);
         const newBalance = new BN(await tokenContract.balanceOf.call(challenge.address));
         removeFee(amount, shiftInFees).should.bignumber.equal(newBalance);
         newBalance.should.bignumber.gt(oldBalance);
         const rewardAmountFunc = token === "btc" ? challenge.btcRewardAmount : challenge.zecRewardAmount;
         const rewardAmount = new BN(await rewardAmountFunc.call());
         rewardAmount.should.bignumber.equal(newBalance);
+        return result;
     };
 
 });

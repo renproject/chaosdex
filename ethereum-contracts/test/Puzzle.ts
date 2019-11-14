@@ -80,6 +80,41 @@ contract.only("Puzzle", (accounts) => {
             const rewardAmount = new BN("1000000");
             await fundBtc(puzzle, rewardAmount);
         });
+
+        it("cannot fund if amount is zero", async () => {
+            const someSecret = "thequickbrownfoxjumpsoverthelazydog";
+            const msg = generateSecretMessage(someSecret);
+            const hash = hashjs.sha256().update(msg).digest("hex");
+
+            let puzzle: PuzzleInstance;
+            // const tokenName = await zbtc.symbol.call();
+            puzzle = await Puzzle.new(registry.address, "zBTC", Ox(hash));
+            const amount = new BN(0);
+            const nHash = randomBytes(32);
+            const sigString = randomBytes(32);
+            await puzzle.fund(amount, nHash, sigString).should.be.rejectedWith(/amount must be greater than 0/);
+        });
+
+        it("can remove funds from the Puzzle", async () => {
+            const someSecret = "thequickbrownfoxjumpsoverthelazydog";
+            const msg = generateSecretMessage(someSecret);
+            const hash = hashjs.sha256().update(msg).digest("hex");
+
+            let puzzle: PuzzleInstance;
+            puzzle = await Puzzle.new(registry.address, "zBTC", Ox(hash));
+            const rewardAmount = new BN("1000000");
+            await fundBtc(puzzle, rewardAmount);
+
+            const shiftOutAddr = randomBytes(35);
+            const oldBalance = new BN(await zbtc.balanceOf.call(puzzle.address));
+            oldBalance.should.bignumber.gt(new BN(0));
+            await puzzle.shiftOut(shiftOutAddr, oldBalance);
+            const newBalance = new BN(await zbtc.balanceOf.call(puzzle.address));
+            newBalance.should.bignumber.lt(oldBalance);
+            const btcRewardAmount = new BN(await puzzle.rewardAmount.call());
+            btcRewardAmount.should.bignumber.equal(0);
+        });
+
     });
 
     describe("when validating the secret message", async () => {
@@ -112,6 +147,32 @@ contract.only("Puzzle", (accounts) => {
             await fundBtc(puzzle, rewardAmount);
             await claimReward(puzzle, new BN(100000), refundAddress, someSecret);
             (await puzzle.rewardClaimed.call()).should.be.true;
+        });
+
+        it("rejects claim when the amount is zero", async () => {
+            const someSecret = "thequickbrownfoxjumpsoverthelazydog";
+            const msg = generateSecretMessage(someSecret);
+            const hash = hashjs.sha256().update(msg).digest("hex");
+            const rewardAmount = new BN("10000000");
+
+            const refundAddress = randomBytes(32);
+            const nonce = randomBytes(32);
+            const sigString = randomBytes(32);
+
+            let puzzle: PuzzleInstance;
+            puzzle = await Puzzle.new(registry.address, "zBTC", Ox(hash));
+            (await puzzle.rewardClaimed.call()).should.be.false;
+
+            await fundBtc(puzzle, rewardAmount);
+
+            const encRefundAddress = web3.utils.fromAscii(refundAddress);
+            const encSecret = web3.utils.fromAscii(someSecret);
+            await puzzle.claimReward(
+                // Payload
+                encRefundAddress, encSecret,
+                // Required
+                new BN(0), nonce, sigString,
+            ).should.be.rejectedWith(/amount must be greater than 0/);
         });
 
         it("rejects claim with the wrong secret", async () => {
@@ -188,6 +249,7 @@ contract.only("Puzzle", (accounts) => {
         const balanceBefore = new BN((await zbtc.balanceOf.call(user)).toString());
         (await puzzle.fund(value, nHash, sigString) as any);
         (await zbtc.balanceOf.call(user)).should.bignumber.equal(balanceBefore.add(removeFee(value, feeInBips)));
+        new BN(await puzzle.rewardAmount.call()).should.bignumber.equal(removeFee(value, feeInBips));
         return [pHash, nHash];
     };
 
