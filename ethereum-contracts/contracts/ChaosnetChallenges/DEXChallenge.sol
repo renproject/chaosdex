@@ -88,10 +88,14 @@ contract DEXChallenge is Ownable {
         // Required
         uint256 _amount, bytes32 _nHash, bytes calldata _sig
     ) external {
-        // calcualte receive amount
+        // Save balances to ensure correct swap
         uint256 initResBtcBalance = ERC20(btcAddr).balanceOf(address(btcDEXReserve));
         uint256 initResZecBalance = ERC20(zecAddr).balanceOf(address(zecDEXReserve));
+
+        // Make the trade
         dexAdapter.trade(_srcToken, _dstToken, _minDstAmount, _to, _refundBlockNumber, _refundAddress, _amount, _nHash, _sig);
+
+        // Check the balance again
         uint256 postResBtcBalance = ERC20(btcAddr).balanceOf(address(btcDEXReserve));
         uint256 postResZecBalance = ERC20(zecAddr).balanceOf(address(zecDEXReserve));
 
