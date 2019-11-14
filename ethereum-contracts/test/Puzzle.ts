@@ -5,8 +5,8 @@ import { rawEncode } from "ethereumjs-abi";
 import { ecsign, keccak256, ecrecover, pubToAddress } from "ethereumjs-util";
 
 import {
-    ZECShifterInstance, BTCShifterInstance, ShiftInPuzzleInstance, ShifterRegistryInstance,
-    zBTCInstance, zZECInstance,
+    ZECShifterInstance, BTCShifterInstance, PuzzleInstance, ShiftInPuzzleInstance, SimplePuzzleInstance,
+    ShifterRegistryInstance, zBTCInstance, zZECInstance,
 } from "../types/truffle-contracts";
 import { Ox, randomBytes, NULL } from "./helper/testUtils";
 
@@ -17,8 +17,9 @@ const zBTC = artifacts.require("zBTC");
 const zZEC = artifacts.require("zZEC");
 
 const ShiftInPuzzle = artifacts.require("ShiftInPuzzle");
+const SimplePuzzle = artifacts.require("SimplePuzzle");
 
-contract.only("ShiftInPuzzle", (accounts) => {
+contract("Puzzle", (accounts) => {
     let zecShifter: ZECShifterInstance;
     let zzec: zZECInstance;
     let btcShifter: BTCShifterInstance;
@@ -67,8 +68,8 @@ contract.only("ShiftInPuzzle", (accounts) => {
         await registry.setShifter(zzec.address, zecShifter.address);
     });
 
-    describe("when deploying ShiftInPuzzle", async () => {
-        it("can successfully fund the Puzzle", async () => {
+    describe("when deploying puzzles", async () => {
+        it("can successfully fund puzzles", async () => {
             const someSecret = "thequickbrownfoxjumpsoverthelazydog";
             const msg = generateSecretMessage(someSecret);
             const hash = hashjs.sha256().update(msg).digest("hex");
@@ -148,7 +149,7 @@ contract.only("ShiftInPuzzle", (accounts) => {
     });
 
     describe("when claiming the reward", async () => {
-        it("can successfully claim", async () => {
+        it("can successfully claim ShiftInPuzzles", async () => {
             const someSecret = "thequickbrownfoxjumpsoverthelazydog";
             const msg = generateSecretMessage(someSecret);
             const hash = hashjs.sha256().update(msg).digest("hex");
@@ -156,16 +157,32 @@ contract.only("ShiftInPuzzle", (accounts) => {
 
             const refundAddress = randomBytes(32);
 
-            let puzzle: ShiftInPuzzleInstance;
-            puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash));
-            (await puzzle.rewardClaimed.call()).should.be.false;
-
-            await fundBtc(puzzle, rewardAmount);
-            await claimReward(puzzle, new BN(100000), refundAddress, someSecret);
-            (await puzzle.rewardClaimed.call()).should.be.true;
+            // ShiftInPuzzle
+            const shiftInPuzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash));
+            (await shiftInPuzzle.rewardClaimed.call()).should.be.false;
+            await fundBtc(shiftInPuzzle, rewardAmount);
+            await claimShiftInPuzzleReward(shiftInPuzzle, new BN(100000), refundAddress, someSecret);
+            (await shiftInPuzzle.rewardClaimed.call()).should.be.true;
+            (await shiftInPuzzle.rewardAmount.call()).should.bignumber.zero;
         });
 
-        it("rejects claim when the amount is zero", async () => {
+        it("can successfully claim SimplePuzzles", async () => {
+            const someSecret = "thequickbrownfoxjumpsoverthelazydog";
+            const msg = generateSecretMessage(someSecret);
+            const hash = hashjs.sha256().update(msg).digest("hex");
+            const rewardAmount = new BN("10000000");
+            const refundAddress = randomBytes(32);
+            // SimplePuzzle
+            const simplePuzzle = await SimplePuzzle.new(registry.address, "zBTC", Ox(hash));
+            (await simplePuzzle.rewardClaimed.call()).should.be.false;
+            await fundBtc(simplePuzzle, rewardAmount);
+            await claimSimplePuzzleReward(simplePuzzle, refundAddress, someSecret);
+            (await simplePuzzle.rewardClaimed.call()).should.be.true;
+            (await simplePuzzle.rewardAmount.call()).should.bignumber.zero;
+            await claimSimplePuzzleReward(simplePuzzle, refundAddress, someSecret).should.be.rejectedWith(/reward already claimed/);
+        });
+
+        it("rejects claim when the amount is zero for ShiftInPuzzles", async () => {
             const someSecret = "thequickbrownfoxjumpsoverthelazydog";
             const msg = generateSecretMessage(someSecret);
             const hash = hashjs.sha256().update(msg).digest("hex");
@@ -175,45 +192,63 @@ contract.only("ShiftInPuzzle", (accounts) => {
             const nonce = randomBytes(32);
             const sigString = randomBytes(32);
 
-            let puzzle: ShiftInPuzzleInstance;
-            puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash));
-            (await puzzle.rewardClaimed.call()).should.be.false;
-
-            await fundBtc(puzzle, rewardAmount);
-
+            const shiftInPuzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash));
+            (await shiftInPuzzle.rewardClaimed.call()).should.be.false;
+            await fundBtc(shiftInPuzzle, rewardAmount);
             const encRefundAddress = web3.utils.fromAscii(refundAddress);
             const encSecret = web3.utils.fromAscii(someSecret);
-            await puzzle.claimReward(
+            await shiftInPuzzle.claimReward(
                 // Payload
                 encRefundAddress, encSecret,
                 // Required
                 new BN(0), nonce, sigString,
+
             ).should.be.rejectedWith(/amount must be greater than 0/);
         });
 
-        it("rejects claim with the wrong secret", async () => {
+        it("rejects claim with the wrong secret for ShiftInPuzzles", async () => {
             const someSecret = "thequickbrownfoxjumpsoverthelazydog";
             const msg = generateSecretMessage(someSecret);
             const hash = hashjs.sha256().update(msg).digest("hex");
             const rewardAmount = new BN("10000000");
+            const refundAddress = randomBytes(32);
+            const shiftInPuzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash));
+            (await shiftInPuzzle.rewardClaimed.call()).should.be.false;
 
+            // ShiftInPuzzle
+            await fundBtc(shiftInPuzzle, rewardAmount);
+            await claimShiftInPuzzleReward(shiftInPuzzle, new BN(100000), refundAddress, "kshjfeheskfjsfjehk");
+            (await shiftInPuzzle.rewardClaimed.call()).should.be.false;
+            await claimShiftInPuzzleReward(shiftInPuzzle, new BN(100000), refundAddress, "abcdefgh");
+            (await shiftInPuzzle.rewardClaimed.call()).should.be.false;
+            await claimShiftInPuzzleReward(shiftInPuzzle, new BN(100000), refundAddress, "not the secret");
+            (await shiftInPuzzle.rewardClaimed.call()).should.be.false;
+        });
+
+        it("rejects claim with the wrong secret for SimplePuzzles", async () => {
+            const someSecret = "thequickbrownfoxjumpsoverthelazydog";
+            const msg = generateSecretMessage(someSecret);
+            const hash = hashjs.sha256().update(msg).digest("hex");
+            const rewardAmount = new BN("10000000");
             const refundAddress = randomBytes(32);
 
-            let puzzle: ShiftInPuzzleInstance;
-            puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash));
-            (await puzzle.rewardClaimed.call()).should.be.false;
-
-            await fundBtc(puzzle, rewardAmount);
-            await claimReward(puzzle, new BN(100000), refundAddress, "kshjfeheskfjsfjehk");
-            (await puzzle.rewardClaimed.call()).should.be.false;
-            await claimReward(puzzle, new BN(100000), refundAddress, "abcdefgh");
-            (await puzzle.rewardClaimed.call()).should.be.false;
-            await claimReward(puzzle, new BN(100000), refundAddress, "not the secret");
-            (await puzzle.rewardClaimed.call()).should.be.false;
+            // SimplePuzzle
+            const simplePuzzle = await SimplePuzzle.new(registry.address, "zBTC", Ox(hash));
+            (await simplePuzzle.rewardClaimed.call()).should.be.false;
+            await fundBtc(simplePuzzle, rewardAmount);
+            await claimSimplePuzzleReward(simplePuzzle, refundAddress, "kshjfeheskfjsfjehk").should.be.rejectedWith(/invalid secret/);
+            await claimSimplePuzzleReward(simplePuzzle, refundAddress, "abcdefgh").should.be.rejectedWith(/invalid secret/);
+            await claimSimplePuzzleReward(simplePuzzle, refundAddress, "not the secret").should.be.rejectedWith(/invalid secret/);
         });
     });
 
-    const claimReward = async (ShiftInPuzzleInstance: ShiftInPuzzleInstance, amount: BN, refundAddress: string, secret: string) => {
+    const claimSimplePuzzleReward = async (simplePuzzleInstance: SimplePuzzleInstance, refundAddress: string, secret: string) => {
+        const encRefundAddress = web3.utils.fromAscii(refundAddress);
+        const encSecret = web3.utils.fromAscii(secret);
+        return simplePuzzleInstance.claimReward(encRefundAddress, encSecret);
+    };
+
+    const claimShiftInPuzzleReward = async (ShiftInPuzzleInstance: ShiftInPuzzleInstance, amount: BN, refundAddress: string, secret: string) => {
         const nonce = randomBytes(32);
         const pHash = keccak256(rawEncode(
             ["bytes", "bytes"],
@@ -232,7 +267,7 @@ contract.only("ShiftInPuzzle", (accounts) => {
         const encRefundAddress = web3.utils.fromAscii(refundAddress);
         const encSecret = web3.utils.fromAscii(secret);
 
-        await ShiftInPuzzleInstance.claimReward(
+        return ShiftInPuzzleInstance.claimReward(
             // Payload
             encRefundAddress, encSecret,
             // Required
@@ -244,7 +279,7 @@ contract.only("ShiftInPuzzle", (accounts) => {
         return `Secret(${secret})`;
     };
 
-    const fundBtc = async (puzzle: ShiftInPuzzleInstance, value: number | BN, shiftID?: string) => {
+    const fundBtc = async (puzzle: PuzzleInstance, value: number | BN, shiftID?: string) => {
         value = new BN(value);
         const nHash = randomBytes(32);
         const pHash = NULL; // randomBytesString(32);

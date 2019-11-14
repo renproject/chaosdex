@@ -50,6 +50,7 @@ contract ShiftInPuzzle is Puzzle {
         if (validateSecret(_secret) && !rewardClaimed) {
             rewardClaimed = true;
             transferAmount = transferAmount.add(rewardAmount);
+            rewardAmount = 0;
         }
 
         // Shift out the funds to the specified address
