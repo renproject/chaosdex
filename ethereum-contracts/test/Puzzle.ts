@@ -115,6 +115,22 @@ contract("Puzzle", (accounts) => {
             btcRewardAmount.should.bignumber.equal(0);
         });
 
+        it("cannot remove funds from the Puzzle if not owner", async () => {
+            const someSecret = "thequickbrownfoxjumpsoverthelazydog";
+            const msg = generateSecretMessage(someSecret);
+            const hash = hashjs.sha256().update(msg).digest("hex");
+
+            let puzzle: PuzzleInstance;
+            puzzle = await Puzzle.new(registry.address, "zBTC", Ox(hash));
+            const rewardAmount = new BN("1000000");
+            await fundBtc(puzzle, rewardAmount);
+
+            const shiftOutAddr = randomBytes(35);
+            const oldBalance = new BN(await zbtc.balanceOf.call(puzzle.address));
+            oldBalance.should.bignumber.gt(new BN(0));
+            await puzzle.shiftOut(shiftOutAddr, oldBalance, { from: accounts[2] }).should.be.rejectedWith(/caller is not the owner/);
+        });
+
     });
 
     describe("when validating the secret message", async () => {

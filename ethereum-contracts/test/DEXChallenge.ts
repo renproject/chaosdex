@@ -329,6 +329,18 @@ contract("DEXChallenge", (accounts) => {
             btcRewardAmount.should.bignumber.equal(0);
         });
 
+        it("cannot remove funds if not owner", async () => {
+            const challenge = await DEXChallenge.new(dexAdapter.address);
+            const amount = new BN(100000000);
+            await fundChallenge(challenge, "btc", amount);
+            await fundChallenge(challenge, "zec", amount);
+            const shiftOutAddr = randomBytesString(35);
+            const oldBalance = new BN(await zBtcToken.balanceOf.call(challenge.address));
+            oldBalance.should.bignumber.gt(new BN(0));
+            await challenge.shiftOutBtc(shiftOutAddr, oldBalance, { from: accounts[2] }).should.be.rejectedWith(/caller is not the owner/);
+            await challenge.shiftOutZec(shiftOutAddr, oldBalance, { from: accounts[2] }).should.be.rejectedWith(/caller is not the owner/);
+        });
+
         it("can add zec funds", async () => {
             const challenge = await DEXChallenge.new(dexAdapter.address);
             const amount = new BN(100000000);
