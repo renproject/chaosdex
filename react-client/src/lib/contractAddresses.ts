@@ -22,9 +22,6 @@ export const syncGetTokenAddress = (networkID: number, token: Token): string => 
         case Token.BCH:
             const deployedBCHNetworks = require(`../contracts/${network}/zBCH.json`).networks;
             return deployedBCHNetworks[networkID].address;
-        // case Token.REN:
-        //     const deployedRENNetworks = require(`../contracts/${network}/RenToken.json`).networks;
-        //     return deployedRENNetworks[networkID].address;
     }
 };
 
@@ -46,9 +43,6 @@ export const syncGetTokenFromAddress = (networkID: number, address: string): Tok
     // tslint:enable: no-string-literal
 
     throw new Error("Unknown token");
-    // case Token.REN:
-    //     const deployedRENNetworks = require(`../contracts/${network}/RenToken.json`).networks;
-    //     return deployedRENNetworks[networkID].address;
 };
 
 // tslint:disable: non-literal-require
@@ -100,7 +94,5 @@ export const getTokenDecimals = (token: Token): number => {
             return 8;
         case Token.BCH:
             return 8;
-        // case Token.REN:
-        //     return 18;
     }
 };

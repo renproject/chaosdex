@@ -20,17 +20,17 @@ interface ShownToUser {
 }
 
 let pageLoaded: Date;
-export const pageLoadedAt = (): string => {
-    if (!pageLoaded) {
-        pageLoaded = new Date();
-        return pageLoaded.toUTCString();
-    } else {
-        return naturalTime(Math.floor(pageLoaded.getTime() / 1000), {
+export const pageLoadedAt = (time?: Date): string => {
+    const loadedAt = time || pageLoaded;
+    if (loadedAt) {
+        return naturalTime(Math.floor(loadedAt.getTime() / 1000), {
             message: "Just now",
             suffix: "ago",
             countDown: false,
         });
     }
+    pageLoaded = new Date();
+    return pageLoaded.toUTCString();
 };
 
 // Determines whether or not this is a common network error (too many of these

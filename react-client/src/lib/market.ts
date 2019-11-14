@@ -8,7 +8,6 @@ const CoinGeckoIDs = Map<Token, string>()
     .set(Token.BTC, "bitcoin")
     .set(Token.BCH, "bitcoin-cash")
     .set(Token.ETH, "ethereum")
-    // .set(Token.REN, "republic-protocol")
     .set(Token.ZEC, "zcash");
 
 /**

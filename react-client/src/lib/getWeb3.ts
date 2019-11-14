@@ -29,6 +29,6 @@ export const getWeb3 = async () => new Promise<Web3>(async (resolve, reject) => 
         resolve(new Web3(window.web3.currentProvider));
     } else {
         // Non-dApp browsers...
-        resolve(new Web3(ETHEREUM_NODE));
+        reject(new Error(`No Web3 detected.`));
     }
 });
