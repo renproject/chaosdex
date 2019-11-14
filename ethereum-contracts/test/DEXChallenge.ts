@@ -174,9 +174,6 @@ contract("DEXChallenge", (accounts) => {
         // Add liquidity to token3's reserve.
         const daiValue = new BN(20000000000);
         const tokenValue = new BN(20000000000);
-        // await shiftToReserve(daiValue, tokenValue, token3, testTokenReserve);
-        // const daiValue = new BN(20000000000);
-        // const tokenValue = new BN(30000000000);
         await shiftToReserve(daiValue, tokenValue, zBtcToken, btcReserve);
         await shiftToReserve(daiValue, tokenValue, zZecToken, zecReserve);
         await shiftToReserve(daiValue, tokenValue, token3, testTokenReserve);
@@ -202,47 +199,6 @@ contract("DEXChallenge", (accounts) => {
             await dexAdapter.addLiquidity(accounts[0], baseValue, token.address, deadline, "0x002002002", tokenValue, nHash, sigString);
         }
     };
-
-    const shiftToReserveExpired = async (value: BN, token: ERC20Instance, reserve: DEXReserveInstance, shifter: ShifterInstance) => {
-        const nHash = `0x${randomBytes(32).toString("hex")}`;
-        const pHash = await (dexAdapter.hashLiquidityPayload as any).call(accounts[0], value, token.address, 0, "0x002002002");
-        // const types = ["address", "uint256", "address", "uint256", "uint256", "bytes"];
-        // const pHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(types, [accounts[0], value.toString(), token.address, value.toString(), 0, "0x002002002"]));
-        const hash = await shifter.hashForSignature.call(pHash, value, dexAdapter.address, nHash);
-        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
-        const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
-        await dai.approve(reserve.address, value);
-        await dexAdapter.addLiquidity(accounts[0], value, token.address, 0, "0x002002002", value, nHash, sigString);
-    };
-
-    const removeShiftedLiquidity = async (token: ERC20Instance, reserve: DEXReserveInstance) => {
-        const liquidity = await reserve.balanceOf.call(accounts[0]);
-        await reserve.approve(dexAdapter.address, liquidity);
-        await dexAdapter.removeLiquidity(token.address, liquidity, "0x0011001100110011");
-    }
-
-    const tradeShiftedTokensExpired = async (srcToken: ERC20Instance, srcShifter: ShifterInstance, dstToken: ERC20Instance) => {
-        const nHash = `0x${randomBytes(32).toString("hex")}`
-        const value = new BN(22500);
-        const commitment = await dexAdapter.hashTradePayload.call(
-            srcToken.address, dstToken.address, 0, accounts[3],
-            0, "0x010101010101",
-        );
-        const hash = await srcShifter.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
-        const sig = ecsign(Buffer.from(hash.slice(2), "hex"), privKey);
-        const sigString = `0x${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`;
-        const reserve = await dex.reserves.call(dstToken.address);
-        const initialBalance = new BN((await dstToken.balanceOf.call(reserve)).toString());
-        await dexAdapter.trade(
-            // Payload:
-            srcToken.address, dstToken.address, 0, accounts[3],
-            0, "0x010101010101",
-            // Required
-            value, nHash, sigString,
-        );
-        const finalBalance = new BN((await dstToken.balanceOf.call(reserve)).toString());
-        initialBalance.sub(finalBalance).should.bignumber.equal(0);
-    }
 
     const tradeShiftedTokens = async (srcToken: ERC20Instance, dstToken: ERC20Instance, value: BN, challenge: DEXChallengeInstance) => {
         let receivingValue, sigString, receivingValueAfterFees;
@@ -401,12 +357,6 @@ contract("DEXChallenge", (accounts) => {
             await fundChallenge(challenge, "btc", amount);
             await fundChallenge(challenge, "zec", amount);
 
-            // Top up the reserve
-            // const daiValue = new BN(20000000000);
-            // const tokenValue = new BN(30000000000);
-            // await shiftToReserve(daiValue, tokenValue, zBtcToken, btcReserve);
-            // await shiftToReserve(daiValue, tokenValue, zZecToken, zecReserve);
-
             // Submit a swap that completes the challenge
             await tradeShiftedTokens(zBtcToken, zZecToken, amount, challenge);
             (await challenge.rewardClaimed.call()).should.be.true;
@@ -420,13 +370,6 @@ contract("DEXChallenge", (accounts) => {
             const amount = new BN(1000000);
             await fundChallenge(challenge, "btc", amount);
             await fundChallenge(challenge, "zec", amount);
-
-            // Top up the reserve
-            // const daiValue = new BN(20000000000);
-            // const tokenValue = new BN(30000000000);
-            // await shiftToReserve(daiValue, tokenValue, zBtcToken, btcReserve);
-            // await shiftToReserve(daiValue, tokenValue, zZecToken, zecReserve);
-            // await shiftToReserve(daiValue, tokenValue, token3, testTokenReserve);
 
             // Submit a swap that succeeds but does not complete the challenge
             await tradeShiftedTokens(zBtcToken, token3, amount, challenge);
