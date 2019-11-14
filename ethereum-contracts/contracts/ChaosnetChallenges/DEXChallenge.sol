@@ -150,7 +150,7 @@ contract DEXChallenge is Ownable {
         uint256 _postResBtcBalance,
         uint256 _initResZecBalance,
         uint256 _postResZecBalance
-    ) public pure returns (bool) {
+    ) internal pure returns (bool) {
         return (
             _initResBtcBalance < _postResBtcBalance &&
             _initResZecBalance > _postResZecBalance
