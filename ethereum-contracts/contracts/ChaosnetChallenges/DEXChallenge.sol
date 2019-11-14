@@ -22,10 +22,11 @@ contract DEXChallenge is Ownable {
     DEXReserve public btcDEXReserve;
     DEXReserve public zecDEXReserve;
 
-    bool public rewardClaimed;
-    uint256 public btcRewardAmount;
-    uint256 public zecRewardAmount;
+    bool public rewardClaimed;       // Whether someone has already claimed the prize or not
+    uint256 public btcRewardAmount;  // The amount of BTC available as reward for this challenge
+    uint256 public zecRewardAmount;  // The amount of ZEC available as reward for this challenge
 
+    /// @param _dexAdapter The address of the dex adapter
     constructor(DEXAdapter _dexAdapter) public {
         dexAdapter = _dexAdapter;
         registry = ShifterRegistry(_dexAdapter.shifterRegistry());
@@ -68,23 +69,23 @@ contract DEXChallenge is Ownable {
     /// @notice The function conducts the BTC <-> ZEC trade and if completes successfully
     ///         also gives a bonus reward.
     ///
-    /// @param _srcToken          Must be the zBTC token address.
-    /// @param _dstToken          Must be the zZEC token address.
-    /// @param _minDstAmount         The minimum amount of ZEC to receive from the swap.
-    /// @param _to                The ZEC address at which to receive the funds and the reward.
+    /// @param _srcToken          Must be the zBTC token address to be eligible for reward.
+    /// @param _dstToken          Must be the zZEC token address to be eligible for reward.
+    /// @param _minDstAmount      The minimum amount of ZEC to receive from the swap.
+    /// @param _to                The ZEC address at which to receive the funds and any ZEC reward.
     /// @param _refundBlockNumber The block number for when funds should be refunded.
-    /// @param _refundAddress     The BTC address for refunds and reward.
+    /// @param _refundAddress     The BTC address for refunds and any BTC reward.
     /// @param _amount            The amount of Bitcoin provided to the Darknodes in Sats.
     /// @param _nHash             The hash of the nonce returned by the Darknodes.
     /// @param _sig               The signature returned by the Darknodes.
     function trade(
         // Payload
-        address _srcToken,              // Should be zBTC address
-        address _dstToken,              // Should be zZEC address
-        uint256 _minDstAmount,             // Minimum amount of ZEC for the swap
-        bytes calldata _to,             // ZEC address to receive funds
-        uint256 _refundBlockNumber,     // The block number when funds should be refunded
-        bytes calldata _refundAddress,  // BTC address for refunds
+        address _srcToken,
+        address _dstToken,
+        uint256 _minDstAmount,
+        bytes calldata _to,
+        uint256 _refundBlockNumber,
+        bytes calldata _refundAddress,
         // Required
         uint256 _amount, bytes32 _nHash, bytes calldata _sig
     ) external {
@@ -124,7 +125,7 @@ contract DEXChallenge is Ownable {
 
     /// @notice Shifts out BTC from the contract to reduce the reward distributed.
     ///
-    /// @param _address The address to shift out to
+    /// @param _address The BTC address to shift Bitcoin out to
     /// @param _amount  The amount to shift out
     function shiftOutBtc(bytes calldata _address, uint256 _amount) external onlyOwner {
         _shiftOut(btcAddr, _address, _amount);
@@ -133,7 +134,7 @@ contract DEXChallenge is Ownable {
 
     /// @notice Shifts out ZEC from the contract to reduce the reward distributed.
     ///
-    /// @param _address The address to shift out to
+    /// @param _address The ZEC address to shift ZEC out to
     /// @param _amount  The amount to shift out
     function shiftOutZec(bytes calldata _address, uint256 _amount) external onlyOwner {
         _shiftOut(zecAddr, _address, _amount);
