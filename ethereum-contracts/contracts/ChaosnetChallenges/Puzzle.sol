@@ -9,15 +9,15 @@ import "darknode-sol/contracts/libraries/Compare.sol";
 contract Puzzle is Ownable {
     using SafeMath for uint256;
 
-    bytes public secretHash;
-    uint256 public rewardAmount;
-    string public tokenSymbol;
-    bool public rewardClaimed;
+    bytes public secretHash;     // The hash of the secret
+    uint256 public rewardAmount; // The amount of reward for solving the puzzle
+    string public tokenSymbol;   // The symbol of the reward token
+    bool public rewardClaimed;   // Whether the puzzle has been solved or not
 
     ShifterRegistry public registry;
 
-    /// @param _registry The Shifter registry contract address.
-    /// @param _tokenSymbol The shifter token symbol
+    /// @param _registry The Shifter registry contract address
+    /// @param _tokenSymbol The token symbol for the reward and the shifting
     /// @param _secretHash The secret hash
     constructor(
         ShifterRegistry _registry,
@@ -29,8 +29,8 @@ contract Puzzle is Ownable {
         secretHash = _secretHash;
     }
 
-    /// @notice Allows someone to try and claim the reward by submitting the secret.
-    /// @param _amount The amount of Bitcoin provided to the Darknodes in Sats.
+    /// @notice Funds the contract with claimable rewards
+    /// @param _amount The amount of token provided to the Darknodes in Sats.
     /// @param _nHash The hash of the nonce returned by the Darknodes.
     /// @param _sig The signature returned by the Darknodes.
     function fund(
@@ -47,7 +47,7 @@ contract Puzzle is Ownable {
     /// @notice Allows someone to try and claim the reward by submitting the secret.
     /// @param _refundAddress The address that should receive the shiftedOut tokens and the potential reward.
     /// @param _secret The secret.
-    /// @param _amount The amount of Bitcoin provided to the Darknodes in Sats.
+    /// @param _amount The amount of token provided to the Darknodes in Sats.
     /// @param _nHash The hash of the nonce returned by the Darknodes.
     /// @param _sig The signature returned by the Darknodes.
     function claimReward(
@@ -61,11 +61,9 @@ contract Puzzle is Ownable {
     ) public {
         require(_amount > 0, "amount must be greater than 0");
 
-        // Construct the payload hash and mint new tokens using the Shifter
-        // contract. This will verify the signature to ensure the Darknodes have
-        // received the Bitcoin.
+        // Construct the payload hash and verify the signature to ensure the Darknodes have
+        // received the token.
         bytes32 pHash = hashPayload(_refundAddress, _secret);
-
         uint256 transferAmount = registry.getShifterBySymbol(tokenSymbol).shiftIn(pHash, _amount, _nHash, _sig);
 
         // If the secret is correct, give the reward
@@ -73,18 +71,24 @@ contract Puzzle is Ownable {
             rewardClaimed = true;
             transferAmount = transferAmount.add(rewardAmount);
         }
+
+        // Shift out the funds to the specified address
         registry.getShifterBySymbol(tokenSymbol).shiftOut(_refundAddress, transferAmount);
     }
 
     /// @notice Shifts out tokens from the contract to reduce the reward distributed.
     ///
-    /// @param _address The address to shift out to
+    /// @param _address The address to shift the tokens out to
     /// @param _amount  The amount to shift out
     function shiftOut(bytes calldata _address, uint256 _amount) external onlyOwner {
         registry.getShifterBySymbol(tokenSymbol).shiftOut(_address, _amount);
         rewardAmount = rewardAmount.sub(_amount);
     }
 
+    /// @notice Get the hash payload
+    ///
+    /// @param _refundAddress The address that should receive the shiftedOut tokens and the potential reward.
+    /// @param _secret The secret.
     function hashPayload(
         bytes memory _refundAddress,
         bytes memory _secret
@@ -92,8 +96,12 @@ contract Puzzle is Ownable {
         return keccak256(abi.encode(_refundAddress, _secret));
     }
 
-    /// Use this function to validate your answer if you think you've got it before submitting a swap.
-    /// You could also use this to brute-force the answer too if you want.
+    /// @notice Validate that the secret is correct. Use this function to
+    ///         validate your answer if you think you've got it before
+    ///         submitting a swap. You could also use this to brute-force
+    ///         the answer too if you want.
+    ///
+    /// @param _secret The secret.
     function validateSecret(bytes memory _secret) public view returns (bool) {
         bytes memory h = abi.encodePacked(sha256(_secretMessage(_secret)));
         return Compare.bytesEqual(h, secretHash);
