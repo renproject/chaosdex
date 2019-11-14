@@ -10,7 +10,7 @@ import {
 import { Ox, NULL, randomBytesString } from "./helper/testUtils";
 import { log } from "./helper/logs";
 
-const TestToken = artifacts.require("TestToken");
+const TestToken = artifacts.require("ERC20Shifted");
 const DAI = artifacts.require("DaiToken");
 const zBTC = artifacts.require("zBTC");
 const zZEC = artifacts.require("zZEC");
@@ -27,7 +27,8 @@ contract("DEXChallenge", (accounts) => {
     let zecShifter: ShifterInstance;
     let zBtcToken: ERC20ShiftedInstance;
     let zZecToken: ERC20ShiftedInstance;
-    let token3: TestTokenInstance;
+    let token3: ERC20ShiftedInstance;
+    let token3Shifter: ShifterInstance;
     let btcReserve: DEXReserveInstance;
     let zecReserve: DEXReserveInstance;
     let testTokenReserve: DEXReserveInstance;
@@ -47,6 +48,7 @@ contract("DEXChallenge", (accounts) => {
     const dexFees = new BN(10);
     const zBTCMinShiftOutAmount = new BN(10000);
     const zZECMinShiftOutAmount = new BN(10000);
+    const token3MinShiftOutAmount = new BN(10000);
 
     const deadline = 10000000000000;
 
@@ -149,6 +151,9 @@ contract("DEXChallenge", (accounts) => {
         await zecShifter.claimTokenOwnership();
 
         token3 = await TestToken.new("TestToken1", "TST", 18);
+        token3Shifter = await Shifter.new(token3.address, feeRecipient, mintAuthority.address, shiftInFees, shiftOutFees, token3MinShiftOutAmount);
+        await token3.transferOwnership(token3Shifter.address);
+        await token3Shifter.claimTokenOwnership();
 
         btcReserve = await DEXReserve.new("Bitcoin Liquidity Token", "BTCLT", 8, dai.address, zBtcToken.address, dexFees);
         zecReserve = await DEXReserve.new("ZCash Liquidity Token", "ZECLT", 8, dai.address, zZecToken.address, dexFees);
@@ -162,12 +167,18 @@ contract("DEXChallenge", (accounts) => {
         shifterRegistry = await ShifterRegistry.new();
         await shifterRegistry.setShifter(zBtcToken.address, btcShifter.address);
         await shifterRegistry.setShifter(zZecToken.address, zecShifter.address);
+        await shifterRegistry.setShifter(token3.address, token3Shifter.address);
 
         dexAdapter = await DEXAdapter.new(dex.address, shifterRegistry.address);
 
         // Add liquidity to token3's reserve.
         const daiValue = new BN(20000000000);
         const tokenValue = new BN(20000000000);
+        // await shiftToReserve(daiValue, tokenValue, token3, testTokenReserve);
+        // const daiValue = new BN(20000000000);
+        // const tokenValue = new BN(30000000000);
+        await shiftToReserve(daiValue, tokenValue, zBtcToken, btcReserve);
+        await shiftToReserve(daiValue, tokenValue, zZecToken, zecReserve);
         await shiftToReserve(daiValue, tokenValue, token3, testTokenReserve);
     });
 
@@ -233,9 +244,7 @@ contract("DEXChallenge", (accounts) => {
         initialBalance.sub(finalBalance).should.bignumber.equal(0);
     }
 
-    const tradeShiftedTokens = async (value: BN, challenge: DEXChallengeInstance) => {
-        const srcToken = zBtcToken;
-        const dstToken = zZecToken;
+    const tradeShiftedTokens = async (srcToken: ERC20Instance, dstToken: ERC20Instance, value: BN, challenge: DEXChallengeInstance) => {
         let receivingValue, sigString, receivingValueAfterFees;
         const recipient = accounts[3];
         const nHash = `0x${randomBytes(32).toString("hex")}`
@@ -393,16 +402,37 @@ contract("DEXChallenge", (accounts) => {
             await fundChallenge(challenge, "zec", amount);
 
             // Top up the reserve
-            const daiValue = new BN(20000000000);
-            const tokenValue = new BN(30000000000);
-            await shiftToReserve(daiValue, tokenValue, zBtcToken, btcReserve);
-            await shiftToReserve(daiValue, tokenValue, zZecToken, zecReserve);
+            // const daiValue = new BN(20000000000);
+            // const tokenValue = new BN(30000000000);
+            // await shiftToReserve(daiValue, tokenValue, zBtcToken, btcReserve);
+            // await shiftToReserve(daiValue, tokenValue, zZecToken, zecReserve);
 
             // Submit a swap that completes the challenge
-            await tradeShiftedTokens(amount, challenge);
+            await tradeShiftedTokens(zBtcToken, zZecToken, amount, challenge);
             (await challenge.rewardClaimed.call()).should.be.true;
             new BN(await challenge.btcRewardAmount.call()).should.bignumber.zero;
             new BN(await challenge.zecRewardAmount.call()).should.bignumber.zero;
+        });
+
+        it("won't give reward if the swap was not the right token", async () => {
+            // Fund the challenge
+            const challenge = await DEXChallenge.new(dexAdapter.address);
+            const amount = new BN(1000000);
+            await fundChallenge(challenge, "btc", amount);
+            await fundChallenge(challenge, "zec", amount);
+
+            // Top up the reserve
+            // const daiValue = new BN(20000000000);
+            // const tokenValue = new BN(30000000000);
+            // await shiftToReserve(daiValue, tokenValue, zBtcToken, btcReserve);
+            // await shiftToReserve(daiValue, tokenValue, zZecToken, zecReserve);
+            // await shiftToReserve(daiValue, tokenValue, token3, testTokenReserve);
+
+            // Submit a swap that succeeds but does not complete the challenge
+            await tradeShiftedTokens(zBtcToken, token3, amount, challenge);
+            (await challenge.rewardClaimed.call()).should.be.false;
+            new BN(await challenge.btcRewardAmount.call()).should.bignumber.gt(new BN(0));
+            new BN(await challenge.zecRewardAmount.call()).should.bignumber.gt(new BN(0));
         });
 
     });
