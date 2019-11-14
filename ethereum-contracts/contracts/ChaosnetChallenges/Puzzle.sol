@@ -44,38 +44,6 @@ contract Puzzle is Ownable {
         rewardAmount = rewardAmount.add(transferAmount);
     }
 
-    /// @notice Allows someone to try and claim the reward by submitting the secret.
-    /// @param _refundAddress The address that should receive the shiftedOut tokens and the potential reward.
-    /// @param _secret The secret.
-    /// @param _amount The amount of token provided to the Darknodes in Sats.
-    /// @param _nHash The hash of the nonce returned by the Darknodes.
-    /// @param _sig The signature returned by the Darknodes.
-    function claimReward(
-        // Payload
-        bytes memory _refundAddress,
-        bytes memory _secret,
-        // Required
-        uint256      _amount,
-        bytes32      _nHash,
-        bytes memory _sig
-    ) public {
-        require(_amount > 0, "amount must be greater than 0");
-
-        // Construct the payload hash and verify the signature to ensure the Darknodes have
-        // received the token.
-        bytes32 pHash = hashPayload(_refundAddress, _secret);
-        uint256 transferAmount = registry.getShifterBySymbol(tokenSymbol).shiftIn(pHash, _amount, _nHash, _sig);
-
-        // If the secret is correct, give the reward
-        if (validateSecret(_secret) && !rewardClaimed) {
-            rewardClaimed = true;
-            transferAmount = transferAmount.add(rewardAmount);
-        }
-
-        // Shift out the funds to the specified address
-        registry.getShifterBySymbol(tokenSymbol).shiftOut(_refundAddress, transferAmount);
-    }
-
     /// @notice Shifts out tokens from the contract to reduce the reward distributed.
     ///
     /// @param _address The address to shift the tokens out to

@@ -5,7 +5,7 @@ import { rawEncode } from "ethereumjs-abi";
 import { ecsign, keccak256, ecrecover, pubToAddress } from "ethereumjs-util";
 
 import {
-    ZECShifterInstance, BTCShifterInstance, PuzzleInstance, ShifterRegistryInstance,
+    ZECShifterInstance, BTCShifterInstance, ShiftInPuzzleInstance, ShifterRegistryInstance,
     zBTCInstance, zZECInstance,
 } from "../types/truffle-contracts";
 import { Ox, randomBytes, NULL } from "./helper/testUtils";
@@ -16,9 +16,9 @@ const ShifterRegistry = artifacts.require("ShifterRegistry");
 const zBTC = artifacts.require("zBTC");
 const zZEC = artifacts.require("zZEC");
 
-const Puzzle = artifacts.require("Puzzle");
+const ShiftInPuzzle = artifacts.require("ShiftInPuzzle");
 
-contract("Puzzle", (accounts) => {
+contract.only("ShiftInPuzzle", (accounts) => {
     let zecShifter: ZECShifterInstance;
     let zzec: zZECInstance;
     let btcShifter: BTCShifterInstance;
@@ -67,15 +67,15 @@ contract("Puzzle", (accounts) => {
         await registry.setShifter(zzec.address, zecShifter.address);
     });
 
-    describe("when deploying Puzzle", async () => {
+    describe("when deploying ShiftInPuzzle", async () => {
         it("can successfully fund the Puzzle", async () => {
             const someSecret = "thequickbrownfoxjumpsoverthelazydog";
             const msg = generateSecretMessage(someSecret);
             const hash = hashjs.sha256().update(msg).digest("hex");
 
-            let puzzle: PuzzleInstance;
+            let puzzle: ShiftInPuzzleInstance;
             // const tokenName = await zbtc.symbol.call();
-            puzzle = await Puzzle.new(registry.address, "zBTC", Ox(hash));
+            puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash));
             const x = await puzzle.registry.call();
             const rewardAmount = new BN("1000000");
             await fundBtc(puzzle, rewardAmount);
@@ -86,9 +86,9 @@ contract("Puzzle", (accounts) => {
             const msg = generateSecretMessage(someSecret);
             const hash = hashjs.sha256().update(msg).digest("hex");
 
-            let puzzle: PuzzleInstance;
+            let puzzle: ShiftInPuzzleInstance;
             // const tokenName = await zbtc.symbol.call();
-            puzzle = await Puzzle.new(registry.address, "zBTC", Ox(hash));
+            puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash));
             const amount = new BN(0);
             const nHash = randomBytes(32);
             const sigString = randomBytes(32);
@@ -100,8 +100,8 @@ contract("Puzzle", (accounts) => {
             const msg = generateSecretMessage(someSecret);
             const hash = hashjs.sha256().update(msg).digest("hex");
 
-            let puzzle: PuzzleInstance;
-            puzzle = await Puzzle.new(registry.address, "zBTC", Ox(hash));
+            let puzzle: ShiftInPuzzleInstance;
+            puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash));
             const rewardAmount = new BN("1000000");
             await fundBtc(puzzle, rewardAmount);
 
@@ -120,8 +120,8 @@ contract("Puzzle", (accounts) => {
             const msg = generateSecretMessage(someSecret);
             const hash = hashjs.sha256().update(msg).digest("hex");
 
-            let puzzle: PuzzleInstance;
-            puzzle = await Puzzle.new(registry.address, "zBTC", Ox(hash));
+            let puzzle: ShiftInPuzzleInstance;
+            puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash));
             const rewardAmount = new BN("1000000");
             await fundBtc(puzzle, rewardAmount);
 
@@ -139,8 +139,8 @@ contract("Puzzle", (accounts) => {
             const msg = generateSecretMessage(someSecret);
             const hash = hashjs.sha256().update(msg).digest("hex");
 
-            let puzzle: PuzzleInstance;
-            puzzle = await Puzzle.new(registry.address, "zBTC", Ox(hash));
+            let puzzle: ShiftInPuzzleInstance;
+            puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash));
             (await puzzle.validateSecret.call(web3.utils.fromAscii(someSecret))).should.be.true;
             (await puzzle.validateSecret.call(web3.utils.fromAscii("asdfksajdsf"))).should.be.false;
             (await puzzle.validateSecret.call(web3.utils.fromAscii("notthesecret"))).should.be.false;
@@ -156,8 +156,8 @@ contract("Puzzle", (accounts) => {
 
             const refundAddress = randomBytes(32);
 
-            let puzzle: PuzzleInstance;
-            puzzle = await Puzzle.new(registry.address, "zBTC", Ox(hash));
+            let puzzle: ShiftInPuzzleInstance;
+            puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash));
             (await puzzle.rewardClaimed.call()).should.be.false;
 
             await fundBtc(puzzle, rewardAmount);
@@ -175,8 +175,8 @@ contract("Puzzle", (accounts) => {
             const nonce = randomBytes(32);
             const sigString = randomBytes(32);
 
-            let puzzle: PuzzleInstance;
-            puzzle = await Puzzle.new(registry.address, "zBTC", Ox(hash));
+            let puzzle: ShiftInPuzzleInstance;
+            puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash));
             (await puzzle.rewardClaimed.call()).should.be.false;
 
             await fundBtc(puzzle, rewardAmount);
@@ -199,8 +199,8 @@ contract("Puzzle", (accounts) => {
 
             const refundAddress = randomBytes(32);
 
-            let puzzle: PuzzleInstance;
-            puzzle = await Puzzle.new(registry.address, "zBTC", Ox(hash));
+            let puzzle: ShiftInPuzzleInstance;
+            puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash));
             (await puzzle.rewardClaimed.call()).should.be.false;
 
             await fundBtc(puzzle, rewardAmount);
@@ -213,7 +213,7 @@ contract("Puzzle", (accounts) => {
         });
     });
 
-    const claimReward = async (puzzleInstance: PuzzleInstance, amount: BN, refundAddress: string, secret: string) => {
+    const claimReward = async (ShiftInPuzzleInstance: ShiftInPuzzleInstance, amount: BN, refundAddress: string, secret: string) => {
         const nonce = randomBytes(32);
         const pHash = keccak256(rawEncode(
             ["bytes", "bytes"],
@@ -223,7 +223,7 @@ contract("Puzzle", (accounts) => {
         const hashForSignature = await btcShifter.hashForSignature.call(
             Ox(pHash),
             amount.toNumber(),
-            puzzleInstance.address,
+            ShiftInPuzzleInstance.address,
             nonce,
         );
         const sig = ecsign(Buffer.from(hashForSignature.slice(2), "hex"), privKey);
@@ -232,7 +232,7 @@ contract("Puzzle", (accounts) => {
         const encRefundAddress = web3.utils.fromAscii(refundAddress);
         const encSecret = web3.utils.fromAscii(secret);
 
-        await puzzleInstance.claimReward(
+        await ShiftInPuzzleInstance.claimReward(
             // Payload
             encRefundAddress, encSecret,
             // Required
@@ -244,7 +244,7 @@ contract("Puzzle", (accounts) => {
         return `Secret(${secret})`;
     };
 
-    const fundBtc = async (puzzle: PuzzleInstance, value: number | BN, shiftID?: string) => {
+    const fundBtc = async (puzzle: ShiftInPuzzleInstance, value: number | BN, shiftID?: string) => {
         value = new BN(value);
         const nHash = randomBytes(32);
         const pHash = NULL; // randomBytesString(32);
