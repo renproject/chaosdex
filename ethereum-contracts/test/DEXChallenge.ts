@@ -364,6 +364,32 @@ contract("DEXChallenge", (accounts) => {
             new BN(await challenge.zecRewardAmount.call()).should.bignumber.zero;
         });
 
+        it("can claim an only BTC reward", async () => {
+            // Fund the challenge
+            const challenge = await DEXChallenge.new(dexAdapter.address);
+            const amount = new BN(100000000);
+            await fundChallenge(challenge, "btc", amount);
+
+            // Submit a swap that completes the challenge
+            await tradeShiftedTokens(zBtcToken, zZecToken, amount, challenge);
+            (await challenge.rewardClaimed.call()).should.be.true;
+            new BN(await challenge.btcRewardAmount.call()).should.bignumber.zero;
+            new BN(await challenge.zecRewardAmount.call()).should.bignumber.zero;
+        });
+
+        it("can claim an only ZEC reward", async () => {
+            // Fund the challenge
+            const challenge = await DEXChallenge.new(dexAdapter.address);
+            const amount = new BN(100000000);
+            await fundChallenge(challenge, "zec", amount);
+
+            // Submit a swap that completes the challenge
+            await tradeShiftedTokens(zBtcToken, zZecToken, amount, challenge);
+            (await challenge.rewardClaimed.call()).should.be.true;
+            new BN(await challenge.btcRewardAmount.call()).should.bignumber.zero;
+            new BN(await challenge.zecRewardAmount.call()).should.bignumber.zero;
+        });
+
         it("won't give reward if the swap was not the right token", async () => {
             // Fund the challenge
             const challenge = await DEXChallenge.new(dexAdapter.address);
