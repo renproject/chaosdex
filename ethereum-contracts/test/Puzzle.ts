@@ -31,6 +31,7 @@ contract("Puzzle", (accounts) => {
     const feeInBips = new BN(10);
     const feeRecipient = accounts[1];
     const maxGasPrice = new BN(web3.utils.toWei("21", "gwei"));
+    const typicalGasLimit = new BN("6721975");
 
     // We generate a new account so that we have access to its private key for
     // `ecsign`. Web3's sign functions all prefix the message being signed.
@@ -258,15 +259,25 @@ contract("Puzzle", (accounts) => {
             const encSecret = web3.utils.fromAscii(someSecret);
             let testGasPrice = new BN(web3.utils.toWei("61", "gwei"));
             testGasPrice.should.bignumber.gt(maxGasPrice);
-            await simplePuzzle.claimReward(encRefundAddress, encSecret, { gasPrice: testGasPrice })
-                .should.be.rejectedWith(/gas price is too high/);
-            await simplePuzzle.claimReward(encRefundAddress, encSecret, { gasPrice: new BN(web3.utils.toWei("22", "gwei")) })
-                .should.be.rejectedWith(/gas price is too high/);
-            await simplePuzzle.claimReward(encRefundAddress, encSecret, { gasPrice: new BN(web3.utils.toWei("25", "gwei")) })
-                .should.be.rejectedWith(/gas price is too high/);
-            await simplePuzzle.claimReward(encRefundAddress, encSecret, { gasPrice: new BN(web3.utils.toWei("29", "gwei")) })
-                .should.be.rejectedWith(/gas price is too high/);
-            await simplePuzzle.claimReward(encRefundAddress, encSecret, { gasPrice: new BN(web3.utils.toWei("21", "gwei")) });
+
+            // Manually overwrite the gas limit as well as gasPrice since it sometimes breaks coverage
+            await simplePuzzle.claimReward(encRefundAddress, encSecret, {
+                gasPrice: new BN(web3.utils.toWei("61", "gwei")),
+                gas: typicalGasLimit,
+            }).should.be.rejectedWith(/gas price is too high/);
+            await simplePuzzle.claimReward(encRefundAddress, encSecret, {
+                gasPrice: new BN(web3.utils.toWei("25", "gwei")),
+                gas: typicalGasLimit,
+            }).should.be.rejectedWith(/gas price is too high/);
+            await simplePuzzle.claimReward(encRefundAddress, encSecret, {
+                gasPrice: new BN(web3.utils.toWei("22", "gwei")),
+                gas: typicalGasLimit,
+            }).should.be.rejectedWith(/gas price is too high/);
+            await simplePuzzle.claimReward(encRefundAddress, encSecret, {
+                gasPrice: new BN(web3.utils.toWei("21", "gwei")),
+                gas: typicalGasLimit,
+
+            });
         });
 
         it("rejects ShiftInPuzzle claims when the gas price is too high", async () => {
@@ -284,14 +295,24 @@ contract("Puzzle", (accounts) => {
             const encSecret = web3.utils.fromAscii(someSecret);
             const nonce = randomBytes(32);
             const sigString = randomBytes(32);
-            await shiftInPuzzle.claimReward(encRefundAddress, encSecret, rewardAmount, nonce, sigString, { gasPrice: new BN(web3.utils.toWei("61", "gwei")) })
-                .should.be.rejectedWith(/gas price is too high/);
-            await shiftInPuzzle.claimReward(encRefundAddress, encSecret, rewardAmount, nonce, sigString, { gasPrice: new BN(web3.utils.toWei("30", "gwei")) })
-                .should.be.rejectedWith(/gas price is too high/);
-            await shiftInPuzzle.claimReward(encRefundAddress, encSecret, rewardAmount, nonce, sigString, { gasPrice: new BN(web3.utils.toWei("25", "gwei")) })
-                .should.be.rejectedWith(/gas price is too high/);
-            await shiftInPuzzle.claimReward(encRefundAddress, encSecret, rewardAmount, nonce, sigString, { gasPrice: new BN(web3.utils.toWei("22", "gwei")) })
-                .should.be.rejectedWith(/gas price is too high/);
+
+            // Manually overwrite the gas limit as well as gasPrice since it sometimes breaks coverage
+            await shiftInPuzzle.claimReward(encRefundAddress, encSecret, rewardAmount, nonce, sigString, {
+                gasPrice: new BN(web3.utils.toWei("61", "gwei")),
+                gas: typicalGasLimit,
+            }).should.be.rejectedWith(/gas price is too high/);
+            await shiftInPuzzle.claimReward(encRefundAddress, encSecret, rewardAmount, nonce, sigString, {
+                gasPrice: new BN(web3.utils.toWei("30", "gwei")),
+                gas: typicalGasLimit,
+            }).should.be.rejectedWith(/gas price is too high/);
+            await shiftInPuzzle.claimReward(encRefundAddress, encSecret, rewardAmount, nonce, sigString, {
+                gasPrice: new BN(web3.utils.toWei("25", "gwei")),
+                gas: typicalGasLimit,
+            }).should.be.rejectedWith(/gas price is too high/);
+            await shiftInPuzzle.claimReward(encRefundAddress, encSecret, rewardAmount, nonce, sigString, {
+                gasPrice: new BN(web3.utils.toWei("22", "gwei")),
+                gas: typicalGasLimit,
+            }).should.be.rejectedWith(/gas price is too high/);
         });
     });
 
