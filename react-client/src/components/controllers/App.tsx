@@ -7,6 +7,7 @@ import createPersistedState from "use-persisted-state";
 
 import { _catchBackgroundErr_, _catchInteractionErr_ } from "../../lib/errors";
 import { getWeb3 } from "../../lib/getWeb3";
+import { setIntervalAndRun } from "../../lib/utils";
 import { connect, ConnectedProps } from "../../state/connect";
 import { Token } from "../../state/generalTypes";
 import { PopupContainer } from "../../state/popupContainer";
@@ -39,7 +40,8 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
         }, [setShowTutorial]);
 
         const login = React.useCallback(async () => {
-            const web3 = await getWeb3();
+            const web3 = await getWeb3() || uiContainer.state.web3;
+
             const πNetworkID = web3.eth.net.getId();
             const πAddresses = web3.eth.getAccounts();
 
@@ -55,10 +57,6 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
                 uiContainer.connect(web3, address, networkID),
                 sdkContainer.connect(web3, address, networkID),
             ]);
-
-            uiContainer.updateTokenPrices().catch(_catchBackgroundErr_);
-            // uiContainer.updateBalanceReserves().catch(_catchBackgroundErr_);
-            uiContainer.updateAccountBalances().catch(_catchBackgroundErr_);
         }, [sdkContainer, uiContainer]);
 
         const logout = React.useCallback(async () => {
@@ -94,8 +92,8 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
                 }
 
                 // Start loops to update prices and balances
-                setInterval(() => uiContainer.updateTokenPrices().catch(() => { /* ignore */ }), 30 * 1000);
-                // setInterval(() => uiContainer.updateBalanceReserves().catch(() => { /* ignore */ }), 10 * 1000);
+                setIntervalAndRun(() => uiContainer.updateTokenPrices().catch(() => { /* ignore */ }), 30 * 1000);
+                setIntervalAndRun(() => uiContainer.updateReserveBalances().catch(() => { /* ignore */ }), 30 * 1000);
                 setInterval(() => uiContainer.updateAccountBalances().catch(() => { /* ignore */ }), 20 * 1000);
                 setInterval(() => uiContainer.lookForLogout(), 1 * 1000);
                 if (!showingTutorial) {

@@ -1,17 +1,20 @@
 import { Currency } from "@renproject/react-components";
-import RenSDK, { btcAddressToHex, Chain, zecAddressToHex } from "@renproject/ren";
+import RenSDK, { btcAddressToHex, zecAddressToHex } from "@renproject/ren";
 import BigNumber from "bignumber.js";
 import { Map as ImmutableMap } from "immutable";
 import { Container } from "unstated";
 import Web3 from "web3";
 
-import { calculateReceiveAmount } from "../lib/chaosdex";
-import { syncGetDEXReserveAddress, syncGetTokenAddress } from "../lib/contractAddresses";
+import {
+    calculateReceiveAmount, fetchEthereumTokenBalance, getBalances, getLiquidityBalances,
+    getReserveBalances, getReserveTotalSupply,
+} from "../lib/chaosdex";
+import { syncGetTokenAddress } from "../lib/contractAddresses";
+import { ETHEREUM_NODE } from "../lib/environmentVariables";
 import { _catchInteractionErr_ } from "../lib/errors";
-import { removeRenVMFee } from "../lib/estimatePrice";
 import { history } from "../lib/history";
 import { getTokenPricesInCurrencies } from "../lib/market";
-import { getERC20, getExchange, getReserve, isEthereumBased, Token, Tokens } from "./generalTypes";
+import { isEthereumBased, Token, Tokens } from "./generalTypes";
 import {
     Commitment, CommitmentType, HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus,
 } from "./persistentContainer";
@@ -45,8 +48,8 @@ export enum LiquidityTabs {
 }
 
 const initialState = {
-    web3: null as Web3 | null,
-    networkID: 0,
+    web3: new Web3(ETHEREUM_NODE),
+    networkID: network.contracts.networkID,
 
     loggedOut: null as string | null,
 
@@ -127,117 +130,39 @@ export class UIContainer extends Container<typeof initialState> {
         await this.setState({ tokenPrices });
     }
 
-    // public updateBalanceReserves = async (): Promise<void> => {
-    //     const { balanceReserves } = this.state;
-
-    //     let newBalanceReserves = balanceReserves;
-    //     // const marketPairs = [MarketPair.DAI_BTC, MarketPair.ETH_BTC, MarketPair.REN_BTC, MarketPair.ZEC_BTC];
-    //     const marketPairs = [MarketPair.DAI_BTC, MarketPair.DAI_ZEC];
-    //     const res = await this.getReserveBalance(marketPairs); // Promise<Array<Map<Token, BigNumber>>> => {
-    //     marketPairs.forEach((value, index) => {
-    //         newBalanceReserves = newBalanceReserves.set(value, res[index]);
-    //     });
-    //     await this.setState({ balanceReserves: newBalanceReserves });
-    //     await this.updateReceiveValue();
-    // }
-
     public fetchEthereumTokenBalance = async (token: Token, address: string): Promise<BigNumber> => {
         const { web3, networkID, network: networkDetails } = this.state;
         if (!web3) {
             return new BigNumber(0);
         }
-        let balance: string;
-        if (token === Token.ETH) {
-            balance = await web3.eth.getBalance(address);
-        } else {
-            // if (isERC20(token)) {
-            const tokenAddress = syncGetTokenAddress(networkID, token);
-            const tokenInstance = getERC20(web3, networkDetails, tokenAddress);
-            balance = (await tokenInstance.methods.balanceOf(address).call()).toString();
-            // } else {
-            //     throw new Error(`Invalid Ethereum token: ${token}`);
-        }
-        return new BigNumber(balance);
+        return fetchEthereumTokenBalance(web3, networkID, networkDetails, token, address);
     }
 
     public updateAccountBalances = async (): Promise<void> => {
         const { address, web3, networkID, network: networkDetails } = this.state;
+        let { accountBalances, liquidityBalances } = this.state;
         if (!web3 || !address) {
             return;
         }
 
-        let accountBalances = this.state.accountBalances;
-        const ethTokens = [Token.ETH, Token.DAI]; // , Token.REN];
-        const promises = ethTokens.map(async token => {
-            try {
-                return await this.fetchEthereumTokenBalance(token, address);
-            } catch (error) {
-                console.error(error);
-                return new BigNumber(0);
-            }
-        });
-        const balances = await Promise.all(promises);
-        balances.forEach((bal, index) => {
-            accountBalances = accountBalances.set(ethTokens[index], bal);
-        });
+        const ethTokens = [Token.ETH, Token.DAI];
+        accountBalances = accountBalances.merge(await getBalances(web3, networkID, networkDetails, ethTokens, address));
 
-        // Update liquidity token balances
         const tokensWithReserves = [Token.BTC, Token.ZEC, Token.BCH];
-        const liquidityBalancesAwaited = await Promise.all(tokensWithReserves.map(async token => {
-            const reserveAddress = syncGetDEXReserveAddress(networkID, token);
-            const tokenInstance = getERC20(web3, networkDetails, reserveAddress);
-            try {
-                return new BigNumber((await tokenInstance.methods.balanceOf(address).call()).toString());
-            } catch (error) {
-                console.error(error);
-                return new BigNumber(0);
-            }
-        }));
-        let liquidityBalances = this.state.liquidityBalances;
-        liquidityBalancesAwaited.forEach((bal, index) => {
-            liquidityBalances = liquidityBalances.set(tokensWithReserves[index], bal);
-        });
+        liquidityBalances = liquidityBalances.merge(await getLiquidityBalances(web3, networkID, networkDetails, tokensWithReserves, address));
 
-        const reserveTotalSupplyAwaited = await Promise.all(tokensWithReserves.map(async token => {
-            const reserveAddress = syncGetDEXReserveAddress(networkID, token);
-            const tokenInstance = getERC20(web3, networkDetails, reserveAddress);
-            try {
-                return new BigNumber((await tokenInstance.methods.totalSupply().call()).toString());
-            } catch (error) {
-                console.error(error);
-                return new BigNumber(0);
-            }
-        }));
-        let reserveTotalSupply = this.state.reserveTotalSupply;
-        reserveTotalSupplyAwaited.forEach((bal, index) => {
-            reserveTotalSupply = reserveTotalSupply.set(tokensWithReserves[index], bal);
-        });
+        await this.setState({ accountBalances, liquidityBalances });
+    }
 
-        const reserveBalancesAwaited = await Promise.all(tokensWithReserves.map(async token => {
-            const reserveAddress = syncGetDEXReserveAddress(networkID, token);
-            let base = new BigNumber(0);
-            let quote = new BigNumber(0);
-            try {
-                base = await this.fetchEthereumTokenBalance(Token.DAI, reserveAddress);
-            } catch (error) {
-                console.error(error);
-            }
-            try {
-                quote = await this.fetchEthereumTokenBalance(token, reserveAddress);
-            } catch (error) {
-                console.error(error);
-            }
-            return { base, quote };
-        }));
-        let reserveBalances = this.state.reserveBalances;
-        reserveBalancesAwaited.forEach((bal, index) => {
-            reserveBalances = reserveBalances.set(tokensWithReserves[index], bal);
-        });
+    public updateReserveBalances = async (): Promise<void> => {
+        const { web3, networkID, network: networkDetails } = this.state;
+        let { reserveTotalSupply, reserveBalances } = this.state;
 
-        // liquidityBalances: ImmutableMap<Token, BigNumber>(),
-        // reserveBalances: ImmutableMap<Token, { token: BigNumber, base: BigNumber }>(),
+        const tokensWithReserves = [Token.BTC, Token.ZEC, Token.BCH];
+        reserveTotalSupply = reserveTotalSupply.merge(await getReserveTotalSupply(web3, networkID, networkDetails, tokensWithReserves));
+        reserveBalances = reserveBalances.merge(await getReserveBalances(web3, networkID, networkDetails, tokensWithReserves));
 
-        await this.setState({ accountBalances, network: networkDetails, liquidityBalances, reserveTotalSupply, reserveBalances });
+        await this.setState({ reserveTotalSupply, reserveBalances });
     }
 
     // Inputs for swap /////////////////////////////////////////////////////////

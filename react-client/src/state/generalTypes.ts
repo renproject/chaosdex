@@ -16,7 +16,6 @@ export enum Token {
     DAI = "DAI",
     BTC = "BTC",
     ETH = "ETH",
-    // REN = "REN",
     ZEC = "ZEC",
     BCH = "BCH",
 }
@@ -36,7 +35,6 @@ export const Tokens = Map<Token, TokenDetails>()
     .set(Token.DAI, { symbol: Token.DAI, name: "Dai", decimals: 18, priority: 100, chain: Chain.Ethereum, validator: ethValidator })
     .set(Token.BTC, { symbol: Token.BTC, name: "Bitcoin", decimals: 8, priority: 200, chain: Chain.Bitcoin, validator: btcValidator })
     // .set(Token.ETH, { symbol: Token.ETH, name: "Ethereum", decimals: 18, priority: 1024, chain: Chain.Ethereum, validator: ethValidator })
-    // .set(Token.REN, { symbol: Token.REN, name: "Ren", decimals: 18, priority: 1025, chain: Chain.Ethereum, validator: ethValidator })
     .set(Token.ZEC, { symbol: Token.ZEC, name: "Zcash", decimals: 8, priority: 201, chain: Chain.Zcash, validator: zecValidator })
     .set(Token.BCH, { symbol: Token.BCH, name: "BCash", decimals: 8, priority: 202, chain: Chain.BCash, validator: bchValidator })
     ;

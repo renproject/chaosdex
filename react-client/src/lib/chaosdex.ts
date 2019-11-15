@@ -1,13 +1,31 @@
 import { Currency } from "@renproject/react-components";
-import { Chain } from "@renproject/ren";
+import { Chain, NetworkDetails } from "@renproject/ren";
 import BigNumber from "bignumber.js";
 import { Map as ImmutableMap } from "immutable";
 import Web3 from "web3";
 
-import { getExchange, getReserve, Token, Tokens } from "../state/generalTypes";
+import { getERC20, getExchange, getReserve, Token, Tokens } from "../state/generalTypes";
 import { ExchangeTabs, LiquidityTabs } from "../state/uiContainer";
 import { syncGetDEXReserveAddress, syncGetTokenAddress } from "./contractAddresses";
 import { removeRenVMFee } from "./estimatePrice";
+
+export const fetchEthereumTokenBalance = async (web3: Web3, networkID: number, networkDetails: NetworkDetails, token: Token, address: string): Promise<BigNumber> => {
+    if (!web3) {
+        return new BigNumber(0);
+    }
+    let balance: string;
+    if (token === Token.ETH) {
+        balance = await web3.eth.getBalance(address);
+    } else {
+        // if (isERC20(token)) {
+        const tokenAddress = syncGetTokenAddress(networkID, token);
+        const tokenInstance = getERC20(web3, networkDetails, tokenAddress);
+        balance = (await tokenInstance.methods.balanceOf(address).call()).toString();
+        // } else {
+        //     throw new Error(`Invalid Ethereum token: ${token}`);
+    }
+    return new BigNumber(balance);
+};
 
 export const calculateReceiveAmount = async (
     web3: Web3, networkID: number, exchangeTab: ExchangeTabs, liquidityTab: LiquidityTabs,
@@ -104,4 +122,82 @@ export const calculateReceiveAmount = async (
         throw new Error("Unable to calculate expected receive amount - invalid page options");
     }
     return dstAmountBN;
+};
+
+export const getBalances = async (web3: Web3, networkID: number, networkDetails: NetworkDetails, tokens: Token[], address: string) => {
+    const promises = tokens.map(async token => {
+        try {
+            return await fetchEthereumTokenBalance(web3, networkID, networkDetails, token, address);
+        } catch (error) {
+            console.error(error);
+            return new BigNumber(0);
+        }
+    });
+    const balances = await Promise.all(promises);
+    let accountBalances = ImmutableMap<Token, BigNumber>();
+    balances.forEach((bal, index) => {
+        accountBalances = accountBalances.set(tokens[index], bal);
+    });
+    return accountBalances;
+};
+
+export const getLiquidityBalances = async (web3: Web3, networkID: number, networkDetails: NetworkDetails, tokens: Token[], address: string) => {
+    const liquidityBalancesAwaited = await Promise.all(tokens.map(async token => {
+        const reserveAddress = syncGetDEXReserveAddress(networkID, token);
+        const tokenInstance = getERC20(web3, networkDetails, reserveAddress);
+        try {
+            return new BigNumber((await tokenInstance.methods.balanceOf(address).call()).toString());
+        } catch (error) {
+            console.error(error);
+            return new BigNumber(0);
+        }
+    }));
+    let liquidityBalances = ImmutableMap<Token, BigNumber>();
+    liquidityBalancesAwaited.forEach((bal, index) => {
+        liquidityBalances = liquidityBalances.set(tokens[index], bal);
+    });
+    return liquidityBalances;
+};
+
+export const getReserveTotalSupply = async (web3: Web3, networkID: number, networkDetails: NetworkDetails, tokens: Token[]) => {
+    // Reserves total supply
+    const reserveTotalSupplyAwaited = await Promise.all(tokens.map(async token => {
+        const reserveAddress = syncGetDEXReserveAddress(networkID, token);
+        const tokenInstance = getERC20(web3, networkDetails, reserveAddress);
+        try {
+            return new BigNumber((await tokenInstance.methods.totalSupply().call()).toString());
+        } catch (error) {
+            console.error(error);
+            return new BigNumber(0);
+        }
+    }));
+    let reserveTotalSupply = ImmutableMap<Token, BigNumber>();
+    reserveTotalSupplyAwaited.forEach((bal, index) => {
+        reserveTotalSupply = reserveTotalSupply.set(tokens[index], bal);
+    });
+    return reserveTotalSupply;
+};
+
+export const getReserveBalances = async (web3: Web3, networkID: number, networkDetails: NetworkDetails, tokens: Token[]) => {
+    const reserveBalancesAwaited = await Promise.all(tokens.map(async token => {
+        const reserveAddress = syncGetDEXReserveAddress(networkID, token);
+        let base = new BigNumber(0);
+        let quote = new BigNumber(0);
+        try {
+            base = await fetchEthereumTokenBalance(web3, networkID, networkDetails, Token.DAI, reserveAddress);
+        } catch (error) {
+            console.error(error);
+        }
+        try {
+            quote = await fetchEthereumTokenBalance(web3, networkID, networkDetails, token, reserveAddress);
+        } catch (error) {
+            console.error(error);
+        }
+        return { base, quote };
+    }));
+    let reserveBalances = ImmutableMap<Token, { base: BigNumber, quote: BigNumber }>();
+    reserveBalancesAwaited.forEach((bal, index) => {
+        reserveBalances = reserveBalances.set(tokens[index], bal);
+    });
+    return reserveBalances;
 };
