@@ -1,8 +1,6 @@
 import Web3 from "web3";
 import { HttpProvider } from "web3-providers";
 
-import { ETHEREUM_NODE } from "./environmentVariables";
-
 interface InjectedEthereum extends HttpProvider {
     enable: () => Promise<void>;
 }

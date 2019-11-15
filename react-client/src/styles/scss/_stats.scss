@@ -51,6 +51,15 @@
     .graph-stat {
         display: flex;
         flex-flow: column;
+
+        .graph-stat--loading {
+            display: flex;
+            align-items: center;
+
+            .loading {
+                margin-left: 10px;
+            }
+        }
     }
 
     .stat--group {
@@ -87,7 +96,7 @@
 .custom-tooltip {
     display: flex;
     flex-flow: column;
-    background: #282C35;
+    background: transparentize(#282C35, 0.5);
     border: 1px solid rgba(145, 149, 160, 0.1);
     box-sizing: border-box;
     box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.2);

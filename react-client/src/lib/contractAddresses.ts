@@ -77,6 +77,16 @@ export const syncGetDEXTradeLog = (): AbiInput[] => {
     return [];
 };
 
+export const syncGetTransfer = (): AbiInput[] => {
+    const abi = require(`../contracts/${network}/DaiToken.json`).abi;
+    for (const logAbi of abi) {
+        if (logAbi.type === "event" && logAbi.name === "Transfer") {
+            return logAbi.inputs;
+        }
+    }
+    return [];
+};
+
 export const syncGetDEXAdapterAddress = (networkID: number): string => {
     const renExNetworks = require(`../contracts/${network}/DEXAdapter.json`).networks;
     return renExNetworks[networkID].address;

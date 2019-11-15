@@ -1,5 +1,5 @@
 import { Currency } from "@renproject/react-components";
-import RenSDK, { btcAddressToHex, Chain, NetworkDetails, zecAddressToHex } from "@renproject/ren";
+import RenSDK, { btcAddressToHex, zecAddressToHex } from "@renproject/ren";
 import BigNumber from "bignumber.js";
 import { Map as ImmutableMap } from "immutable";
 import { Container } from "unstated";
@@ -9,13 +9,12 @@ import {
     calculateReceiveAmount, fetchEthereumTokenBalance, getBalances, getLiquidityBalances,
     getReserveBalances, getReserveTotalSupply,
 } from "../lib/chaosdex";
-import { syncGetDEXReserveAddress, syncGetTokenAddress } from "../lib/contractAddresses";
+import { syncGetTokenAddress } from "../lib/contractAddresses";
 import { ETHEREUM_NODE } from "../lib/environmentVariables";
 import { _catchInteractionErr_ } from "../lib/errors";
-import { removeRenVMFee } from "../lib/estimatePrice";
 import { history } from "../lib/history";
 import { getTokenPricesInCurrencies } from "../lib/market";
-import { getERC20, getExchange, getReserve, isEthereumBased, Token, Tokens } from "./generalTypes";
+import { isEthereumBased, Token, Tokens } from "./generalTypes";
 import {
     Commitment, CommitmentType, HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus,
 } from "./persistentContainer";
