@@ -30,6 +30,7 @@ contract("Puzzle", (accounts) => {
     const privKey = Buffer.from(mintAuthority.privateKey.slice(2), "hex");
     const feeInBips = new BN(10);
     const feeRecipient = accounts[1];
+    const maxGasPrice = new BN(web3.utils.toWei("21", "gwei"));
 
     // We generate a new account so that we have access to its private key for
     // `ecsign`. Web3's sign functions all prefix the message being signed.
@@ -76,7 +77,7 @@ contract("Puzzle", (accounts) => {
 
             let puzzle: ShiftInPuzzleInstance;
             // const tokenName = await zbtc.symbol.call();
-            puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash));
+            puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
             const x = await puzzle.registry.call();
             const rewardAmount = new BN("1000000");
             await fundBtc(puzzle, rewardAmount);
@@ -89,7 +90,7 @@ contract("Puzzle", (accounts) => {
 
             let puzzle: ShiftInPuzzleInstance;
             // const tokenName = await zbtc.symbol.call();
-            puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash));
+            puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
             const amount = new BN(0);
             const nHash = randomBytes(32);
             const sigString = randomBytes(32);
@@ -102,7 +103,7 @@ contract("Puzzle", (accounts) => {
             const hash = hashjs.sha256().update(msg).digest("hex");
 
             let puzzle: ShiftInPuzzleInstance;
-            puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash));
+            puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
             const rewardAmount = new BN("1000000");
             await fundBtc(puzzle, rewardAmount);
 
@@ -122,7 +123,7 @@ contract("Puzzle", (accounts) => {
             const hash = hashjs.sha256().update(msg).digest("hex");
 
             let puzzle: ShiftInPuzzleInstance;
-            puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash));
+            puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
             const rewardAmount = new BN("1000000");
             await fundBtc(puzzle, rewardAmount);
 
@@ -141,7 +142,7 @@ contract("Puzzle", (accounts) => {
             const hash = hashjs.sha256().update(msg).digest("hex");
 
             let puzzle: ShiftInPuzzleInstance;
-            puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash));
+            puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
             (await puzzle.validateSecret.call(web3.utils.fromAscii(someSecret))).should.be.true;
             (await puzzle.validateSecret.call(web3.utils.fromAscii("asdfksajdsf"))).should.be.false;
             (await puzzle.validateSecret.call(web3.utils.fromAscii("notthesecret"))).should.be.false;
@@ -158,7 +159,7 @@ contract("Puzzle", (accounts) => {
             const refundAddress = randomBytes(32);
 
             // ShiftInPuzzle
-            const shiftInPuzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash));
+            const shiftInPuzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
             (await shiftInPuzzle.rewardClaimed.call()).should.be.false;
             await fundBtc(shiftInPuzzle, rewardAmount);
             await claimShiftInPuzzleReward(shiftInPuzzle, new BN(100000), refundAddress, someSecret);
@@ -173,7 +174,7 @@ contract("Puzzle", (accounts) => {
             const rewardAmount = new BN("10000000");
             const refundAddress = randomBytes(32);
             // SimplePuzzle
-            const simplePuzzle = await SimplePuzzle.new(registry.address, "zBTC", Ox(hash));
+            const simplePuzzle = await SimplePuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
             (await simplePuzzle.rewardClaimed.call()).should.be.false;
             await fundBtc(simplePuzzle, rewardAmount);
             await claimSimplePuzzleReward(simplePuzzle, refundAddress, someSecret);
@@ -182,7 +183,7 @@ contract("Puzzle", (accounts) => {
             await claimSimplePuzzleReward(simplePuzzle, refundAddress, someSecret).should.be.rejectedWith(/reward already claimed/);
         });
 
-        it("rejects claim when the amount is zero for ShiftInPuzzles", async () => {
+        it("rejects ShiftInPuzzles claim when the amount is zero", async () => {
             const someSecret = "thequickbrownfoxjumpsoverthelazydog";
             const msg = generateSecretMessage(someSecret);
             const hash = hashjs.sha256().update(msg).digest("hex");
@@ -192,7 +193,7 @@ contract("Puzzle", (accounts) => {
             const nonce = randomBytes(32);
             const sigString = randomBytes(32);
 
-            const shiftInPuzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash));
+            const shiftInPuzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
             (await shiftInPuzzle.rewardClaimed.call()).should.be.false;
             await fundBtc(shiftInPuzzle, rewardAmount);
             const encRefundAddress = web3.utils.fromAscii(refundAddress);
@@ -206,13 +207,13 @@ contract("Puzzle", (accounts) => {
             ).should.be.rejectedWith(/amount must be greater than 0/);
         });
 
-        it("rejects claim with the wrong secret for ShiftInPuzzles", async () => {
+        it("rejects ShiftInPuzzle claims with the wrong secret", async () => {
             const someSecret = "thequickbrownfoxjumpsoverthelazydog";
             const msg = generateSecretMessage(someSecret);
             const hash = hashjs.sha256().update(msg).digest("hex");
             const rewardAmount = new BN("10000000");
             const refundAddress = randomBytes(32);
-            const shiftInPuzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash));
+            const shiftInPuzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
             (await shiftInPuzzle.rewardClaimed.call()).should.be.false;
 
             // ShiftInPuzzle
@@ -225,7 +226,7 @@ contract("Puzzle", (accounts) => {
             (await shiftInPuzzle.rewardClaimed.call()).should.be.false;
         });
 
-        it("rejects claim with the wrong secret for SimplePuzzles", async () => {
+        it("rejects SimplePuzzle claims with the wrong secret", async () => {
             const someSecret = "thequickbrownfoxjumpsoverthelazydog";
             const msg = generateSecretMessage(someSecret);
             const hash = hashjs.sha256().update(msg).digest("hex");
@@ -233,12 +234,64 @@ contract("Puzzle", (accounts) => {
             const refundAddress = randomBytes(32);
 
             // SimplePuzzle
-            const simplePuzzle = await SimplePuzzle.new(registry.address, "zBTC", Ox(hash));
+            const simplePuzzle = await SimplePuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
             (await simplePuzzle.rewardClaimed.call()).should.be.false;
             await fundBtc(simplePuzzle, rewardAmount);
             await claimSimplePuzzleReward(simplePuzzle, refundAddress, "kshjfeheskfjsfjehk").should.be.rejectedWith(/invalid secret/);
             await claimSimplePuzzleReward(simplePuzzle, refundAddress, "abcdefgh").should.be.rejectedWith(/invalid secret/);
             await claimSimplePuzzleReward(simplePuzzle, refundAddress, "not the secret").should.be.rejectedWith(/invalid secret/);
+        });
+
+        it("rejects SimplePuzzle claims when the gas price is too high", async () => {
+            const someSecret = "thequickbrownfoxjumpsoverthelazydog";
+            const msg = generateSecretMessage(someSecret);
+            const hash = hashjs.sha256().update(msg).digest("hex");
+            const rewardAmount = new BN("10000000");
+            const refundAddress = randomBytes(32);
+
+            // SimplePuzzle
+            const simplePuzzle = await SimplePuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
+            (await simplePuzzle.rewardClaimed.call()).should.be.false;
+            await fundBtc(simplePuzzle, rewardAmount);
+
+            const encRefundAddress = web3.utils.fromAscii(refundAddress);
+            const encSecret = web3.utils.fromAscii(someSecret);
+            let testGasPrice = new BN(web3.utils.toWei("61", "gwei"));
+            testGasPrice.should.bignumber.gt(maxGasPrice);
+            await simplePuzzle.claimReward(encRefundAddress, encSecret, { gasPrice: testGasPrice })
+                .should.be.rejectedWith(/gas price is too high/);
+            await simplePuzzle.claimReward(encRefundAddress, encSecret, { gasPrice: new BN(web3.utils.toWei("22", "gwei")) })
+                .should.be.rejectedWith(/gas price is too high/);
+            await simplePuzzle.claimReward(encRefundAddress, encSecret, { gasPrice: new BN(web3.utils.toWei("25", "gwei")) })
+                .should.be.rejectedWith(/gas price is too high/);
+            await simplePuzzle.claimReward(encRefundAddress, encSecret, { gasPrice: new BN(web3.utils.toWei("29", "gwei")) })
+                .should.be.rejectedWith(/gas price is too high/);
+            await simplePuzzle.claimReward(encRefundAddress, encSecret, { gasPrice: new BN(web3.utils.toWei("21", "gwei")) });
+        });
+
+        it("rejects ShiftInPuzzle claims when the gas price is too high", async () => {
+            const someSecret = "thequickbrownfoxjumpsoverthelazydog";
+            const msg = generateSecretMessage(someSecret);
+            const hash = hashjs.sha256().update(msg).digest("hex");
+            const rewardAmount = new BN("10000000");
+            const refundAddress = randomBytes(32);
+
+            // ShiftInPuzzle
+            const shiftInPuzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
+            (await shiftInPuzzle.rewardClaimed.call()).should.be.false;
+            await fundBtc(shiftInPuzzle, rewardAmount);
+            const encRefundAddress = web3.utils.fromAscii(refundAddress);
+            const encSecret = web3.utils.fromAscii(someSecret);
+            const nonce = randomBytes(32);
+            const sigString = randomBytes(32);
+            await shiftInPuzzle.claimReward(encRefundAddress, encSecret, rewardAmount, nonce, sigString, { gasPrice: new BN(web3.utils.toWei("61", "gwei")) })
+                .should.be.rejectedWith(/gas price is too high/);
+            await shiftInPuzzle.claimReward(encRefundAddress, encSecret, rewardAmount, nonce, sigString, { gasPrice: new BN(web3.utils.toWei("30", "gwei")) })
+                .should.be.rejectedWith(/gas price is too high/);
+            await shiftInPuzzle.claimReward(encRefundAddress, encSecret, rewardAmount, nonce, sigString, { gasPrice: new BN(web3.utils.toWei("25", "gwei")) })
+                .should.be.rejectedWith(/gas price is too high/);
+            await shiftInPuzzle.claimReward(encRefundAddress, encSecret, rewardAmount, nonce, sigString, { gasPrice: new BN(web3.utils.toWei("22", "gwei")) })
+                .should.be.rejectedWith(/gas price is too high/);
         });
     });
 

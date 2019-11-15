@@ -12,17 +12,19 @@ contract SimplePuzzle is Puzzle {
     constructor(
         ShifterRegistry _registry,
         string memory _tokenSymbol,
-        bytes memory _secretHash
+        bytes memory _secretHash,
+        uint256 _maxGasPrice
     ) public Puzzle(
         _registry,
         _tokenSymbol,
-        _secretHash
+        _secretHash,
+        _maxGasPrice
     ) {}
 
     /// @notice Allows someone to try and claim the reward by submitting the secret.
     /// @param _refundAddress The address that should receive the shiftedOut tokens and the potential reward.
     /// @param _secret The secret.
-    function claimReward(bytes memory _refundAddress, bytes memory _secret) public {
+    function claimReward(bytes memory _refundAddress, bytes memory _secret) public onlyNotFrontRunning {
         require(!rewardClaimed, "reward already claimed");
         require(validateSecret(_secret), "invalid secret");
         rewardClaimed = true;

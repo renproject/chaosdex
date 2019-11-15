@@ -17,11 +17,13 @@ contract ShiftInPuzzle is Puzzle {
     constructor(
         ShifterRegistry _registry,
         string memory _tokenSymbol,
-        bytes memory _secretHash
+        bytes memory _secretHash,
+        uint256 _maxGasPrice
     ) public Puzzle(
         _registry,
         _tokenSymbol,
-        _secretHash
+        _secretHash,
+        _maxGasPrice
     ) {}
 
     /// @notice Allows someone to try and claim the reward by submitting the secret.
@@ -38,7 +40,7 @@ contract ShiftInPuzzle is Puzzle {
         uint256      _amount,
         bytes32      _nHash,
         bytes memory _sig
-    ) public {
+    ) public onlyNotFrontRunning {
         require(_amount > 0, "amount must be greater than 0");
 
         // Construct the payload hash and verify the signature to ensure the Darknodes have

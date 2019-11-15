@@ -14,7 +14,14 @@ contract Puzzle is Ownable {
     string public tokenSymbol;   // The symbol of the reward token
     bool public rewardClaimed;   // Whether the puzzle has been solved or not
 
+    uint256 public maxGasPrice;  // Max tx gas price to avoid front running
+
     ShifterRegistry public registry;
+
+    modifier onlyNotFrontRunning() {
+        require(tx.gasprice <= maxGasPrice, "gas price is too high");
+        _;
+    }
 
     /// @param _registry The Shifter registry contract address
     /// @param _tokenSymbol The token symbol for the reward and the shifting
@@ -22,11 +29,13 @@ contract Puzzle is Ownable {
     constructor(
         ShifterRegistry _registry,
         string memory _tokenSymbol,
-        bytes memory _secretHash
+        bytes memory _secretHash,
+        uint256 _maxGasPrice
     ) public {
         registry = _registry;
         tokenSymbol = _tokenSymbol;
         secretHash = _secretHash;
+        maxGasPrice = _maxGasPrice;
     }
 
     /// @notice Funds the contract with claimable rewards
