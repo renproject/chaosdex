@@ -117,7 +117,7 @@ contract DEXReserve is ERC20, ERC20Detailed, Ownable {
         _burn(msg.sender, _liquidity);
         baseToken.safeTransfer(msg.sender, baseTokenAmount);
         token.safeTransfer(msg.sender, quoteTokenAmount);
-        emit LogRemoveLiquidity(msg.sender, quoteTokenAmount, baseTokenAmount, _liquidity, totalSupply());
+        // emit LogRemoveLiquidity(msg.sender, quoteTokenAmount, baseTokenAmount, _liquidity, totalSupply());
         return (baseTokenAmount, quoteTokenAmount);
     }
 
@@ -133,11 +133,11 @@ contract DEXReserve is ERC20, ERC20Detailed, Ownable {
             uint256 baseAmount = expectedBaseTokenAmount(_tokenAmount);
             require(baseAmount <= _maxBaseToken, "calculated base amount exceeds the maximum amount set");
             baseToken.safeTransferFrom(_liquidityProvider, address(this), baseAmount);
-            emit LogAddLiquidity(_liquidityProvider, _tokenAmount, baseAmount, liquidity, totalSupply());
+            // emit LogAddLiquidity(_liquidityProvider, _tokenAmount, baseAmount, liquidity, totalSupply());
         } else {
             // If there's no previous liquidity, the ratio is set by the new provider.
             baseToken.safeTransferFrom(_liquidityProvider, address(this), _maxBaseToken);
-            emit LogAddLiquidity(_liquidityProvider, _tokenAmount, _maxBaseToken, liquidity, totalSupply());
+            // emit LogAddLiquidity(_liquidityProvider, _tokenAmount, _maxBaseToken, liquidity, totalSupply());
         }
         token.safeTransferFrom(msg.sender, address(this), _tokenAmount);
         _mint(_liquidityProvider, liquidity);
