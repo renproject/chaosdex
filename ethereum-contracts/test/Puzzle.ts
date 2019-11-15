@@ -18,7 +18,7 @@ const zZEC = artifacts.require("zZEC");
 const ShiftInPuzzle = artifacts.require("ShiftInPuzzle");
 const SimplePuzzle = artifacts.require("SimplePuzzle");
 
-contract.only("Puzzle", (accounts) => {
+contract("Puzzle", (accounts) => {
     let zecShifter: ZECShifterInstance;
     let zzec: zZECInstance;
     let btcShifter: BTCShifterInstance;
