@@ -47,7 +47,3 @@ export const Ox = (hex: string | BN | Buffer) => {
     const hexString = typeof hex === "string" ? hex : hex.toString("hex");
     return hexString.substring(0, 2) === "0x" ? hexString : `0x${hexString}`;
 };
-
-export const randomBytesString = (bytes: number): string => {
-    return Ox(crypto.randomBytes(bytes));
-};

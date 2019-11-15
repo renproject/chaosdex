@@ -7,7 +7,7 @@ import {
     DaiTokenInstance, DEXAdapterInstance, DEXChallengeInstance, DEXInstance, DEXReserveInstance, ERC20Instance,
     ERC20ShiftedInstance, ShifterInstance, ShifterRegistryInstance, TestTokenInstance,
 } from "../types/truffle-contracts";
-import { Ox, NULL, randomBytesString } from "./helper/testUtils";
+import { Ox, NULL, randomBytes as randomBytesString } from "./helper/testUtils";
 import { log } from "./helper/logs";
 
 const TestToken = artifacts.require("ERC20Shifted");
