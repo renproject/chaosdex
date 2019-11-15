@@ -6,6 +6,7 @@ const path = require("path");
 const packageJSON = require("./package.json");
 
 const HDWalletProvider = require("truffle-hdwallet-provider");
+const { GSNDevProvider } = require("@openzeppelin/gsn-provider");
 
 const { execSync } = require("child_process")
 
@@ -41,6 +42,11 @@ module.exports = {
             gasPrice: 5 * GWEI,
         },
         development: {
+            provider: () => new GSNDevProvider('http://localhost:8545', {
+                txfee: 70,
+                useGSN: false,
+            }),
+            gas: 4600000,
             host: "localhost",
             port: 8545,
             network_id: "*",

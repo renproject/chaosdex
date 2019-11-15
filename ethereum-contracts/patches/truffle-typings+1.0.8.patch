@@ -1,8 +1,16 @@
 diff --git a/node_modules/truffle-typings/index.d.ts b/node_modules/truffle-typings/index.d.ts
-index eae5e74..5014462 100644
+index eae5e74..789480b 100644
 --- a/node_modules/truffle-typings/index.d.ts
 +++ b/node_modules/truffle-typings/index.d.ts
-@@ -66,7 +66,7 @@ declare namespace Truffle {
+@@ -44,6 +44,7 @@ declare namespace Truffle {
+     gas?: BN | number | string;
+     gasPrice?: BN | number | string;
+     value?: BN | string;
++    useGSN?: boolean;
+   }
+ 
+   export interface TransactionLog {
+@@ -66,7 +67,7 @@ declare namespace Truffle {
  
    interface Contract<T> extends ContractNew<any[]> {
      deployed(): Promise<T>;

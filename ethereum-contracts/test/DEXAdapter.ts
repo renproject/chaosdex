@@ -9,6 +9,10 @@ import {
 } from "../types/truffle-contracts";
 import { NULL } from "./helper/testUtils";
 
+const { utils } = require('@openzeppelin/gsn-provider');
+const gsn = require('@openzeppelin/gsn-helpers');
+const { isRelayHubDeployedForRecipient } = utils;
+
 const TestToken = artifacts.require("TestToken");
 const DAI = artifacts.require("DaiToken");
 const zBTC = artifacts.require("zBTC");
@@ -18,6 +22,7 @@ const DEXReserve = artifacts.require("DEXReserve");
 const DEX = artifacts.require("DEX");
 const DEXAdapter = artifacts.require("DEXAdapter");
 const ShifterRegistry = artifacts.require("ShifterRegistry");
+const IRelayHub = artifacts.require("IRelayHub")
 
 contract("DEXAdapter", (accounts) => {
     let dai: DaiTokenInstance;
@@ -52,6 +57,7 @@ contract("DEXAdapter", (accounts) => {
         mintAuthority = web3.eth.accounts.create();
         privKey = Buffer.from(mintAuthority.privateKey.slice(2), "hex")
 
+
         dai = await DAI.new();
         zToken1 = await zBTC.new();
         shifter1 = await Shifter.new(zToken1.address, feeRecipient, mintAuthority.address, shiftInFees, shiftOutFees, zBTCMinShiftOutAmount);
@@ -79,6 +85,8 @@ contract("DEXAdapter", (accounts) => {
         await shifterRegistry.setShifter(zToken2.address, shifter2.address);
 
         dexAdapter = await DEXAdapter.new(dex.address, shifterRegistry.address);
+        const isVoterReady = await isRelayHubDeployedForRecipient(web3, dexAdapter.address);
+        assert.equal(isVoterReady, true);
 
         // Add liquidity to token3's reserve.
         const daiValue = new BN(20000000000);
@@ -151,22 +159,26 @@ contract("DEXAdapter", (accounts) => {
     const tradeShiftedTokens = async (srcToken: ERC20Instance, dstToken: ERC20Instance) => {
         let receivingValue, sigString, receivingValueAfterFees;
         const recipient = accounts[3];
+
+        let relayHub = await IRelayHub.at('0xD216153c06E857cD7f72665E0aF1d7D82172F494');
+
         const value = new BN(22500);
         const nHash = `0x${randomBytes(32).toString("hex")}`
 
         const dstShifter = await shifterRegistry.getShifterByToken.call(dstToken.address);
         const srcShifter = await shifterRegistry.getShifterByToken.call(srcToken.address);
         if (srcShifter === NULL) {
-            receivingValue = new BN(await dex.calculateReceiveAmount.call(srcToken.address, dstToken.address, value));
-            receivingValueAfterFees = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
-            await srcToken.approve(dexAdapter.address, value);
+            receivingValue = new BN(await dex.calculateReceiveAmount.call(srcToken.address, dstToken.address, value, { from: accounts[5] }));
+            receivingValueAfterFees = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, value, { from: accounts[5] });
+            await srcToken.approve(dexAdapter.address, value, { from: accounts[5] });
             sigString = `0x${randomBytes(32).toString("hex")}`;
         } else {
-            receivingValue = new BN(await dex.calculateReceiveAmount.call(srcToken.address, dstToken.address, removeFee(value, shiftInFees)));
-            receivingValueAfterFees = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, value);
+            receivingValue = new BN(await dex.calculateReceiveAmount.call(srcToken.address, dstToken.address, removeFee(value, shiftInFees), { from: accounts[5] }));
+            receivingValueAfterFees = await dexAdapter.calculateReceiveAmount.call(srcToken.address, dstToken.address, value, { from: accounts[5] });
             const commitment = await dexAdapter.hashTradePayload.call(
                 srcToken.address, dstToken.address, 0, recipient,
                 100000, "0x010101010101",
+                { from: accounts[5] },
             );
             const srcShifterContract = await Shifter.at(srcShifter);
             const hash = await srcShifterContract.hashForSignature.call(commitment, value, dexAdapter.address, nHash);
@@ -187,16 +199,27 @@ contract("DEXAdapter", (accounts) => {
         const dstReserveSrcBalanceBefore = new BN((await srcToken.balanceOf.call(dstReserve)).toString());
         // Recipient
         const recipientDstBalanceBefore = new BN((await dstToken.balanceOf.call(recipient)).toString());
-
+        await gsn.fundRecipient(web3, { recipient: dexAdapter.address });
+        const recipientPreBalance = await relayHub.balanceOf.call(dexAdapter.address);
         { // Perform trade
+            var startingBalance = await web3.eth.getBalance(accounts[5])
             await dexAdapter.trade(
                 // Payload:
                 srcToken.address, dstToken.address, 0, accounts[3],
                 100000, "0x010101010101",
                 // Required
                 value, nHash, sigString,
+                {
+                    from: accounts[5],
+                    useGSN: true,
+                }
             );
+            var finalBalance = await web3.eth.getBalance(accounts[5])
+            finalBalance.should.bignumber.equal(startingBalance);
         }
+
+        const recipientPostBalance = await relayHub.balanceOf.call(dexAdapter.address);
+        recipientPostBalance.should.not.bignumber.equal(recipientPreBalance);
 
         // Get balances after
         // Src Reserve
@@ -341,6 +364,11 @@ contract("DEXAdapter", (accounts) => {
         const daiValue = new BN(20000000000);
         const tokenValue = new BN(15000000000);
         await shiftToReserve(daiValue, tokenValue, zToken2, dexReserve2);
+    });
+
+    it("should transfer dai to accounts[5]", async () => {
+        await dai.transfer(accounts[5], await dai.balanceOf.call(accounts[0]))
+        await token3.transfer(accounts[5], await token3.balanceOf.call(accounts[0]))
     });
 
     it("should trade dai to token1 on DEX", async () => tradeShiftedTokens(dai, zToken1));

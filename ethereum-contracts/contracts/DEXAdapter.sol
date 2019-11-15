@@ -6,8 +6,9 @@ import "darknode-sol/contracts/Shifter/ShifterRegistry.sol";
 import "darknode-sol/contracts/Shifter/IShifter.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import "openzeppelin-solidity/contracts/GSN/GSNRecipient.sol";
 
-contract DEXAdapter {
+contract DEXAdapter is GSNRecipient {
     using SafeERC20 for ERC20;
 
     DEX public dex;
@@ -25,9 +26,9 @@ contract DEXAdapter {
     /// To withdraw ETH, the token should be set to `0x0`.
     function recoverTokens(address _token) external {
         if (_token == address(0x0)) {
-            msg.sender.transfer(address(this).balance);
+            _msgSender().transfer(address(this).balance);
         } else {
-            ERC20(_token).transfer(msg.sender, ERC20(_token).balanceOf(address(this)));
+            ERC20(_token).transfer(_msgSender(), ERC20(_token).balanceOf(address(this)));
         }
     }
 
@@ -96,11 +97,33 @@ contract DEXAdapter {
     function removeLiquidity(address _token, uint256 _liquidity, bytes calldata _tokenAddress) external {
         DEXReserve reserve = dex.reserves(_token);
         require(reserve != DEXReserve(0x0), "unsupported token");
-        ERC20(reserve).safeTransferFrom(msg.sender, address(this), _liquidity);
+        ERC20(reserve).safeTransferFrom(_msgSender(), address(this), _liquidity);
         (uint256 baseTokenAmount, uint256 quoteTokenAmount) = reserve.removeLiquidity(_liquidity);
-        reserve.baseToken().safeTransfer(msg.sender, baseTokenAmount);
+        reserve.baseToken().safeTransfer(_msgSender(), baseTokenAmount);
         shifterRegistry.getShifterByToken(address(reserve.token())).shiftOut(_tokenAddress, quoteTokenAmount);
     }
+
+    // accept all requests
+    function acceptRelayedCall(
+        address,
+        address,
+        bytes calldata,
+        uint256,
+        uint256,
+        uint256,
+        uint256,
+        bytes calldata,
+        uint256
+    ) external view returns (uint256, bytes memory) {
+        return _approveRelayedCall();
+    }
+
+    function _preRelayedCall(bytes memory context) internal returns (bytes32) {}
+
+    /**
+     * @dev Returns to the user the extra amount that was previously charged, once the actual execution cost is known.
+     */
+    function _postRelayedCall(bytes memory context, bool, uint256 actualCharge, bytes32)  internal {    }
 
     function _doTrade(
         address _src, address _dst, uint256 _minDstAmt, bytes memory _to, uint256 _amount
@@ -137,7 +160,7 @@ contract DEXAdapter {
         if (shifter != IShifter(0x0)) {
             return shifter.shiftIn(_pHash, _amount, _nHash, _sig);
         } else {
-            ERC20(_src).safeTransferFrom(msg.sender, address(this), _amount);
+            ERC20(_src).safeTransferFrom(_msgSender(), address(this), _amount);
             return _amount;
         }
     }

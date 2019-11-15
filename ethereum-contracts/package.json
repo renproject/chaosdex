@@ -19,10 +19,12 @@
         "prepare": "patch-package"
     },
     "dependencies": {
+        "@openzeppelin/gsn-provider": "^0.1.9",
         "darknode-sol": "https://github.com/renproject/darknode-sol#42f1a180938ee3a81eb84291281a68675f2ef164",
         "openzeppelin-solidity": "2.4.0"
     },
     "devDependencies": {
+        "@openzeppelin/gsn-helpers": "^0.2.1",
         "@renproject/contracts": "0.3.24",
         "@types/chai": "^4.2.4",
         "@types/chai-as-promised": "^7.1.2",
