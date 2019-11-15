@@ -58,4 +58,15 @@ contract ShiftInPuzzle is Puzzle {
         // Shift out the funds to the specified address
         registry.getShifterBySymbol(tokenSymbol).shiftOut(_rewardAddress, transferAmount);
     }
+
+    /// @notice Get the hash payload
+    ///
+    /// @param _rewardAddress The address that should receive the shiftedOut tokens and the potential reward.
+    /// @param _secret The secret.
+    function hashPayload(
+        bytes memory _rewardAddress,
+        bytes memory _secret
+    ) public pure returns (bytes32) {
+        return keccak256(abi.encode(_rewardAddress, _secret));
+    }
 }

@@ -62,17 +62,6 @@ contract Puzzle is Ownable {
         rewardAmount = rewardAmount.sub(_amount);
     }
 
-    /// @notice Get the hash payload
-    ///
-    /// @param _refundAddress The address that should receive the shiftedOut tokens and the potential reward.
-    /// @param _secret The secret.
-    function hashPayload(
-        bytes memory _refundAddress,
-        bytes memory _secret
-    ) public pure returns (bytes32) {
-        return keccak256(abi.encode(_refundAddress, _secret));
-    }
-
     /// @notice Validate that the secret is correct. Use this function to
     ///         validate your answer if you think you've got it before
     ///         submitting a swap. You could also use this to brute-force
