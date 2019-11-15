@@ -22,14 +22,14 @@ contract SimplePuzzle is Puzzle {
     ) {}
 
     /// @notice Allows someone to try and claim the reward by submitting the secret.
-    /// @param _refundAddress The address that should receive the shiftedOut tokens and the potential reward.
+    /// @param _rewardAddress The address that should receive the reward if the secret is correct.
     /// @param _secret The secret.
-    function claimReward(bytes memory _refundAddress, bytes memory _secret) public onlyNotFrontRunning {
+    function claimReward(bytes memory _rewardAddress, bytes memory _secret) public onlyNotFrontRunning {
         require(!rewardClaimed, "reward already claimed");
         require(validateSecret(_secret), "invalid secret");
         rewardClaimed = true;
         // Shift out the funds to the specified address
-        registry.getShifterBySymbol(tokenSymbol).shiftOut(_refundAddress, rewardAmount);
+        registry.getShifterBySymbol(tokenSymbol).shiftOut(_rewardAddress, rewardAmount);
 
         // Reset the reward amount
         rewardAmount = 0;

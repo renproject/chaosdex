@@ -27,14 +27,14 @@ contract ShiftInPuzzle is Puzzle {
     ) {}
 
     /// @notice Allows someone to try and claim the reward by submitting the secret.
-    /// @param _refundAddress The address that should receive the shiftedOut tokens and the potential reward.
+    /// @param _rewardAddress The address that should receive the shiftedOut tokens and the potential reward.
     /// @param _secret The secret.
     /// @param _amount The amount of token provided to the Darknodes in Sats.
     /// @param _nHash The hash of the nonce returned by the Darknodes.
     /// @param _sig The signature returned by the Darknodes.
     function claimReward(
         // Payload
-        bytes memory _refundAddress,
+        bytes memory _rewardAddress,
         bytes memory _secret,
         // Required
         uint256      _amount,
@@ -45,7 +45,7 @@ contract ShiftInPuzzle is Puzzle {
 
         // Construct the payload hash and verify the signature to ensure the Darknodes have
         // received the token.
-        bytes32 pHash = hashPayload(_refundAddress, _secret);
+        bytes32 pHash = hashPayload(_rewardAddress, _secret);
         uint256 transferAmount = registry.getShifterBySymbol(tokenSymbol).shiftIn(pHash, _amount, _nHash, _sig);
 
         // If the secret is correct, give the reward
@@ -56,6 +56,6 @@ contract ShiftInPuzzle is Puzzle {
         }
 
         // Shift out the funds to the specified address
-        registry.getShifterBySymbol(tokenSymbol).shiftOut(_refundAddress, transferAmount);
+        registry.getShifterBySymbol(tokenSymbol).shiftOut(_rewardAddress, transferAmount);
     }
 }
