@@ -1,8 +1,7 @@
 import BN from "bn.js";
 import hashjs from "hash.js";
 
-import { rawEncode } from "ethereumjs-abi";
-import { ecsign, keccak256, ecrecover, pubToAddress } from "ethereumjs-util";
+import { ecsign, ecrecover, pubToAddress } from "ethereumjs-util";
 
 import {
     ZECShifterInstance, BTCShifterInstance, PuzzleInstance, ShiftInPuzzleInstance, SimplePuzzleInstance,
@@ -19,7 +18,7 @@ const zZEC = artifacts.require("zZEC");
 const ShiftInPuzzle = artifacts.require("ShiftInPuzzle");
 const SimplePuzzle = artifacts.require("SimplePuzzle");
 
-contract("Puzzle", (accounts) => {
+contract.only("Puzzle", (accounts) => {
     let zecShifter: ZECShifterInstance;
     let zzec: zZECInstance;
     let btcShifter: BTCShifterInstance;
@@ -323,11 +322,10 @@ contract("Puzzle", (accounts) => {
     };
 
     const claimShiftInPuzzleReward = async (ShiftInPuzzleInstance: ShiftInPuzzleInstance, amount: BN, refundAddress: string, secret: string) => {
+        const encRefundAddress = web3.utils.fromAscii(refundAddress);
+        const encSecret = web3.utils.fromAscii(secret);
         const nonce = randomBytes(32);
-        const pHash = keccak256(rawEncode(
-            ["bytes", "bytes"],
-            [refundAddress, secret],
-        )).toString("hex");
+        const pHash = await (ShiftInPuzzleInstance.hashPayload as any).call(encRefundAddress, encSecret);
 
         const hashForSignature = await btcShifter.hashForSignature.call(
             Ox(pHash),
@@ -337,9 +335,6 @@ contract("Puzzle", (accounts) => {
         );
         const sig = ecsign(Buffer.from(hashForSignature.slice(2), "hex"), privKey);
         const sigString = Ox(`${sig.r.toString("hex")}${sig.s.toString("hex")}${(sig.v).toString(16)}`);
-
-        const encRefundAddress = web3.utils.fromAscii(refundAddress);
-        const encSecret = web3.utils.fromAscii(secret);
 
         return ShiftInPuzzleInstance.claimReward(
             // Payload
