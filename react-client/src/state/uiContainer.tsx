@@ -449,7 +449,7 @@ export class UIContainer extends Container<typeof initialState> {
             const dstAmountBN = await calculateReceiveAmount(web3, networkID, exchangeTab, liquidityTab, { srcToken, dstToken, srcAmount }, tokenPrices, reserveBalances);
             await this.setState({ orderInputs: { ...this.state.orderInputs, dstAmount: dstAmountBN.toFixed() } });
         } catch (error) {
-            _catchInteractionErr_(error);
+            _catchInteractionErr_(error, "Error in uiContainer: calculateReceiveAmount");
         }
     }
 

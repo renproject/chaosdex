@@ -20,7 +20,11 @@ export const fetchEthereumTokenBalance = async (web3: Web3, networkID: number, n
         // if (isERC20(token)) {
         const tokenAddress = syncGetTokenAddress(networkID, token);
         const tokenInstance = getERC20(web3, networkDetails, tokenAddress);
-        balance = (await tokenInstance.methods.balanceOf(address).call()).toString();
+        const balanceBN = await tokenInstance.methods.balanceOf(address).call();
+        if (balanceBN === null) {
+            throw new Error(`balanceOf returned back 'null'`);
+        }
+        balance = balanceBN.toString();
         // } else {
         //     throw new Error(`Invalid Ethereum token: ${token}`);
     }
@@ -57,8 +61,11 @@ export const calculateReceiveAmount = async (
         }
 
         const dstAmount = await exchange.methods.calculateReceiveAmount(srcTokenAddress, dstTokenAddress, srcAmountShifted).call();
+        if (dstAmount === null) {
+            throw new Error(`calculateReceiveAmount returned back 'null'`);
+        }
 
-        let dstAmountShiftedBN = new BigNumber(dstAmount);
+        let dstAmountShiftedBN = new BigNumber(dstAmount.toString());
         if (dstTokenDetails.chain !== Chain.Ethereum) {
             dstAmountShiftedBN = removeRenVMFee(dstAmountShiftedBN);
         }
@@ -74,7 +81,11 @@ export const calculateReceiveAmount = async (
         }
 
         try {
-            const dstAmountShiftedBN = new BigNumber(await reserve.methods.expectedBaseTokenAmount(srcAmountShifted.decimalPlaces(0).toFixed()).call());
+            const dstAmountShiftedCall = await reserve.methods.expectedBaseTokenAmount(srcAmountShifted.decimalPlaces(0).toFixed()).call();
+            if (dstAmountShiftedCall === null) {
+                throw new Error(`expectedBaseTokenAmount returned back 'null'`);
+            }
+            const dstAmountShiftedBN = new BigNumber(dstAmountShiftedCall.toString());
 
             dstAmountBN = (new BigNumber(dstAmountShiftedBN).div(new BigNumber(10).pow(dstTokenDetails.decimals)));
             if (dstAmountBN.isNaN()) {
@@ -146,7 +157,7 @@ export const getLiquidityBalances = async (web3: Web3, networkID: number, networ
         const reserveAddress = syncGetDEXReserveAddress(networkID, token);
         const tokenInstance = getERC20(web3, networkDetails, reserveAddress);
         try {
-            return new BigNumber((await tokenInstance.methods.balanceOf(address).call()).toString());
+            return new BigNumber(((await tokenInstance.methods.balanceOf(address).call()) || "0").toString());
         } catch (error) {
             console.error(error);
             return new BigNumber(0);
@@ -165,7 +176,7 @@ export const getReserveTotalSupply = async (web3: Web3, networkID: number, netwo
         const reserveAddress = syncGetDEXReserveAddress(networkID, token);
         const tokenInstance = getERC20(web3, networkDetails, reserveAddress);
         try {
-            return new BigNumber((await tokenInstance.methods.totalSupply().call()).toString());
+            return new BigNumber(((await tokenInstance.methods.totalSupply().call()) || "0").toString());
         } catch (error) {
             console.error(error);
             return new BigNumber(0);

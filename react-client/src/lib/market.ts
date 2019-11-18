@@ -24,12 +24,16 @@ const fetchDetails = async (geckoID: string) => {
 
 export const getTokenPricesInCurrencies = async (): Promise<TokenPrices> =>
     /*await*/ CoinGeckoIDs
-        .map((coinGeckoID) => fetchDetails(coinGeckoID))
+        .map(coinGeckoID => fetchDetails(coinGeckoID))
         .reduce(async (pricesPromise, detailsPromise, token) => {
-            const data = await detailsPromise;
-            const price = Map<Currency, number>(data.market_data.current_price);
-
-            return (await pricesPromise).set(token, price);
+            const prices = await pricesPromise;
+            try {
+                const data = await detailsPromise;
+                const price = Map<Currency, number>(data.market_data.current_price);
+                return prices.set(token, price);
+            } catch (error) {
+                return prices;
+            }
         }, Promise.resolve(Map<Token, Map<Currency, number>>()));
 
 export enum MarketPair {

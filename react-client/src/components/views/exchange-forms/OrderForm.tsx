@@ -21,7 +21,7 @@ export const OrderForm = connect<Props & ConnectedProps<[UIContainer]>>([UIConta
 
         const openOrder = async () => {
             await uiContainer.updateCommitmentType(CommitmentType.Trade);
-            uiContainer.setSubmitting(true).catch(_catchBackgroundErr_);
+            uiContainer.setSubmitting(true).catch(error => _catchBackgroundErr_(error, "Error in OrderForm: setSubmitting"));
         };
 
         const { orderInputs, address, submitting } = uiContainer.state;

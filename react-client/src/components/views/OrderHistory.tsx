@@ -61,7 +61,7 @@ const shiftProgress = (status: ShiftInStatus | ShiftOutStatus) => {
 
 export const txUrl = (tx: Tx | null): string => {
     if (!tx) { return ""; }
-    const isTx = tx.hash && tx.hash.slice && tx.hash.match(/(0x)?[a-fA-F0-9]+/);
+    const isTx = tx.hash && tx.hash.slice && tx.hash.match(/^(0x)?[a-fA-F0-9]+$/);
     switch (tx.chain) {
         case Chain.Ethereum:
             return `${network.contracts.etherscan}/tx/${tx.hash}`;
@@ -72,6 +72,7 @@ export const txUrl = (tx: Tx | null): string => {
         case Chain.BCash:
             return `https://explorer.bitcoin.com/${network.isTestnet ? "t" : ""}bch/${isTx ? "tx" : "address"}/${strip0x(tx.hash)}`;
     }
+    return "";
 };
 
 const OrderHistoryEntry = ({ order, continueOrder, loggedIn }: {
@@ -200,8 +201,8 @@ export const OrderHistory = connect<{} & ConnectedProps<[PersistentContainer, UI
         // export const OrderHistory = ({ orders }: Props) => {
         const [start, setStart] = React.useState(0);
 
-        const nextPage = () => { setStart(start + 5); };
-        const previousPage = () => { setStart(Math.max(start - 5, 0)); };
+        const nextPage = () => setStart(start + 5);
+        const previousPage = () => setStart(Math.max(start - 5, 0));
 
         const orders = Object.values(historyItems).sort((a, b) => b.time - a.time);
 

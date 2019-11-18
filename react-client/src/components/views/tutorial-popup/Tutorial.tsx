@@ -49,7 +49,7 @@ export const Tutorial: React.StatelessComponent<{
                     <ul>
                         {tutorialPages.map(({ name }, index) =>
                             // tslint:disable-next-line: react-this-binding-issue jsx-no-lambda
-                            <li onClick={() => { setPage(index); }} role="tab" key={name} className={`${page >= index ? "checked" : ""} ${page === index ? "selected" : ""}`}>{name}</li>
+                            <li onClick={() => setPage(index)} role="tab" key={name} className={`${page >= index ? "checked" : ""} ${page === index ? "selected" : ""}`}>{name}</li>
                         )}
                     </ul>
                 </div>

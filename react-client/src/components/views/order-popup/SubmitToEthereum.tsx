@@ -37,7 +37,7 @@ export const SubmitToEthereum: React.StatelessComponent<{
                 return;
             }
 
-            _catchInteractionErr_(shownError);
+            _catchInteractionErr_(shownError, "Error in SubmitToEthereum: submit");
             const match = String(shownError.message || shownError).match(/"transactionHash": "(0x[a-fA-F0-9]{64})"/);
             if (match && match.length >= 2) {
                 setFailedTransaction(match[1]);

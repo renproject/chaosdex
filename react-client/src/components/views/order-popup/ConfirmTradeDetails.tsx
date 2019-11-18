@@ -28,7 +28,7 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
                         (token === Token.ZEC) ?
                             "ZCash Transaction Fees" :
                             (token === Token.BCH) ?
-                                "BCash Transaction Fees" :
+                                "Bitcoin Cash Transaction Fees" :
                                 "Transaction Fees"
                     }
                 </span>

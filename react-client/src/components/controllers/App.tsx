@@ -10,7 +10,6 @@ import { getWeb3 } from "../../lib/getWeb3";
 import { setIntervalAndRun } from "../../lib/utils";
 import { connect, ConnectedProps } from "../../state/connect";
 import { Token } from "../../state/generalTypes";
-import { PopupContainer } from "../../state/popupContainer";
 import { network, SDKContainer } from "../../state/sdkContainer";
 import { UIContainer } from "../../state/uiContainer";
 import { ErrorBoundary } from "../ErrorBoundary";
@@ -26,8 +25,8 @@ const useTutorialState = createPersistedState("show-tutorial");
  * App is the main visual component responsible for displaying different routes
  * and running background app loops
  */
-export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UIContainer, SDKContainer, PopupContainer]>>([UIContainer, SDKContainer, PopupContainer])(
-    ({ containers: [uiContainer, sdkContainer, popupContainer], location }) => {
+export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UIContainer, SDKContainer]>>([UIContainer, SDKContainer])(
+    ({ containers: [uiContainer, sdkContainer], location }) => {
 
         const [showingTutorial, setShowTutorial] = useTutorialState(true);
 
@@ -40,7 +39,12 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
         }, [setShowTutorial]);
 
         const login = React.useCallback(async () => {
-            const web3 = await getWeb3() || uiContainer.state.web3;
+            let web3 = uiContainer.state.web3;
+            try {
+                web3 = await getWeb3();
+            } catch (error) {
+                // ignore error
+            }
 
             const πNetworkID = web3.eth.net.getId();
             const πAddresses = web3.eth.getAccounts();
@@ -75,19 +79,24 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
                 try {
                     const queryParams = parseLocation(location.search.replace(/^\?/, ""));
                     if (queryParams.send && queryParams.receive) {
-                        uiContainer.updateBothTokens(queryParams.send as Token, queryParams.receive as Token).catch(_catchInteractionErr_);
+                        uiContainer
+                            .updateBothTokens(queryParams.send as Token, queryParams.receive as Token)
+                            .catch(error => _catchInteractionErr_(error, "Error in App: updateBothTokens"));
                     } else {
                         if (queryParams.send) {
-                            uiContainer.updateSrcToken(queryParams.send as Token).catch(_catchInteractionErr_);
+                            uiContainer
+                                .updateSrcToken(queryParams.send as Token)
+                                .catch(error => _catchInteractionErr_(error, "Error in App: updateSrcToken"));
                         }
                         if (queryParams.receive) {
-                            uiContainer.updateDstToken(queryParams.receive as Token).catch(_catchInteractionErr_);
+                            uiContainer
+                                .updateDstToken(queryParams.receive as Token)
+                                .catch(error => _catchInteractionErr_(error, "Error in App: updateDstToken"));
                         }
                     }
                 } catch (error) {
                     _catchInteractionErr_(error, {
                         description: "Error in Exchange.effect",
-                        shownToUser: "No",
                     });
                 }
 
@@ -99,7 +108,7 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
                 if (!showingTutorial) {
                     login().then(() => {
                         setInitialized(true);
-                    }).catch(_catchBackgroundErr_);
+                    }).catch(error => _catchBackgroundErr_(error, "Error in App: login"));
                 } else {
                     setInitialized(true);
                 }

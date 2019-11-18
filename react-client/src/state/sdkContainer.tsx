@@ -16,7 +16,7 @@ import { ERC20Detailed } from "../lib/contracts/ERC20Detailed";
 import { NETWORK } from "../lib/environmentVariables";
 import { _catchBackgroundErr_ } from "../lib/errors";
 import {
-    getAdapter, getERC20, getExchange, getReserve, NULL_BYTES32, Token, Tokens,
+    getAdapter, getERC20, getExchange, getReserve, NULL_BYTES, NULL_BYTES32, Token, Tokens,
 } from "./generalTypes";
 import {
     AddLiquidityCommitment, CommitmentType, HistoryEvent, OrderCommitment, PersistentContainer,
@@ -25,7 +25,7 @@ import {
 
 const BitcoinTx = (hash: string) => ({ hash, chain: Chain.Bitcoin });
 const ZCashTx = (hash: string) => ({ hash, chain: Chain.Zcash });
-const BCashTx = (hash: string) => ({ hash, chain: Chain.BCash });
+const BitcoinCashTx = (hash: string) => ({ hash, chain: Chain.BCash });
 const EthereumTx = (hash: string) => ({ hash, chain: Chain.Ethereum });
 
 export let network: NetworkDetails = NetworkTestnet;
@@ -119,7 +119,7 @@ export class SDKContainer extends Container<typeof initialState> {
             const { dstToken, srcToken } = order.orderInputs;
             amountBN = new BigNumber(order.commitment.maxDAIAmount);
             tokenInstance = getERC20(web3, networkDetails, syncGetTokenAddress(networkID, dstToken));
-            receivingAddress = await dex.methods.reserves(syncGetTokenAddress(networkID, srcToken)).call();
+            receivingAddress = (await dex.methods.reserves(syncGetTokenAddress(networkID, srcToken)).call()) || NULL_BYTES;
         } else {
             throw new Error("Token approval not required");
         }
@@ -128,7 +128,7 @@ export class SDKContainer extends Container<typeof initialState> {
         // If it's not sufficient, approve the required amount.
         // NOTE: Some tokens require the allowance to be 0 before being able to
         // approve a new amount.
-        const allowance = new BigNumber((await tokenInstance.methods.allowance(address, receivingAddress).call()).toString());
+        const allowance = new BigNumber(((await tokenInstance.methods.allowance(address, receivingAddress).call()) || 0).toString());
         if (allowance.lt(amountBN)) {
             // We don't have enough allowance so approve more
             const promiEvent = tokenInstance.methods.approve(
@@ -266,7 +266,7 @@ export class SDKContainer extends Container<typeof initialState> {
         // const exchange = getExchange(web3, networkID);
         const reserveAddress = syncGetDEXReserveAddress(networkID, srcToken);
         const reserve = getReserve(web3, networkID, reserveAddress);
-        return new BigNumber(await reserve.methods.balanceOf(address).call());
+        return new BigNumber((await reserve.methods.balanceOf(address).call() || "0").toString());
     }
 
     public submitBurnToRenVM = async (orderID: string, _resubmit = false) => {
@@ -301,12 +301,12 @@ export class SDKContainer extends Container<typeof initialState> {
                 this.persistentContainer.updateHistoryItem(order.id, {
                     messageID,
                     status: ShiftOutStatus.SubmittedToRenVM,
-                }).catch(_catchBackgroundErr_);
+                }).catch(error => _catchBackgroundErr_(error, "Error in sdkContainer: on-messageID"));
             })
             .on("status", (renVMStatus: TxStatus) => {
                 this.persistentContainer.updateHistoryItem(order.id, {
                     renVMStatus,
-                }).catch(_catchBackgroundErr_);
+                }).catch(error => _catchBackgroundErr_(error, "Error in sdkContainer: on-status"));
             });
         const receivedAmount = order.orderInputs.dstAmount; // new BigNumber(response.amount).dividedBy(new BigNumber(10).exponentiatedBy(8)).toString();
         // tslint:disable-next-line: no-any
@@ -316,11 +316,11 @@ export class SDKContainer extends Container<typeof initialState> {
             outTx: order.orderInputs.dstToken === Token.ZEC ?
                 ZCashTx(zecAddressFrom(address, "base64")) :
                 order.orderInputs.dstToken === Token.BCH ?
-                    // BCashTx(bchAddressFrom(address, "base64")) :
-                    BCashTx(address) :
+                    // BitcoinCashTx(bchAddressFrom(address, "base64")) :
+                    BitcoinCashTx(address) :
                     BitcoinTx(btcAddressFrom(address, "base64")),
             status: ShiftOutStatus.ReturnedFromRenVM,
-        }).catch(_catchBackgroundErr_);
+        }).catch(error => _catchBackgroundErr_(error, "Error in sdkContainer: updateHistoryItem"));
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -442,8 +442,13 @@ export class SDKContainer extends Container<typeof initialState> {
             .submitToRenVM()
             .on("messageID", onMessageID)
             .on("status", onStatus);
+        const tx = Ox(Buffer.from(signature.response.args.utxo.txHash, "base64"));
         await this.persistentContainer.updateHistoryItem(orderID, {
-            inTx: BitcoinTx(Ox(Buffer.from(signature.response.args.utxo.txHash, "base64"))),
+            inTx: order.orderInputs.srcToken === Token.ZEC ?
+                ZCashTx(tx) :
+                order.orderInputs.srcToken === Token.BCH ?
+                    BitcoinCashTx(tx) :
+                    BitcoinTx(tx),
             status: ShiftInStatus.ReturnedFromRenVM,
         });
         return signature;
@@ -470,7 +475,7 @@ export class SDKContainer extends Container<typeof initialState> {
 
             [receipt, transactionHash] = await new Promise<[TransactionReceipt, string]>(async (resolve, reject) => {
                 const promiEvent = (await this.submitMintToRenVM(orderID)).submitToEthereum(web3.currentProvider, { gas: order.commitment.type === CommitmentType.AddLiquidity ? 250000 : undefined });
-                promiEvent.catch((error) => {
+                promiEvent.catch(error => {
                     reject(error);
                 });
                 const txHash = await new Promise<string>((resolveTx, rejectTx) => promiEvent.on("transactionHash", resolveTx).catch(rejectTx));
@@ -480,7 +485,7 @@ export class SDKContainer extends Container<typeof initialState> {
                 });
 
                 // tslint:disable-next-line: no-any
-                (promiEvent as any).once("confirmation", (_confirmations: number, newReceipt: TransactionReceipt) => { resolve([newReceipt, txHash]); });
+                (promiEvent as any).once("confirmation", (_confirmations: number, newReceipt: TransactionReceipt) => resolve([newReceipt, txHash]));
             });
         } else {
             receipt = await this.getReceipt(web3, transactionHash);

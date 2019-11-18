@@ -24,9 +24,9 @@ export const SelectMarketWrapper = connect<Props & ConnectedProps<[UIContainer]>
     ({ containers: [uiContainer], top, thisToken, otherToken, locked, except }) => {
         const handleChange = (token: Token): void => {
             if (top) {
-                uiContainer.updateSrcToken(token).catch(_catchInteractionErr_);
+                uiContainer.updateSrcToken(token).catch(error => _catchInteractionErr_(error, "Error in SelectMarketWrapper: updateSrcToken"));
             } else {
-                uiContainer.updateDstToken(token).catch(_catchInteractionErr_);
+                uiContainer.updateDstToken(token).catch(error => _catchInteractionErr_(error, "Error in SelectMarketWrapper: updateDstToken"));
             }
         };
 

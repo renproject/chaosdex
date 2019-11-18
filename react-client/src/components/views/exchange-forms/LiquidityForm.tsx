@@ -20,7 +20,7 @@ export const LiquidityForm = connect<Props & ConnectedProps<[UIContainer]>>([UIC
 
         const openOrder = async () => {
             await uiContainer.updateCommitmentType(liquidityTab === LiquidityTabs.Add ? CommitmentType.AddLiquidity : CommitmentType.RemoveLiquidity);
-            uiContainer.setSubmitting(true).catch(_catchBackgroundErr_);
+            uiContainer.setSubmitting(true).catch(error => _catchBackgroundErr_(error, "Error in LiquidityForm: openOrder"));
         };
 
         const market = getMarket(orderInputs.srcToken, orderInputs.dstToken);
