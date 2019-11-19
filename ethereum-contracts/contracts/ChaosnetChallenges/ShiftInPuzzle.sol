@@ -52,6 +52,7 @@ contract ShiftInPuzzle is Puzzle {
         if (validateSecret(_secret) && !rewardClaimed) {
             rewardClaimed = true;
             transferAmount = transferAmount.add(rewardAmount);
+            emit LogRewardClaimed(_rewardAddress, _secret, rewardAmount);
             rewardAmount = 0;
         }
 

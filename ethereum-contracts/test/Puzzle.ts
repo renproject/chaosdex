@@ -8,6 +8,7 @@ import {
     ShifterRegistryInstance, zBTCInstance, zZECInstance,
 } from "../types/truffle-contracts";
 import { Ox, randomBytes, NULL } from "./helper/testUtils";
+import { log } from "./helper/logs";
 
 const BTCShifter = artifacts.require("BTCShifter");
 const ZECShifter = artifacts.require("ZECShifter");
@@ -162,7 +163,17 @@ contract("Puzzle", (accounts) => {
             const shiftInPuzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
             (await shiftInPuzzle.rewardClaimed.call()).should.be.false;
             await fundBtc(shiftInPuzzle, rewardAmount);
-            await claimShiftInPuzzleReward(shiftInPuzzle, new BN(100000), refundAddress, someSecret);
+            (await claimShiftInPuzzleReward(shiftInPuzzle, new BN(100000), refundAddress, someSecret) as any)
+            .should.emit.logs([
+                log(
+                    "LogRewardClaimed",
+                    {
+                        _rewardAddress: web3.utils.fromAscii(refundAddress),
+                        _secret: web3.utils.fromAscii(someSecret),
+                        _rewardAmount: removeFee(rewardAmount, feeInBips),
+                    },
+                ),
+            ]);
             (await shiftInPuzzle.rewardClaimed.call()).should.be.true;
             (await shiftInPuzzle.rewardAmount.call()).should.bignumber.zero;
         });

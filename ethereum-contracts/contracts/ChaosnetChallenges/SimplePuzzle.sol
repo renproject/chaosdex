@@ -31,6 +31,8 @@ contract SimplePuzzle is Puzzle {
         // Shift out the funds to the specified address
         registry.getShifterBySymbol(tokenSymbol).shiftOut(_rewardAddress, rewardAmount);
 
+        emit LogRewardClaimed(_rewardAddress, _secret, rewardAmount);
+
         // Reset the reward amount
         rewardAmount = 0;
     }

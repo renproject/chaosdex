@@ -23,6 +23,8 @@ contract Puzzle is Ownable {
         _;
     }
 
+    event LogRewardClaimed(bytes _rewardAddress, bytes _secret, uint256 _rewardAmount);
+
     /// @param _registry The Shifter registry contract address
     /// @param _tokenSymbol The token symbol for the reward and the shifting
     /// @param _secretHash The secret hash
