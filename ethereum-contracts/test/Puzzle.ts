@@ -188,7 +188,17 @@ contract("Puzzle", (accounts) => {
             const simplePuzzle = await SimplePuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
             (await simplePuzzle.rewardClaimed.call()).should.be.false;
             await fundBtc(simplePuzzle, rewardAmount);
-            await claimSimplePuzzleReward(simplePuzzle, refundAddress, someSecret);
+            (await claimSimplePuzzleReward(simplePuzzle, refundAddress, someSecret) as any)
+            .should.emit.logs([
+                log(
+                    "LogRewardClaimed",
+                    {
+                        _rewardAddress: web3.utils.fromAscii(refundAddress),
+                        _secret: web3.utils.fromAscii(someSecret),
+                        _rewardAmount: removeFee(rewardAmount, feeInBips),
+                    },
+                ),
+            ]);
             (await simplePuzzle.rewardClaimed.call()).should.be.true;
             (await simplePuzzle.rewardAmount.call()).should.bignumber.zero;
             await claimSimplePuzzleReward(simplePuzzle, refundAddress, someSecret).should.be.rejectedWith(/reward already claimed/);
