@@ -8,10 +8,10 @@ import {
     Area, AreaChart, Cell, Line, LineChart, Pie, PieChart, Tooltip, TooltipProps,
 } from "recharts";
 
-import { _catchInteractionErr_, pageLoadedAt } from "../../lib/errors";
+import { pageLoadedAt } from "../../lib/errors";
 import { Token, TokenPrices, Tokens } from "../../state/generalTypes";
 import { CumulativeDataPoint, ReserveHistoryItem, Trade } from "../controllers/Stats";
-import { TokenBalance } from "../views/TokenBalance";
+import { TokenBalance } from "./TokenBalance";
 
 interface Props {
     trades: List<Trade> | null;
@@ -19,7 +19,10 @@ interface Props {
     tokenCount: OrderedMap<Token, number>;
     volumes: OrderedMap<Token, BigNumber>;
     reserveBalances: OrderedMap<Token, { quote: BigNumber, base: BigNumber }>;
-    tokenPrices: OrderedMap<Token, OrderedMap<Currency, number>>;
+    // When `any` is replaced with its type, the typescript compiler seems to
+    // slow down significantly. This might resolve itself in future TS versions.
+    // tslint:disable-next-line: no-any
+    tokenPrices: any; // OrderedMap<Token, OrderedMap<any, number>>;
     preferredCurrency: Currency;
     network: NetworkDetails;
     reserveHistory: ReserveHistoryItem[] | null;
@@ -59,9 +62,10 @@ const AreaTooltip = ({ active, payload }: TooltipProps) => {
         return <div className="custom-tooltip">
             <span>Block {payload[0].payload.blocknumber}</span>
             <Time unix={payload[0].payload.timestamp} />
-            {payload.map(item => {
-                return <span key={item.name} style={{ color: item.color }} className="label">{item.name}: {item.value} DAI</span>;
-            })}
+            {
+                payload.map(item => {
+                    return <span key={item.name} style={{ color: item.color }} className="label">{item.name}: {item.value} DAI</span>;
+                })}
         </div>;
     }
 
@@ -86,12 +90,13 @@ const ReserveHistoryTooltip = ({ active, payload }: TooltipProps) => {
 
 const ShowTrades = ({ trades, explorer }: { trades: List<Trade>, explorer: string }) =>
     <div className="stats--rows">
-        {trades.map((trade) => {
-            return <div key={trade.id} className="stat">
-                Trade from <TokenIcon token={trade.src} /> {trade.sendAmount.decimalPlaces(trade.src === Token.DAI ? 2 : 6).toFixed()} {trade.src} to <TokenIcon token={trade.dst} /> {trade.recvAmount.decimalPlaces(trade.dst === Token.DAI ? 2 : 6).toFixed()} {trade.dst}
-                {" "}<a role="button" rel="noopener noreferrer" target="_blank" href={`${explorer}/tx/${trade.transactionHash}`} />
-            </div>;
-        }).toArray()}
+        {
+            trades.map(trade => {
+                return <div key={trade.id} className="stat">
+                    Trade from <TokenIcon token={trade.src} /> {trade.sendAmount.decimalPlaces(trade.src === Token.DAI ? 2 : 6).toFixed()} {trade.src} to <TokenIcon token={trade.dst} /> {trade.recvAmount.decimalPlaces(trade.dst === Token.DAI ? 2 : 6).toFixed()} {trade.dst}
+                    {" "}<a role="button" rel="noopener noreferrer" target="_blank" href={`${explorer}/tx/${trade.transactionHash}`} />
+                </div>;
+            }).toArray()}
     </div>;
 
 const ShowReserveBalance = ({ token, preferredCurrency, balance, tokenPrices }: {
@@ -145,6 +150,7 @@ const CumulativeChart = ({ cumulativeVolume }: { cumulativeVolume: CumulativeDat
         <Area type="monotone" dataKey={Token.BCH} stroke={colors[Token.BCH]} fill={colors[Token.BCH]} yAxisId={0} />
     </AreaChart>;
 
+// @ts-ignore
 export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reserveBalances, tokenPrices, preferredCurrency, network, reserveHistory, loadedAt }: Props) => {
     const data = React.useMemo(() => {
         return tokenCount.map((count, token) => ({ name: token, value: count })).valueSeq().toArray();
@@ -204,34 +210,35 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
                     </div>
                 </div>
                 <div className="stats--rows">
-                    {volumes.map((volume, token) => {
-                        const quoteReserveBalances = reserveBalances.get(token, { quote: new BigNumber(0), base: new BigNumber(0) });
-                        return <div key={token} className="stat--group">
-                            <div className="stat--group--title">
-                                <TokenIcon token={token} /> {token}
-                            </div>
-                            <div className="stat--group--body">
-                                <div className="stat">
-                                    {tokenCount.get(token)} trades
+                    {
+                        volumes.map((volume, token) => {
+                            const quoteReserveBalances = reserveBalances.get(token, { quote: new BigNumber(0), base: new BigNumber(0) });
+                            return <div key={token} className="stat--group">
+                                <div className="stat--group--title">
+                                    <TokenIcon token={token} /> {token}
                                 </div>
-                                <div className="stat">
-                                    <CurrencyIcon currency={preferredCurrency} />{" "}
-                                    <TokenBalance
-                                        token={Token.DAI}
-                                        convertTo={preferredCurrency}
-                                        amount={volume}
-                                        tokenPrices={tokenPrices}
-                                    />
-                                    {" "}
-                                    <TokenIcon token={token} /> {token} traded in total
+                                <div className="stat--group--body">
+                                    <div className="stat">
+                                        {tokenCount.get(token)} trades
                                 </div>
-                                <div className="stat graph-stat"><span>Available {token} liquidity</span>
-                                    <ShowReserveBalance token={token} balance={quoteReserveBalances ? quoteReserveBalances.quote : new BigNumber(0)} preferredCurrency={preferredCurrency} tokenPrices={tokenPrices} />
-                                    <ShowReserveBalance token={Token.DAI} balance={quoteReserveBalances ? quoteReserveBalances.base : new BigNumber(0)} preferredCurrency={preferredCurrency} tokenPrices={tokenPrices} />
+                                    <div className="stat">
+                                        <CurrencyIcon currency={preferredCurrency} />{" "}
+                                        <TokenBalance
+                                            token={Token.DAI}
+                                            convertTo={preferredCurrency}
+                                            amount={volume}
+                                            tokenPrices={tokenPrices}
+                                        />
+                                        {" "}
+                                        <TokenIcon token={token} /> {token} traded in total
                                 </div>
-                            </div>
-                        </div>;
-                    }).valueSeq().toArray()}
+                                    <div className="stat graph-stat"><span>Available {token} liquidity</span>
+                                        <ShowReserveBalance token={token} balance={quoteReserveBalances ? quoteReserveBalances.quote : new BigNumber(0)} preferredCurrency={preferredCurrency} tokenPrices={tokenPrices} />
+                                        <ShowReserveBalance token={Token.DAI} balance={quoteReserveBalances ? quoteReserveBalances.base : new BigNumber(0)} preferredCurrency={preferredCurrency} tokenPrices={tokenPrices} />
+                                    </div>
+                                </div>
+                            </div>;
+                        }).valueSeq().toArray()}
                 </div>
             </>}
         </div>
@@ -239,11 +246,24 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
         <h2>Trade History</h2>
         {trades === null ? <div className="stats--rows"><Loading alt={true} /></div> : <>
             <p>Today</p>
-            <ShowTrades trades={trades.filter(trade => trade.timestamp >= yesterday)} explorer={network.contracts.etherscan} />
+            <ShowTrades
+                trades={
+                    trades.filter(trade => trade.timestamp >= yesterday)
+                }
+                explorer={network.contracts.etherscan}
+            />
             <p>Yesterday</p>
-            <ShowTrades trades={trades.filter(trade => trade.timestamp < yesterday && trade.timestamp >= twoDaysAgo)} explorer={network.contracts.etherscan} />
+            <ShowTrades
+                trades={
+                    trades.filter(trade => trade.timestamp < yesterday && trade.timestamp >= twoDaysAgo)}
+                explorer={network.contracts.etherscan}
+            />
             <p>>48 hours ago</p>
-            <ShowTrades trades={trades.filter(trade => trade.timestamp < twoDaysAgo)} explorer={network.contracts.etherscan} />
+            <ShowTrades
+                trades={
+                    trades.filter(trade => trade.timestamp < twoDaysAgo)}
+                explorer={network.contracts.etherscan}
+            />
         </>}
     </div>;
 };

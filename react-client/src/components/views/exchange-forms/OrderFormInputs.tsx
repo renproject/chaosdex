@@ -37,18 +37,18 @@ export const OrderFormInputs = connect<Props & ConnectedProps<[UIContainer]>>([U
         React.useEffect(() => {
             if (!initialized) {
                 setInitialized(true);
-                uiContainer.updateSrcAmount(srcAmountState).catch(_catchInteractionErr_);
+                uiContainer.updateSrcAmount(srcAmountState).catch(error => _catchInteractionErr_(error, "Error in OrderFormInputs: updateSrcAmount"));
                 setTimeout(() => {
-                    uiContainer.updateSrcAmount(srcAmountState).catch(_catchInteractionErr_);
+                    uiContainer.updateSrcAmount(srcAmountState).catch(error => _catchInteractionErr_(error, "Error in OrderFormInputs: updateSrcAmount (setTimeout)"));
                 }, 1500);
             }
         }, [setInitialized, initialized, srcAmountState, uiContainer]);
 
         React.useEffect(
             () => {
-                uiContainer.updateSrcAmount(debouncedSrcAmountState).catch(_catchInteractionErr_);
+                uiContainer.updateSrcAmount(debouncedSrcAmountState).catch(error => _catchInteractionErr_(error, "Error in OrderFormInputs: updateSrcAmount (debounced)"));
             },
-            [debouncedSrcAmountState]
+            [debouncedSrcAmountState, uiContainer]
         );
 
         const onVolumeChange = (value: string, options: { blur: boolean }) => {
@@ -73,7 +73,7 @@ export const OrderFormInputs = connect<Props & ConnectedProps<[UIContainer]>>([U
             // & with: src = 1 [flip] src = 0.01 [flip] src = 1
             const amount = oldSrcAmount !== undefined ? oldSrcAmount : new BigNumber(orderInputs.dstAmount).decimalPlaces(8).toFixed();
             setSrcAmountState(amount);
-            uiContainer.updateSrcAmount(amount).catch(_catchInteractionErr_);
+            uiContainer.updateSrcAmount(amount).catch(error => _catchInteractionErr_(error, "Error in OrderFormInputs: updateSrcAmount (toggleSide)"));
             if (oldSrcAmount === undefined) {
                 setOldSrcAmount(srcAmountState);
             } else {

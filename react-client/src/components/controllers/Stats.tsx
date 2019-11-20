@@ -182,8 +182,8 @@ export const Stats = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer
                     rValues.push({ ...item, blocknumber: bn, timestamp });
                 }
                 setReserveHistory(rValues);
-            })().catch(_catchInteractionErr_);
-        }, [web3, networkID, noPrices, refresh]);
+            })().catch(error => _catchInteractionErr_(error, "Error in Stats: load reserve chart"));
+        }, [web3, networkID, noPrices, refresh, preferredCurrency]);
 
         React.useEffect(() => {
             (async () => {
@@ -211,12 +211,12 @@ export const Stats = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer
                         };
                     }));
                 setVolumes(
-                    volumes.map((_, token) => recentRegistrationEvents.reduce((s, { dst, src, sendAmount, recvAmount }) => {
+                    defaultVolumes.map((_, token) => recentRegistrationEvents.reduce((s, { dst, src, sendAmount, recvAmount }) => {
                         return dst === token ? s.plus(sendAmount) : src === token ? s.plus(recvAmount) : s;
                     }, new BigNumber(0)))
                 );
                 setTokenCount(
-                    tokenCount.map((_, token) => recentRegistrationEvents.reduce((s, { dst, src }) => {
+                    defaultTokenCount.map((_, token) => recentRegistrationEvents.reduce((s, { dst, src }) => {
                         return dst === token ? s + 1 : src === token ? s + 1 : s;
                     }, 0))
                 );
@@ -287,7 +287,7 @@ export const Stats = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer
                 // }
                 setTrades(recentRegistrationEvents.reverse());
                 setLoadedAt(new Date());
-            })().catch(_catchInteractionErr_);
+            })().catch(error => _catchInteractionErr_(error, "Error in Stats: load trades"));
         }, [web3, networkID, refresh]);
 
         return <StatsView

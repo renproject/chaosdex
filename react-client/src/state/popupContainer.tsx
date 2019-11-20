@@ -10,10 +10,6 @@ const initialState = {
 export class PopupContainer extends Container<typeof initialState> {
     public state = initialState;
 
-    constructor() {
-        super();
-    }
-
     public pushPopup = async (popup: () => React.ReactNode): Promise<void> => {
         await this.setState({ popup: this.state.popup.push(popup) });
     }

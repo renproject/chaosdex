@@ -31,7 +31,7 @@ export const Exchange = connect<Props & ConnectedProps<[UIContainer]>>([UIContai
             (async () => {
                 await uiContainer.resetReceiveValue();
                 await uiContainer.setExchangeTab(ExchangeTabs.Swap);
-            })().catch(_catchInteractionErr_);
+            })().catch(error => _catchInteractionErr_(error, "Error in Exchange: onSwapTab"));
         }, [uiContainer]);
         const onLiquidityTab = React.useCallback(() => {
             const { orderInputs: { srcToken, dstToken } } = uiContainer.state;
@@ -39,9 +39,9 @@ export const Exchange = connect<Props & ConnectedProps<[UIContainer]>>([UIContai
             // If src token is DAI, set it to the dst token - unless it's also DAI
             const newSrcToken = srcToken === Token.DAI ? (dstToken === Token.DAI ? Token.BTC : dstToken) : srcToken;
             uiContainer.resetReceiveValue().then(() => {
-                uiContainer.updateBothTokens(newSrcToken, Token.DAI).catch(_catchInteractionErr_);
-                uiContainer.setExchangeTab(ExchangeTabs.Liquidity).catch(_catchInteractionErr_);
-            }).catch(_catchInteractionErr_);
+                uiContainer.updateBothTokens(newSrcToken, Token.DAI).catch(error => _catchInteractionErr_(error, "Error in Exchange: updateBothTokens"));
+                uiContainer.setExchangeTab(ExchangeTabs.Liquidity).catch(error => _catchInteractionErr_(error, "Error in Exchange: setExchangeTab"));
+            }).catch(error => _catchInteractionErr_(error, "Error in Exchange: resetReceiveValue"));
         }, [uiContainer]);
 
         const cancel = React.useCallback(async () => {

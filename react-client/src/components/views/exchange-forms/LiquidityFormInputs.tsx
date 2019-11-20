@@ -42,16 +42,16 @@ export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer, 
         React.useEffect(() => {
             if (!initialized) {
                 setInitialized(true);
-                uiContainer.updateSrcAmount(srcAmountState).catch(_catchInteractionErr_);
+                uiContainer.updateSrcAmount(srcAmountState).catch(error => _catchInteractionErr_(error, "Error in LiquidityFormInputs: updateSrcAmount"));
                 setTimeout(() => {
-                    uiContainer.updateSrcAmount(srcAmountState).catch(_catchInteractionErr_);
+                    uiContainer.updateSrcAmount(srcAmountState).catch(error => _catchInteractionErr_(error, "Error in LiquidityFormInputs: updateSrcAmount (setTimeout)"));
                 }, 1500);
             }
         }, [setInitialized, initialized, srcAmountState, uiContainer]);
 
         React.useEffect(
             () => {
-                uiContainer.updateSrcAmount(debouncedSrcAmountState).catch(_catchInteractionErr_);
+                uiContainer.updateSrcAmount(debouncedSrcAmountState).catch(error => _catchInteractionErr_(error, "Error in LiquidityFormInputs: updateSrcAmount (debounced)"));
             },
             [debouncedSrcAmountState]
         );
@@ -110,11 +110,11 @@ export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer, 
         </TokenValueInput>;
 
         const selectAddTab = React.useCallback(() => {
-            uiContainer.setLiquidityTab(LiquidityTabs.Add).catch(_catchInteractionErr_);
+            uiContainer.setLiquidityTab(LiquidityTabs.Add).catch(error => _catchInteractionErr_(error, "Error in LiquidityFormInputs: setLiquidityTab, Add"));
         }, [uiContainer]);
 
         const selectRemoveTab = React.useCallback(() => {
-            uiContainer.setLiquidityTab(LiquidityTabs.Remove).catch(_catchInteractionErr_);
+            uiContainer.setLiquidityTab(LiquidityTabs.Remove).catch(error => _catchInteractionErr_(error, "Error in LiquidityFormInputs: setLiquidityTab, Remove"));
         }, [uiContainer]);
 
         const srcTokenDetails = Tokens.get(orderInputs.srcToken);
@@ -131,7 +131,7 @@ export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer, 
             } catch (error) {
                 return new BigNumber(0);
             }
-        }, [quoteReserveBalances.base, quoteReserveBalances.quote]);
+        }, [quoteReserveBalances.base, quoteReserveBalances.quote, dstTokenDetails, srcTokenDetails]);
 
         React.useEffect(() => {
             (async () => {
@@ -139,8 +139,8 @@ export const LiquidityFormInputs = connect<Props & ConnectedProps<[UIContainer, 
                 if (liquidity) {
                     setLiquidityBalance(liquidity);
                 }
-            })().catch(_catchBackgroundErr_);
-        }, [web3, address, quoteReserveBalances.base, quoteReserveBalances.quote]);
+            })().catch(error => _catchBackgroundErr_(error, "Error in LiquidityFormInputs: setLiquidityBalance"));
+        }, [web3, address, sdkContainer, orderInputs.srcToken, quoteReserveBalances.base, quoteReserveBalances.quote]);
 
         return <div className="order--wrapper--wrapper">
             <div className="order--wrapper">

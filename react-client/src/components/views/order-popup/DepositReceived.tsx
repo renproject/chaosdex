@@ -46,7 +46,7 @@ export const DepositReceived: React.StatelessComponent<{
             } catch (error) {
                 setSubmitted(false);
                 setError(error);
-                _catchInteractionErr_(error);
+                _catchInteractionErr_(error, "Error in DepositReceived: submitDeposit");
             }
         }
     }, [orderID, submitDeposit]);

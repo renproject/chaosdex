@@ -36,7 +36,7 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
             }
             returned = true;
             setReturned(true);
-            uiContainer.resetTrade().catch(_catchInteractionErr_);
+            uiContainer.resetTrade().catch(error => _catchInteractionErr_(error, "Error in OpeningOrder: resetTrade"));
         };
 
         const hide = async () => {
@@ -80,10 +80,10 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
                     return <SubmitToEthereum order={order} txHash={order.outTx} token={order.orderInputs.dstToken} orderID={orderID} submit={sdkContainer.submitMintToEthereum} hide={hide} />;
                 case ShiftInStatus.RefundedOnEthereum:
                 case ShiftInStatus.ConfirmedOnEthereum:
-                    onDone().catch(_catchInteractionErr_);
+                    onDone().catch(error => _catchInteractionErr_(error, "Error in OpeningOrder: shiftIn.onDone"));
                     return <></>;
             }
-            console.error(`Unknown status in ShiftIn: ${order.status}`);
+            _catchInteractionErr_(new Error(`Unknown status in ShiftIn: ${order.status}`), "Error in OpeningOrder: shiftIn");
             return <></>;
         };
 
@@ -108,10 +108,10 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
                     return <DepositReceived renVMStatus={renVMStatus} messageID={messageID} orderID={orderID} submitDeposit={sdkContainer.submitBurnToRenVM} hide={hide} />;
                 case ShiftOutStatus.RefundedOnEthereum:
                 case ShiftOutStatus.ReturnedFromRenVM:
-                    onDone().catch(_catchInteractionErr_);
+                    onDone().catch(error => _catchInteractionErr_(error, "Error in OpeningOrder: shiftOut.onDone"));
                     return <></>;
             }
-            console.error(`Unknown status in ShiftOut: ${order.status}`);
+            _catchInteractionErr_(new Error(`Unknown status in ShiftOut: ${order.status}`), "Error in OpeningOrder: shiftOut");
             return <></>;
         };
 

@@ -6,6 +6,9 @@ const gsnProvider = new GSNProvider(`wss://kovan.infura.io/ws/v3/${process.env.I
 
 interface InjectedEthereum extends HttpProvider {
     enable: () => Promise<void>;
+    send: <T, X extends unknown[] = []>(name: string, args?: X) => Promise<T>;
+    on: (event: string, callback?: () => void) => void;
+    autoRefreshOnNetworkChange?: boolean;
 }
 
 declare global {
@@ -18,13 +21,32 @@ declare global {
 export const getWeb3 = async () => new Promise<Web3>(async (resolve, reject) => {
     // Modern dApp browsers...
     if (window.ethereum) {
+
         try {
-            // Request account access if needed
-            await window.ethereum.enable();
+            // See https://medium.com/metamask/no-longer-reloading-pages-on-network-change-fbf041942b44
+            // We will want to support the network changing without reloading in
+            // the future.
+            window.ethereum.on("chainChanged", () => {
+                document.location.reload();
+            });
+            window.ethereum.autoRefreshOnNetworkChange = false;
+        } catch (error) {
+            // Ignore
+        }
+
+        try {
+            // See https://metamask.github.io/metamask-docs/API_Reference/Ethereum_Provider#ethereum.send(%E2%80%98eth_requestaccounts%E2%80%99)
+            await window.ethereum.send<string[]>("eth_requestAccounts");
             resolve(new Web3(window.ethereum));
         } catch (error) {
-            // reject(error);
-            resolve(gsnProvider)
+            try {
+                // Request account access if needed
+                await window.ethereum.enable();
+                resolve(new Web3(window.ethereum));
+            } catch (error) {
+                resolve(gsnProvider)
+                // reject(error);
+            }
         }
     } else if (window.web3) {
         // Accounts always exposed

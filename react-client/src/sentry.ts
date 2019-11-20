@@ -31,7 +31,7 @@ export const initializeSentry = () => {
         integrations: [new ExtraErrorData()],
     });
 
-    Sentry.configureScope((scope) => {
+    Sentry.configureScope(scope => {
         scope.setExtra("loggedIn", false);
 
         // We set this to false when logging to Sentry explicitly.

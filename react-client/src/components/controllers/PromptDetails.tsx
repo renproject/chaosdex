@@ -28,12 +28,12 @@ export const PromptDetails = connect<Props & ConnectedProps<[UIContainer]>>([UIC
         } = uiContainer.state;
 
         const onRefundAddress = async (refundAddress: string) => {
-            await uiContainer.updateRefundAddress(refundAddress).catch(_catchInteractionErr_);
+            await uiContainer.updateRefundAddress(refundAddress).catch(error => _catchInteractionErr_(error, "Error in PromptDetails: updateRefundAddress"));
             await uiContainer.commitOrder();
         };
 
         const onCancel = () => {
-            uiContainer.resetTrade().catch(_catchInteractionErr_);
+            uiContainer.resetTrade().catch(error => _catchInteractionErr_(error, "Error in PromptDetails: resetTrade"));
             cancel();
         };
 
