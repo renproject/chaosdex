@@ -85,8 +85,8 @@ contract("DEXAdapter", (accounts) => {
         await shifterRegistry.setShifter(zToken2.address, shifter2.address);
 
         dexAdapter = await DEXAdapter.new(dex.address, shifterRegistry.address);
-        const isVoterReady = await isRelayHubDeployedForRecipient(web3, dexAdapter.address);
-        assert.equal(isVoterReady, true);
+        const isDexAdapterReady = await isRelayHubDeployedForRecipient(web3, dexAdapter.address);
+        assert.equal(isDexAdapterReady, true);
 
         // Add liquidity to token3's reserve.
         const daiValue = new BN(20000000000);

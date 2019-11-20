@@ -19,6 +19,7 @@
         "deploy": "gh-pages -d build"
     },
     "dependencies": {
+        "@openzeppelin/gsn-provider": "^0.1.9",
         "@renproject/fonts": "^1.0.1",
         "@renproject/react-components": "^1.0.36",
         "@renproject/ren": "git+https://github.com/renproject/renvm-sdk-js.git#54a7a72ad03ad4fb47f77fa6c54873235ca84959",
