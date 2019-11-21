@@ -41,3 +41,9 @@ export const advanceBlocks = async (blocks: number) => {
         await advanceBlock();
     }
 }
+
+// Add a 0x prefix to a hex value, converting to a string first
+export const Ox = (hex: string | BN | Buffer) => {
+    const hexString = typeof hex === "string" ? hex : hex.toString("hex");
+    return hexString.substring(0, 2) === "0x" ? hexString : `0x${hexString}`;
+};
