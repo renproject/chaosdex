@@ -804,52 +804,56 @@
     "name": "solc",
     "version": "0.5.12+commit.7709ece9.Emscripten.clang"
   },
-  "contractName": "BTC_DAI_Reserve",
+  "contractName": "BCH_DAI_Reserve",
   "networks": {
     "42": {
-      "address": "0x65B3E0b25965fAEc3cB2Ca9A21D78f88E6a9b744",
-      "links": {},
       "events": {
-        "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0": {
+        "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925": {
           "anonymous": false,
           "inputs": [
             {
               "indexed": true,
-              "name": "previousOwner",
-              "type": "address",
-              "internalType": "address"
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
             },
             {
               "indexed": true,
-              "name": "newOwner",
-              "type": "address",
-              "internalType": "address"
+              "internalType": "address",
+              "name": "spender",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "internalType": "uint256",
+              "name": "value",
+              "type": "uint256"
             }
           ],
-          "name": "OwnershipTransferred",
+          "name": "Approval",
           "type": "event",
-          "signature": "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0"
+          "signature": "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925"
         },
         "0x181674bd5cf175c47c164c13df571685a06664e17a0dff9ad3473062a4d95b3a": {
           "anonymous": false,
           "inputs": [
             {
               "indexed": false,
+              "internalType": "address",
               "name": "_liquidityProvider",
-              "type": "address",
-              "internalType": "address"
+              "type": "address"
             },
             {
               "indexed": false,
+              "internalType": "uint256",
               "name": "_tokenAmount",
-              "type": "uint256",
-              "internalType": "uint256"
+              "type": "uint256"
             },
             {
               "indexed": false,
+              "internalType": "uint256",
               "name": "_baseTokenAmount",
-              "type": "uint256",
-              "internalType": "uint256"
+              "type": "uint256"
             }
           ],
           "name": "LogAddLiquidity",
@@ -861,66 +865,14 @@
           "inputs": [
             {
               "indexed": false,
+              "internalType": "uint256",
               "name": "_rcvAmount",
-              "type": "uint256",
-              "internalType": "uint256"
+              "type": "uint256"
             }
           ],
           "name": "LogDebug",
           "type": "event",
           "signature": "0x2feb477e5c8c82cfb95c787ed434e820b1a28fa84d68bbf5aba5367382f5581c"
-        },
-        "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef": {
-          "anonymous": false,
-          "inputs": [
-            {
-              "indexed": true,
-              "name": "from",
-              "type": "address",
-              "internalType": "address"
-            },
-            {
-              "indexed": true,
-              "name": "to",
-              "type": "address",
-              "internalType": "address"
-            },
-            {
-              "indexed": false,
-              "name": "value",
-              "type": "uint256",
-              "internalType": "uint256"
-            }
-          ],
-          "name": "Transfer",
-          "type": "event",
-          "signature": "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-        },
-        "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925": {
-          "anonymous": false,
-          "inputs": [
-            {
-              "indexed": true,
-              "name": "owner",
-              "type": "address",
-              "internalType": "address"
-            },
-            {
-              "indexed": true,
-              "name": "spender",
-              "type": "address",
-              "internalType": "address"
-            },
-            {
-              "indexed": false,
-              "name": "value",
-              "type": "uint256",
-              "internalType": "uint256"
-            }
-          ],
-          "name": "Approval",
-          "type": "event",
-          "signature": "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925"
         },
         "0x924fee72f327d39fcd64493fdf9a6ca8f5e48c48a4ff5e4b5874a64ab3bb1c2d": {
           "anonymous": false,
@@ -941,63 +893,45 @@
           "name": "LogFeesChanged",
           "type": "event",
           "signature": "0x924fee72f327d39fcd64493fdf9a6ca8f5e48c48a4ff5e4b5874a64ab3bb1c2d"
-        }
-      },
-      "transactionHash": "0x76a83718f8c24ce4fe434ed1089fad2dbf6538ea7f214b9fada7436fb282ca24"
-    },
-    "1571705399371": {
-      "events": {
-        "0x181674bd5cf175c47c164c13df571685a06664e17a0dff9ad3473062a4d95b3a": {
+        },
+        "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0": {
           "anonymous": false,
           "inputs": [
             {
-              "indexed": false,
-              "name": "_liquidityProvider",
+              "indexed": true,
+              "internalType": "address",
+              "name": "previousOwner",
               "type": "address"
             },
             {
-              "indexed": false,
-              "name": "_tokenAmount",
-              "type": "uint256"
-            },
-            {
-              "indexed": false,
-              "name": "_baseTokenAmount",
-              "type": "uint256"
+              "indexed": true,
+              "internalType": "address",
+              "name": "newOwner",
+              "type": "address"
             }
           ],
-          "name": "LogAddLiquidity",
+          "name": "OwnershipTransferred",
           "type": "event",
-          "signature": "0x181674bd5cf175c47c164c13df571685a06664e17a0dff9ad3473062a4d95b3a"
-        },
-        "0x2feb477e5c8c82cfb95c787ed434e820b1a28fa84d68bbf5aba5367382f5581c": {
-          "anonymous": false,
-          "inputs": [
-            {
-              "indexed": false,
-              "name": "_rcvAmount",
-              "type": "uint256"
-            }
-          ],
-          "name": "LogDebug",
-          "type": "event",
-          "signature": "0x2feb477e5c8c82cfb95c787ed434e820b1a28fa84d68bbf5aba5367382f5581c"
+          "signature": "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0"
         },
         "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef": {
           "anonymous": false,
           "inputs": [
             {
               "indexed": true,
+              "internalType": "address",
               "name": "from",
               "type": "address"
             },
             {
               "indexed": true,
+              "internalType": "address",
               "name": "to",
               "type": "address"
             },
             {
               "indexed": false,
+              "internalType": "uint256",
               "name": "value",
               "type": "uint256"
             }
@@ -1005,34 +939,11 @@
           "name": "Transfer",
           "type": "event",
           "signature": "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-        },
-        "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925": {
-          "anonymous": false,
-          "inputs": [
-            {
-              "indexed": true,
-              "name": "owner",
-              "type": "address"
-            },
-            {
-              "indexed": true,
-              "name": "spender",
-              "type": "address"
-            },
-            {
-              "indexed": false,
-              "name": "value",
-              "type": "uint256"
-            }
-          ],
-          "name": "Approval",
-          "type": "event",
-          "signature": "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925"
         }
       },
       "links": {},
-      "address": "0xfd87166Aa4BF51275581C9a6817B3Bc33d866945",
-      "transactionHash": "0x9aa9f4b7384b45a60743f6fe94ccc51597311a867449a54cd797dec183b038fd"
+      "address": "0xbEcCfF7f9926BE5dA8B9e98E81D2B3eDfE5942d3",
+      "transactionHash": "0xc8094678d6c8ea0ac6ceb6472025d4c64495bbad799e5cad774c9c2e9f58d810"
     }
   },
   "schemaVersion": "3.0.19",

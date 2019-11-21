@@ -1,56 +1,9 @@
 {
-  "contractName": "DEX",
   "abi": [
     {
-      "constant": true,
-      "inputs": [],
-      "name": "ethereum",
-      "outputs": [
-        {
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "BaseToken",
-      "outputs": [
-        {
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
       "inputs": [
         {
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "name": "reserves",
-      "outputs": [
-        {
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
+          "internalType": "address",
           "name": "_baseToken",
           "type": "address"
         }
@@ -64,21 +17,25 @@
       "inputs": [
         {
           "indexed": false,
+          "internalType": "address",
           "name": "_src",
           "type": "address"
         },
         {
           "indexed": false,
+          "internalType": "address",
           "name": "_dst",
           "type": "address"
         },
         {
           "indexed": false,
+          "internalType": "uint256",
           "name": "_sendAmount",
           "type": "uint256"
         },
         {
           "indexed": false,
+          "internalType": "uint256",
           "name": "_recvAmount",
           "type": "uint256"
         }
@@ -87,9 +44,128 @@
       "type": "event"
     },
     {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "baseToken",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "claimOwnership",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "isOwner",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "renounceOwnership",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "reserves",
+      "outputs": [
+        {
+          "internalType": "contract DEXReserve",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "constant": false,
       "inputs": [
         {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
           "name": "_token",
           "type": "address"
         }
@@ -104,10 +180,12 @@
       "constant": false,
       "inputs": [
         {
+          "internalType": "address",
           "name": "_erc20",
           "type": "address"
         },
         {
+          "internalType": "contract DEXReserve",
           "name": "_reserve",
           "type": "address"
         }
@@ -122,18 +200,22 @@
       "constant": false,
       "inputs": [
         {
+          "internalType": "address",
           "name": "_to",
           "type": "address"
         },
         {
+          "internalType": "address",
           "name": "_src",
           "type": "address"
         },
         {
+          "internalType": "address",
           "name": "_dst",
           "type": "address"
         },
         {
+          "internalType": "uint256",
           "name": "_sendAmount",
           "type": "uint256"
         }
@@ -141,6 +223,7 @@
       "name": "trade",
       "outputs": [
         {
+          "internalType": "uint256",
           "name": "",
           "type": "uint256"
         }
@@ -153,14 +236,17 @@
       "constant": true,
       "inputs": [
         {
+          "internalType": "address",
           "name": "_src",
           "type": "address"
         },
         {
+          "internalType": "address",
           "name": "_dst",
           "type": "address"
         },
         {
+          "internalType": "uint256",
           "name": "_sendAmount",
           "type": "uint256"
         }
@@ -168,6 +254,7 @@
       "name": "calculateReceiveAmount",
       "outputs": [
         {
+          "internalType": "uint256",
           "name": "",
           "type": "uint256"
         }
@@ -177,11 +264,11 @@
       "type": "function"
     }
   ],
-  "sourcePath": "dex-demo/ethereum-contracts/contracts/DEX.sol",
   "compiler": {
     "name": "solc",
-    "version": "0.5.8+commit.23d335f2.Emscripten.clang"
+    "version": "0.5.12+commit.7709ece9.Emscripten.clang"
   },
+  "contractName": "DEX",
   "networks": {
     "42": {
       "events": {
@@ -191,32 +278,56 @@
             {
               "indexed": false,
               "name": "_src",
-              "type": "address"
+              "type": "address",
+              "internalType": "address"
             },
             {
               "indexed": false,
               "name": "_dst",
-              "type": "address"
+              "type": "address",
+              "internalType": "address"
             },
             {
               "indexed": false,
               "name": "_sendAmount",
-              "type": "uint256"
+              "type": "uint256",
+              "internalType": "uint256"
             },
             {
               "indexed": false,
               "name": "_recvAmount",
-              "type": "uint256"
+              "type": "uint256",
+              "internalType": "uint256"
             }
           ],
           "name": "LogTrade",
           "type": "event",
           "signature": "0x8d10c7a140b316d7362354a44023c657a9c436616f21481cac1cb594aa305458"
+        },
+        "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "internalType": "address",
+              "name": "previousOwner",
+              "type": "address"
+            },
+            {
+              "indexed": true,
+              "internalType": "address",
+              "name": "newOwner",
+              "type": "address"
+            }
+          ],
+          "name": "OwnershipTransferred",
+          "type": "event",
+          "signature": "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0"
         }
       },
       "links": {},
-      "address": "0x8da562d3d67B5832a834181Fc3345B306689DDbE",
-      "transactionHash": "0xecfd4e27e26ef09013350e30e187305e972951f820297f83b5e43c2057d99b02"
+      "address": "0x2d77E28c7B435B931f5dA00a85FB7BEe1835bB6f",
+      "transactionHash": "0xcbb44bee33755cd9ec6f1cc6252a419173599622a85044ae76fb240973dc2c54"
     },
     "1571705399371": {
       "events": {
@@ -254,5 +365,6 @@
       "transactionHash": "0xeb8a46d1c4a066783c2c4e99fde8c7b3560298d9fbd0a6084d9e08a3c452f598"
     }
   },
-  "schemaVersion": "3.0.16"
+  "schemaVersion": "3.0.19",
+  "sourcePath": "/home/noah/github/renproject/chaosdex/ethereum-contracts/contracts/DEX.sol"
 }

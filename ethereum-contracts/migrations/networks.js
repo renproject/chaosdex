@@ -61,10 +61,10 @@ module.exports = {
     },
     testnet: {
         renNetwork: ren.testnet,
-        DEX: '',
-        DEXAdapter: '',
-        BTC_DAI_Reserve: '',
-        ZEC_DAI_Reserve: '',
+        DEX: "",
+        DEXAdapter: "",
+        BTC_DAI_Reserve: "",
+        ZEC_DAI_Reserve: "",
         config: {
             ...config,
             mintAuthority: ren.testnet.renVM.mintAuthority,
