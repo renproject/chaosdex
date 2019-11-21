@@ -179,39 +179,23 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
     const yesterday = (new Date().getTime()) / 1000 - (24 * 60 * 60);
     const twoDaysAgo = (new Date().getTime()) / 1000 - (2 * 24 * 60 * 60);
 
-    let count = 0;
     const tokenDetails = Tokens.get(Token.DAI);
-    let totalVolume = new BigNumber(0);
+    let totalTradeVolumeInDai = new BigNumber(0);
     let totalLiquidityPoolInBtc = new BigNumber(0);
     volumes.forEach((volume, token) => {
-        count++;
-        console.log(`${token} amount: ${volume.toFixed()}`);
-        // console.log(toBitcoinValue(volume, Token.DAI, tokenPrices));
         const quoteReserveBalances = reserveBalances.get(token, { quote: new BigNumber(0), base: new BigNumber(0) });
         const quoteReserveInBtc = toBitcoinValue(quoteReserveBalances.base, Token.DAI, tokenPrices);
         const baseReserveInBtc = toBitcoinValue(quoteReserveBalances.quote, token, tokenPrices);
-        console.log(`${token} reserve: ${quoteReserveInBtc.toFixed()} BTC + ${baseReserveInBtc.toFixed()} BTC`);
         const reserveAmountInBtc = quoteReserveInBtc.plus(baseReserveInBtc);
-        console.log(`total ${token} reserve in BTC: ${reserveAmountInBtc}`);
-        totalVolume = totalVolume.plus(volume);
-        // console.log(quoteReserveBalances.base.toFixed(2));
+        totalTradeVolumeInDai = totalTradeVolumeInDai.plus(volume);
         let daiAmount = (quoteReserveBalances ? quoteReserveBalances.base : new BigNumber(0));
         const decimals = tokenDetails ? new BigNumber(10).exponentiatedBy(new BigNumber(tokenDetails.decimals)) : new BigNumber(1);
         daiAmount = daiAmount.div(decimals);
         totalLiquidityPoolInBtc = totalLiquidityPoolInBtc.plus(reserveAmountInBtc);
-        console.log(`total liquidity pool: ${totalLiquidityPoolInBtc.toString()}`);
     });
-    // console.log(totalLiquidityPool.toString());
-    const moneyFormat: BigNumber.Format = {
-        prefix: "$",
-        decimalSeparator: ".",
-        groupSeparator: ",",
-        groupSize: 3,
-        secondaryGroupSize: 2
-    };
     return <div className="stats">
         <div className="stats--title">
-            <h2>ChaosDex Stats {count}</h2>
+            <h2>ChaosDex Stats</h2>
             <small>Updated {pageLoadedAt(loadedAt).toLowerCase()}</small>
         </div>
         <div className="stats--rows">
@@ -224,7 +208,7 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
                                 <TokenBalance
                                     token={Token.DAI}
                                     convertTo={preferredCurrency}
-                                    amount={totalVolume}
+                                    amount={totalTradeVolumeInDai}
                                     tokenPrices={tokenPrices}
                                     group={true}
                                 />
