@@ -1,10 +1,11 @@
 import * as React from "react";
 
-import { TokenIcon } from "@renproject/react-components";
+import { Loading, TokenIcon } from "@renproject/react-components";
 import { Chain } from "@renproject/ren";
 
 import { IS_TESTNET } from "../../../lib/environmentVariables";
-import { Token, Tokens } from "../../../state/generalTypes";
+import { _catchInteractionErr_ } from "../../../lib/errors";
+import { renderToken, Token, Tokens } from "../../../state/generalTypes";
 import { ReactComponent as MetaMask } from "../../../styles/images/metamask.svg";
 import { Popup } from "../Popup";
 
@@ -12,7 +13,7 @@ export const AskForAddress: React.StatelessComponent<{
     token: Token,
     message: React.ReactNode,
     defaultAddress: string,
-    onAddress(address: string): void;
+    onAddress(address: string): Promise<void>;
     cancel(): void;
 }> = ({ token, message, defaultAddress, onAddress, cancel }) => {
     // tslint:disable-next-line: prefer-const
@@ -20,10 +21,11 @@ export const AskForAddress: React.StatelessComponent<{
     const [error, updateError] = React.useState(null as string | null);
     const [submitting, updateSubmitting] = React.useState(false);
     const inputRef = React.useRef<HTMLInputElement | null>() as React.MutableRefObject<HTMLInputElement | null>;
+    const [checkingSkip, setCheckingSkip] = React.useState(true);
 
     const tokenDetails = Tokens.get(token);
 
-    const submit = (event?: React.FormEvent<HTMLFormElement>) => {
+    const submit = async (event?: React.FormEvent<HTMLFormElement>) => {
         if (event) { event.preventDefault(); }
         if (!error && tokenDetails && !tokenDetails.validator(address, IS_TESTNET)) {
             updateError(`Invalid ${tokenDetails.chain.toUpperCase()} address`);
@@ -31,7 +33,7 @@ export const AskForAddress: React.StatelessComponent<{
         }
         try {
             updateSubmitting(true);
-            onAddress(address);
+            await onAddress(address);
         } catch (error) {
             updateError(String(error.message || error));
             updateSubmitting(false);
@@ -53,18 +55,26 @@ export const AskForAddress: React.StatelessComponent<{
     };
 
     React.useEffect(() => {
-        if (tokenDetails && tokenDetails.chain === Chain.Ethereum) {
-            address = defaultAddress;
-            updateAddress(defaultAddress);
-            submit();
-        }
+        (async () => {
+            try {
+                if (tokenDetails && tokenDetails.chain === Chain.Ethereum) {
+                    address = defaultAddress;
+                    updateAddress(defaultAddress);
+                    await submit();
+                }
+            } catch (err) {
+                _catchInteractionErr_(err, "Error in AskForAddress > submit");
+            }
+            setCheckingSkip(false);
+        })().catch((err => _catchInteractionErr_(err, "Error in AskForAddress > useEffect")));
     }, [tokenDetails]);
 
     return <Popup cancel={cancel}>
         <div className="address-input">
-            <div className="popup--body">
+            {checkingSkip ? <Loading className="centered" alt={true} /> : <></>}
+            <div style={{ opacity: checkingSkip ? 0 : 1 }} className="popup--body">
                 <TokenIcon className="token-icon" token={token} />
-                <h2>{token} address</h2>
+                <h2>{renderToken(token)} address</h2>
                 <div className="address-input--message">
                     {message}
                 </div>
@@ -80,7 +90,7 @@ export const AskForAddress: React.StatelessComponent<{
                             aria-required={true}
                             ref={inputRef}
                         />
-                        <label className="form-control-placeholder">{token} address</label>
+                        <label className="form-control-placeholder">{renderToken(token)} address</label>
                         {tokenDetails && tokenDetails.chain === Chain.Ethereum ?
                             <button type="button" className="metamask-logo" onClick={useDefaultAddress}><MetaMask /></button> :
                             null

@@ -5,7 +5,7 @@ import { InfoLabel } from "@renproject/react-components";
 import { IS_TESTNET } from "../../lib/environmentVariables";
 import { _catchInteractionErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
-import { Token } from "../../state/generalTypes";
+import { renderToken, Token } from "../../state/generalTypes";
 import { CommitmentType } from "../../state/persistentContainer";
 import { UIContainer } from "../../state/uiContainer";
 import { AskForAddress } from "../views/order-popup/AskForAddress";
@@ -27,10 +27,10 @@ export const PromptDetails = connect<Props & ConnectedProps<[UIContainer]>>([UIC
             address, commitmentType, preferredCurrency, tokenPrices
         } = uiContainer.state;
 
-        const onRefundAddress = async (refundAddress: string) => {
+        const onRefundAddress = React.useCallback(async (refundAddress: string) => {
             await uiContainer.updateRefundAddress(refundAddress).catch(error => _catchInteractionErr_(error, "Error in PromptDetails: updateRefundAddress"));
             await uiContainer.commitOrder();
-        };
+        }, [uiContainer]);
 
         const onCancel = () => {
             uiContainer.resetTrade().catch(error => _catchInteractionErr_(error, "Error in PromptDetails: resetTrade"));
@@ -60,7 +60,7 @@ export const PromptDetails = connect<Props & ConnectedProps<[UIContainer]>>([UIC
                 key={confirmedOrderInputs.dstToken} // Since AskForAddress is used twice
                 token={confirmedOrderInputs.dstToken}
                 message={commitmentType === CommitmentType.Trade ? <>
-                    Enter the {confirmedOrderInputs.dstToken} public address you want to receive your tokens to.
+                    Enter the {renderToken(confirmedOrderInputs.dstToken)} public address you want to receive your tokens to.
                     {confirmedOrderInputs.dstToken === Token.BTC && IS_TESTNET ? <InfoLabel><span className="hint">Hint</span>: If you don't have a Testnet BTC wallet, use the <a className="blue" href={BTC_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>'s return address.</InfoLabel> : <></>}
                 </> : <>Enter your Ethereum address to receive Liquidity tokens.</>}
                 onAddress={uiContainer.updateToAddress}
@@ -75,7 +75,7 @@ export const PromptDetails = connect<Props & ConnectedProps<[UIContainer]>>([UIC
             key={confirmedOrderInputs.srcToken} // Since AskForAddress is used twice
             token={confirmedOrderInputs.srcToken}
             message={<>
-                Enter your {confirmedOrderInputs.srcToken} refund address in case the {commitmentType === CommitmentType.Trade ? "trade" : "transaction"} doesn't go through.
+                Enter your {renderToken(confirmedOrderInputs.srcToken)} refund address in case the {commitmentType === CommitmentType.Trade ? "trade" : "transaction"} doesn't go through.
                 {confirmedOrderInputs.srcToken === Token.BTC && IS_TESTNET ? <InfoLabel><span className="hint">Hint</span>: If you don't have a Testnet BTC wallet, use the <a className="blue" href={BTC_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>'s return address.</InfoLabel> : <></>}
                 {confirmedOrderInputs.srcToken === Token.ZEC && IS_TESTNET ? <InfoLabel><span className="hint">Hint</span>: If you don't have a Testnet ZEC wallet, use the <a className="blue" href={TAZ_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>'s return address.</InfoLabel> : <></>}
             </>}

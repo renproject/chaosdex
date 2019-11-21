@@ -9,7 +9,7 @@ import {
 } from "recharts";
 
 import { pageLoadedAt } from "../../lib/errors";
-import { Token, TokenPrices, Tokens } from "../../state/generalTypes";
+import { renderToken, Token, TokenPrices, Tokens } from "../../state/generalTypes";
 import { CumulativeDataPoint, ReserveHistoryItem, Trade } from "../controllers/Stats";
 import { TokenBalance } from "./TokenBalance";
 
@@ -118,7 +118,7 @@ const ShowReserveBalance = ({ token, preferredCurrency, balance, tokenPrices }: 
                 digits={2}
             />
         }
-        {" "}{token}
+        {" "}{renderToken(token)}
         {" ("}
         <CurrencyIcon currency={preferredCurrency} />
         {" "}
@@ -215,7 +215,7 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
                             const quoteReserveBalances = reserveBalances.get(token, { quote: new BigNumber(0), base: new BigNumber(0) });
                             return <div key={token} className="stat--group">
                                 <div className="stat--group--title">
-                                    <TokenIcon token={token} /> {token}
+                                    <TokenIcon token={token} /> {renderToken(token)}
                                 </div>
                                 <div className="stat--group--body">
                                     <div className="stat">
@@ -230,9 +230,9 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
                                             tokenPrices={tokenPrices}
                                         />
                                         {" "}
-                                        <TokenIcon token={token} /> {token} traded in total
+                                        <TokenIcon token={token} /> {renderToken(token)} traded in total
                                 </div>
-                                    <div className="stat graph-stat"><span>Available {token} liquidity</span>
+                                    <div className="stat graph-stat"><span>Available {renderToken(token)} liquidity</span>
                                         <ShowReserveBalance token={token} balance={quoteReserveBalances ? quoteReserveBalances.quote : new BigNumber(0)} preferredCurrency={preferredCurrency} tokenPrices={tokenPrices} />
                                         <ShowReserveBalance token={Token.DAI} balance={quoteReserveBalances ? quoteReserveBalances.base : new BigNumber(0)} preferredCurrency={preferredCurrency} tokenPrices={tokenPrices} />
                                     </div>

@@ -18,10 +18,10 @@ export const LiquidityForm = connect<Props & ConnectedProps<[UIContainer]>>([UIC
 
         const { liquidityTab, orderInputs, address, submitting } = uiContainer.state;
 
-        const openOrder = async () => {
+        const openOrder = React.useCallback(async () => {
             await uiContainer.updateCommitmentType(liquidityTab === LiquidityTabs.Add ? CommitmentType.AddLiquidity : CommitmentType.RemoveLiquidity);
             uiContainer.setSubmitting(true).catch(error => _catchBackgroundErr_(error, "Error in LiquidityForm: openOrder"));
-        };
+        }, [uiContainer, liquidityTab]);
 
         const market = getMarket(orderInputs.srcToken, orderInputs.dstToken);
 

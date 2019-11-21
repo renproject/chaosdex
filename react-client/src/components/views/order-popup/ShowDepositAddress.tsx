@@ -7,7 +7,7 @@ import QRCode from "qrcode.react";
 import CopyToClipboard from "react-copy-to-clipboard";
 
 import { IS_TESTNET } from "../../../lib/environmentVariables";
-import { Token } from "../../../state/generalTypes";
+import { renderToken, Token } from "../../../state/generalTypes";
 import { ShiftInEvent } from "../../../state/persistentContainer";
 import { ReactComponent as Copy } from "../../../styles/images/copy.svg";
 import { ReactComponent as QR } from "../../../styles/images/qr.svg";
@@ -119,7 +119,7 @@ export const ShowDepositAddress: React.StatelessComponent<Props> =
                             <Copy />
                         </div>
                     </CopyToClipboard>
-                    {showQR ? <QRCode value={`bitcoin:${depositAddress}?amount=${amount}`} /> : null}
+                    {showQR ? <QRCode value={`${token === Token.BTC ? "bitcoin:" : token === Token.ZEC ? "zcash: " : ""}${depositAddress}?amount=${amount}`} /> : null}
                     {showSpinner ? <div className="spinner">
                         <Loading />{" "}<span>Scanning for {token.toUpperCase()} deposits</span>
                     </div> : null}
@@ -127,7 +127,7 @@ export const ShowDepositAddress: React.StatelessComponent<Props> =
                 <>
                     {failed ? <div className="red">{`${failed.message || failed}`}</div> : ""}
                     <div className="popup--buttons">
-                        <button className="button open--confirm" disabled={depositAddress === null || failed !== null} onClick={showDepositAddress}>{failed ? "Unable to generate address" : "Show deposit address"}</button>
+                        <button className="button open--confirm" disabled={!depositAddress || failed !== null} onClick={showDepositAddress}>{failed ? "Unable to generate address" : "Show deposit address"}</button>
                     </div>
                 </>
             }
@@ -154,7 +154,7 @@ export const ShowDepositAddress: React.StatelessComponent<Props> =
             <div className="deposit-address">
                 <div className="popup--body">
                     <TokenIcon className="token-icon" token={token} />
-                    <h2>Deposit {amount} {token.toUpperCase()}{
+                    <h2>Deposit {amount} {renderToken(token).toUpperCase()}{
                         token === Token.BTC && IS_TESTNET ? <InfoLabel><span className="infolabel--p"><span className="hint">Hint</span>: If you don't have a Testnet BTC wallet, send Testnet BTC from the <a className="blue" href={BTC_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>.</span></InfoLabel> :
                             token === Token.ZEC && IS_TESTNET ? <InfoLabel><span className="infolabel--p"><span className="hint">Hint</span>: If you don't have a Testnet ZEC wallet, send Testnet ZEC from the <a className="blue" href={TAZ_FAUCET_LINK} target="_blank" rel="noopener noreferrer">faucet</a>.</span></InfoLabel> :
                                 <></>

@@ -7,6 +7,7 @@ import { Chain, strip0x } from "@renproject/ren";
 import { CircularProgressbar } from "react-circular-progressbar";
 
 import { connect, ConnectedProps } from "../../state/connect";
+import { renderToken } from "../../state/generalTypes";
 import {
     CommitmentType, HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus, Tx,
 } from "../../state/persistentContainer";
@@ -86,7 +87,7 @@ const OrderHistoryEntry = ({ order, continueOrder, loggedIn }: {
             amount={order.orderInputs.srcAmount}
             digits={8}
         />{" "}
-        {order.orderInputs.srcToken}
+        {renderToken(order.orderInputs.srcToken)}
     </span>;
     const amount = order.commitment.type === CommitmentType.AddLiquidity ? srcAmount : <span className="token--amount">
         <TokenBalance
@@ -94,7 +95,7 @@ const OrderHistoryEntry = ({ order, continueOrder, loggedIn }: {
             amount={order.receivedAmount || order.orderInputs.dstAmount}
             digits={8}
         />{" "}
-        {order.orderInputs.dstToken}
+        {renderToken(order.orderInputs.dstToken)}
     </span>;
     const onClick = () => {
         continueOrder(order.id);
