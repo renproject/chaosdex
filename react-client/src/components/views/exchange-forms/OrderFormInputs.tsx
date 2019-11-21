@@ -22,15 +22,14 @@ interface Props {
 export const OrderFormInputs = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer])(
     ({ containers: [uiContainer], }) => {
 
+        const { orderInputs, preferredCurrency: quoteCurrency, tokenPrices } = uiContainer.state;
+
         // Store `srcAmount` as state so we can debounce storing it in the
         // container
-        const [srcAmountState, setSrcAmountState] = React.useState(uiContainer.state.orderInputs.srcAmount);
+        const [srcAmountState, setSrcAmountState] = React.useState(orderInputs.srcAmount);
         const debouncedSrcAmountState = useDebounce(srcAmountState, 250);
         // See `toggleSide`
         const [oldSrcAmount, setOldSrcAmount] = React.useState<string | undefined>(undefined);
-
-        const quoteCurrency = uiContainer.state.preferredCurrency;
-        const orderInputs = uiContainer.state.orderInputs;
 
         // Calculate the receive amount on load in case the srcAmount was stored
         // in local storage.
@@ -38,21 +37,21 @@ export const OrderFormInputs = connect<Props & ConnectedProps<[UIContainer]>>([U
         React.useEffect(() => {
             if (!initialized) {
                 setInitialized(true);
-                uiContainer.updateSrcAmount(srcAmountState).catch(_catchInteractionErr_);
+                uiContainer.updateSrcAmount(srcAmountState).catch(error => _catchInteractionErr_(error, "Error in OrderFormInputs: updateSrcAmount"));
                 setTimeout(() => {
-                    uiContainer.updateSrcAmount(srcAmountState).catch(_catchInteractionErr_);
+                    uiContainer.updateSrcAmount(srcAmountState).catch(error => _catchInteractionErr_(error, "Error in OrderFormInputs: updateSrcAmount (setTimeout)"));
                 }, 1500);
             }
         }, [setInitialized, initialized, srcAmountState, uiContainer]);
 
         React.useEffect(
             () => {
-                uiContainer.updateSrcAmount(debouncedSrcAmountState).catch(_catchInteractionErr_);
+                uiContainer.updateSrcAmount(debouncedSrcAmountState).catch(error => _catchInteractionErr_(error, "Error in OrderFormInputs: updateSrcAmount (debounced)"));
             },
-            [debouncedSrcAmountState]
+            [debouncedSrcAmountState, uiContainer]
         );
 
-        const onVolumeChange = (value: string, options: { blur: boolean }) => {
+        const onVolumeChange = React.useCallback((value: string, options: { blur: boolean }) => {
             // If the value is in scientific notation, fix it
             if (value.toLowerCase().indexOf("e") !== -1) {
                 value = new BigNumber(value).toFixed();
@@ -63,9 +62,9 @@ export const OrderFormInputs = connect<Props & ConnectedProps<[UIContainer]>>([U
             if (oldSrcAmount) {
                 setOldSrcAmount(undefined);
             }
-        };
+        }, [oldSrcAmount]);
 
-        const toggleSide = async () => {
+        const toggleSide = React.useCallback(async () => {
             await uiContainer.flipSendReceive();
 
             // Flip the amounts, but if we flip twice in a row, use the original
@@ -74,13 +73,13 @@ export const OrderFormInputs = connect<Props & ConnectedProps<[UIContainer]>>([U
             // & with: src = 1 [flip] src = 0.01 [flip] src = 1
             const amount = oldSrcAmount !== undefined ? oldSrcAmount : new BigNumber(orderInputs.dstAmount).decimalPlaces(8).toFixed();
             setSrcAmountState(amount);
-            uiContainer.updateSrcAmount(amount).catch(_catchInteractionErr_);
+            uiContainer.updateSrcAmount(amount).catch(error => _catchInteractionErr_(error, "Error in OrderFormInputs: updateSrcAmount (toggleSide)"));
             if (oldSrcAmount === undefined) {
                 setOldSrcAmount(srcAmountState);
             } else {
                 setOldSrcAmount(undefined);
             }
-        };
+        }, [uiContainer, oldSrcAmount, srcAmountState]);
 
         const toggle = <div className="order--tabs">
             <span
@@ -98,7 +97,7 @@ export const OrderFormInputs = connect<Props & ConnectedProps<[UIContainer]>>([U
             <TokenBalance
                 token={orderInputs.srcToken}
                 convertTo={quoteCurrency}
-                tokenPrices={uiContainer.state.tokenPrices}
+                tokenPrices={tokenPrices}
                 amount={orderInputs.srcAmount || "0"}
             />
         </>;

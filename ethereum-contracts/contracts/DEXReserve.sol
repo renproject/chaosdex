@@ -20,11 +20,24 @@ contract DEXReserve is ERC20, ERC20Detailed, Ownable {
 
     ERC20 public baseToken;
     ERC20 public token;
+    // event LogAddLiquidity(
+    //     address indexed _liquidityProvider, uint256 _tokenAmount,
+    //     uint256 _baseTokenAmount, uint256 _liquidityAmount,
+    //     uint256 _totalSupply
+    // );
+    // event LogRemoveLiquidity(
+    //     address indexed _liquidityProvider, uint256 _tokenAmount,
+    //     uint256 _baseTokenAmount, uint256 _liquidityAmount,
+    //     uint256 _totalSupply
+    // );
     event LogAddLiquidity(address _liquidityProvider, uint256 _tokenAmount, uint256 _baseTokenAmount);
     event LogDebug(uint256 _rcvAmount);
     event LogFeesChanged(uint256 _previousFeeInBIPS, uint256 _newFeeInBIPS);
 
-    constructor (string memory _name, string memory _symbol, uint8 _decimals, ERC20 _baseToken, ERC20 _token, uint256 _feeInBIPS) public ERC20Detailed(_name, _symbol, _decimals) {
+    constructor (
+        string memory _name, string memory _symbol, uint8 _decimals,
+        ERC20 _baseToken, ERC20 _token, uint256 _feeInBIPS
+    ) public ERC20Detailed(_name, _symbol, _decimals) {
         baseToken = _baseToken;
         token = _token;
         feeInBIPS = _feeInBIPS;
@@ -34,7 +47,19 @@ contract DEXReserve is ERC20, ERC20Detailed, Ownable {
     /// @notice Allow anyone to recover funds accidentally sent to the contract.
     function recoverTokens(address _token) external onlyOwner {
         require(ERC20(_token) != baseToken && ERC20(_token) != token, "not allowed to recover reserve tokens");
+        uint256 baseBalanceBefore = baseToken.balanceOf(address(this));
+        uint256 balanceBefore = token.balanceOf(address(this));
+
+        // Recover tokens
         ERC20(_token).transfer(msg.sender, ERC20(_token).balanceOf(address(this)));
+
+        // Check that the reserve's balance hasn't decreased. This may happen
+        // if one of the tokens has been upgraded using proxies and has multiple
+        // valid addresses.
+        uint256 baseBalanceAfter = baseToken.balanceOf(address(this));
+        uint256 balanceAfter = token.balanceOf(address(this));
+        require(baseBalanceBefore == baseBalanceAfter, "not allowed to affect reserve's base balance");
+        require(balanceBefore == balanceAfter, "not allowed to affect reserve's balance");
     }
 
     /// @notice Allow the reserve manager too update the contract fees.
@@ -92,6 +117,7 @@ contract DEXReserve is ERC20, ERC20Detailed, Ownable {
         _burn(msg.sender, _liquidity);
         baseToken.safeTransfer(msg.sender, baseTokenAmount);
         token.safeTransfer(msg.sender, quoteTokenAmount);
+        // emit LogRemoveLiquidity(msg.sender, quoteTokenAmount, baseTokenAmount, _liquidity, totalSupply());
         return (baseTokenAmount, quoteTokenAmount);
     }
 
@@ -99,16 +125,19 @@ contract DEXReserve is ERC20, ERC20Detailed, Ownable {
         address _liquidityProvider, uint256 _maxBaseToken, uint256 _tokenAmount, uint256 _deadline
         ) external returns (uint256) {
         require(block.number <= _deadline, "addLiquidity request expired");
-        uint256 liquidity = calculateExpectedLiquidity(_tokenAmount); 
+        uint256 liquidity = calculateExpectedLiquidity(_tokenAmount);
         if (totalSupply() > 0) {
+            // The provider must provide equal amounts of the base and quote
+            // tokens to not modify the reserve's price.
             require(_tokenAmount > 0, "token amount is less than allowed min amount");
             uint256 baseAmount = expectedBaseTokenAmount(_tokenAmount);
             require(baseAmount <= _maxBaseToken, "calculated base amount exceeds the maximum amount set");
             baseToken.safeTransferFrom(_liquidityProvider, address(this), baseAmount);
-            emit LogAddLiquidity(_liquidityProvider, _tokenAmount, baseAmount);
+            // emit LogAddLiquidity(_liquidityProvider, _tokenAmount, baseAmount, liquidity, totalSupply());
         } else {
+            // If there's no previous liquidity, the ratio is set by the new provider.
             baseToken.safeTransferFrom(_liquidityProvider, address(this), _maxBaseToken);
-            emit LogAddLiquidity(_liquidityProvider, _tokenAmount, _maxBaseToken);
+            // emit LogAddLiquidity(_liquidityProvider, _tokenAmount, _maxBaseToken, liquidity, totalSupply());
         }
         token.safeTransferFrom(msg.sender, address(this), _tokenAmount);
         _mint(_liquidityProvider, liquidity);

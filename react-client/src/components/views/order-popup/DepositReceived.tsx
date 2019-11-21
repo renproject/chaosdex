@@ -6,7 +6,6 @@ import { TxStatus } from "@renproject/ren";
 import { _catchInteractionErr_ } from "../../../lib/errors";
 import { Token } from "../../../state/generalTypes";
 import { Popup } from "../Popup";
-import { INTEROP_LINK } from "../tutorial-popup/TutorialPages";
 
 const renderTxStatus = (status: TxStatus | null) => {
     switch (status) {
@@ -47,7 +46,7 @@ export const DepositReceived: React.StatelessComponent<{
             } catch (error) {
                 setSubmitted(false);
                 setError(error);
-                _catchInteractionErr_(error);
+                _catchInteractionErr_(error, "Error in DepositReceived: submitDeposit");
             }
         }
     }, [orderID, submitDeposit]);
@@ -89,7 +88,7 @@ export const DepositReceived: React.StatelessComponent<{
                 {error ? <span className="red">Unable to submit to RenVM <InfoLabel level={LabelLevel.Warning}>{`${error.message || error}`}</InfoLabel></span> : null}
                 {waiting ? <div className="address-input--message">
                     <>
-                        <p>This can take up to twenty minutes due to confirmation times on various blockchains. This will be improved for Mainnet via 3rd parties for more information, head <a className="blue" href={INTEROP_LINK} target="_blank" rel="noopener noreferrer">here</a>.</p>
+                        <p>Submitting order to RenVM...<br />This can take a few minutes.</p>
                         <p>Status: {<span>{renderTxStatus(renVMStatus)}.</span> || <Loading className="loading--small" />}</p>
                     </>
                 </div> : <div className="popup--buttons">

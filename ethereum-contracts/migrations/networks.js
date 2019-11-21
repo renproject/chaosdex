@@ -52,6 +52,8 @@ module.exports = {
         renNetwork: ren.chaosnet,
         DEX: "0xf65d91333B1d4d3887016b17741aD602d7768594",
         DEXAdapter: "0x9992e9341e496bE5bC8F424DFC1f78A7388D3A58",
+        BTC_DAI_Reserve: '0x2c4Ce444252FBeB762d789D6457D2BD530E292f6',
+        ZEC_DAI_Reserve: '0xa08b74DaA6ea1ca4397D1e0C14C517f535A7839c',
         config: {
             ...config,
             mintAuthority: ren.chaosnet.renVM.mintAuthority,
@@ -59,10 +61,10 @@ module.exports = {
     },
     testnet: {
         renNetwork: ren.testnet,
-        DEX: '0x8da562d3d67B5832a834181Fc3345B306689DDbE',
-        DEXAdapter: '0x0246DB1836c0fad9b6B5f3c4E642Af81b444Bbf8',
-        BTC_DAI_Reserve: '0x426034F4B7C82b2DF1c06349A995E70F35B0C57B',
-        ZEC_DAI_Reserve: '0xF2Ac666b592A2debEB0EceC60e3cdB0302B6266E',
+        DEX: "",
+        DEXAdapter: "",
+        BTC_DAI_Reserve: "",
+        ZEC_DAI_Reserve: "",
         config: {
             ...config,
             mintAuthority: ren.testnet.renVM.mintAuthority,

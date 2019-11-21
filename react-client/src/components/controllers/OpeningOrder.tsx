@@ -30,18 +30,18 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
         let [returned, setReturned] = React.useState(false);
         const [ERC20Approved, setERC20Approved] = React.useState(false);
 
-        const onDone = async () => {
+        const onDone = React.useCallback(async () => {
             if (returned) {
                 return;
             }
             returned = true;
             setReturned(true);
-            uiContainer.resetTrade().catch(_catchInteractionErr_);
-        };
+            uiContainer.resetTrade().catch(error => _catchInteractionErr_(error, "Error in OpeningOrder: resetTrade"));
+        }, [returned, setReturned, uiContainer]);
 
-        const hide = async () => {
+        const hide = React.useCallback(async () => {
             await uiContainer.handleOrder(null);
-        };
+        }, [uiContainer]);
 
         const { sdkRenVM } = sdkContainer.state;
 
@@ -65,6 +65,7 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
                     // Show the deposit address and wait for a deposit
                     return <ShowDepositAddress
                         orderID={orderID}
+                        order={order}
                         generateAddress={sdkContainer.generateAddress}
                         token={order.orderInputs.srcToken}
                         amount={order.orderInputs.srcAmount}
@@ -76,13 +77,13 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
                     return <DepositReceived renVMStatus={order.renVMStatus} messageID={order.messageID} orderID={orderID} submitDeposit={sdkContainer.submitMintToRenVM} hide={hide} />;
                 case ShiftInStatus.ReturnedFromRenVM:
                 case ShiftInStatus.SubmittedToEthereum:
-                    return <SubmitToEthereum txHash={order.outTx} token={order.orderInputs.dstToken} orderID={orderID} submit={sdkContainer.submitMintToEthereum} hide={hide} />;
+                    return <SubmitToEthereum order={order} txHash={order.outTx} token={order.orderInputs.dstToken} orderID={orderID} submit={sdkContainer.submitMintToEthereum} hide={hide} />;
                 case ShiftInStatus.RefundedOnEthereum:
                 case ShiftInStatus.ConfirmedOnEthereum:
-                    onDone().catch(_catchInteractionErr_);
+                    onDone().catch(error => _catchInteractionErr_(error, "Error in OpeningOrder: shiftIn.onDone"));
                     return <></>;
             }
-            console.error(`Unknown status in ShiftIn: ${order.status}`);
+            _catchInteractionErr_(new Error(`Unknown status in ShiftIn: ${order.status}`), "Error in OpeningOrder: shiftIn");
             return <></>;
         };
 
@@ -98,19 +99,19 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
                     if (isERC20(order.orderInputs.srcToken) && !ERC20Approved) {
                         return <TokenAllowance token={order.orderInputs.srcToken} amount={order.orderInputs.srcAmount} orderID={orderID} submit={submit} commitment={commitment} hide={hide} />;
                     }
-                    return <SubmitToEthereum txHash={order.inTx} token={order.orderInputs.dstToken} orderID={orderID} submit={sdkContainer.submitBurnToEthereum} hide={hide} />;
+                    return <SubmitToEthereum order={order} txHash={order.inTx} token={order.orderInputs.dstToken} orderID={orderID} submit={sdkContainer.submitBurnToEthereum} hide={hide} />;
                 case ShiftOutStatus.SubmittedToEthereum:
                     // Submit the trade to Ethereum
-                    return <SubmitToEthereum txHash={order.inTx} token={order.orderInputs.dstToken} orderID={orderID} submit={sdkContainer.submitBurnToEthereum} hide={hide} />;
+                    return <SubmitToEthereum order={order} txHash={order.inTx} token={order.orderInputs.dstToken} orderID={orderID} submit={sdkContainer.submitBurnToEthereum} hide={hide} />;
                 case ShiftOutStatus.ConfirmedOnEthereum:
                 case ShiftOutStatus.SubmittedToRenVM:
                     return <DepositReceived renVMStatus={renVMStatus} messageID={messageID} orderID={orderID} submitDeposit={sdkContainer.submitBurnToRenVM} hide={hide} />;
                 case ShiftOutStatus.RefundedOnEthereum:
                 case ShiftOutStatus.ReturnedFromRenVM:
-                    onDone().catch(_catchInteractionErr_);
+                    onDone().catch(error => _catchInteractionErr_(error, "Error in OpeningOrder: shiftOut.onDone"));
                     return <></>;
             }
-            console.error(`Unknown status in ShiftOut: ${order.status}`);
+            _catchInteractionErr_(new Error(`Unknown status in ShiftOut: ${order.status}`), "Error in OpeningOrder: shiftOut");
             return <></>;
         };
 

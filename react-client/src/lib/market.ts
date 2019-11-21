@@ -8,7 +8,6 @@ const CoinGeckoIDs = Map<Token, string>()
     .set(Token.BTC, "bitcoin")
     .set(Token.BCH, "bitcoin-cash")
     .set(Token.ETH, "ethereum")
-    // .set(Token.REN, "republic-protocol")
     .set(Token.ZEC, "zcash");
 
 /**
@@ -23,26 +22,25 @@ const fetchDetails = async (geckoID: string) => {
     return response.json();
 };
 
-export const getTokenPricesInCurrencies = async (): Promise<TokenPrices> => {
-    let prices: TokenPrices = Map();
-
-    for (const tokenAndDetails of CoinGeckoIDs.toSeq().toArray()) {
-        const [token, coinGeckoID] = tokenAndDetails;
-
-        const data = await fetchDetails(coinGeckoID);
-        const price = Map<Currency, number>(data.market_data.current_price);
-
-        prices = prices.set(token, price);
-    }
-
-    return prices;
-};
+export const getTokenPricesInCurrencies = async (): Promise<TokenPrices> =>
+    /*await*/ CoinGeckoIDs
+        .map(coinGeckoID => fetchDetails(coinGeckoID))
+        .reduce(async (pricesPromise, detailsPromise, token) => {
+            const prices = await pricesPromise;
+            try {
+                const data = await detailsPromise;
+                const price = Map<Currency, number>(data.market_data.current_price);
+                return prices.set(token, price);
+            } catch (error) {
+                return prices;
+            }
+        }, Promise.resolve(Map<Token, Map<Currency, number>>()));
 
 export enum MarketPair {
     DAI_BTC = "DAI/BTC",
     DAI_ZEC = "DAI/ZEC",
     DAI_BCH = "DAI/BCH",
-    ZEC_BTC = "ZEC/BTC",
+    // ZEC_BTC = "ZEC/BTC",
 }
 
 interface MarketDetails {
@@ -56,7 +54,7 @@ const MarketPairs = OrderedMap<MarketPair, MarketDetails>()
     .set(MarketPair.DAI_BTC, { symbol: MarketPair.DAI_BTC, quote: Token.BTC, base: Token.DAI })
     .set(MarketPair.DAI_ZEC, { symbol: MarketPair.DAI_ZEC, quote: Token.ZEC, base: Token.DAI })
     .set(MarketPair.DAI_BCH, { symbol: MarketPair.DAI_BCH, quote: Token.BCH, base: Token.DAI })
-    .set(MarketPair.ZEC_BTC, { symbol: MarketPair.ZEC_BTC, quote: Token.BTC, base: Token.ZEC })
+    // .set(MarketPair.ZEC_BTC, { symbol: MarketPair.ZEC_BTC, quote: Token.BTC, base: Token.ZEC })
     ;
 
 export const getMarket = (left: Token, right: Token): MarketPair | undefined => {

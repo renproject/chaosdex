@@ -19,17 +19,19 @@ interface Props {
 export const OrderForm = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer])(
     ({ handleLogin, containers: [uiContainer] }) => {
 
-        const openOrder = async () => {
+        const openOrder = React.useCallback(async () => {
             await uiContainer.updateCommitmentType(CommitmentType.Trade);
-            uiContainer.setSubmitting(true).catch(_catchBackgroundErr_);
-        };
+            uiContainer.setSubmitting(true).catch(error => _catchBackgroundErr_(error, "Error in OrderForm: setSubmitting"));
+        }, [uiContainer]);
 
-        const orderInput = uiContainer.state.orderInputs;
+        const { orderInputs, address, submitting } = uiContainer.state;
+
+        const orderInput = orderInputs;
         const market = getMarket(orderInput.srcToken, orderInput.dstToken);
 
         const marketPrice = 0;
 
-        const loggedIn = uiContainer.state.address !== null;
+        const loggedIn = address !== null;
         const sufficientBalance = uiContainer.sufficientBalance();
         const validVolume = uiContainer.validVolume();
         const disabled = !loggedIn || !sufficientBalance || !validVolume;
@@ -52,7 +54,7 @@ export const OrderForm = connect<Props & ConnectedProps<[UIContainer]>>([UIConta
                 onClick={openOrder}
                 className="button submit-swap"
             >
-                {uiContainer.state.submitting ? <Loading alt={true} /> :
+                {submitting ? <Loading alt={true} /> :
                     !loggedIn ? "Connect to trade" :
                         !sufficientBalance ? "Insufficient balance" :
                             !validVolume ? "Volume too low" :

@@ -23,7 +23,7 @@ export const TokenAllowance: React.StatelessComponent<{
     const onSubmit = () => {
         setError(null);
         setSubmitting(true);
-        submit(orderID).catch((err) => {
+        submit(orderID).catch(err => {
             setSubmitting(false);
 
             // Ignore user denying error in MetaMask.
@@ -31,7 +31,7 @@ export const TokenAllowance: React.StatelessComponent<{
                 return;
             }
 
-            _catchInteractionErr_(err);
+            _catchInteractionErr_(err, "Error in TokenAllowance: submit");
             const match = String(err.message || err).match(/"transactionHash": "(0x[a-fA-F0-9]{64})"/);
             if (match && match.length >= 2) {
                 setFailedTransaction(match[1]);

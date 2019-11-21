@@ -133,6 +133,13 @@ table th {
     text-align: center;
 }
 
+.centered {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
 .right {
     text-align: right;
 }
@@ -255,6 +262,11 @@ button {
     position: fixed;
     right: 55px;
     bottom: 35px;
+
+    @media(max-width: $max-xs) {
+        right: 10px;
+        bottom: 10px;
+    }
 }
 
 .disabled {

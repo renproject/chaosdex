@@ -1,3 +1,5 @@
+import { AbiInput } from "web3-utils";
+
 import { Token } from "../state/generalTypes";
 
 const network = process.env.REACT_APP_NETWORK || "testnet";
@@ -20,10 +22,27 @@ export const syncGetTokenAddress = (networkID: number, token: Token): string => 
         case Token.BCH:
             const deployedBCHNetworks = require(`../contracts/${network}/zBCH.json`).networks;
             return deployedBCHNetworks[networkID].address;
-        // case Token.REN:
-        //     const deployedRENNetworks = require(`../contracts/${network}/RenToken.json`).networks;
-        //     return deployedRENNetworks[networkID].address;
     }
+};
+
+const tokensFromAddresses = {};
+
+export const syncGetTokenFromAddress = (networkID: number, address: string): Token => {
+    // eslint-disable-next-line
+
+    // tslint:disable: no-string-literal
+    if (address === "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE") { return Token.ETH; }
+    tokensFromAddresses["DAI"] = tokensFromAddresses["DAI"] || require(`../contracts/${network}/DaiToken.json`).networks[networkID].address;
+    if (address === tokensFromAddresses["DAI"]) { return Token.DAI; }
+    tokensFromAddresses["BTC"] = tokensFromAddresses["BTC"] || require(`../contracts/${network}/zBTC.json`).networks[networkID].address;
+    if (address === tokensFromAddresses["BTC"]) { return Token.BTC; }
+    tokensFromAddresses["ZEC"] = tokensFromAddresses["ZEC"] || require(`../contracts/${network}/zZEC.json`).networks[networkID].address;
+    if (address === tokensFromAddresses["ZEC"]) { return Token.ZEC; }
+    tokensFromAddresses["BCH"] = tokensFromAddresses["BCH"] || require(`../contracts/${network}/zBCH.json`).networks[networkID].address;
+    if (address === tokensFromAddresses["BCH"]) { return Token.BCH; }
+    // tslint:enable: no-string-literal
+
+    throw new Error("Unknown token");
 };
 
 // tslint:disable: non-literal-require
@@ -48,6 +67,26 @@ export const syncGetDEXAddress = (networkID: number): string => {
     return renExNetworks[networkID].address;
 };
 
+export const syncGetDEXTradeLog = (): AbiInput[] => {
+    const abi = require(`../contracts/${network}/DEX.json`).abi;
+    for (const logAbi of abi) {
+        if (logAbi.type === "event" && logAbi.name === "LogTrade") {
+            return logAbi.inputs;
+        }
+    }
+    return [];
+};
+
+export const syncGetTransfer = (): AbiInput[] => {
+    const abi = require(`../contracts/${network}/DaiToken.json`).abi;
+    for (const logAbi of abi) {
+        if (logAbi.type === "event" && logAbi.name === "Transfer") {
+            return logAbi.inputs;
+        }
+    }
+    return [];
+};
+
 export const syncGetDEXAdapterAddress = (networkID: number): string => {
     const renExNetworks = require(`../contracts/${network}/DEXAdapter.json`).networks;
     return renExNetworks[networkID].address;
@@ -65,7 +104,5 @@ export const getTokenDecimals = (token: Token): number => {
             return 8;
         case Token.BCH:
             return 8;
-        // case Token.REN:
-        //     return 18;
     }
 };

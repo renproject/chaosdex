@@ -218,3 +218,30 @@
         border-color: $blue-bright transparentize($color: $blue-bright, $amount: 0.5) transparentize($color: $blue-bright, $amount: 0.5) transparentize($color: $blue-bright, $amount: 0.5) !important;
     }
 }
+
+.show-utxos {
+    >span {
+        padding: 0;
+    }
+
+    .show-utxos--utxo {
+        border: 1px solid $grey-10;
+        box-shadow: 0px 1px 2px rgba(0, 27, 58, 0.05);
+        border-radius: 12px;
+        height: 40px;
+        font-weight: 200;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 10px;
+
+        a {
+            color: $blue-bright;
+            font-weight: 900;
+        }
+
+        >span {
+            margin-top: 0;
+        }
+    }
+}

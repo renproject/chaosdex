@@ -7,6 +7,7 @@ import { Chain, strip0x } from "@renproject/ren";
 import { CircularProgressbar } from "react-circular-progressbar";
 
 import { connect, ConnectedProps } from "../../state/connect";
+import { renderToken } from "../../state/generalTypes";
 import {
     CommitmentType, HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus, Tx,
 } from "../../state/persistentContainer";
@@ -17,8 +18,22 @@ import { ReactComponent as Next } from "../../styles/images/next.svg";
 import { ReactComponent as Previous } from "../../styles/images/previous.svg";
 import { TokenBalance } from "./TokenBalance";
 
+const continueText = (commitmentType: CommitmentType): string => {
+    switch (commitmentType) {
+        case CommitmentType.Trade:
+            return "Continue swap";
+        case CommitmentType.AddLiquidity:
+            return "Continue adding liquidity";
+        case CommitmentType.RemoveLiquidity:
+            return "Continue removing liquidity";
+        default:
+            return "Continue";
+    }
+};
+
 const shiftProgress = (status: ShiftInStatus | ShiftOutStatus) => {
     switch (status) {
+        // Shift in
         case ShiftInStatus.Committed:
             return 1 / 6 * 100;
         case ShiftInStatus.Deposited:
@@ -29,6 +44,8 @@ const shiftProgress = (status: ShiftInStatus | ShiftOutStatus) => {
             return 4 / 6 * 100;
         case ShiftInStatus.SubmittedToEthereum:
             return 5 / 6 * 100;
+
+        // Shift out
         case ShiftOutStatus.Committed:
             return 1 / 5 * 100;
         case ShiftOutStatus.SubmittedToEthereum:
@@ -37,14 +54,15 @@ const shiftProgress = (status: ShiftInStatus | ShiftOutStatus) => {
             return 3 / 5 * 100;
         case ShiftOutStatus.SubmittedToRenVM:
             return 4 / 5 * 100;
+
         default:
             return 100;
     }
 };
 
-const txUrl = (tx: Tx | null): string => {
+export const txUrl = (tx: Tx | null): string => {
     if (!tx) { return ""; }
-    const isTx = tx.hash && tx.hash.slice && tx.hash.slice(0, 2) === "0x";
+    const isTx = tx.hash && tx.hash.slice && tx.hash.match(/^(0x)?[a-fA-F0-9]+$/);
     switch (tx.chain) {
         case Chain.Ethereum:
             return `${network.contracts.etherscan}/tx/${tx.hash}`;
@@ -55,6 +73,7 @@ const txUrl = (tx: Tx | null): string => {
         case Chain.BCash:
             return `https://explorer.bitcoin.com/${network.isTestnet ? "t" : ""}bch/${isTx ? "tx" : "address"}/${strip0x(tx.hash)}`;
     }
+    return "";
 };
 
 const OrderHistoryEntry = ({ order, continueOrder, loggedIn }: {
@@ -68,19 +87,20 @@ const OrderHistoryEntry = ({ order, continueOrder, loggedIn }: {
             amount={order.orderInputs.srcAmount}
             digits={8}
         />{" "}
-        {order.orderInputs.srcToken}
+        {renderToken(order.orderInputs.srcToken)}
     </span>;
-    const amount = <span className="token--amount">
+    const amount = order.commitment.type === CommitmentType.AddLiquidity ? srcAmount : <span className="token--amount">
         <TokenBalance
             token={order.orderInputs.dstToken}
             amount={order.receivedAmount || order.orderInputs.dstAmount}
             digits={8}
         />{" "}
-        {order.orderInputs.dstToken}
+        {renderToken(order.orderInputs.dstToken)}
     </span>;
     const onClick = () => {
         continueOrder(order.id);
     };
+    // tslint:disable-next-line: no-console
     return <div className="swap--history--entry">
         <div className="token--info">
             {
@@ -140,13 +160,13 @@ const OrderHistoryEntry = ({ order, continueOrder, loggedIn }: {
                                             },
                                         }}
                                     />
-                                    <span className="received--text">Receiving</span>{amount}
+                                    <span className="received--text">{order.commitment.type === CommitmentType.AddLiquidity ? "Adding" : order.commitment.type === CommitmentType.RemoveLiquidity ? "Removing" : "Receiving"}</span>{amount}
                                     <button
                                         disabled={!loggedIn}
                                         className="button--plain"
                                         onClick={onClick}
                                     >
-                                        {loggedIn ? <>Continue swap</> : <>: Connect to continue</>}
+                                        {loggedIn ? continueText(order.commitment.type) : <>: Connect to continue</>}
                                     </button>
                                 </>
             }
@@ -175,15 +195,19 @@ const OrderHistoryEntry = ({ order, continueOrder, loggedIn }: {
  */
 export const OrderHistory = connect<{} & ConnectedProps<[PersistentContainer, UIContainer]>>([PersistentContainer, UIContainer])(
     ({ containers: [persistentContainer, uiContainer] }) => {
+
+        const { historyItems } = persistentContainer.state;
+        const { address } = uiContainer.state;
+
         // export const OrderHistory = ({ orders }: Props) => {
         const [start, setStart] = React.useState(0);
 
-        const nextPage = () => { setStart(start + 5); };
-        const previousPage = () => { setStart(Math.max(start - 5, 0)); };
+        const nextPage = () => setStart(start + 5);
+        const previousPage = () => setStart(Math.max(start - 5, 0));
 
-        const orders = Object.values(persistentContainer.state.historyItems).sort((a, b) => b.time - a.time);
+        const orders = Object.values(historyItems).sort((a, b) => b.time - a.time);
 
-        const loggedIn = uiContainer.state.address !== null;
+        const loggedIn = address !== null;
 
         if (orders.length === 0) {
             return <></>;

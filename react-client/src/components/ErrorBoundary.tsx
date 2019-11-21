@@ -8,7 +8,7 @@ const defaultState = { // Entries must be immutable
     errorInfo: null as null | React.ErrorInfo,
 };
 
-class ErrorBoundary extends React.Component<Props, typeof defaultState> {
+export class ErrorBoundary extends React.Component<Props, typeof defaultState> {
     constructor(props: Props) {
         super(props);
         this.state = defaultState;
@@ -31,15 +31,16 @@ class ErrorBoundary extends React.Component<Props, typeof defaultState> {
      * @dev Should have minimal computation, loops and anonymous functions.
      */
     public render(): React.ReactNode {
-        if (this.state.errorInfo) {
+        const { errorInfo, error } = this.state;
+        if (errorInfo) {
             // Error path
             return (
                 <div className={this.props.popup ? "popup" : ""}>
                     <h2>Something went wrong.</h2>
                     <details style={{ whiteSpace: "pre-wrap" }}>
-                        {this.state.error && this.state.error.toString()}
+                        {error && error.toString()}
                         <br />
-                        {this.state.errorInfo.componentStack}
+                        {errorInfo.componentStack}
                     </details>
                     {this.props.popup ? <div className="popup--buttons">
                         <button onClick={this.reportFeedback}>Report feedback</button>
@@ -70,10 +71,3 @@ interface Props {
      */
     onCancel?(): void;
 }
-
-export const _catch_ = (
-    children: React.ReactNode,
-    options?: { key?: string; popup?: boolean; onCancel?(): void }
-) => <ErrorBoundary key={options && options.key} popup={options && options.popup} onCancel={options && options.onCancel}>
-        {children}
-    </ErrorBoundary>;

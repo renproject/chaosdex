@@ -1,7 +1,8 @@
 import { sleep } from "@renproject/react-components";
 import RenVM, {
-    btcAddressFrom, Chain, NetworkChaosnet, NetworkDetails, NetworkDevnet, NetworkLocalnet,
-    NetworkTestnet, Ox, ShiftInObject, Signature, Tokens as ShiftActions, TxStatus, zecAddressFrom,
+    bchAddressFrom, btcAddressFrom, Chain, NetworkChaosnet, NetworkDetails, NetworkDevnet,
+    NetworkLocalnet, NetworkTestnet, Ox, ShiftInObject, Signature, Tokens as ShiftActions, TxStatus,
+    UTXO, zecAddressFrom,
 } from "@renproject/ren";
 import BigNumber from "bignumber.js";
 import { Container } from "unstated";
@@ -15,7 +16,7 @@ import { ERC20Detailed } from "../lib/contracts/ERC20Detailed";
 import { NETWORK } from "../lib/environmentVariables";
 import { _catchBackgroundErr_ } from "../lib/errors";
 import {
-    getAdapter, getERC20, getExchange, getReserve, NULL_BYTES32, Token, Tokens,
+    getAdapter, getERC20, getExchange, getReserve, NULL_BYTES, NULL_BYTES32, Token, Tokens,
 } from "./generalTypes";
 import {
     AddLiquidityCommitment, CommitmentType, HistoryEvent, OrderCommitment, PersistentContainer,
@@ -24,7 +25,7 @@ import {
 
 const BitcoinTx = (hash: string) => ({ hash, chain: Chain.Bitcoin });
 const ZCashTx = (hash: string) => ({ hash, chain: Chain.Zcash });
-const BCashTx = (hash: string) => ({ hash, chain: Chain.BCash });
+const BitcoinCashTx = (hash: string) => ({ hash, chain: Chain.BCash });
 const EthereumTx = (hash: string) => ({ hash, chain: Chain.Ethereum });
 
 export let network: NetworkDetails = NetworkTestnet;
@@ -118,7 +119,7 @@ export class SDKContainer extends Container<typeof initialState> {
             const { dstToken, srcToken } = order.orderInputs;
             amountBN = new BigNumber(order.commitment.maxDAIAmount);
             tokenInstance = getERC20(web3, networkDetails, syncGetTokenAddress(networkID, dstToken));
-            receivingAddress = await dex.methods.reserves(syncGetTokenAddress(networkID, srcToken)).call();
+            receivingAddress = (await dex.methods.reserves(syncGetTokenAddress(networkID, srcToken)).call()) || NULL_BYTES;
         } else {
             throw new Error("Token approval not required");
         }
@@ -127,7 +128,7 @@ export class SDKContainer extends Container<typeof initialState> {
         // If it's not sufficient, approve the required amount.
         // NOTE: Some tokens require the allowance to be 0 before being able to
         // approve a new amount.
-        const allowance = new BigNumber((await tokenInstance.methods.allowance(address, receivingAddress).call()).toString());
+        const allowance = new BigNumber(((await tokenInstance.methods.allowance(address, receivingAddress).call()) || 0).toString());
         if (allowance.lt(amountBN)) {
             // We don't have enough allowance so approve more
             const promiEvent = tokenInstance.methods.approve(
@@ -136,7 +137,12 @@ export class SDKContainer extends Container<typeof initialState> {
             ).send({ from: address });
             await new Promise((resolve, reject) => promiEvent.on("transactionHash", async (transactionHash: string) => {
                 resolve(transactionHash);
-            }).catch(reject));
+            }).catch((error: Error) => {
+                if (error && error.message && String(error.message).match(/Invalid "from" address/)) {
+                    error.message += ` (from address: ${address})`;
+                }
+                reject(error);
+            }));
         }
     }
 
@@ -260,7 +266,7 @@ export class SDKContainer extends Container<typeof initialState> {
         // const exchange = getExchange(web3, networkID);
         const reserveAddress = syncGetDEXReserveAddress(networkID, srcToken);
         const reserve = getReserve(web3, networkID, reserveAddress);
-        return new BigNumber(await reserve.methods.balanceOf(address).call());
+        return new BigNumber((await reserve.methods.balanceOf(address).call() || "0").toString());
     }
 
     public submitBurnToRenVM = async (orderID: string, _resubmit = false) => {
@@ -295,12 +301,12 @@ export class SDKContainer extends Container<typeof initialState> {
                 this.persistentContainer.updateHistoryItem(order.id, {
                     messageID,
                     status: ShiftOutStatus.SubmittedToRenVM,
-                }).catch(_catchBackgroundErr_);
+                }).catch(error => _catchBackgroundErr_(error, "Error in sdkContainer: on-messageID"));
             })
             .on("status", (renVMStatus: TxStatus) => {
                 this.persistentContainer.updateHistoryItem(order.id, {
                     renVMStatus,
-                }).catch(_catchBackgroundErr_);
+                }).catch(error => _catchBackgroundErr_(error, "Error in sdkContainer: on-status"));
             });
         const receivedAmount = order.orderInputs.dstAmount; // new BigNumber(response.amount).dividedBy(new BigNumber(10).exponentiatedBy(8)).toString();
         // tslint:disable-next-line: no-any
@@ -310,11 +316,10 @@ export class SDKContainer extends Container<typeof initialState> {
             outTx: order.orderInputs.dstToken === Token.ZEC ?
                 ZCashTx(zecAddressFrom(address, "base64")) :
                 order.orderInputs.dstToken === Token.BCH ?
-                    // BCashTx(bchAddressFrom(address, "base64")) :
-                    BCashTx(address) :
+                    BitcoinCashTx(bchAddressFrom(address, "base64")) :
                     BitcoinTx(btcAddressFrom(address, "base64")),
             status: ShiftOutStatus.ReturnedFromRenVM,
-        }).catch(_catchBackgroundErr_);
+        }).catch(error => _catchBackgroundErr_(error, "Error in sdkContainer: updateHistoryItem"));
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -393,10 +398,17 @@ export class SDKContainer extends Container<typeof initialState> {
     }
 
     // Retrieves unspent deposits at the provided address
-    public waitForDeposits = async (orderID: string, confirmations = 0) => {
-        await this
+    public waitForDeposits = async (orderID: string, onDeposit: (utxo: UTXO) => void) => {
+        const order = this.order(orderID);
+        if (!order) {
+            throw new Error("Order not set");
+        }
+
+        const promise = this
             .shiftInObject(orderID)
-            .waitForDeposit(confirmations);
+            .waitForDeposit(order.orderInputs.srcToken === Token.BTC || order.orderInputs.srcToken === Token.BCH ? 2 : 6);
+        promise.on("deposit", onDeposit);
+        await promise;
         await this.persistentContainer
             .updateHistoryItem(orderID, { status: ShiftInStatus.Deposited });
     }
@@ -416,17 +428,26 @@ export class SDKContainer extends Container<typeof initialState> {
                 renVMStatus,
             }).catch(console.error);
         };
+        const order = this.order(orderID);
+        if (!order) {
+            throw new Error("Order not set");
+        }
         const shiftInObject = this
             .shiftInObject(orderID)
-            .waitForDeposit(0);
+            .waitForDeposit(order.orderInputs.srcToken === Token.BTC || order.orderInputs.srcToken === Token.BCH ? 2 : 6);
         await sleep(10 * 1000);
         const obj = await shiftInObject;
         const signature = await obj
             .submitToRenVM()
             .on("messageID", onMessageID)
             .on("status", onStatus);
+        const tx = Ox(Buffer.from(signature.response.args.utxo.txHash, "base64"));
         await this.persistentContainer.updateHistoryItem(orderID, {
-            inTx: BitcoinTx(Ox(Buffer.from(signature.response.args.utxo.txHash, "base64"))),
+            inTx: order.orderInputs.srcToken === Token.ZEC ?
+                ZCashTx(tx) :
+                order.orderInputs.srcToken === Token.BCH ?
+                    BitcoinCashTx(tx) :
+                    BitcoinTx(tx),
             status: ShiftInStatus.ReturnedFromRenVM,
         });
         return signature;
@@ -452,8 +473,8 @@ export class SDKContainer extends Container<typeof initialState> {
             }
 
             [receipt, transactionHash] = await new Promise<[TransactionReceipt, string]>(async (resolve, reject) => {
-                const promiEvent = (await this.submitMintToRenVM(orderID)).submitToEthereum(web3.currentProvider);
-                promiEvent.catch((error) => {
+                const promiEvent = (await this.submitMintToRenVM(orderID)).submitToEthereum(web3.currentProvider, { gas: order.commitment.type === CommitmentType.AddLiquidity ? 250000 : undefined });
+                promiEvent.catch(error => {
                     reject(error);
                 });
                 const txHash = await new Promise<string>((resolveTx, rejectTx) => promiEvent.on("transactionHash", resolveTx).catch(rejectTx));
@@ -463,7 +484,7 @@ export class SDKContainer extends Container<typeof initialState> {
                 });
 
                 // tslint:disable-next-line: no-any
-                (promiEvent as any).once("confirmation", (_confirmations: number, newReceipt: TransactionReceipt) => { resolve([newReceipt, txHash]); });
+                (promiEvent as any).once("confirmation", (_confirmations: number, newReceipt: TransactionReceipt) => resolve([newReceipt, txHash]));
             });
         } else {
             receipt = await this.getReceipt(web3, transactionHash);
@@ -472,9 +493,7 @@ export class SDKContainer extends Container<typeof initialState> {
         // Loop through logs to find exchange event from the DEX contract.
         // The event log always has the first topic as "0x8d10c7a1"
         // TODO: Calculate this instead of hard coding it.
-        console.log(`Looking through ${receipt.logs.length} logs`);
         for (const log of receipt.logs) {
-            console.log(log);
             // TODO: Replace hard-coded hash with call to web3.utils.sha3.
             if (
                 log.address.toLowerCase() === syncGetDEXAddress(networkID).toLowerCase() &&

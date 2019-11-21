@@ -204,3 +204,80 @@
         margin-top: 15px;
     }
 }
+
+.logged-out {
+    padding: 20px;
+    font-size: 14px;
+
+    .address {
+        @extend .monospace;
+
+        >span {
+            background-color: $background;
+            color: $background;
+            font-size: 0px;
+            border-bottom: 2px dotted transparentize($color: $grey-12, $amount: 0.5);
+
+            &:after {
+                content: '...';
+            }
+        }
+    }
+
+    .logged-out--accounts {
+        display: flex;
+        flex-flow: column;
+        justify-content: center;
+        align-items: center;
+        margin-top: 30px;
+    }
+
+    .logged-out--account+.logged-out--account {
+        margin-top: 10px;
+    }
+
+    .logged-out--account {
+        box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+        background-color: $background;
+        margin: 0;
+        padding: 0;
+        border: none;
+        color: inherit;
+        padding-right: 10px;
+        font-size: 16px;
+        overflow-x: hidden;
+        text-overflow: ellipsis;
+        background: none;
+        transition: box-shadow 0.2s ease;
+
+        &:hover {
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+        }
+
+        &:active {
+            transition: box-shadow 0s ease;
+            box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+        }
+
+        span {
+            @extend .monospace;
+            overflow-x: hidden;
+            text-overflow: ellipsis;
+        }
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .blocky {
+            width: 40px;
+            height: 40px;
+        }
+
+        .blocky--outer {
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+        }
+    }
+}

@@ -16,17 +16,18 @@ interface Props {
 export const LiquidityForm = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer])(
     ({ handleLogin, containers: [uiContainer] }) => {
 
-        const openOrder = async () => {
-            await uiContainer.updateCommitmentType(uiContainer.state.liquidityTab === LiquidityTabs.Add ? CommitmentType.AddLiquidity : CommitmentType.RemoveLiquidity);
-            uiContainer.setSubmitting(true).catch(_catchBackgroundErr_);
-        };
+        const { liquidityTab, orderInputs, address, submitting } = uiContainer.state;
 
-        const { liquidityTab, orderInputs } = uiContainer.state;
+        const openOrder = React.useCallback(async () => {
+            await uiContainer.updateCommitmentType(liquidityTab === LiquidityTabs.Add ? CommitmentType.AddLiquidity : CommitmentType.RemoveLiquidity);
+            uiContainer.setSubmitting(true).catch(error => _catchBackgroundErr_(error, "Error in LiquidityForm: openOrder"));
+        }, [uiContainer, liquidityTab]);
+
         const market = getMarket(orderInputs.srcToken, orderInputs.dstToken);
 
         const marketPrice = 0;
 
-        const loggedIn = uiContainer.state.address !== null;
+        const loggedIn = address !== null;
         const sufficientBalance = uiContainer.sufficientBalance();
         const validVolume = uiContainer.validVolume();
         const disabled = !loggedIn || !sufficientBalance || !validVolume;
@@ -49,7 +50,7 @@ export const LiquidityForm = connect<Props & ConnectedProps<[UIContainer]>>([UIC
                 onClick={openOrder}
                 className="button submit-swap"
             >
-                {uiContainer.state.submitting ? <Loading alt={true} /> :
+                {submitting ? <Loading alt={true} /> :
                     !loggedIn ? "Connect to trade" :
                         !sufficientBalance ? "Insufficient balance" :
                             !validVolume ? "Volume too low" :

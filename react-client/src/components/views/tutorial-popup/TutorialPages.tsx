@@ -1,12 +1,13 @@
 import * as React from "react";
 
 import { IS_TESTNET } from "../../../lib/environmentVariables";
+import { renderToken, Token } from "../../../state/generalTypes";
 import { ReactComponent as Logo } from "../../../styles/images/logo.svg";
 import { ReactComponent as MetaMask } from "../../../styles/images/metamask.svg";
 
 export const BUILDWITHRENVM_LINK = "https://renprotocol.typeform.com/to/kARAnf";
 export const READTHEDOCS_LINK = "https://docs.renproject.io/ren/"; // https://docs.renproject.io/developers
-export const FAQ_LINK = "https://docs.renproject.io/developers/renvm-testnet-demo/renvm-testnet-demo-faq";
+export const FAQ_LINK = "https://docs.renproject.io/chaosnet/chaosdex";
 export const KOVAN_FAUCET_LINK = "https://github.com/kovan-testnet/faucet";
 export const BTC_FAUCET_LINK = "https://bitcoinfaucet.uo1.net/";
 export const TAZ_FAUCET_LINK = "https://faucet.zcash.garethtdavies.com/";
@@ -27,7 +28,7 @@ const Welcome: TutorialPage = ({ nextPage }) => {
     return <Page>
         <Body>
             <Logo />
-            <h2>Welcome to the RenVM Demo</h2>
+            <h2>Welcome to the RenVM {IS_TESTNET ? "Demo" : "ChaosDEX"}</h2>
             <p>Ren is an open protocol that enables the permissionless and private transfer of value between any blockchain</p>
         </Body>
         <Buttons>
@@ -41,8 +42,8 @@ const Overview: TutorialPage = ({ nextPage, previousPage }) => {
     return <Page>
         <Body>
             <h2>Overview</h2>
-            <p>The RenVM ChaosDEX is a DEX built by the Ren team to showcase interoperability facilitated by RenVM.</p>
-            <p>Users will be able to exchange DAI, BTC & ZEC in a completely trustless, decentralized, and permissionless manner. </p>
+            <p>The RenVM {IS_TESTNET ? "Demo" : "ChaosDEX"} is a DEX built by the Ren team to showcase interoperability facilitated by RenVM.</p>
+            <p>Users can exchange {renderToken(Token.DAI)}, {renderToken(Token.BTC)}, {renderToken(Token.ZEC)} & {renderToken(Token.BCH)} in a completely trustless, decentralized, and permissionless manner. </p>
         </Body>
         <Buttons>
             <button className="button--white" onClick={previousPage}>Previous</button>

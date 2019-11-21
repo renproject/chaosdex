@@ -1,18 +1,24 @@
 import { Currency } from "@renproject/react-components";
-import RenSDK, { btcAddressToHex, Chain, zecAddressToHex } from "@renproject/ren";
+import RenSDK, { btcAddressToHex, zecAddressToHex } from "@renproject/ren";
 import BigNumber from "bignumber.js";
 import { Map as ImmutableMap } from "immutable";
 import { Container } from "unstated";
 import Web3 from "web3";
 
-import { syncGetDEXReserveAddress, syncGetTokenAddress } from "../lib/contractAddresses";
-import { removeRenVMFee } from "../lib/estimatePrice";
+import {
+    calculateReceiveAmount, fetchEthereumTokenBalance, getBalances, getLiquidityBalances,
+    getReserveBalances, getReserveTotalSupply,
+} from "../lib/chaosdex";
+import { syncGetTokenAddress } from "../lib/contractAddresses";
+import { ETHEREUM_NODE } from "../lib/environmentVariables";
+import { _catchInteractionErr_ } from "../lib/errors";
 import { history } from "../lib/history";
 import { getTokenPricesInCurrencies } from "../lib/market";
-import { getERC20, getExchange, getReserve, isEthereumBased, Token, Tokens } from "./generalTypes";
+import { isEthereumBased, Token, Tokens } from "./generalTypes";
 import {
     Commitment, CommitmentType, HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus,
 } from "./persistentContainer";
+import { PopupContainer } from "./popupContainer";
 import { network } from "./sdkContainer";
 
 export type ReserveBalances = Map<Token, BigNumber>;
@@ -42,8 +48,10 @@ export enum LiquidityTabs {
 }
 
 const initialState = {
-    web3: null as Web3 | null,
-    networkID: 0,
+    web3: new Web3(ETHEREUM_NODE),
+    networkID: network.contracts.networkID,
+
+    loggedOut: null as string | null,
 
     confirmedOrderInputs: null as null | OrderInputs,
 
@@ -77,14 +85,16 @@ const initialState = {
 export class UIContainer extends Container<typeof initialState> {
     public state = initialState;
     public persistentContainer: PersistentContainer;
+    public popupContainer: PopupContainer;
 
-    constructor(persistentContainer: PersistentContainer) {
+    constructor(persistentContainer: PersistentContainer, popupContainer: PopupContainer) {
         super();
         this.persistentContainer = persistentContainer;
+        this.popupContainer = popupContainer;
     }
 
     public connect = async (web3: Web3, address: string | null, networkID: number): Promise<void> => {
-        await this.setState({ web3, networkID, address });
+        await this.setState({ web3, networkID, address, loggedOut: null, currentOrderID: null });
         await this.updateAccountBalances();
     }
 
@@ -120,155 +130,40 @@ export class UIContainer extends Container<typeof initialState> {
         await this.setState({ tokenPrices });
     }
 
-    // public updateBalanceReserves = async (): Promise<void> => {
-    //     const { balanceReserves } = this.state;
-
-    //     let newBalanceReserves = balanceReserves;
-    //     // const marketPairs = [MarketPair.DAI_BTC, MarketPair.ETH_BTC, MarketPair.REN_BTC, MarketPair.ZEC_BTC];
-    //     const marketPairs = [MarketPair.DAI_BTC, MarketPair.DAI_ZEC];
-    //     const res = await this.getReserveBalance(marketPairs); // Promise<Array<Map<Token, BigNumber>>> => {
-    //     marketPairs.forEach((value, index) => {
-    //         newBalanceReserves = newBalanceReserves.set(value, res[index]);
-    //     });
-    //     await this.setState({ balanceReserves: newBalanceReserves });
-    //     await this.updateReceiveValue();
-    // }
-
     public fetchEthereumTokenBalance = async (token: Token, address: string): Promise<BigNumber> => {
         const { web3, networkID, network: networkDetails } = this.state;
         if (!web3) {
             return new BigNumber(0);
         }
-        let balance: string;
-        if (token === Token.ETH) {
-            balance = await web3.eth.getBalance(address);
-        } else {
-            // if (isERC20(token)) {
-            const tokenAddress = syncGetTokenAddress(networkID, token);
-            const tokenInstance = getERC20(web3, networkDetails, tokenAddress);
-            balance = (await tokenInstance.methods.balanceOf(address).call()).toString();
-            // } else {
-            //     throw new Error(`Invalid Ethereum token: ${token}`);
-        }
-        return new BigNumber(balance);
+        return fetchEthereumTokenBalance(web3, networkID, networkDetails, token, address);
     }
 
     public updateAccountBalances = async (): Promise<void> => {
         const { address, web3, networkID, network: networkDetails } = this.state;
+        let { accountBalances, liquidityBalances } = this.state;
         if (!web3 || !address) {
             return;
         }
 
-        let accountBalances = this.state.accountBalances;
-        const ethTokens = [Token.ETH, Token.DAI]; // , Token.REN];
-        const promises = ethTokens.map(async token => {
-            try {
-                return await this.fetchEthereumTokenBalance(token, address);
-            } catch (error) {
-                console.error(error);
-                return new BigNumber(0);
-            }
-        });
-        const balances = await Promise.all(promises);
-        balances.forEach((bal, index) => {
-            accountBalances = accountBalances.set(ethTokens[index], bal);
-        });
+        const ethTokens = [Token.ETH, Token.DAI];
+        accountBalances = accountBalances.merge(await getBalances(web3, networkID, networkDetails, ethTokens, address));
 
-        // Update liquidity token balances
         const tokensWithReserves = [Token.BTC, Token.ZEC, Token.BCH];
-        const liquidityBalancesAwaited = await Promise.all(tokensWithReserves.map(async token => {
-            const reserveAddress = syncGetDEXReserveAddress(networkID, token);
-            const tokenInstance = getERC20(web3, networkDetails, reserveAddress);
-            try {
-                return new BigNumber((await tokenInstance.methods.balanceOf(address).call()).toString());
-            } catch (error) {
-                console.error(error);
-                return new BigNumber(0);
-            }
-        }));
-        let liquidityBalances = this.state.liquidityBalances;
-        liquidityBalancesAwaited.forEach((bal, index) => {
-            liquidityBalances = liquidityBalances.set(tokensWithReserves[index], bal);
-        });
+        liquidityBalances = liquidityBalances.merge(await getLiquidityBalances(web3, networkID, networkDetails, tokensWithReserves, address));
 
-        const reserveTotalSupplyAwaited = await Promise.all(tokensWithReserves.map(async token => {
-            const reserveAddress = syncGetDEXReserveAddress(networkID, token);
-            const tokenInstance = getERC20(web3, networkDetails, reserveAddress);
-            try {
-                return new BigNumber((await tokenInstance.methods.totalSupply().call()).toString());
-            } catch (error) {
-                console.error(error);
-                return new BigNumber(0);
-            }
-        }));
-        let reserveTotalSupply = this.state.reserveTotalSupply;
-        reserveTotalSupplyAwaited.forEach((bal, index) => {
-            reserveTotalSupply = reserveTotalSupply.set(tokensWithReserves[index], bal);
-        });
-
-        const reserveBalancesAwaited = await Promise.all(tokensWithReserves.map(async token => {
-            const reserveAddress = syncGetDEXReserveAddress(networkID, token);
-            let base = new BigNumber(0);
-            let quote = new BigNumber(0);
-            try {
-                base = await this.fetchEthereumTokenBalance(Token.DAI, reserveAddress);
-            } catch (error) {
-                console.error(error);
-            }
-            try {
-                quote = await this.fetchEthereumTokenBalance(token, reserveAddress);
-            } catch (error) {
-                console.error(error);
-            }
-            return { base, quote };
-        }));
-        let reserveBalances = this.state.reserveBalances;
-        reserveBalancesAwaited.forEach((bal, index) => {
-            reserveBalances = reserveBalances.set(tokensWithReserves[index], bal);
-        });
-
-        // liquidityBalances: ImmutableMap<Token, BigNumber>(),
-        // reserveBalances: ImmutableMap<Token, { token: BigNumber, base: BigNumber }>(),
-
-        await this.setState({ accountBalances, network: networkDetails, liquidityBalances, reserveTotalSupply, reserveBalances });
+        await this.setState({ accountBalances, liquidityBalances });
     }
 
-    /**
-     * getPrice returns the rate at which dstToken can be received per srcToken.
-     * @param srcToken The source token being spent
-     * @param dstToken The destination token being received
-     */
-    // public getReserveBalance = async (marketPairs: MarketPair[]): Promise<ReserveBalances[]> => {
-    //     const { web3, networkID, network } = this.state;
-    //     if (!web3) {
-    //         return;
-    //     }
-    //     const exchange = getExchange(web3, networkID);
+    public updateReserveBalances = async (): Promise<void> => {
+        const { web3, networkID, network: networkDetails } = this.state;
+        let { reserveTotalSupply, reserveBalances } = this.state;
 
-    //     const balance = async (token: Token, reserve: string): Promise<BigNumber> => {
-    //         if (token === Token.ETH) {
-    //             return new BigNumber((await web3.eth.getBalance(reserve)).toString());
-    //         }
-    //         const tokenAddress = syncGetTokenAddress(networkID, token);
-    //         const tokenInstance = getERC20(web3, network, tokenAddress);
-    //         const decimals = getTokenDecimals(token);
-    //         const rawBalance = new BigNumber((await tokenInstance.methods.balanceOf(reserve).call()).toString());
-    //         return rawBalance.dividedBy(new BigNumber(10).exponentiatedBy(decimals));
-    //     };
+        const tokensWithReserves = [Token.BTC, Token.ZEC, Token.BCH];
+        reserveTotalSupply = reserveTotalSupply.merge(await getReserveTotalSupply(web3, networkID, networkDetails, tokensWithReserves));
+        reserveBalances = reserveBalances.merge(await getReserveBalances(web3, networkID, networkDetails, tokensWithReserves));
 
-    //     return Promise.all(
-    //         marketPairs.map(async (_marketPair) => {
-    //             const [left, right] = _marketPair.split("/") as [Token, Token];
-    //             const leftAddress = syncGetTokenAddress(networkID, left);
-    //             const rightAddress = syncGetTokenAddress(networkID, right);
-    //             const reserve = await exchange.methods.reserve(leftAddress, rightAddress).call();
-    //             const leftBalance = await balance(left, reserve);
-    //             const rightBalance = await balance(right, reserve);
-    //             // console.debug(`${_marketPair} reserve: ${leftBalance.toFixed()} ${left}, ${rightBalance.toFixed()} ${right} (${reserve})`);
-    //             return new Map().set(left, leftBalance).set(right, rightBalance);
-    //         })
-    //     );
-    // }
+        await this.setState({ reserveTotalSupply, reserveBalances });
+    }
 
     // Inputs for swap /////////////////////////////////////////////////////////
 
@@ -503,7 +398,6 @@ export class UIContainer extends Container<typeof initialState> {
         }
 
         const balance = this.getMaxInput(token);
-        console.log(`My balance is ${balance.toFixed()}`);
 
         const tokenDetails = Tokens.get(token);
         if (!tokenDetails) {
@@ -546,125 +440,39 @@ export class UIContainer extends Container<typeof initialState> {
     }
 
     public updateReceiveValue = async (): Promise<void> => {
-        const { exchangeTab, liquidityTab, orderInputs: { srcToken, dstToken, srcAmount } } = this.state;
-
-        // const market = getMarket(
-        //     srcToken,
-        //     dstToken
-        // );
-        // if (market) {
-        const { web3, networkID } = this.state;
-        if (!web3) {
-            return;
-        }
-        const exchange = getExchange(web3, networkID);
-        const srcTokenAddress = syncGetTokenAddress(networkID, srcToken);
-        const dstTokenAddress = syncGetTokenAddress(networkID, dstToken);
-        const srcTokenDetails = Tokens.get(srcToken) || { decimals: 18, chain: Chain.Ethereum };
-        const dstTokenDetails = Tokens.get(dstToken) || { decimals: 18, chain: Chain.Ethereum };
-
-        let dstAmountBN: BigNumber;
-
-        let srcAmountBN = new BigNumber(srcAmount);
-
-        if (exchangeTab === ExchangeTabs.Swap) {
-
-            if (srcTokenDetails.chain !== Chain.Ethereum) {
-                srcAmountBN = removeRenVMFee(srcAmountBN);
-            }
-
-            let srcAmountShifted = (srcAmountBN.times(new BigNumber(10).pow(srcTokenDetails.decimals))).decimalPlaces(0).toFixed();
-            if (srcAmountShifted === "NaN") {
-                srcAmountShifted = "0";
-            }
-
-            const dstAmount = await exchange.methods.calculateReceiveAmount(srcTokenAddress, dstTokenAddress, srcAmountShifted).call();
-
-            let dstAmountShiftedBN = new BigNumber(dstAmount);
-            if (dstTokenDetails.chain !== Chain.Ethereum) {
-                dstAmountShiftedBN = removeRenVMFee(dstAmountShiftedBN);
-            }
-
-            dstAmountBN = (new BigNumber(dstAmountShiftedBN).div(new BigNumber(10).pow(dstTokenDetails.decimals)));
-        } else if (exchangeTab === ExchangeTabs.Liquidity && liquidityTab === LiquidityTabs.Add) {
-            const reserveAddress = syncGetDEXReserveAddress(networkID, srcToken);
-            const reserve = getReserve(web3, networkID, reserveAddress);
-
-            let srcAmountShifted = (srcAmountBN.times(new BigNumber(10).pow(srcTokenDetails.decimals)));
-            if (srcAmountShifted.isNaN()) {
-                srcAmountShifted = new BigNumber(0);
-            }
-
-            try {
-                const dstAmountShiftedBN = new BigNumber(await reserve.methods.expectedBaseTokenAmount(srcAmountShifted.decimalPlaces(0).toFixed()).call());
-
-                dstAmountBN = (new BigNumber(dstAmountShiftedBN).div(new BigNumber(10).pow(dstTokenDetails.decimals)));
-                if (dstAmountBN.isNaN()) {
-                    // On Mainnet, an execution error results in a null result returned
-                    throw new Error("VM execution error");
-                }
-            } catch (error) {
-                if (String(error.message || error).match(/VM execution error/)) {
-                    const { tokenPrices } = this.state;
-                    const srcTokenPrices = tokenPrices.get(srcToken);
-                    const dstTokenPrices = tokenPrices.get(dstToken);
-                    if (srcTokenPrices && dstTokenPrices) {
-                        const srcTokenPrice = srcTokenPrices.get(Currency.USD) || 0;
-                        const dstTokenPrice = dstTokenPrices.get(Currency.USD) || 0;
-                        // console.log(`Using prices for ${srcToken}: $${srcTokenPrice} & ${dstToken}: $${dstTokenPrice}`);
-                        dstAmountBN = srcAmountBN.times(srcTokenPrice).dividedBy(dstTokenPrice);
-                    } else {
-                        dstAmountBN = new BigNumber(0);
-                    }
-
-                } else {
-                    throw error;
-                }
-            }
-
-            // Bump-it up in-case the amounts change while shifting.
-            // Only the required amount will actually be transferred.
-            dstAmountBN = dstAmountBN.times(1.05);
-        } else if (exchangeTab === ExchangeTabs.Liquidity && liquidityTab === LiquidityTabs.Remove) {
-            const { reserveBalances } = this.state;
-
-            let srcAmountShifted = (srcAmountBN.times(new BigNumber(10).pow(srcTokenDetails.decimals))).decimalPlaces(0);
-            if (srcAmountShifted.isNaN()) {
-                srcAmountShifted = new BigNumber(0);
-            }
-
-            const reserveBalance = reserveBalances.get(srcToken);
-
-            let dstAmountShiftedBN;
-            if (!reserveBalance || reserveBalance.quote.isZero()) {
-                dstAmountShiftedBN = new BigNumber(0);
-            } else {
-                dstAmountShiftedBN = srcAmountShifted.div(reserveBalance.quote).times(reserveBalance.base);
-            }
-
-            dstAmountBN = (dstAmountShiftedBN.div(new BigNumber(10).pow(dstTokenDetails.decimals)));
-        } else {
+        const { web3, networkID, exchangeTab, liquidityTab, orderInputs: { srcToken, dstToken, srcAmount }, tokenPrices, reserveBalances } = this.state;
+        if (!web3 || srcToken === dstToken) {
             return;
         }
 
-        // const dstAmountShifted = (new BigNumber(dstAmountBN).div(new BigNumber(10).pow(dstTokenDetails.decimals))).toString();
+        try {
+            const dstAmountBN = await calculateReceiveAmount(web3, networkID, exchangeTab, liquidityTab, { srcToken, dstToken, srcAmount }, tokenPrices, reserveBalances);
+            await this.setState({ orderInputs: { ...this.state.orderInputs, dstAmount: dstAmountBN.toFixed() } });
+        } catch (error) {
+            _catchInteractionErr_(error, "Error in uiContainer: calculateReceiveAmount");
+        }
+    }
 
-        // const reserves = balanceReserves.get(market);
+    public setLoggedOut = async (loggedOut?: string) => {
+        return this.setState({ loggedOut: loggedOut || null });
+    }
 
-        // let srcAmountAfterFees = new BigNumber(srcAmount);
-        // if (srcToken === Token.BTC) {
-        //     // Remove BTC transfer fees
-        //     srcAmountAfterFees = BigNumber.max(srcAmountAfterFees.minus(0.0001), 0);
-        // }
+    // lookForLogout detects if 1) the user has changed or logged out of their Web3
+    // wallet
+    public lookForLogout = async () => {
+        const { address, web3 } = this.state;
 
-        // const dstAmount = await estimatePrice(
-        //     srcToken,
-        //     dstToken,
-        //     srcAmountAfterFees,
-        //     reserves,
-        // );
-        await this.setState({ orderInputs: { ...this.state.orderInputs, dstAmount: dstAmountBN.toFixed() } });
-        // }
+        if (!address || !web3) {
+            return;
+        }
+
+        const accounts = (await web3.eth.getAccounts())
+            .map((web3Address: string) => web3Address.toLowerCase());
+
+        if (!accounts.includes(address.toLowerCase())) {
+            await this.clearAddress();
+            await this.setLoggedOut(address);
+        }
     }
 
     private readonly updateHistory = async (): Promise<void> => {

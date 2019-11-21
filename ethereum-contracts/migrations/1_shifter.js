@@ -1,12 +1,5 @@
 /// <reference types="../types/truffle-contracts" />
 
-const readline = require('readline');
-
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
-
 const NULL = "0x0000000000000000000000000000000000000000";
 
 const ShifterRegistry = artifacts.require("ShifterRegistry");
