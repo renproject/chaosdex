@@ -12,6 +12,7 @@ import { pageLoadedAt } from "../../lib/errors";
 import { Token, TokenPrices, Tokens } from "../../state/generalTypes";
 import { CumulativeDataPoint, ReserveHistoryItem, Trade } from "../controllers/Stats";
 import { TokenBalance } from "./TokenBalance";
+import { toBitcoinValue } from "../../lib/conversion";
 
 interface Props {
     trades: List<Trade> | null;
@@ -137,6 +138,25 @@ const ShowReserveBalance = ({ token, preferredCurrency, balance, tokenPrices }: 
     </span>;
 };
 
+const StatBlock: React.SFC<{
+    title?: string | number | React.ReactNode;
+    subtitle?: string;
+}> = (props) => {
+    return (
+        <div className="stat--group">
+            <div className="stat graph-stat">
+                <div className="stat--content">
+                    {props.children}
+                </div>
+                <div className="stat--footer">
+                    {props.title && <h2>{props.title}</h2>}
+                    {props.subtitle && <h3>{props.subtitle}</h3>}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const CumulativeChart = ({ cumulativeVolume }: { cumulativeVolume: CumulativeDataPoint[] }) =>
     <AreaChart
         width={300}
@@ -159,55 +179,102 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
     const yesterday = (new Date().getTime()) / 1000 - (24 * 60 * 60);
     const twoDaysAgo = (new Date().getTime()) / 1000 - (2 * 24 * 60 * 60);
 
+    let count = 0;
+    const tokenDetails = Tokens.get(Token.DAI);
+    let totalVolume = new BigNumber(0);
+    let totalLiquidityPoolInBtc = new BigNumber(0);
+    volumes.forEach((volume, token) => {
+        count++;
+        console.log(`${token} amount: ${volume.toFixed()}`);
+        // console.log(toBitcoinValue(volume, Token.DAI, tokenPrices));
+        const quoteReserveBalances = reserveBalances.get(token, { quote: new BigNumber(0), base: new BigNumber(0) });
+        const quoteReserveInBtc = toBitcoinValue(quoteReserveBalances.base, Token.DAI, tokenPrices);
+        const baseReserveInBtc = toBitcoinValue(quoteReserveBalances.quote, token, tokenPrices);
+        console.log(`${token} reserve: ${quoteReserveInBtc.toFixed()} BTC + ${baseReserveInBtc.toFixed()} BTC`);
+        const reserveAmountInBtc = quoteReserveInBtc.plus(baseReserveInBtc);
+        console.log(`total ${token} reserve in BTC: ${reserveAmountInBtc}`);
+        totalVolume = totalVolume.plus(volume);
+        // console.log(quoteReserveBalances.base.toFixed(2));
+        let daiAmount = (quoteReserveBalances ? quoteReserveBalances.base : new BigNumber(0));
+        const decimals = tokenDetails ? new BigNumber(10).exponentiatedBy(new BigNumber(tokenDetails.decimals)) : new BigNumber(1);
+        daiAmount = daiAmount.div(decimals);
+        totalLiquidityPoolInBtc = totalLiquidityPoolInBtc.plus(reserveAmountInBtc);
+        console.log(`total liquidity pool: ${totalLiquidityPoolInBtc.toString()}`);
+    });
+    // console.log(totalLiquidityPool.toString());
+    const moneyFormat: BigNumber.Format = {
+        prefix: "$",
+        decimalSeparator: ".",
+        groupSeparator: ",",
+        groupSize: 3,
+        secondaryGroupSize: 2
+    };
     return <div className="stats">
         <div className="stats--title">
-            <h2>Stats</h2>
+            <h2>ChaosDex Stats {count}</h2>
             <small>Updated {pageLoadedAt(loadedAt).toLowerCase()}</small>
         </div>
         <div className="stats--rows">
             {trades === null ? <Loading alt={true} /> : <>
                 <div className="stats--rows">
-                    <div className="stat--group">
-                        <div className="stat graph-stat">
-                            <span>Cumulative volume traded</span>
-                            <CumulativeChart cumulativeVolume={cumulativeVolume} />
-                        </div>
-                    </div>
-                    <div className="stat--group">
-                        <div className="stat graph-stat">
-                            <span>Number of trades ({trades.size} total)</span>
-                            <PieChart width={300} height={300}>
-                                <Pie dataKey="value" isAnimationActive={false} data={data} cx={150} cy={150} outerRadius={80} fill="#8884d8" label>
-                                    {
-                                        data.map((entry, index) => <Cell key={`cell-${index}`} stroke={"#282C35"} fill={colors[entry.name]} />)
-                                    }
-                                </Pie>
-                                <Tooltip content={PieTooltip} />
-                            </PieChart>
-                        </div>
-                    </div>
-                    <div className="stat--group">
-                        <div className="stat graph-stat">
-                            <div className="graph-stat--loading">
-                                <span>Reserve balance history</span>
-                                {!reserveHistory ? <Loading alt={true} /> : <></>}
-                            </div>
-                            <LineChart
-                                width={300}
-                                height={300}
-                                data={reserveHistory || []}
-                                margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-                            >
-                                <Tooltip content={ReserveHistoryTooltip} />
-                                <Line type="monotone" dot={<></>} dataKey={`BTC_btcBalance`} stroke={colors[Token.BTC]} yAxisId={0} />
-                                <Line type="monotone" dot={<></>} dataKey={`BTC_daiBalance`} stroke={colors[Token.BTC]} yAxisId={0} />
-                                <Line type="monotone" dot={<></>} dataKey={`ZEC_zecBalance`} stroke={colors[Token.ZEC]} yAxisId={0} />
-                                <Line type="monotone" dot={<></>} dataKey={`ZEC_daiBalance`} stroke={colors[Token.ZEC]} yAxisId={0} />
-                                <Line type="monotone" dot={<></>} dataKey={`BCH_bchBalance`} stroke={colors[Token.BCH]} yAxisId={0} />
-                                <Line type="monotone" dot={<></>} dataKey={`BCH_daiBalance`} stroke={colors[Token.BCH]} yAxisId={0} />
-                            </LineChart>
-                        </div>
-                    </div>
+                    <StatBlock
+                        title={
+                            <>
+                                <CurrencyIcon currency={preferredCurrency} />
+                                <TokenBalance
+                                    token={Token.DAI}
+                                    convertTo={preferredCurrency}
+                                    amount={totalVolume}
+                                    tokenPrices={tokenPrices}
+                                    group={true}
+                                />
+                            </>
+                        }
+                        subtitle="Total Volume"
+                    >
+                        <CumulativeChart cumulativeVolume={cumulativeVolume} />
+                    </StatBlock>
+                    <StatBlock title={trades.size} subtitle="Total Trades">
+                        <PieChart width={300} height={300}>
+                            <Pie dataKey="value" isAnimationActive={false} data={data} cx={150} cy={150} outerRadius={80} fill="#8884d8" label>
+                                {
+                                    data.map((entry, index) => <Cell key={`cell-${index}`} stroke={"#282C35"} fill={colors[entry.name]} />)
+                                }
+                            </Pie>
+                            <Tooltip content={PieTooltip} />
+                        </PieChart>
+                    </StatBlock>
+                    <StatBlock
+                        title={
+                            <>
+                                <CurrencyIcon currency={preferredCurrency} />
+                                <TokenBalance
+                                    token={Token.BTC}
+                                    convertTo={preferredCurrency}
+                                    amount={totalLiquidityPoolInBtc}
+                                    tokenPrices={tokenPrices}
+                                    group={true}
+                                />
+                            </>
+                        }
+                        subtitle="Liquidity Pool Value"
+                    >
+                        <LineChart
+
+                            width={300}
+                            height={300}
+                            data={reserveHistory || []}
+                            margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                        >
+                            <Tooltip content={ReserveHistoryTooltip} />
+                            <Line type="monotone" dot={<></>} dataKey={`BTC_btcBalance`} stroke={colors[Token.BTC]} yAxisId={0} />
+                            <Line type="monotone" dot={<></>} dataKey={`BTC_daiBalance`} stroke={colors[Token.BTC]} yAxisId={0} />
+                            <Line type="monotone" dot={<></>} dataKey={`ZEC_zecBalance`} stroke={colors[Token.ZEC]} yAxisId={0} />
+                            <Line type="monotone" dot={<></>} dataKey={`ZEC_daiBalance`} stroke={colors[Token.ZEC]} yAxisId={0} />
+                            <Line type="monotone" dot={<></>} dataKey={`BCH_bchBalance`} stroke={colors[Token.BCH]} yAxisId={0} />
+                            <Line type="monotone" dot={<></>} dataKey={`BCH_daiBalance`} stroke={colors[Token.BCH]} yAxisId={0} />
+                        </LineChart>
+                    </StatBlock>
                 </div>
                 <div className="stats--rows">
                     {
@@ -238,7 +305,8 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
                                     </div>
                                 </div>
                             </div>;
-                        }).valueSeq().toArray()}
+                        }).valueSeq().toArray()
+                    }
                 </div>
             </>}
         </div>

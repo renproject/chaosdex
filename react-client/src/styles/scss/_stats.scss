@@ -27,10 +27,7 @@
     .stat {
         width: 100%;
         font-size: 16px;
-        background: #282C35 !important;
-        border: 1px solid rgba(145, 149, 160, 0.1) !important;
         box-sizing: border-box !important;
-        box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.2) !important;
         padding: 20px !important;
         display: flex !important;
         justify-content: center !important;
@@ -66,11 +63,11 @@
         width: calc(33% - 10px);
         margin: 5px;
 
-        @media(max-width: $max-lg) {
+        @media (max-width: $max-lg) {
             width: calc(50% - 10px);
         }
 
-        @media(max-width: $max-sm) {
+        @media (max-width: $max-sm) {
             width: calc(100% - 10px);
         }
 
@@ -84,19 +81,34 @@
                 max-width: 30px;
             }
         }
+
+        .stat--content {
+            margin-bottom: 40px;
+        }
+
+        .stat--footer {
+            h2 {
+                font-size: 58px;
+                font-weight: bold;
+            }
+
+            h3 {
+                font-size: 24px;
+                font-weight: 200;
+            }
+        }
     }
 }
 
 .stats--title {
     display: flex;
     justify-content: space-between;
-    ;
 }
 
 .custom-tooltip {
     display: flex;
     flex-flow: column;
-    background: transparentize(#282C35, 0.5);
+    background: transparentize(#282c35, 0.5);
     border: 1px solid rgba(145, 149, 160, 0.1);
     box-sizing: border-box;
     box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.2);
