@@ -35,3 +35,42 @@ contract SimplePuzzle is Puzzle {
         emit LogRewardClaimed(_rewardAddress, _secret, amount);
     }
 }
+
+contract BTCPuzzle is SimplePuzzle {
+    constructor(
+        ShifterRegistry _registry,
+        bytes memory _secretHash,
+        uint256 _maxGasPrice
+    ) public SimplePuzzle(
+        _registry,
+        "zBTC",
+        _secretHash,
+        _maxGasPrice
+    ) {}
+}
+
+contract BCHPuzzle is SimplePuzzle {
+    constructor(
+        ShifterRegistry _registry,
+        bytes memory _secretHash,
+        uint256 _maxGasPrice
+    ) public SimplePuzzle(
+        _registry,
+        "zBCH",
+        _secretHash,
+        _maxGasPrice
+    ) {}
+}
+
+contract ZECPuzzle is SimplePuzzle {
+    constructor(
+        ShifterRegistry _registry,
+        bytes memory _secretHash,
+        uint256 _maxGasPrice
+    ) public SimplePuzzle(
+        _registry,
+        "zZEC",
+        _secretHash,
+        _maxGasPrice
+    ) {}
+}
