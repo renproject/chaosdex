@@ -17,7 +17,9 @@ const zBTC = artifacts.require("zBTC");
 const zZEC = artifacts.require("zZEC");
 
 const ShiftInPuzzle = artifacts.require("ShiftInPuzzle");
-const SimplePuzzle = artifacts.require("SimplePuzzle");
+const BTCPuzzle = artifacts.require("BTCPuzzle");
+const BCHPuzzle = artifacts.require("BCHPuzzle");
+const ZECPuzzle = artifacts.require("ZECPuzzle");
 
 contract("Puzzle", (accounts) => {
     let zecShifter: ZECShifterInstance;
@@ -41,10 +43,14 @@ contract("Puzzle", (accounts) => {
     const zZECMinShiftOutAmount = new BN(10000);
 
     const removeFee = (value: BN, bips: BN | number) => value.sub(value.mul(new BN(bips)).div(new BN(10000)));
+    const zbtcMintAmount = new BN("10000000000000");
+    const owner = accounts[0];
 
     before(async () => {
         // Setup the environment
         zbtc = await zBTC.new();
+        // Mint some zbtc for testing funding puzzles through transfers
+        zbtc.mint(owner, zbtcMintAmount);
 
         btcShifter = await BTCShifter.new(
             zbtc.address,
@@ -71,7 +77,17 @@ contract("Puzzle", (accounts) => {
     });
 
     describe("when deploying puzzles", async () => {
-        it("can successfully fund puzzles", async () => {
+        it("can deploy BTCPuzzle, BCHPuzzle, and ZECPuzzle", async () => {
+            const someSecret = "thequickbrownfoxjumpsoverthelazydog";
+            const msg = generateSecretMessage(someSecret);
+            const hash = hashjs.sha256().update(msg).digest("hex");
+
+            await BTCPuzzle.new(registry.address, Ox(hash), maxGasPrice);
+            await BCHPuzzle.new(registry.address, Ox(hash), maxGasPrice);
+            await ZECPuzzle.new(registry.address, Ox(hash), maxGasPrice);
+        });
+
+        it("can manually fund puzzles using fund method", async () => {
             const someSecret = "thequickbrownfoxjumpsoverthelazydog";
             const msg = generateSecretMessage(someSecret);
             const hash = hashjs.sha256().update(msg).digest("hex");
@@ -79,9 +95,20 @@ contract("Puzzle", (accounts) => {
             let puzzle: ShiftInPuzzleInstance;
             // const tokenName = await zbtc.symbol.call();
             puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
-            const x = await puzzle.registry.call();
             const rewardAmount = new BN("1000000");
-            await fundBtc(puzzle, rewardAmount);
+            await fundBtcByShiftIn(puzzle, rewardAmount);
+        });
+
+        it("can fund puzzles by transferring zToken", async () => {
+            const someSecret = "thequickbrownfoxjumpsoverthelazydog";
+            const msg = generateSecretMessage(someSecret);
+            const hash = hashjs.sha256().update(msg).digest("hex");
+
+            let puzzle: ShiftInPuzzleInstance;
+            // const tokenName = await zbtc.symbol.call();
+            puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
+            const rewardAmount = new BN("1000000");
+            await fundBtcByTransfer(puzzle, rewardAmount);
         });
 
         it("cannot fund if amount is zero", async () => {
@@ -106,14 +133,17 @@ contract("Puzzle", (accounts) => {
             let puzzle: ShiftInPuzzleInstance;
             puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
             const rewardAmount = new BN("1000000");
-            await fundBtc(puzzle, rewardAmount);
+            await fundBtcByShiftIn(puzzle, rewardAmount);
 
-            const shiftOutAddr = randomBytes(35);
-            const oldBalance = new BN(await zbtc.balanceOf.call(puzzle.address));
-            oldBalance.should.bignumber.gt(new BN(0));
-            await puzzle.shiftOut(shiftOutAddr, oldBalance);
-            const newBalance = new BN(await zbtc.balanceOf.call(puzzle.address));
-            newBalance.should.bignumber.lt(oldBalance);
+            const oldPuzzleBalance = new BN(await zbtc.balanceOf.call(puzzle.address));
+            oldPuzzleBalance.should.bignumber.gt(new BN(0));
+            const transferTo = accounts[6];
+            const oldBal = new BN (await zbtc.balanceOf.call(transferTo));
+            await puzzle.transfer(zbtc.address, oldPuzzleBalance, transferTo);
+            const newBal = new BN (await zbtc.balanceOf.call(transferTo));
+            newBal.should.bignumber.eq(oldBal.add(oldPuzzleBalance));
+            const newPuzzleBalance = new BN(await zbtc.balanceOf.call(puzzle.address));
+            newPuzzleBalance.should.bignumber.lt(oldPuzzleBalance);
             const btcRewardAmount = new BN(await puzzle.rewardAmount.call());
             btcRewardAmount.should.bignumber.equal(0);
         });
@@ -126,12 +156,12 @@ contract("Puzzle", (accounts) => {
             let puzzle: ShiftInPuzzleInstance;
             puzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
             const rewardAmount = new BN("1000000");
-            await fundBtc(puzzle, rewardAmount);
+            await fundBtcByShiftIn(puzzle, rewardAmount);
 
-            const shiftOutAddr = randomBytes(35);
             const oldBalance = new BN(await zbtc.balanceOf.call(puzzle.address));
             oldBalance.should.bignumber.gt(new BN(0));
-            await puzzle.shiftOut(shiftOutAddr, oldBalance, { from: accounts[2] }).should.be.rejectedWith(/caller is not the owner/);
+            const transferTo = accounts[6];
+            await puzzle.transfer(zbtc.address, oldBalance, transferTo, { from: accounts[2] }).should.be.rejectedWith(/caller is not the owner/);
         });
 
     });
@@ -159,10 +189,10 @@ contract("Puzzle", (accounts) => {
 
             const refundAddress = randomBytes(32);
 
-            // ShiftInPuzzle
+            // ShiftInPuzzle 1 funded through shift in
             const shiftInPuzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
             (await shiftInPuzzle.rewardClaimed.call()).should.be.false;
-            await fundBtc(shiftInPuzzle, rewardAmount);
+            await fundBtcByShiftIn(shiftInPuzzle, rewardAmount);
             (await claimShiftInPuzzleReward(shiftInPuzzle, new BN(100000), refundAddress, someSecret) as any)
             .should.emit.logs([
                 log(
@@ -176,6 +206,24 @@ contract("Puzzle", (accounts) => {
             ]);
             (await shiftInPuzzle.rewardClaimed.call()).should.be.true;
             (await shiftInPuzzle.rewardAmount.call()).should.bignumber.zero;
+
+            // ShiftInPuzzle 2 funded through transfer
+            const shiftInPuzzle2 = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
+            (await shiftInPuzzle2.rewardClaimed.call()).should.be.false;
+            await fundBtcByTransfer(shiftInPuzzle2, rewardAmount);
+            (await claimShiftInPuzzleReward(shiftInPuzzle2, new BN(100000), refundAddress, someSecret) as any)
+            .should.emit.logs([
+                log(
+                    "LogRewardClaimed",
+                    {
+                        _rewardAddress: web3.utils.fromAscii(refundAddress),
+                        _secret: web3.utils.fromAscii(someSecret),
+                        _rewardAmount: rewardAmount,
+                    },
+                ),
+            ]);
+            (await shiftInPuzzle2.rewardClaimed.call()).should.be.true;
+            (await shiftInPuzzle2.rewardAmount.call()).should.bignumber.zero;
         });
 
         it("can successfully claim SimplePuzzles", async () => {
@@ -184,10 +232,11 @@ contract("Puzzle", (accounts) => {
             const hash = hashjs.sha256().update(msg).digest("hex");
             const rewardAmount = new BN("10000000");
             const refundAddress = randomBytes(32);
-            // SimplePuzzle
-            const simplePuzzle = await SimplePuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
+
+            // SimplePuzzle 1 funded through shift in
+            const simplePuzzle = await BTCPuzzle.new(registry.address, Ox(hash), maxGasPrice);
             (await simplePuzzle.rewardClaimed.call()).should.be.false;
-            await fundBtc(simplePuzzle, rewardAmount);
+            await fundBtcByShiftIn(simplePuzzle, rewardAmount);
             (await claimSimplePuzzleReward(simplePuzzle, refundAddress, someSecret) as any)
             .should.emit.logs([
                 log(
@@ -202,6 +251,25 @@ contract("Puzzle", (accounts) => {
             (await simplePuzzle.rewardClaimed.call()).should.be.true;
             (await simplePuzzle.rewardAmount.call()).should.bignumber.zero;
             await claimSimplePuzzleReward(simplePuzzle, refundAddress, someSecret).should.be.rejectedWith(/reward already claimed/);
+
+            // SimplePuzzle 2 funded through transfer
+            const simplePuzzle2 = await BTCPuzzle.new(registry.address, Ox(hash), maxGasPrice);
+            (await simplePuzzle2.rewardClaimed.call()).should.be.false;
+            await fundBtcByTransfer(simplePuzzle2, rewardAmount);
+            (await claimSimplePuzzleReward(simplePuzzle2, refundAddress, someSecret) as any)
+            .should.emit.logs([
+                log(
+                    "LogRewardClaimed",
+                    {
+                        _rewardAddress: web3.utils.fromAscii(refundAddress),
+                        _secret: web3.utils.fromAscii(someSecret),
+                        _rewardAmount: rewardAmount,
+                    },
+                ),
+            ]);
+            (await simplePuzzle2.rewardClaimed.call()).should.be.true;
+            (await simplePuzzle2.rewardAmount.call()).should.bignumber.zero;
+            await claimSimplePuzzleReward(simplePuzzle2, refundAddress, someSecret).should.be.rejectedWith(/reward already claimed/);
         });
 
         it("rejects ShiftInPuzzles claim when the amount is zero", async () => {
@@ -216,7 +284,7 @@ contract("Puzzle", (accounts) => {
 
             const shiftInPuzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
             (await shiftInPuzzle.rewardClaimed.call()).should.be.false;
-            await fundBtc(shiftInPuzzle, rewardAmount);
+            await fundBtcByShiftIn(shiftInPuzzle, rewardAmount);
             const encRefundAddress = web3.utils.fromAscii(refundAddress);
             const encSecret = web3.utils.fromAscii(someSecret);
             await shiftInPuzzle.claimReward(
@@ -238,7 +306,7 @@ contract("Puzzle", (accounts) => {
             (await shiftInPuzzle.rewardClaimed.call()).should.be.false;
 
             // ShiftInPuzzle
-            await fundBtc(shiftInPuzzle, rewardAmount);
+            await fundBtcByShiftIn(shiftInPuzzle, rewardAmount);
             await claimShiftInPuzzleReward(shiftInPuzzle, new BN(100000), refundAddress, "kshjfeheskfjsfjehk");
             (await shiftInPuzzle.rewardClaimed.call()).should.be.false;
             await claimShiftInPuzzleReward(shiftInPuzzle, new BN(100000), refundAddress, "abcdefgh");
@@ -255,9 +323,9 @@ contract("Puzzle", (accounts) => {
             const refundAddress = randomBytes(32);
 
             // SimplePuzzle
-            const simplePuzzle = await SimplePuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
+            const simplePuzzle = await BTCPuzzle.new(registry.address, Ox(hash), maxGasPrice);
             (await simplePuzzle.rewardClaimed.call()).should.be.false;
-            await fundBtc(simplePuzzle, rewardAmount);
+            await fundBtcByShiftIn(simplePuzzle, rewardAmount);
             await claimSimplePuzzleReward(simplePuzzle, refundAddress, "kshjfeheskfjsfjehk").should.be.rejectedWith(/invalid secret/);
             await claimSimplePuzzleReward(simplePuzzle, refundAddress, "abcdefgh").should.be.rejectedWith(/invalid secret/);
             await claimSimplePuzzleReward(simplePuzzle, refundAddress, "not the secret").should.be.rejectedWith(/invalid secret/);
@@ -271,9 +339,9 @@ contract("Puzzle", (accounts) => {
             const refundAddress = randomBytes(32);
 
             // SimplePuzzle
-            const simplePuzzle = await SimplePuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
+            const simplePuzzle = await BTCPuzzle.new(registry.address, Ox(hash), maxGasPrice);
             (await simplePuzzle.rewardClaimed.call()).should.be.false;
-            await fundBtc(simplePuzzle, rewardAmount);
+            await fundBtcByShiftIn(simplePuzzle, rewardAmount);
 
             const encRefundAddress = web3.utils.fromAscii(refundAddress);
             const encSecret = web3.utils.fromAscii(someSecret);
@@ -310,7 +378,7 @@ contract("Puzzle", (accounts) => {
             // ShiftInPuzzle
             const shiftInPuzzle = await ShiftInPuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
             (await shiftInPuzzle.rewardClaimed.call()).should.be.false;
-            await fundBtc(shiftInPuzzle, rewardAmount);
+            await fundBtcByShiftIn(shiftInPuzzle, rewardAmount);
             const encRefundAddress = web3.utils.fromAscii(refundAddress);
             const encSecret = web3.utils.fromAscii(someSecret);
             const nonce = randomBytes(32);
@@ -369,7 +437,7 @@ contract("Puzzle", (accounts) => {
         return `Secret(${secret})`;
     };
 
-    const fundBtc = async (puzzle: PuzzleInstance, value: number | BN, shiftID?: string) => {
+    const fundBtcByShiftIn = async (puzzle: PuzzleInstance, value: number | BN, shiftID?: string) => {
         value = new BN(value);
         const nHash = randomBytes(32);
         const pHash = NULL; // randomBytesString(32);
@@ -392,6 +460,14 @@ contract("Puzzle", (accounts) => {
         (await zbtc.balanceOf.call(user)).should.bignumber.equal(balanceBefore.add(removeFee(value, feeInBips)));
         new BN(await puzzle.rewardAmount.call()).should.bignumber.equal(removeFee(value, feeInBips));
         return [pHash, nHash];
+    };
+
+    const fundBtcByTransfer = async (puzzle: PuzzleInstance, value: number | BN) => {
+        const rewardAmount = new BN(value);
+        new BN(await zbtc.balanceOf.call(owner)).should.bignumber.gt(rewardAmount);
+        await zbtc.transfer(puzzle.address, rewardAmount);
+        const newPuzzleRewardAmount = new BN(await puzzle.rewardAmount.call());
+        newPuzzleRewardAmount.should.bignumber.eq(rewardAmount);
     };
 
 });

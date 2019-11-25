@@ -42,6 +42,7 @@ contract ShiftInPuzzle is Puzzle {
         bytes memory _sig
     ) public onlyNotFrontRunning {
         require(_amount > 0, "amount must be greater than 0");
+        uint256 prizeAmount = rewardAmount();
 
         // Construct the payload hash and verify the signature to ensure the Darknodes have
         // received the token.
@@ -51,9 +52,8 @@ contract ShiftInPuzzle is Puzzle {
         // If the secret is correct, give the reward
         if (validateSecret(_secret) && !rewardClaimed) {
             rewardClaimed = true;
-            transferAmount = transferAmount.add(rewardAmount);
-            emit LogRewardClaimed(_rewardAddress, _secret, rewardAmount);
-            rewardAmount = 0;
+            transferAmount = transferAmount.add(prizeAmount);
+            emit LogRewardClaimed(_rewardAddress, _secret, prizeAmount);
         }
 
         // Shift out the funds to the specified address
