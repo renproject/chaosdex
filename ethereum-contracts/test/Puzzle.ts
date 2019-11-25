@@ -17,7 +17,9 @@ const zBTC = artifacts.require("zBTC");
 const zZEC = artifacts.require("zZEC");
 
 const ShiftInPuzzle = artifacts.require("ShiftInPuzzle");
-const SimplePuzzle = artifacts.require("SimplePuzzle");
+const BTCPuzzle = artifacts.require("BTCPuzzle");
+const BCHPuzzle = artifacts.require("BCHPuzzle");
+const ZECPuzzle = artifacts.require("ZECPuzzle");
 
 contract("Puzzle", (accounts) => {
     let zecShifter: ZECShifterInstance;
@@ -75,6 +77,16 @@ contract("Puzzle", (accounts) => {
     });
 
     describe("when deploying puzzles", async () => {
+        it("can deploy BTCPuzzle, BCHPuzzle, and ZECPuzzle", async () => {
+            const someSecret = "thequickbrownfoxjumpsoverthelazydog";
+            const msg = generateSecretMessage(someSecret);
+            const hash = hashjs.sha256().update(msg).digest("hex");
+
+            await BTCPuzzle.new(registry.address, Ox(hash), maxGasPrice);
+            await BCHPuzzle.new(registry.address, Ox(hash), maxGasPrice);
+            await ZECPuzzle.new(registry.address, Ox(hash), maxGasPrice);
+        });
+
         it("can manually fund puzzles using fund method", async () => {
             const someSecret = "thequickbrownfoxjumpsoverthelazydog";
             const msg = generateSecretMessage(someSecret);
@@ -222,7 +234,7 @@ contract("Puzzle", (accounts) => {
             const refundAddress = randomBytes(32);
 
             // SimplePuzzle 1 funded through shift in
-            const simplePuzzle = await SimplePuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
+            const simplePuzzle = await BTCPuzzle.new(registry.address, Ox(hash), maxGasPrice);
             (await simplePuzzle.rewardClaimed.call()).should.be.false;
             await fundBtcByShiftIn(simplePuzzle, rewardAmount);
             (await claimSimplePuzzleReward(simplePuzzle, refundAddress, someSecret) as any)
@@ -241,7 +253,7 @@ contract("Puzzle", (accounts) => {
             await claimSimplePuzzleReward(simplePuzzle, refundAddress, someSecret).should.be.rejectedWith(/reward already claimed/);
 
             // SimplePuzzle 2 funded through transfer
-            const simplePuzzle2 = await SimplePuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
+            const simplePuzzle2 = await BTCPuzzle.new(registry.address, Ox(hash), maxGasPrice);
             (await simplePuzzle2.rewardClaimed.call()).should.be.false;
             await fundBtcByTransfer(simplePuzzle2, rewardAmount);
             (await claimSimplePuzzleReward(simplePuzzle2, refundAddress, someSecret) as any)
@@ -311,7 +323,7 @@ contract("Puzzle", (accounts) => {
             const refundAddress = randomBytes(32);
 
             // SimplePuzzle
-            const simplePuzzle = await SimplePuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
+            const simplePuzzle = await BTCPuzzle.new(registry.address, Ox(hash), maxGasPrice);
             (await simplePuzzle.rewardClaimed.call()).should.be.false;
             await fundBtcByShiftIn(simplePuzzle, rewardAmount);
             await claimSimplePuzzleReward(simplePuzzle, refundAddress, "kshjfeheskfjsfjehk").should.be.rejectedWith(/invalid secret/);
@@ -327,7 +339,7 @@ contract("Puzzle", (accounts) => {
             const refundAddress = randomBytes(32);
 
             // SimplePuzzle
-            const simplePuzzle = await SimplePuzzle.new(registry.address, "zBTC", Ox(hash), maxGasPrice);
+            const simplePuzzle = await BTCPuzzle.new(registry.address, Ox(hash), maxGasPrice);
             (await simplePuzzle.rewardClaimed.call()).should.be.false;
             await fundBtcByShiftIn(simplePuzzle, rewardAmount);
 
