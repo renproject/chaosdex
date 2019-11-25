@@ -1,16 +1,18 @@
 pragma solidity ^0.5.12;
 
-
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "darknode-sol/contracts/Shifter/ShifterRegistry.sol";
 import "darknode-sol/contracts/libraries/Compare.sol";
 
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+
 contract Puzzle is Ownable {
     using SafeMath for uint256;
+    using SafeERC20 for ERC20;
 
     bytes public secretHash;     // The hash of the secret
-    uint256 public rewardAmount; // The amount of reward for solving the puzzle
     string public tokenSymbol;   // The symbol of the reward token
     bool public rewardClaimed;   // Whether the puzzle has been solved or not
 
@@ -40,6 +42,12 @@ contract Puzzle is Ownable {
         maxGasPrice = _maxGasPrice;
     }
 
+    /// @notice The amount of reward for solving the puzzle
+    function rewardAmount() public view returns (uint256) {
+        ERC20 token = ERC20(registry.getTokenBySymbol(tokenSymbol));
+        return token.balanceOf(address(this));
+    }
+
     /// @notice Funds the contract with claimable rewards
     /// @param _amount The amount of token provided to the Darknodes in Sats.
     /// @param _nHash The hash of the nonce returned by the Darknodes.
@@ -51,8 +59,7 @@ contract Puzzle is Ownable {
         bytes memory _sig
     ) public {
         require(_amount > 0, "amount must be greater than 0");
-        uint256 transferAmount = registry.getShifterBySymbol(tokenSymbol).shiftIn(0x0, _amount, _nHash, _sig);
-        rewardAmount = rewardAmount.add(transferAmount);
+        registry.getShifterBySymbol(tokenSymbol).shiftIn(0x0, _amount, _nHash, _sig);
     }
 
     /// @notice Shifts out tokens from the contract to reduce the reward distributed.
@@ -61,7 +68,6 @@ contract Puzzle is Ownable {
     /// @param _amount  The amount to shift out
     function shiftOut(bytes calldata _address, uint256 _amount) external onlyOwner {
         registry.getShifterBySymbol(tokenSymbol).shiftOut(_address, _amount);
-        rewardAmount = rewardAmount.sub(_amount);
     }
 
     /// @notice Validate that the secret is correct. Use this function to

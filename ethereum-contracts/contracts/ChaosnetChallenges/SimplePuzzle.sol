@@ -28,12 +28,10 @@ contract SimplePuzzle is Puzzle {
         require(!rewardClaimed, "reward already claimed");
         require(validateSecret(_secret), "invalid secret");
         rewardClaimed = true;
+        uint256 amount = rewardAmount();
         // Shift out the funds to the specified address
-        registry.getShifterBySymbol(tokenSymbol).shiftOut(_rewardAddress, rewardAmount);
+        registry.getShifterBySymbol(tokenSymbol).shiftOut(_rewardAddress, amount);
 
-        emit LogRewardClaimed(_rewardAddress, _secret, rewardAmount);
-
-        // Reset the reward amount
-        rewardAmount = 0;
+        emit LogRewardClaimed(_rewardAddress, _secret, amount);
     }
 }
