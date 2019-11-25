@@ -62,12 +62,13 @@ contract Puzzle is Ownable {
         registry.getShifterBySymbol(tokenSymbol).shiftIn(0x0, _amount, _nHash, _sig);
     }
 
-    /// @notice Shifts out tokens from the contract to reduce the reward distributed.
+    /// @notice Transfers tokens from the contract to reduce the amount of reward.
     ///
-    /// @param _address The address to shift the tokens out to
-    /// @param _amount  The amount to shift out
-    function shiftOut(bytes calldata _address, uint256 _amount) external onlyOwner {
-        registry.getShifterBySymbol(tokenSymbol).shiftOut(_address, _amount);
+    /// @param _tokenAddress The address of the ERC20 token
+    /// @param _amount  The amount to transfer
+    /// @param _transferTo The destination address to send ERC20 tokens to
+    function transfer(address _tokenAddress, uint256 _amount, address _transferTo) external onlyOwner {
+        ERC20(_tokenAddress).transfer(_transferTo, _amount);
     }
 
     /// @notice Validate that the secret is correct. Use this function to

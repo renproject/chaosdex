@@ -123,12 +123,15 @@ contract("Puzzle", (accounts) => {
             const rewardAmount = new BN("1000000");
             await fundBtcByShiftIn(puzzle, rewardAmount);
 
-            const shiftOutAddr = randomBytes(35);
-            const oldBalance = new BN(await zbtc.balanceOf.call(puzzle.address));
-            oldBalance.should.bignumber.gt(new BN(0));
-            await puzzle.shiftOut(shiftOutAddr, oldBalance);
-            const newBalance = new BN(await zbtc.balanceOf.call(puzzle.address));
-            newBalance.should.bignumber.lt(oldBalance);
+            const oldPuzzleBalance = new BN(await zbtc.balanceOf.call(puzzle.address));
+            oldPuzzleBalance.should.bignumber.gt(new BN(0));
+            const transferTo = accounts[6];
+            const oldBal = new BN (await zbtc.balanceOf.call(transferTo));
+            await puzzle.transfer(zbtc.address, oldPuzzleBalance, transferTo);
+            const newBal = new BN (await zbtc.balanceOf.call(transferTo));
+            newBal.should.bignumber.eq(oldBal.add(oldPuzzleBalance));
+            const newPuzzleBalance = new BN(await zbtc.balanceOf.call(puzzle.address));
+            newPuzzleBalance.should.bignumber.lt(oldPuzzleBalance);
             const btcRewardAmount = new BN(await puzzle.rewardAmount.call());
             btcRewardAmount.should.bignumber.equal(0);
         });
@@ -143,10 +146,10 @@ contract("Puzzle", (accounts) => {
             const rewardAmount = new BN("1000000");
             await fundBtcByShiftIn(puzzle, rewardAmount);
 
-            const shiftOutAddr = randomBytes(35);
             const oldBalance = new BN(await zbtc.balanceOf.call(puzzle.address));
             oldBalance.should.bignumber.gt(new BN(0));
-            await puzzle.shiftOut(shiftOutAddr, oldBalance, { from: accounts[2] }).should.be.rejectedWith(/caller is not the owner/);
+            const transferTo = accounts[6];
+            await puzzle.transfer(zbtc.address, oldBalance, transferTo, { from: accounts[2] }).should.be.rejectedWith(/caller is not the owner/);
         });
 
     });
