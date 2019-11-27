@@ -69,7 +69,7 @@ export const OrderFormInputs = connect<Props & ConnectedProps<[UIContainer]>>([U
 
             // Flip the amounts, but if we flip twice in a row, use the original
             // srcAmount instead of calculating a new one
-            // Wihout: src = 1 [flip] src = 0.01 [flip] src = 0.99
+            // Without: src = 1 [flip] src = 0.01 [flip] src = 0.99
             // & with: src = 1 [flip] src = 0.01 [flip] src = 1
             const amount = oldSrcAmount !== undefined ? oldSrcAmount : new BigNumber(orderInputs.dstAmount).decimalPlaces(8).toFixed();
             setSrcAmountState(amount);

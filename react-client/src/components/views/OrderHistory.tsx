@@ -76,9 +76,9 @@ export const txUrl = (tx: Tx | null): string => {
     return "";
 };
 
-const OrderHistoryEntry = ({ order, continueOrder, loggedIn }: {
+const OrderHistoryEntry = ({ order, continueOrder, address }: {
     order: HistoryEvent,
-    loggedIn: boolean,
+    address: string | null,
     continueOrder: (orderID: string) => void,
 }) => {
     const srcAmount = <span className="token--amount">
@@ -100,6 +100,10 @@ const OrderHistoryEntry = ({ order, continueOrder, loggedIn }: {
     const onClick = () => {
         continueOrder(order.id);
     };
+
+    const loggedIn = address !== null;
+    const changeAccount = order.commitment.type === CommitmentType.AddLiquidity && order.commitment.liquidityProvider !== address;
+
     // tslint:disable-next-line: no-console
     return <div className="swap--history--entry">
         <div className="token--info">
@@ -161,12 +165,16 @@ const OrderHistoryEntry = ({ order, continueOrder, loggedIn }: {
                                         }}
                                     />
                                     <span className="received--text">{order.commitment.type === CommitmentType.AddLiquidity ? "Adding" : order.commitment.type === CommitmentType.RemoveLiquidity ? "Removing" : "Receiving"}</span>{amount}
+                                    {" "}
                                     <button
-                                        disabled={!loggedIn}
-                                        className="button--plain"
+                                        disabled={!loggedIn || changeAccount}
+                                        className="button--plain continue--shift"
                                         onClick={onClick}
                                     >
-                                        {loggedIn ? continueText(order.commitment.type) : <>: Connect to continue</>}
+                                        {loggedIn ?
+                                            order.commitment.type === CommitmentType.AddLiquidity && order.commitment.liquidityProvider !== address ? <>Change address to continue <InfoLabel>The address <span className="monospace">{order.commitment.liquidityProvider.substring(0, 8)}...{order.commitment.liquidityProvider.slice(-5)}</span> must be used to continue</InfoLabel></> :
+                                                continueText(order.commitment.type) :
+                                            <>Connect to continue</>}
                                     </button>
                                 </>
             }
@@ -207,8 +215,6 @@ export const OrderHistory = connect<{} & ConnectedProps<[PersistentContainer, UI
 
         const orders = Object.values(historyItems).sort((a, b) => b.time - a.time);
 
-        const loggedIn = address !== null;
-
         if (orders.length === 0) {
             return <></>;
         }
@@ -225,7 +231,7 @@ export const OrderHistory = connect<{} & ConnectedProps<[PersistentContainer, UI
                         return <OrderHistoryEntry
                             key={historyEvent.time}
                             order={historyEvent}
-                            loggedIn={loggedIn}
+                            address={address}
                             continueOrder={uiContainer.handleOrder}
                         />;
                     })}

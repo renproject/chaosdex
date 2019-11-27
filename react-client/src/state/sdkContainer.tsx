@@ -473,7 +473,7 @@ export class SDKContainer extends Container<typeof initialState> {
             }
 
             [receipt, transactionHash] = await new Promise<[TransactionReceipt, string]>(async (resolve, reject) => {
-                const promiEvent = (await this.submitMintToRenVM(orderID)).submitToEthereum(web3.currentProvider, { gas: order.commitment.type === CommitmentType.AddLiquidity ? 250000 : undefined });
+                const promiEvent = (await this.submitMintToRenVM(orderID)).submitToEthereum(web3.currentProvider, { gas: order.commitment.type === CommitmentType.AddLiquidity ? 350000 : undefined });
                 promiEvent.catch(error => {
                     reject(error);
                 });
