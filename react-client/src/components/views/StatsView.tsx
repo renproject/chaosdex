@@ -106,7 +106,7 @@ const ShowTrades = ({ trades, explorer }: { trades: List<Trade>, explorer: strin
             <Tbody>
                 {
                     trades.map((trade, idx) => {
-                        return (<Tr key={trade.id} className={`${idx % 2 ? "odd" : "even"}`}>
+                        return (<Tr key={trade.id} className={`${idx % 2 ? "even" : "odd"}`}>
                             <Td>Trade</Td>
                             <Td><TokenIcon token={trade.src} /> {trade.sendAmount.decimalPlaces(trade.src === Token.DAI ? 2 : 6).toFixed()} {trade.src}</Td>
                             <Td><TokenIcon token={trade.dst} /> {trade.recvAmount.decimalPlaces(trade.dst === Token.DAI ? 2 : 6).toFixed()} {trade.dst}</Td>

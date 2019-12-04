@@ -3,6 +3,7 @@
 
     h2 {
         font-size: 40px;
+        font-weight: bold;
     }
 
     .trade--history {
@@ -14,6 +15,10 @@
             opacity: 0.6;
             text-transform: uppercase;
             font-weight: bold;
+        }
+
+        tr {
+            font-size: 16px;
         }
 
         a {
@@ -33,6 +38,17 @@
         flex-wrap: wrap;
         margin-bottom: 30px;
         width: 100%;
+    }
+
+    .trade--history .stats--rows {
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(151, 151, 151, 0.37);
+
+        table.responsiveTable {
+            tr.odd {
+                background-color: #1d2227;
+            }
+        }
     }
 
     small {
