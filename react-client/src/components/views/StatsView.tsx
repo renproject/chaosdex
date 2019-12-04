@@ -301,6 +301,7 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
                         </LineChart>
                     </StatBlock>
                 </div>
+                {/*
                 <div className="stats--rows">
                     {
                         volumes.map((volume, token) => {
@@ -333,6 +334,7 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
                         }).valueSeq().toArray()
                     }
                 </div>
+                */}
             </>}
         </div>
         <br /><br />
