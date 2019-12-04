@@ -122,7 +122,7 @@
     .stats--pagination {
         display: flex;
         align-items: center;
-        justify-content: end;
+        justify-content: flex-end;
 
         .page--number {
             margin-right: 20px;
