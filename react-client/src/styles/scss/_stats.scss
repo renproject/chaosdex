@@ -28,7 +28,7 @@
         width: 100%;
         font-size: 16px;
         box-sizing: border-box !important;
-        padding: 20px !important;
+        // padding: 20px !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
@@ -42,6 +42,10 @@
         a[target="_blank"]::after {
             content: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAANElEQVQYlWNgwAH+owFMARyKGdAl8ZqITxGMj6EQlzNQFOJUhK4QLx+XZyhTSAgwMDAwAADI1rNNfaEUNQAAAABJRU5ErkJggg==);
             margin: 0 3px 0 5px;
+        }
+
+        &.even {
+            background-color: #1d2227;
         }
     }
 

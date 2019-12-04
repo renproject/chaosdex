@@ -13,6 +13,8 @@ import { Token, TokenPrices, Tokens } from "../../state/generalTypes";
 import { CumulativeDataPoint, ReserveHistoryItem, Trade } from "../controllers/Stats";
 import { TokenBalance } from "./TokenBalance";
 import { toBitcoinValue } from "../../lib/conversion";
+import { Table, Thead, Tbody, Tr, Th, Td } from 'react-super-responsive-table'
+import 'react-super-responsive-table/dist/SuperResponsiveTableStyle.css'
 
 interface Props {
     trades: List<Trade> | null;
@@ -28,6 +30,7 @@ interface Props {
     network: NetworkDetails;
     reserveHistory: ReserveHistoryItem[] | null;
     loadedAt: Date;
+    itemsPerPage: number;
 }
 
 const colors = {
@@ -91,13 +94,28 @@ const ReserveHistoryTooltip = ({ active, payload }: TooltipProps) => {
 
 const ShowTrades = ({ trades, explorer }: { trades: List<Trade>, explorer: string }) =>
     <div className="stats--rows">
-        {
-            trades.map(trade => {
-                return <div key={trade.id} className="stat">
-                    Trade from <TokenIcon token={trade.src} /> {trade.sendAmount.decimalPlaces(trade.src === Token.DAI ? 2 : 6).toFixed()} {trade.src} to <TokenIcon token={trade.dst} /> {trade.recvAmount.decimalPlaces(trade.dst === Token.DAI ? 2 : 6).toFixed()} {trade.dst}
-                    {" "}<a role="button" rel="noopener noreferrer" target="_blank" href={`${explorer}/tx/${trade.transactionHash}`} />
-                </div>;
-            }).toArray()}
+        <Table>
+            <Thead>
+                <Tr>
+                    <Th>Type</Th>
+                    <Th>From</Th>
+                    <Th>To</Th>
+                    <Th>Transaction</Th>
+                </Tr>
+            </Thead>
+            <Tbody>
+                {
+                    trades.map((trade, idx) => {
+                        return (<Tr key={trade.id} className={`${idx % 2 ? "odd" : "even"}`}>
+                            <Td>Trade</Td>
+                            <Td><TokenIcon token={trade.src} /> {trade.sendAmount.decimalPlaces(trade.src === Token.DAI ? 2 : 6).toFixed()} {trade.src}</Td>
+                            <Td><TokenIcon token={trade.dst} /> {trade.recvAmount.decimalPlaces(trade.dst === Token.DAI ? 2 : 6).toFixed()} {trade.dst}</Td>
+                            <Td><a role="button" rel="noopener noreferrer" target="_blank" href={`${explorer}/tx/${trade.transactionHash}`}>View transaction &rarr;</a></Td>
+                        </Tr>);
+                    }).toArray()
+                }
+            </Tbody>
+        </Table>
     </div>;
 
 const ShowReserveBalance = ({ token, preferredCurrency, balance, tokenPrices }: {
@@ -171,7 +189,8 @@ const CumulativeChart = ({ cumulativeVolume }: { cumulativeVolume: CumulativeDat
     </AreaChart>;
 
 // @ts-ignore
-export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reserveBalances, tokenPrices, preferredCurrency, network, reserveHistory, loadedAt }: Props) => {
+export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reserveBalances, tokenPrices, preferredCurrency, network, reserveHistory, loadedAt, itemsPerPage }: Props) => {
+    const [page, setPage] = React.useState<number>(0);
     const data = React.useMemo(() => {
         return tokenCount.map((count, token) => ({ name: token, value: count })).valueSeq().toArray();
     }, [tokenCount]);
@@ -193,6 +212,14 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
         daiAmount = daiAmount.div(decimals);
         totalLiquidityPoolInBtc = totalLiquidityPoolInBtc.plus(reserveAmountInBtc);
     });
+    const sliceFrom = page * itemsPerPage;
+    const sliceUntil = ((page + 1) * itemsPerPage) - 1;
+    const tradesList: List<Trade> = trades ? trades.slice(sliceFrom, sliceUntil) : List<Trade>();
+    const todayTrades: List<Trade> = tradesList.filter(trade => trade.timestamp >= yesterday);
+    const yesterdayTrades: List<Trade> = tradesList.filter(trade => trade.timestamp < yesterday && trade.timestamp >= twoDaysAgo);
+    const oldTrades: List<Trade> = tradesList.filter(trade => trade.timestamp < twoDaysAgo);
+    const maxPage = trades ? Math.floor(trades.size / itemsPerPage) : 0;
+
     return <div className="stats">
         <div className="stats--title">
             <h2>ChaosDex Stats</h2>
@@ -297,25 +324,36 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
         <br /><br />
         <h2>Trade History</h2>
         {trades === null ? <div className="stats--rows"><Loading alt={true} /></div> : <>
-            <p>Today</p>
-            <ShowTrades
-                trades={
-                    trades.filter(trade => trade.timestamp >= yesterday)
-                }
-                explorer={network.contracts.etherscan}
-            />
-            <p>Yesterday</p>
-            <ShowTrades
-                trades={
-                    trades.filter(trade => trade.timestamp < yesterday && trade.timestamp >= twoDaysAgo)}
-                explorer={network.contracts.etherscan}
-            />
-            <p>>48 hours ago</p>
-            <ShowTrades
-                trades={
-                    trades.filter(trade => trade.timestamp < twoDaysAgo)}
-                explorer={network.contracts.etherscan}
-            />
+            {todayTrades.size > 0 && <>
+                <p>Today</p>
+                <ShowTrades
+                    trades={todayTrades}
+                    explorer={network.contracts.etherscan}
+                />
+            </>
+            }
+            {yesterdayTrades.size > 0 &&
+                <>
+                    <p>Yesterday</p>
+                    <ShowTrades
+                        trades={yesterdayTrades}
+                        explorer={network.contracts.etherscan}
+                    />
+                </>
+            }
+            {oldTrades.size > 0 &&
+                <>
+                    <p>>48 hours ago</p>
+                    <ShowTrades
+                        trades={oldTrades}
+                        explorer={network.contracts.etherscan}
+                    />
+                </>
+            }
+            <div>
+                <button onClick={() => { setPage(Math.max(0, page - 1)) }}>&lt;</button>
+                <button onClick={() => { setPage(Math.min(maxPage, page + 1)) }}>&gt;</button>
+            </div>
         </>}
     </div>;
 };
