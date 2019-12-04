@@ -220,6 +220,20 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
     const oldTrades: List<Trade> = tradesList.filter(trade => trade.timestamp < twoDaysAgo);
     const maxPage = trades ? Math.floor(trades.size / itemsPerPage) : 0;
 
+    const pagination = (
+        <div className="stats--pagination">
+            <div className="page--number">
+                Page {page + 1} of {maxPage + 1}
+            </div>
+            <div className="page--change">
+                <button disabled={page === 0} onClick={() => { setPage(0) }}>|&lt;</button>
+                <button disabled={page === 0} onClick={() => { setPage(Math.max(0, page - 1)) }}>&lt;</button>
+                <button disabled={page === maxPage} onClick={() => { setPage(Math.min(maxPage, page + 1)) }}>&gt;</button>
+                <button disabled={page === maxPage} onClick={() => { setPage(maxPage) }}>&gt;|</button>
+            </div>
+        </div>
+    );
+
     return <div className="stats">
         <div className="stats--title">
             <h2>ChaosDex Stats</h2>
@@ -322,38 +336,38 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
             </>}
         </div>
         <br /><br />
-        <h2>Trade History</h2>
-        {trades === null ? <div className="stats--rows"><Loading alt={true} /></div> : <>
-            {todayTrades.size > 0 && <>
-                <p>Today</p>
-                <ShowTrades
-                    trades={todayTrades}
-                    explorer={network.contracts.etherscan}
-                />
-            </>
-            }
-            {yesterdayTrades.size > 0 &&
-                <>
-                    <p>Yesterday</p>
+        <div className="trade--history">
+            <h2>Trade History</h2>
+            {trades === null ? <div className="stats--rows"><Loading alt={true} /></div> : <>
+                {pagination}
+                {todayTrades.size > 0 && <>
+                    <h3>Today</h3>
                     <ShowTrades
-                        trades={yesterdayTrades}
+                        trades={todayTrades}
                         explorer={network.contracts.etherscan}
                     />
                 </>
-            }
-            {oldTrades.size > 0 &&
-                <>
-                    <p>>48 hours ago</p>
-                    <ShowTrades
-                        trades={oldTrades}
-                        explorer={network.contracts.etherscan}
-                    />
-                </>
-            }
-            <div>
-                <button onClick={() => { setPage(Math.max(0, page - 1)) }}>&lt;</button>
-                <button onClick={() => { setPage(Math.min(maxPage, page + 1)) }}>&gt;</button>
-            </div>
-        </>}
+                }
+                {yesterdayTrades.size > 0 &&
+                    <>
+                        <h3>Yesterday</h3>
+                        <ShowTrades
+                            trades={yesterdayTrades}
+                            explorer={network.contracts.etherscan}
+                        />
+                    </>
+                }
+                {oldTrades.size > 0 &&
+                    <>
+                        <h3>&gt; 48 hours ago</h3>
+                        <ShowTrades
+                            trades={oldTrades}
+                            explorer={network.contracts.etherscan}
+                        />
+                    </>
+                }
+                {pagination}
+            </>}
+        </div>
     </div>;
 };
