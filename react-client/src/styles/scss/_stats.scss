@@ -41,12 +41,8 @@
     }
 
     .trade--history {
-        .stats--rows {
-            table.responsiveTable {
-                tr.odd {
-                    background-color: #1d2227;
-                }
-            }
+        .stats--rows .odd {
+            background-color: #1d2227;
         }
 
         .trade--history--block {
