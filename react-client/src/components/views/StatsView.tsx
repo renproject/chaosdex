@@ -342,31 +342,31 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
             <h2>Trade History</h2>
             {trades === null ? <div className="stats--rows"><Loading alt={true} /></div> : <>
                 {pagination}
-                {todayTrades.size > 0 && <>
+                {todayTrades.size > 0 && <div className="trade--history--block">
                     <h3>Today</h3>
                     <ShowTrades
                         trades={todayTrades}
                         explorer={network.contracts.etherscan}
                     />
-                </>
+                </div>
                 }
                 {yesterdayTrades.size > 0 &&
-                    <>
+                    <div className="trade--history--block">
                         <h3>Yesterday</h3>
                         <ShowTrades
                             trades={yesterdayTrades}
                             explorer={network.contracts.etherscan}
                         />
-                    </>
+                    </div>
                 }
                 {oldTrades.size > 0 &&
-                    <>
+                    <div className="trade--history--block">
                         <h3>&gt; 48 hours ago</h3>
                         <ShowTrades
                             trades={oldTrades}
                             explorer={network.contracts.etherscan}
                         />
-                    </>
+                    </div>
                 }
                 {pagination}
             </>}

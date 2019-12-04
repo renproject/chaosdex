@@ -40,13 +40,19 @@
         width: 100%;
     }
 
-    .trade--history .stats--rows {
-        padding-bottom: 20px;
-        border-bottom: 1px solid rgba(151, 151, 151, 0.37);
+    .trade--history {
+        .stats--rows {
+            table.responsiveTable {
+                tr.odd {
+                    background-color: #1d2227;
+                }
+            }
+        }
 
-        table.responsiveTable {
-            tr.odd {
-                background-color: #1d2227;
+        .trade--history--block {
+            padding-top: 30px;
+            & + .trade--history--block {
+                border-top: 1px solid rgba(151, 151, 151, 0.37);
             }
         }
     }
