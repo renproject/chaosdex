@@ -1,4 +1,4 @@
-import { AbiInput } from "web3-utils";
+import { AbiInput, toChecksumAddress } from "web3-utils";
 
 import { Token } from "../state/generalTypes";
 
@@ -31,18 +31,18 @@ export const syncGetTokenFromAddress = (networkID: number, address: string): Tok
     // eslint-disable-next-line
 
     // tslint:disable: no-string-literal
-    if (address === "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE") { return Token.ETH; }
+    if (toChecksumAddress(address) === "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE") { return Token.ETH; }
     tokensFromAddresses["DAI"] = tokensFromAddresses["DAI"] || require(`../contracts/${network}/DaiToken.json`).networks[networkID].address;
-    if (address === tokensFromAddresses["DAI"]) { return Token.DAI; }
+    if (toChecksumAddress(address) === toChecksumAddress(tokensFromAddresses["DAI"])) { return Token.DAI; }
     tokensFromAddresses["BTC"] = tokensFromAddresses["BTC"] || require(`../contracts/${network}/zBTC.json`).networks[networkID].address;
-    if (address === tokensFromAddresses["BTC"]) { return Token.BTC; }
+    if (toChecksumAddress(address) === toChecksumAddress(tokensFromAddresses["BTC"])) { return Token.BTC; }
     tokensFromAddresses["ZEC"] = tokensFromAddresses["ZEC"] || require(`../contracts/${network}/zZEC.json`).networks[networkID].address;
-    if (address === tokensFromAddresses["ZEC"]) { return Token.ZEC; }
+    if (toChecksumAddress(address) === toChecksumAddress(tokensFromAddresses["ZEC"])) { return Token.ZEC; }
     tokensFromAddresses["BCH"] = tokensFromAddresses["BCH"] || require(`../contracts/${network}/zBCH.json`).networks[networkID].address;
-    if (address === tokensFromAddresses["BCH"]) { return Token.BCH; }
+    if (toChecksumAddress(address) === toChecksumAddress(tokensFromAddresses["BCH"])) { return Token.BCH; }
     // tslint:enable: no-string-literal
 
-    throw new Error("Unknown token");
+    throw new Error(`Unknown token at address ${address} on network ${networkID}`);
 };
 
 // tslint:disable: non-literal-require

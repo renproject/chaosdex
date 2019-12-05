@@ -1,8 +1,8 @@
 import { sleep } from "@renproject/react-components";
 import RenVM, {
-    btcAddressFrom, Chain, NetworkChaosnet, NetworkDetails, NetworkDevnet, NetworkLocalnet,
-    NetworkTestnet, Ox, ShiftInObject, Signature, Tokens as ShiftActions, TxStatus, UTXO,
-    zecAddressFrom,
+    bchAddressFrom, btcAddressFrom, Chain, NetworkChaosnet, NetworkDetails, NetworkDevnet,
+    NetworkLocalnet, NetworkTestnet, Ox, ShiftInObject, Signature, Tokens as ShiftActions, TxStatus,
+    UTXO, zecAddressFrom,
 } from "@renproject/ren";
 import BigNumber from "bignumber.js";
 import { Container } from "unstated";
@@ -316,8 +316,7 @@ export class SDKContainer extends Container<typeof initialState> {
             outTx: order.orderInputs.dstToken === Token.ZEC ?
                 ZCashTx(zecAddressFrom(address, "base64")) :
                 order.orderInputs.dstToken === Token.BCH ?
-                    // BitcoinCashTx(bchAddressFrom(address, "base64")) :
-                    BitcoinCashTx(address) :
+                    BitcoinCashTx(bchAddressFrom(address, "base64")) :
                     BitcoinTx(btcAddressFrom(address, "base64")),
             status: ShiftOutStatus.ReturnedFromRenVM,
         }).catch(error => _catchBackgroundErr_(error, "Error in sdkContainer: updateHistoryItem"));
@@ -474,7 +473,7 @@ export class SDKContainer extends Container<typeof initialState> {
             }
 
             [receipt, transactionHash] = await new Promise<[TransactionReceipt, string]>(async (resolve, reject) => {
-                const promiEvent = (await this.submitMintToRenVM(orderID)).submitToEthereum(web3.currentProvider, { gas: order.commitment.type === CommitmentType.AddLiquidity ? 250000 : undefined });
+                const promiEvent = (await this.submitMintToRenVM(orderID)).submitToEthereum(web3.currentProvider, { gas: order.commitment.type === CommitmentType.AddLiquidity ? 350000 : undefined });
                 promiEvent.catch(error => {
                     reject(error);
                 });

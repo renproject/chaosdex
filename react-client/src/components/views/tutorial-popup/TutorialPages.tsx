@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { IS_TESTNET } from "../../../lib/environmentVariables";
+import { renderToken, Token } from "../../../state/generalTypes";
 import { ReactComponent as Logo } from "../../../styles/images/logo.svg";
 import { ReactComponent as MetaMask } from "../../../styles/images/metamask.svg";
 
@@ -42,7 +43,7 @@ const Overview: TutorialPage = ({ nextPage, previousPage }) => {
         <Body>
             <h2>Overview</h2>
             <p>The RenVM {IS_TESTNET ? "Demo" : "ChaosDEX"} is a DEX built by the Ren team to showcase interoperability facilitated by RenVM.</p>
-            <p>Users will be able to exchange DAI, BTC & ZEC in a completely trustless, decentralized, and permissionless manner. </p>
+            <p>Users can exchange {renderToken(Token.DAI)}, {renderToken(Token.BTC)}, {renderToken(Token.ZEC)} & {renderToken(Token.BCH)} in a completely trustless, decentralized, and permissionless manner. </p>
         </Body>
         <Buttons>
             <button className="button--white" onClick={previousPage}>Previous</button>

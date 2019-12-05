@@ -30,18 +30,18 @@ export const OpeningOrder = connect<Props & ConnectedProps<[UIContainer, SDKCont
         let [returned, setReturned] = React.useState(false);
         const [ERC20Approved, setERC20Approved] = React.useState(false);
 
-        const onDone = async () => {
+        const onDone = React.useCallback(async () => {
             if (returned) {
                 return;
             }
             returned = true;
             setReturned(true);
             uiContainer.resetTrade().catch(error => _catchInteractionErr_(error, "Error in OpeningOrder: resetTrade"));
-        };
+        }, [returned, setReturned, uiContainer]);
 
-        const hide = async () => {
+        const hide = React.useCallback(async () => {
             await uiContainer.handleOrder(null);
-        };
+        }, [uiContainer]);
 
         const { sdkRenVM } = sdkContainer.state;
 

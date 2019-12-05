@@ -3,7 +3,7 @@ import * as React from "react";
 import { InfoLabel, LabelLevel, Loading } from "@renproject/react-components";
 
 import { _catchInteractionErr_ } from "../../../lib/errors";
-import { Token } from "../../../state/generalTypes";
+import { renderToken, Token } from "../../../state/generalTypes";
 import {
     CommitmentType, ShiftInEvent, ShiftOutEvent, Tx,
 } from "../../../state/persistentContainer";
@@ -64,7 +64,7 @@ export const SubmitToEthereum: React.StatelessComponent<{
             <div className="popup--body">
                 <h2>Submit {order && order.commitment && order.commitment.type === CommitmentType.Trade ? "swap " : ""}to Ethereum</h2>
                 <div className="address-input--message">
-                    Submit {order && order.commitment && order.commitment.type === CommitmentType.Trade ? "swap " : ""}to Ethereum to receive {token.toUpperCase()}.{txHash ? <InfoLabel><span className="break-all">Tx Hash: {txHash.hash}</span></InfoLabel> : <></>}
+                    Submit {order && order.commitment && order.commitment.type === CommitmentType.Trade ? <>swap to Ethereum to receive {renderToken(token).toUpperCase()}</> : <>to Ethereum</>}.{txHash ? <InfoLabel><span className="break-all">Tx Hash: {txHash.hash}</span></InfoLabel> : <></>}
                     <br />
                     <br />
                 </div>

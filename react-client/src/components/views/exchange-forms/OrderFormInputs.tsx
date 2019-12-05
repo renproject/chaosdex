@@ -51,7 +51,7 @@ export const OrderFormInputs = connect<Props & ConnectedProps<[UIContainer]>>([U
             [debouncedSrcAmountState, uiContainer]
         );
 
-        const onVolumeChange = (value: string, options: { blur: boolean }) => {
+        const onVolumeChange = React.useCallback((value: string, options: { blur: boolean }) => {
             // If the value is in scientific notation, fix it
             if (value.toLowerCase().indexOf("e") !== -1) {
                 value = new BigNumber(value).toFixed();
@@ -62,14 +62,14 @@ export const OrderFormInputs = connect<Props & ConnectedProps<[UIContainer]>>([U
             if (oldSrcAmount) {
                 setOldSrcAmount(undefined);
             }
-        };
+        }, [oldSrcAmount]);
 
-        const toggleSide = async () => {
+        const toggleSide = React.useCallback(async () => {
             await uiContainer.flipSendReceive();
 
             // Flip the amounts, but if we flip twice in a row, use the original
             // srcAmount instead of calculating a new one
-            // Wihout: src = 1 [flip] src = 0.01 [flip] src = 0.99
+            // Without: src = 1 [flip] src = 0.01 [flip] src = 0.99
             // & with: src = 1 [flip] src = 0.01 [flip] src = 1
             const amount = oldSrcAmount !== undefined ? oldSrcAmount : new BigNumber(orderInputs.dstAmount).decimalPlaces(8).toFixed();
             setSrcAmountState(amount);
@@ -79,7 +79,7 @@ export const OrderFormInputs = connect<Props & ConnectedProps<[UIContainer]>>([U
             } else {
                 setOldSrcAmount(undefined);
             }
-        };
+        }, [uiContainer, oldSrcAmount, srcAmountState]);
 
         const toggle = <div className="order--tabs">
             <span

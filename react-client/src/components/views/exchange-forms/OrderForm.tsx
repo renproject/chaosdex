@@ -19,10 +19,10 @@ interface Props {
 export const OrderForm = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer])(
     ({ handleLogin, containers: [uiContainer] }) => {
 
-        const openOrder = async () => {
+        const openOrder = React.useCallback(async () => {
             await uiContainer.updateCommitmentType(CommitmentType.Trade);
             uiContainer.setSubmitting(true).catch(error => _catchBackgroundErr_(error, "Error in OrderForm: setSubmitting"));
-        };
+        }, [uiContainer]);
 
         const { orderInputs, address, submitting } = uiContainer.state;
 

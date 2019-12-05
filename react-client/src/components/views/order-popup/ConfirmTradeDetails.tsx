@@ -4,7 +4,7 @@ import { Currency, CurrencyIcon, InfoLabel, TokenIcon } from "@renproject/react-
 import BigNumber from "bignumber.js";
 
 import { recoverRenVMFee } from "../../../lib/estimatePrice";
-import { Token, TokenPrices } from "../../../state/generalTypes";
+import { renderToken, Token, TokenPrices } from "../../../state/generalTypes";
 import { CommitmentType } from "../../../state/persistentContainer";
 import { OrderInputs } from "../../../state/uiContainer";
 import { ReactComponent as Arrow } from "../../../styles/images/arrow-right.svg";
@@ -75,7 +75,7 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
                                 amount={orderInputs.srcAmount}
                             />
                             {" "}
-                            {orderInputs.srcToken}
+                            {renderToken(orderInputs.srcToken)}
                         </span>
                         <span>
                             <CurrencyIcon currency={quoteCurrency} />
@@ -98,7 +98,7 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
                                 amount={orderInputs.dstAmount}
                             />
                             {" "}
-                            {orderInputs.dstToken}
+                            {renderToken(orderInputs.dstToken)}
                         </span>
                         <span>
                             <CurrencyIcon currency={quoteCurrency} />
@@ -149,7 +149,7 @@ export const ConfirmTradeDetails: React.StatelessComponent<{
                                         amount={orderInputs.dstAmount}
                                     />
                                     {" "}
-                                    {orderInputs.dstToken}
+                                    {renderToken(orderInputs.dstToken)}
                                 </div>
                             </div> :
                             <></>

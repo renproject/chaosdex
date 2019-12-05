@@ -20,6 +20,8 @@ export enum Token {
     BCH = "BCH",
 }
 
+export const renderToken = (token: Token): string => token === Token.DAI ? "SAI" : token;
+
 const btcValidator = (address: string, isTestnet: boolean) => validate(address, "btc", isTestnet ? "testnet" : "prod");
 const zecValidator = (address: string, isTestnet: boolean) => validate(address, "zec", isTestnet ? "testnet" : "prod");
 const bchValidator = (address: string, isTestnet: boolean) => {
@@ -32,7 +34,7 @@ const bchValidator = (address: string, isTestnet: boolean) => {
 const ethValidator = (address: string, isTestnet: boolean) => validate(address, "eth", isTestnet ? "testnet" : "prod");
 
 export const Tokens = Map<Token, TokenDetails>()
-    .set(Token.DAI, { symbol: Token.DAI, name: "Dai", decimals: 18, priority: 100, chain: Chain.Ethereum, validator: ethValidator })
+    .set(Token.DAI, { symbol: Token.DAI, name: "Sai", decimals: 18, priority: 100, chain: Chain.Ethereum, validator: ethValidator })
     .set(Token.BTC, { symbol: Token.BTC, name: "Bitcoin", decimals: 8, priority: 200, chain: Chain.Bitcoin, validator: btcValidator })
     // .set(Token.ETH, { symbol: Token.ETH, name: "Ethereum", decimals: 18, priority: 1024, chain: Chain.Ethereum, validator: ethValidator })
     .set(Token.ZEC, { symbol: Token.ZEC, name: "Zcash", decimals: 8, priority: 201, chain: Chain.Zcash, validator: zecValidator })

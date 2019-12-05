@@ -441,7 +441,7 @@ export class UIContainer extends Container<typeof initialState> {
 
     public updateReceiveValue = async (): Promise<void> => {
         const { web3, networkID, exchangeTab, liquidityTab, orderInputs: { srcToken, dstToken, srcAmount }, tokenPrices, reserveBalances } = this.state;
-        if (!web3) {
+        if (!web3 || srcToken === dstToken) {
             return;
         }
 
