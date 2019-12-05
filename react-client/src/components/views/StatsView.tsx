@@ -163,12 +163,12 @@ const ShowReserveBalance = ({ token, preferredCurrency, balance, tokenPrices }: 
 };
 
 const TokenDistribution: React.FC<{
+    totalTrades: number,
     data: Array<{
         name: Token,
         value: number,
     }>
 }> = props => {
-    const totalTrades = props.data.map(d => d.value).reduce((p, c) => p + c);
     const tally = new Array<{
         token: Token,
         name: string,
@@ -180,7 +180,7 @@ const TokenDistribution: React.FC<{
         if (tokenDetails) {
             tally.push({
                 name: tokenDetails.name,
-                value: data.value / totalTrades * 100,
+                value: data.value / props.totalTrades * 100,
                 token,
             });
         }
@@ -321,7 +321,7 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
                             </Pie>
                             <Tooltip content={PieTooltip} />
                         </PieChart>
-                        <TokenDistribution data={data} />
+                        <TokenDistribution data={data} totalTrades={trades.size} />
                     </StatBlock>
                     <StatBlock
                         title={
