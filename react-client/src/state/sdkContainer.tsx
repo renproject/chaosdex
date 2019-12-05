@@ -1,9 +1,5 @@
 import { sleep } from "@renproject/react-components";
-import RenVM, {
-    bchAddressFrom, btcAddressFrom, Chain, NetworkChaosnet, NetworkDetails, NetworkDevnet,
-    NetworkLocalnet, NetworkTestnet, Ox, ShiftInObject, Signature, Tokens as ShiftActions, TxStatus,
-    UTXO, zecAddressFrom,
-} from "@renproject/ren";
+import RenJS, { NetworkDetails, ShiftInObject, Signature, TxStatus, UTXO } from "@renproject/ren";
 import BigNumber from "bignumber.js";
 import { Container } from "unstated";
 import Web3 from "web3";
@@ -23,25 +19,25 @@ import {
     ShiftInStatus, ShiftOutStatus,
 } from "./persistentContainer";
 
-const BitcoinTx = (hash: string) => ({ hash, chain: Chain.Bitcoin });
-const ZCashTx = (hash: string) => ({ hash, chain: Chain.Zcash });
-const BitcoinCashTx = (hash: string) => ({ hash, chain: Chain.BCash });
-const EthereumTx = (hash: string) => ({ hash, chain: Chain.Ethereum });
+const BitcoinTx = (hash: string) => ({ hash, chain: RenJS.Chains.Bitcoin });
+const ZCashTx = (hash: string) => ({ hash, chain: RenJS.Chains.Zcash });
+const BitcoinCashTx = (hash: string) => ({ hash, chain: RenJS.Chains.BitcoinCash });
+const EthereumTx = (hash: string) => ({ hash, chain: RenJS.Chains.Ethereum });
 
-export let network: NetworkDetails = NetworkTestnet;
+export let network: NetworkDetails = RenJS.NetworkDetails.NetworkTestnet;
 switch (NETWORK) {
     case "development":
-        network = NetworkLocalnet; break;
+        network = RenJS.NetworkDetails.stringToNetwork("localnet"); break;
     case "devnet":
-        network = NetworkDevnet; break;
+        network = RenJS.NetworkDetails.stringToNetwork("devnet"); break;
     case "testnet":
-        network = NetworkTestnet; break;
+        network = RenJS.NetworkDetails.NetworkTestnet; break;
     case "chaosnet":
-        network = NetworkChaosnet; break;
+        network = RenJS.NetworkDetails.NetworkChaosnet; break;
 }
 
 const initialState = {
-    sdkRenVM: null as null | RenVM,
+    sdkRenVM: null as null | RenJS,
     sdkAddress: null as string | null,
     sdkWeb3: null as Web3 | null,
     sdkNetworkID: 0,
@@ -70,7 +66,7 @@ export class SDKContainer extends Container<typeof initialState> {
         await this.setState({
             sdkWeb3: web3,
             sdkNetworkID: networkID,
-            sdkRenVM: new RenVM(network),
+            sdkRenVM: new RenJS(network),
             sdkAddress: address,
         });
     }
@@ -235,10 +231,7 @@ export class SDKContainer extends Container<typeof initialState> {
         try {
             await renVM.shiftOut({
                 web3Provider: web3.currentProvider,
-                sendToken: order.orderInputs.dstToken === Token.ZEC ?
-                    ShiftActions.ZEC.Eth2Zec :
-                    order.orderInputs.dstToken === Token.BCH ? ShiftActions.BCH.Eth2Bch :
-                        ShiftActions.BTC.Eth2Btc,
+                sendToken: RenJS.Tokens[order.orderInputs.dstToken].Burn,
                 txHash: transactionHash,
             }).readFromEthereum();
         } catch (error) {
@@ -290,9 +283,9 @@ export class SDKContainer extends Container<typeof initialState> {
 
         const shiftOutObject = await renVM.shiftOut({
             web3Provider: web3.currentProvider,
-            sendToken: order.orderInputs.dstToken === Token.ZEC ? ShiftActions.ZEC.Eth2Zec :
-                order.orderInputs.dstToken === Token.BCH ? ShiftActions.BCH.Eth2Bch :
-                    ShiftActions.BTC.Eth2Btc,
+            sendToken: order.orderInputs.dstToken === Token.ZEC ? RenJS.Tokens.ZEC.Eth2Zec :
+                order.orderInputs.dstToken === Token.BCH ? RenJS.Tokens.BCH.Eth2Bch :
+                    RenJS.Tokens.BTC.Eth2Btc,
             txHash: order.inTx.hash
         }).readFromEthereum();
 
@@ -314,10 +307,10 @@ export class SDKContainer extends Container<typeof initialState> {
         await this.persistentContainer.updateHistoryItem(order.id, {
             receivedAmount,
             outTx: order.orderInputs.dstToken === Token.ZEC ?
-                ZCashTx(zecAddressFrom(address, "base64")) :
+                ZCashTx(RenJS.utils.zec.addressFrom(address, "base64")) :
                 order.orderInputs.dstToken === Token.BCH ?
-                    BitcoinCashTx(bchAddressFrom(address, "base64")) :
-                    BitcoinTx(btcAddressFrom(address, "base64")),
+                    BitcoinCashTx(RenJS.utils.bch.addressFrom(address, "base64")) :
+                    BitcoinTx(RenJS.utils.btc.addressFrom(address, "base64")),
             status: ShiftOutStatus.ReturnedFromRenVM,
         }).catch(error => _catchBackgroundErr_(error, "Error in sdkContainer: updateHistoryItem"));
     }
@@ -366,7 +359,7 @@ export class SDKContainer extends Container<typeof initialState> {
 
         if (order.commitment.type === CommitmentType.Trade) {
             return renVM.shiftIn({
-                sendToken: order.orderInputs.srcToken === Token.ZEC ? ShiftActions.ZEC.Zec2Eth : order.orderInputs.srcToken === Token.BCH ? ShiftActions.BCH.Bch2Eth : ShiftActions.BTC.Btc2Eth,
+                sendToken: order.orderInputs.srcToken === Token.ZEC ? RenJS.Tokens.ZEC.Zec2Eth : order.orderInputs.srcToken === Token.BCH ? RenJS.Tokens.BCH.Bch2Eth : RenJS.Tokens.BTC.Btc2Eth,
                 sendTo: syncGetDEXAdapterAddress(networkID),
                 sendAmount: order.commitment.srcAmount,
                 contractFn: "trade",
@@ -376,7 +369,7 @@ export class SDKContainer extends Container<typeof initialState> {
             });
         } else if (order.commitment.type === CommitmentType.AddLiquidity) {
             return renVM.shiftIn({
-                sendToken: order.orderInputs.srcToken === Token.ZEC ? ShiftActions.ZEC.Zec2Eth : order.orderInputs.srcToken === Token.BCH ? ShiftActions.BCH.Bch2Eth : ShiftActions.BTC.Btc2Eth,
+                sendToken: order.orderInputs.srcToken === Token.ZEC ? RenJS.Tokens.ZEC.Zec2Eth : order.orderInputs.srcToken === Token.BCH ? RenJS.Tokens.BCH.Bch2Eth : RenJS.Tokens.BTC.Btc2Eth,
                 sendTo: syncGetDEXAdapterAddress(networkID),
                 sendAmount: order.commitment.amount,
                 contractFn: "addLiquidity",
@@ -441,7 +434,7 @@ export class SDKContainer extends Container<typeof initialState> {
             .submitToRenVM()
             .on("messageID", onMessageID)
             .on("status", onStatus);
-        const tx = Ox(Buffer.from(signature.response.args.utxo.txHash, "base64"));
+        const tx = RenJS.utils.Ox(Buffer.from(signature.response.args.utxo.txHash, "base64"));
         await this.persistentContainer.updateHistoryItem(orderID, {
             inTx: order.orderInputs.srcToken === Token.ZEC ?
                 ZCashTx(tx) :
@@ -487,7 +480,7 @@ export class SDKContainer extends Container<typeof initialState> {
                 (promiEvent as any).once("confirmation", (_confirmations: number, newReceipt: TransactionReceipt) => resolve([newReceipt, txHash]));
             });
         } else {
-            receipt = await this.getReceipt(web3, transactionHash);
+            receipt = (await this.getReceipt(web3, transactionHash)) as TransactionReceipt;
         }
 
         // Loop through logs to find exchange event from the DEX contract.

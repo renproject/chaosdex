@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { Currency } from "@renproject/react-components";
-import { Ox, strip0x } from "@renproject/ren";
+import RenJS from "@renproject/ren";
 import BigNumber from "bignumber.js";
 import { List, OrderedMap } from "immutable";
 import { Log } from "web3-core";
@@ -93,7 +93,7 @@ export const Stats = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer
                 let logs = List<Transfer>();
 
                 const logToEvent = (reserve: Token, token: Token, negative: boolean) => (log: Log): Transfer => {
-                    const decoded = web3.eth.abi.decodeLog(syncGetTransfer(), log.data, (log.topics as string[]).slice(1));
+                    const decoded = web3.eth.abi.decodeLog(syncGetTransfer(), log.data, (log.topics).slice(1));
                     const tokenDecimals = getTokenDecimals(token);
                     let price = 0;
                     const tokenPriceMap = tokenPrices.get(token);
@@ -123,13 +123,13 @@ export const Stats = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer
                         toBlock: "latest",
                         topics: negative ? [
                             sha3("Transfer(address,address,uint256)"),
-                            Ox("000000000000000000000000" + strip0x(reserveAddress)),
+                            RenJS.utils.Ox("000000000000000000000000" + RenJS.utils.strip0x(reserveAddress)),
                         ] : [
                                 sha3("Transfer(address,address,uint256)"),
                                 null as unknown as string,
-                                Ox("000000000000000000000000" + strip0x(reserveAddress)),
+                                RenJS.utils.Ox("000000000000000000000000" + RenJS.utils.strip0x(reserveAddress)),
                             ],
-                    })).map(logToEvent(reserveToken, token, negative));
+                    })).map((log) => logToEvent(reserveToken, token, negative)(log as Log));
                 };
 
                 for (const token of [Token.BTC, Token.ZEC, Token.BCH]) {

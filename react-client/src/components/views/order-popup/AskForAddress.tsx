@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { Loading, TokenIcon } from "@renproject/react-components";
-import { Chain } from "@renproject/ren";
+import RenJS from "@renproject/ren";
 
 import { IS_TESTNET } from "../../../lib/environmentVariables";
 import { _catchInteractionErr_ } from "../../../lib/errors";
@@ -57,7 +57,7 @@ export const AskForAddress: React.StatelessComponent<{
     React.useEffect(() => {
         (async () => {
             try {
-                if (tokenDetails && tokenDetails.chain === Chain.Ethereum) {
+                if (tokenDetails && tokenDetails.chain === RenJS.Chains.Ethereum) {
                     address = defaultAddress;
                     updateAddress(defaultAddress);
                     await submit();
@@ -91,7 +91,7 @@ export const AskForAddress: React.StatelessComponent<{
                             ref={inputRef}
                         />
                         <label className="form-control-placeholder">{renderToken(token)} address</label>
-                        {tokenDetails && tokenDetails.chain === Chain.Ethereum ?
+                        {tokenDetails && tokenDetails.chain === RenJS.Chains.Ethereum ?
                             <button type="button" className="metamask-logo" onClick={useDefaultAddress}><MetaMask /></button> :
                             null
                         }

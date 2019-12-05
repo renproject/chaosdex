@@ -1,4 +1,4 @@
-import { Chain, TxStatus } from "@renproject/ren";
+import RenJS, { TxStatus } from "@renproject/ren";
 import localForage from "localforage";
 import { PersistContainer } from "unstated-persist";
 
@@ -44,7 +44,7 @@ export enum CommitmentType {
 
 export interface Tx {
     hash: string;
-    chain: Chain;
+    chain: RenJS["Chains"]["Ethereum"] | RenJS["Chains"]["Bitcoin"] | RenJS["Chains"]["Zcash"] | RenJS["Chains"]["BitcoinCash"];
 }
 
 export enum ShiftInStatus {

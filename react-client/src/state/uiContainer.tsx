@@ -1,5 +1,5 @@
 import { Currency } from "@renproject/react-components";
-import RenSDK, { btcAddressToHex, zecAddressToHex } from "@renproject/ren";
+import RenJS from "@renproject/ren";
 import BigNumber from "bignumber.js";
 import { Map as ImmutableMap } from "immutable";
 import { Container } from "unstated";
@@ -220,19 +220,19 @@ export class UIContainer extends Container<typeof initialState> {
         const blockNumber = await web3.eth.getBlockNumber();
         let hexRefundAddress = refundAddress;
         if (order.srcToken === Token.BTC) {
-            hexRefundAddress = btcAddressToHex(refundAddress);
+            hexRefundAddress = RenJS.utils.btc.addressToHex(refundAddress);
         } else if (order.srcToken === Token.ZEC) {
-            hexRefundAddress = zecAddressToHex(refundAddress);
+            hexRefundAddress = RenJS.utils.zec.addressToHex(refundAddress);
         } else if (order.srcToken === Token.BCH) {
-            hexRefundAddress = RenSDK.Tokens.BCH.addressToHex(refundAddress);
+            hexRefundAddress = RenJS.utils.bch.addressToHex(refundAddress);
         }
         let hexToAddress = toAddress;
         if (order.dstToken === Token.BTC) {
-            hexToAddress = btcAddressToHex(toAddress);
+            hexToAddress = RenJS.utils.btc.addressToHex(toAddress);
         } else if (order.dstToken === Token.ZEC) {
-            hexToAddress = zecAddressToHex(toAddress);
+            hexToAddress = RenJS.utils.zec.addressToHex(toAddress);
         } else if (order.dstToken === Token.BCH) {
-            hexToAddress = RenSDK.Tokens.BCH.addressToHex(toAddress);
+            hexToAddress = RenJS.utils.bch.addressToHex(toAddress);
         }
 
         let commitment: Commitment;
@@ -307,7 +307,7 @@ export class UIContainer extends Container<typeof initialState> {
                 status: ShiftOutStatus.Committed,
             };
 
-        const nonce = RenSDK.randomNonce();
+        const nonce = RenJS.utils.randomNonce();
 
         const historyEvent: HistoryEvent = {
             ...shift,

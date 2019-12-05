@@ -3,7 +3,7 @@ import "react-circular-progressbar/dist/styles.css";
 import * as React from "react";
 
 import { InfoLabel, naturalTime, TokenIcon } from "@renproject/react-components";
-import { Chain, strip0x } from "@renproject/ren";
+import RenJS from "@renproject/ren";
 import { CircularProgressbar } from "react-circular-progressbar";
 
 import { connect, ConnectedProps } from "../../state/connect";
@@ -64,14 +64,14 @@ export const txUrl = (tx: Tx | null): string => {
     if (!tx) { return ""; }
     const isTx = tx.hash && tx.hash.slice && tx.hash.match(/^(0x)?[a-fA-F0-9]+$/);
     switch (tx.chain) {
-        case Chain.Ethereum:
+        case RenJS.Chains.Ethereum:
             return `${network.contracts.etherscan}/tx/${tx.hash}`;
-        case Chain.Bitcoin:
-            return `https://chain.so/${isTx ? "tx" : "address"}/BTC${network.isTestnet ? "TEST" : ""}/${strip0x(tx.hash)}`;
-        case Chain.Zcash:
-            return `https://chain.so/${isTx ? "tx" : "address"}/ZEC${network.isTestnet ? "TEST" : ""}/${strip0x(tx.hash)}`;
-        case Chain.BCash:
-            return `https://explorer.bitcoin.com/${network.isTestnet ? "t" : ""}bch/${isTx ? "tx" : "address"}/${strip0x(tx.hash)}`;
+        case RenJS.Chains.Bitcoin:
+            return `https://chain.so/${isTx ? "tx" : "address"}/BTC${network.isTestnet ? "TEST" : ""}/${RenJS.utils.strip0x(tx.hash)}`;
+        case RenJS.Chains.Zcash:
+            return `https://chain.so/${isTx ? "tx" : "address"}/ZEC${network.isTestnet ? "TEST" : ""}/${RenJS.utils.strip0x(tx.hash)}`;
+        case RenJS.Chains.BitcoinCash:
+            return `https://explorer.bitcoin.com/${network.isTestnet ? "t" : ""}bch/${isTx ? "tx" : "address"}/${RenJS.utils.strip0x(tx.hash)}`;
     }
     return "";
 };

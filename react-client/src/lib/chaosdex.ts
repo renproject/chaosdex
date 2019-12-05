@@ -1,5 +1,5 @@
 import { Currency } from "@renproject/react-components";
-import { Chain, NetworkDetails } from "@renproject/ren";
+import RenJS, { NetworkDetails } from "@renproject/ren";
 import BigNumber from "bignumber.js";
 import { Map as ImmutableMap } from "immutable";
 import Web3 from "web3";
@@ -42,8 +42,8 @@ export const calculateReceiveAmount = async (
     const exchange = getExchange(web3, networkID);
     const srcTokenAddress = syncGetTokenAddress(networkID, srcToken);
     const dstTokenAddress = syncGetTokenAddress(networkID, dstToken);
-    const srcTokenDetails = Tokens.get(srcToken) || { decimals: 18, chain: Chain.Ethereum };
-    const dstTokenDetails = Tokens.get(dstToken) || { decimals: 18, chain: Chain.Ethereum };
+    const srcTokenDetails = Tokens.get(srcToken) || { decimals: 18, chain: RenJS.Chains.Ethereum };
+    const dstTokenDetails = Tokens.get(dstToken) || { decimals: 18, chain: RenJS.Chains.Ethereum };
 
     let dstAmountBN: BigNumber;
 
@@ -51,7 +51,7 @@ export const calculateReceiveAmount = async (
 
     if (exchangeTab === ExchangeTabs.Swap) {
 
-        if (srcTokenDetails.chain !== Chain.Ethereum) {
+        if (srcTokenDetails.chain !== RenJS.Chains.Ethereum) {
             srcAmountBN = removeRenVMFee(srcAmountBN);
         }
 
@@ -66,7 +66,7 @@ export const calculateReceiveAmount = async (
         }
 
         let dstAmountShiftedBN = new BigNumber(dstAmount.toString());
-        if (dstTokenDetails.chain !== Chain.Ethereum) {
+        if (dstTokenDetails.chain !== RenJS.Chains.Ethereum) {
             dstAmountShiftedBN = removeRenVMFee(dstAmountShiftedBN);
         }
 

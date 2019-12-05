@@ -8,6 +8,7 @@ import { Router } from "react-router-dom";
 import { Provider } from "unstated";
 
 import { App } from "./components/controllers/App";
+import { IS_TESTNET } from "./lib/environmentVariables";
 import { history } from "./lib/history";
 import { initializeSentry } from "./sentry";
 import { PersistentContainer } from "./state/persistentContainer";
@@ -19,8 +20,8 @@ initializeSentry();
 
 const persistentContainer = new PersistentContainer();
 const popupContainer = new PopupContainer();
-const sdkContainer = new SDKContainer(persistentContainer);
 const uiContainer = new UIContainer(persistentContainer, popupContainer);
+const sdkContainer = new SDKContainer(persistentContainer);
 
 ReactDOM.render(
     <Provider inject={[persistentContainer, sdkContainer, uiContainer, popupContainer]}>
@@ -30,3 +31,7 @@ ReactDOM.render(
     </Provider>,
     document.getElementById("root") as HTMLElement
 );
+
+if (IS_TESTNET) {
+    document.title = "TestDEX";
+}
