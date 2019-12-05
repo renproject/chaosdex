@@ -244,7 +244,7 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
             <small>Updated {pageLoadedAt(loadedAt).toLowerCase()}</small>
         </div>
         <div className="stats--rows">
-            {trades === null ? <Loading alt={true} /> : <>
+            {trades === null || reserveHistory === null ? <Loading alt={true} /> : <>
                 <div className="stats--rows">
                     <StatBlock
                         title={
