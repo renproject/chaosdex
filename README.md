@@ -1,5 +1,3 @@
-![Preview](./banner.jpg)
-
 # `💱 ChaosDEX`
 
 Trade BTC, ZEC, BCH ⟷ DAI trustlessly.
