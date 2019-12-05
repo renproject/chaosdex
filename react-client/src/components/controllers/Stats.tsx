@@ -301,6 +301,7 @@ export const Stats = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer
             network={network}
             reserveHistory={reserveHistory}
             loadedAt={loadedAt}
+            itemsPerPage={16}
         />;
     }
 );

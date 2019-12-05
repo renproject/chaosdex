@@ -10490,6 +10490,11 @@ react-smooth@^1.0.5:
     raf "^3.4.0"
     react-transition-group "^2.5.0"
 
+react-super-responsive-table@^5.1.1:
+  version "5.1.1"
+  resolved "https://registry.yarnpkg.com/react-super-responsive-table/-/react-super-responsive-table-5.1.1.tgz#ba557481a9a0fed4d6765457c111b872289f24d8"
+  integrity sha512-YKynBZSUA4QcN+CJgQYvb4RSv8eXHO/8J2cJPAycW5DwdENRd0KgtE7myclnjQeDMxafiFTDILV73DIX2fRRXw==
+
 react-transition-group@^2.2.1, react-transition-group@^2.5.0:
   version "2.9.0"
   resolved "https://registry.yarnpkg.com/react-transition-group/-/react-transition-group-2.9.0.tgz#df9cdb025796211151a436c69a8f3b97b5b07c8d"
