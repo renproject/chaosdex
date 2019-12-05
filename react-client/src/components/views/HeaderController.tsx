@@ -7,7 +7,7 @@ import { Nav, Navbar, NavDropdown } from "react-bootstrap";
 // import NavDropdown from "react-bootstrap/NavDropdown";
 import { Link } from "react-router-dom";
 
-import { DocsIcon, FAQIcon, HowItWorksIcon, TutorialIcon } from "../../lib/icons";
+import { DocsIcon, FAQIcon, HowItWorksIcon, StatsIcon, TutorialIcon } from "../../lib/icons";
 import { connect, ConnectedProps } from "../../state/connect";
 import { UIContainer } from "../../state/uiContainer";
 import { ReactComponent as LogoSmall } from "../../styles/images/logo-small.svg";
@@ -81,7 +81,8 @@ export const HeaderController = (connect<Props>([UIContainer])(
                         <Nav.Link className="nav--button nav--button-border" onClick={showTutorial}><TutorialIcon /><span>Welcome Tutorial</span></Nav.Link>
                         <div className="nav--divider" />
                         <Nav.Link className="nav--button" target="_blank" rel="noopener noreferrer" href={BUILDWITHRENVM_LINK}><HowItWorksIcon />Build with RenVM</Nav.Link>
-                        <Nav.Link className="nav--button" target="_blank" rel="noopener noreferrer" href={READTHEDOCS_LINK}><DocsIcon />Read the docs</Nav.Link>
+                        <Nav.Link className="nav--button" target="_blank" rel="noopener noreferrer" href={READTHEDOCS_LINK}><DocsIcon />Docs</Nav.Link>
+                        <Link className="nav--button nav-link" to="/stats"><StatsIcon />Stats</Link>
                         <Nav.Link className="nav--button" target="_blank" rel="noopener noreferrer" href={FAQ_LINK}><FAQIcon />FAQs</Nav.Link>
                     </Nav>
                 </Navbar.Collapse>
