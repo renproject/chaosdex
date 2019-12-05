@@ -156,6 +156,49 @@ const ShowReserveBalance = ({ token, preferredCurrency, balance, tokenPrices }: 
     </span>;
 };
 
+const TokenDistribution: React.FC<{
+    data: Array<{
+        name: Token,
+        value: number,
+    }>
+}> = props => {
+    const totalTrades = props.data.map(d => d.value).reduce((p, c) => p + c);
+    const tally = new Array<{
+        token: Token,
+        name: string,
+        value: number
+    }>();
+    props.data.forEach((data) => {
+        const token = data.name;
+        const tokenDetails = Tokens.get(token);
+        if (tokenDetails) {
+            tally.push({
+                name: tokenDetails.name,
+                value: data.value / totalTrades * 100,
+                token,
+            });
+        }
+    });
+    tally.sort((a, b) => b.value - a.value );
+    return (
+        <div className="trade--distribution">
+            {tally.map((data) => {
+                // const token = data.name;
+                // const tokenDetails = Tokens.get(token);
+                // if (!tokenDetails) {
+                //     return null;
+                // }
+                return (
+                    <div className="trade--distribution--entry" key={`token--distribution--${data.name}`}>
+                        <div><TokenIcon token={data.token} /> {data.name}</div>
+                        <div>{data.value.toFixed(2)}%</div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+
 const StatBlock: React.SFC<{
     title?: string | number | React.ReactNode;
     subtitle?: string;
@@ -264,14 +307,15 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
                         <CumulativeChart cumulativeVolume={cumulativeVolume} />
                     </StatBlock>
                     <StatBlock title={trades.size} subtitle="Total Trades">
-                        <PieChart width={300} height={300}>
-                            <Pie dataKey="value" isAnimationActive={false} data={data} cx={150} cy={150} outerRadius={80} fill="#8884d8" label>
+                        <PieChart width={300} height={200}>
+                            <Pie dataKey="value" isAnimationActive={false} data={data} fill="#8884d8" label>
                                 {
                                     data.map((entry, index) => <Cell key={`cell-${index}`} stroke={"#282C35"} fill={colors[entry.name]} />)
                                 }
                             </Pie>
                             <Tooltip content={PieTooltip} />
                         </PieChart>
+                        <TokenDistribution data={data} />
                     </StatBlock>
                     <StatBlock
                         title={

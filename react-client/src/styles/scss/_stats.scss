@@ -121,7 +121,12 @@
         }
 
         .stat--content {
+            height: 300px;
+            width: 300px;
             margin-bottom: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .stat--footer {
@@ -177,4 +182,11 @@
     box-sizing: border-box;
     box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.2);
     padding: 20px;
+}
+
+.trade--distribution {
+    .trade--distribution--entry {
+        display: flex;
+        justify-content: space-between;
+    }
 }
