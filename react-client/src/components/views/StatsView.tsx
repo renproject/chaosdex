@@ -286,11 +286,12 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
             </div>
         </div>
     );
+    const isLoading = trades === null || reserveHistory === null;
 
     return <div className="stats">
         <div className="stats--title">
             <h2>ChaosDex Stats</h2>
-            <small>Updated {pageLoadedAt(loadedAt).toLowerCase()}</small>
+            {!isLoading && <small>Updated {pageLoadedAt(loadedAt).toLowerCase()}</small>}
         </div>
         <div className="stats--rows">
             {trades === null || reserveHistory === null ? <Loading alt={true} /> : <>
