@@ -220,16 +220,20 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
     const oldTrades: List<Trade> = tradesList.filter(trade => trade.timestamp < twoDaysAgo);
     const maxPage = trades ? Math.floor(trades.size / itemsPerPage) : 0;
 
+    const startIcon = require("../../styles/images/icons/icon-start.svg");
+    const endIcon = require("../../styles/images/icons/icon-end.svg");
+    const nextIcon = require("../../styles/images/icons/icon-next.svg");
+    const prevIcon = require("../../styles/images/icons/icon-prev.svg");
     const pagination = (
         <div className="stats--pagination">
             <div className="page--number">
                 Page {page + 1} of {maxPage + 1}
             </div>
             <div className="page--change">
-                <button disabled={page === 0} onClick={() => { setPage(0) }}>|&lt;</button>
-                <button disabled={page === 0} onClick={() => { setPage(Math.max(0, page - 1)) }}>&lt;</button>
-                <button disabled={page === maxPage} onClick={() => { setPage(Math.min(maxPage, page + 1)) }}>&gt;</button>
-                <button disabled={page === maxPage} onClick={() => { setPage(maxPage) }}>&gt;|</button>
+                <button disabled={page === 0} onClick={() => { setPage(0) }}><img src={startIcon} /></button>
+                <button disabled={page === 0} onClick={() => { setPage(Math.max(0, page - 1)) }}><img src={prevIcon} /></button>
+                <button disabled={page === maxPage} onClick={() => { setPage(Math.min(maxPage, page + 1)) }}><img src={nextIcon} /></button>
+                <button disabled={page === maxPage} onClick={() => { setPage(maxPage) }}><img src={endIcon} /></button>
             </div>
         </div>
     );
