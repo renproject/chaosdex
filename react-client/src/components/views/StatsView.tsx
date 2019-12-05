@@ -314,7 +314,7 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
                         <CumulativeChart cumulativeVolume={cumulativeVolume} />
                     </StatBlock>
                     <StatBlock title={trades.size} subtitle="Total Trades">
-                        <PieChart width={300} height={200}>
+                        <PieChart width={300} height={220}>
                             <Pie dataKey="value" isAnimationActive={false} data={data} fill="#8884d8" label>
                                 {
                                     data.map((entry, index) => <Cell key={`cell-${index}`} stroke={"#282C35"} fill={colors[entry.name]} />)
