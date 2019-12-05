@@ -262,12 +262,12 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
         totalLiquidityPoolInBtc = totalLiquidityPoolInBtc.plus(reserveAmountInBtc);
     });
     const sliceFrom = page * itemsPerPage;
-    const sliceUntil = ((page + 1) * itemsPerPage) - 1;
+    const sliceUntil = ((page + 1) * itemsPerPage);
     const tradesList: List<Trade> = trades ? trades.slice(sliceFrom, sliceUntil) : List<Trade>();
     const todayTrades: List<Trade> = tradesList.filter(trade => trade.timestamp >= yesterday);
     const yesterdayTrades: List<Trade> = tradesList.filter(trade => trade.timestamp < yesterday && trade.timestamp >= twoDaysAgo);
     const oldTrades: List<Trade> = tradesList.filter(trade => trade.timestamp < twoDaysAgo);
-    const maxPage = trades ? Math.floor(trades.size / itemsPerPage) : 0;
+    const maxPage = trades ? Math.ceil(trades.size / itemsPerPage - 1) : 0;
 
     const startIcon = require("../../styles/images/icons/icon-start.svg");
     const endIcon = require("../../styles/images/icons/icon-end.svg");
