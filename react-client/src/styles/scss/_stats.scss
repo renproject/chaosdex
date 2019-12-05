@@ -190,3 +190,11 @@
         justify-content: space-between;
     }
 }
+
+.stats--rows table.responsiveTable {
+    colgroup {
+        @media (max-width: $min-md) {
+            display: none;
+        }
+    }
+}

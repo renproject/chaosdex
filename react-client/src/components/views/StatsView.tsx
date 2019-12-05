@@ -95,6 +95,12 @@ const ReserveHistoryTooltip = ({ active, payload }: TooltipProps) => {
 const ShowTrades = ({ trades, explorer }: { trades: List<Trade>, explorer: string }) =>
     <div className="stats--rows">
         <Table>
+            <colgroup>
+                <col style={{ width: "30%" }} />
+                <col style={{ width: "20%" }} />
+                <col style={{ width: "20%" }} />
+                <col style={{ width: "30%" }} />
+            </colgroup>
             <Thead>
                 <Tr>
                     <Th>Type</Th>
@@ -179,7 +185,7 @@ const TokenDistribution: React.FC<{
             });
         }
     });
-    tally.sort((a, b) => b.value - a.value );
+    tally.sort((a, b) => b.value - a.value);
     return (
         <div className="trade--distribution">
             {tally.map((data) => {
