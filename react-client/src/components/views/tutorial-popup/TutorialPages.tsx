@@ -5,7 +5,7 @@ import { renderToken, Token } from "../../../state/generalTypes";
 import { ReactComponent as Logo } from "../../../styles/images/logo.svg";
 import { ReactComponent as MetaMask } from "../../../styles/images/metamask.svg";
 
-export const BUILDWITHRENVM_LINK = "https://renprotocol.typeform.com/to/kARAnf";
+export const BUILDWITHRENVM_LINK = "https://renproject.io/developers";
 export const READTHEDOCS_LINK = "https://docs.renproject.io/ren/"; // https://docs.renproject.io/developers
 export const FAQ_LINK = "https://docs.renproject.io/chaosnet/chaosdex";
 export const KOVAN_FAUCET_LINK = "https://github.com/kovan-testnet/faucet";
