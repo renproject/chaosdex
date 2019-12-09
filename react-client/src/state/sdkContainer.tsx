@@ -229,9 +229,10 @@ export class SDKContainer extends Container<typeof initialState> {
         await this.getReceipt(web3, transactionHash);
 
         try {
+            const burnToken = order.orderInputs.dstToken === Token.DAI ? order.orderInputs.srcToken : order.orderInputs.dstToken;
             await renVM.shiftOut({
                 web3Provider: web3.currentProvider,
-                sendToken: RenJS.Tokens[order.orderInputs.dstToken].Burn,
+                sendToken: RenJS.Tokens[burnToken].Burn,
                 txHash: transactionHash,
             }).readFromEthereum();
         } catch (error) {
@@ -281,10 +282,13 @@ export class SDKContainer extends Container<typeof initialState> {
             throw new Error(`Invalid values required to submit deposit`);
         }
 
+        // Trading and removing liquidity have tokens in different order
+        const burnToken = order.orderInputs.dstToken === Token.DAI ? order.orderInputs.srcToken : order.orderInputs.dstToken;
+
         const shiftOutObject = await renVM.shiftOut({
             web3Provider: web3.currentProvider,
-            sendToken: order.orderInputs.dstToken === Token.ZEC ? RenJS.Tokens.ZEC.Eth2Zec :
-                order.orderInputs.dstToken === Token.BCH ? RenJS.Tokens.BCH.Eth2Bch :
+            sendToken: burnToken === Token.ZEC ? RenJS.Tokens.ZEC.Eth2Zec :
+                burnToken === Token.BCH ? RenJS.Tokens.BCH.Eth2Bch :
                     RenJS.Tokens.BTC.Eth2Btc,
             txHash: order.inTx.hash
         }).readFromEthereum();
@@ -306,9 +310,9 @@ export class SDKContainer extends Container<typeof initialState> {
         const address = (response as unknown as any).tx.args[1].value;
         await this.persistentContainer.updateHistoryItem(order.id, {
             receivedAmount,
-            outTx: order.orderInputs.dstToken === Token.ZEC ?
+            outTx: burnToken === Token.ZEC ?
                 ZCashTx(RenJS.utils.zec.addressFrom(address, "base64")) :
-                order.orderInputs.dstToken === Token.BCH ?
+                burnToken === Token.BCH ?
                     BitcoinCashTx(RenJS.utils.bch.addressFrom(address, "base64")) :
                     BitcoinTx(RenJS.utils.btc.addressFrom(address, "base64")),
             status: ShiftOutStatus.ReturnedFromRenVM,

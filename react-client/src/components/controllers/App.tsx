@@ -51,7 +51,7 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
 
             const networkID = await πNetworkID;
             if (network.contracts.networkID && networkID !== network.contracts.networkID) {
-                alert(`Please switch to the ${network.contracts.chainLabel} Ethereum network.`);
+                alert(`Please switch to the ${network.contracts.chainLabel} Ethereum network.${!network.isTestnet ? " ChaosDEX has a Kovan deployment at https://testdex.renproject.io" : ""}`);
                 return;
             }
             const addresses = await πAddresses;

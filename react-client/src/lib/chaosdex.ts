@@ -99,7 +99,6 @@ export const calculateReceiveAmount = async (
                 if (srcTokenPrices && dstTokenPrices) {
                     const srcTokenPrice = srcTokenPrices.get(Currency.USD) || 0;
                     const dstTokenPrice = dstTokenPrices.get(Currency.USD) || 0;
-                    // console.log(`Using prices for ${srcToken}: $${srcTokenPrice} & ${dstToken}: $${dstTokenPrice}`);
                     dstAmountBN = srcAmountBN.times(srcTokenPrice).dividedBy(dstTokenPrice);
                 } else {
                     dstAmountBN = new BigNumber(0);

@@ -1,20 +1,26 @@
+import "react-super-responsive-table/dist/SuperResponsiveTableStyle.css";
+
 import * as React from "react";
 
 import { Currency, CurrencyIcon, Loading, TokenIcon } from "@renproject/react-components";
 import { NetworkDetails } from "@renproject/ren";
 import BigNumber from "bignumber.js";
 import { List, OrderedMap } from "immutable";
+import { Table, Tbody, Td, Th, Thead, Tr } from "react-super-responsive-table";
 import {
     Area, AreaChart, Cell, Line, LineChart, Pie, PieChart, Tooltip, TooltipProps,
 } from "recharts";
 
+import { toBitcoinValue } from "../../lib/conversion";
 import { pageLoadedAt } from "../../lib/errors";
-import { renderToken, Token, TokenPrices, Tokens } from "../../state/generalTypes";
+import { Token, Tokens } from "../../state/generalTypes";
 import { CumulativeDataPoint, ReserveHistoryItem, Trade } from "../controllers/Stats";
 import { TokenBalance } from "./TokenBalance";
-import { toBitcoinValue } from "../../lib/conversion";
-import { Table, Thead, Tbody, Tr, Th, Td } from 'react-super-responsive-table'
-import 'react-super-responsive-table/dist/SuperResponsiveTableStyle.css'
+
+const startIcon = require("../../styles/images/icons/icon-start.svg");
+const endIcon = require("../../styles/images/icons/icon-end.svg");
+const nextIcon = require("../../styles/images/icons/icon-next.svg");
+const prevIcon = require("../../styles/images/icons/icon-prev.svg");
 
 interface Props {
     trades: List<Trade> | null;
@@ -124,43 +130,43 @@ const ShowTrades = ({ trades, explorer }: { trades: List<Trade>, explorer: strin
         </Table>
     </div>;
 
-const ShowReserveBalance = ({ token, preferredCurrency, balance, tokenPrices }: {
-    token: Token,
-    preferredCurrency: Currency,
-    balance: BigNumber | null,
-    tokenPrices: TokenPrices,
-}) => {
-    const tokenDetails = Tokens.get(token);
-    return <span>
-        <TokenIcon token={token} />
-        {!balance ?
-            "-" :
-            <TokenBalance
-                token={token}
-                amount={balance || "0"}
-                toReadable={true}
-                decimals={tokenDetails ? tokenDetails.decimals : 0}
-                digits={2}
-            />
-        }
-        {" "}{renderToken(token)}
-        {" ("}
-        <CurrencyIcon currency={preferredCurrency} />
-        {" "}
-        {!balance ?
-            "-" :
-            <TokenBalance
-                token={token}
-                convertTo={preferredCurrency}
-                tokenPrices={tokenPrices}
-                amount={balance || "0"}
-                toReadable={true}
-                decimals={tokenDetails ? tokenDetails.decimals : 0}
-            />
-        }
-        {")"}
-    </span>;
-};
+// const ShowReserveBalance = ({ token, preferredCurrency, balance, tokenPrices }: {
+//     token: Token,
+//     preferredCurrency: Currency,
+//     balance: BigNumber | null,
+//     tokenPrices: TokenPrices,
+// }) => {
+//     const tokenDetails = Tokens.get(token);
+//     return <span>
+//         <TokenIcon token={token} />
+//         {!balance ?
+//             "-" :
+//             <TokenBalance
+//                 token={token}
+//                 amount={balance || "0"}
+//                 toReadable={true}
+//                 decimals={tokenDetails ? tokenDetails.decimals : 0}
+//                 digits={2}
+//             />
+//         }
+//         {" "}{renderToken(token)}
+//         {" ("}
+//         <CurrencyIcon currency={preferredCurrency} />
+//         {" "}
+//         {!balance ?
+//             "-" :
+//             <TokenBalance
+//                 token={token}
+//                 convertTo={preferredCurrency}
+//                 tokenPrices={tokenPrices}
+//                 amount={balance || "0"}
+//                 toReadable={true}
+//                 decimals={tokenDetails ? tokenDetails.decimals : 0}
+//             />
+//         }
+//         {")"}
+//     </span>;
+// };
 
 const TokenDistribution: React.FC<{
     totalTrades: number,
@@ -269,20 +275,21 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
     const oldTrades: List<Trade> = tradesList.filter(trade => trade.timestamp < twoDaysAgo);
     const maxPage = trades ? Math.ceil(trades.size / itemsPerPage - 1) : 0;
 
-    const startIcon = require("../../styles/images/icons/icon-start.svg");
-    const endIcon = require("../../styles/images/icons/icon-end.svg");
-    const nextIcon = require("../../styles/images/icons/icon-next.svg");
-    const prevIcon = require("../../styles/images/icons/icon-prev.svg");
+    const firstPage = React.useCallback(() => setPage(0), []);
+    const previousPage = React.useCallback(() => setPage(Math.max(0, page - 1)), [page]);
+    const nextPage = React.useCallback(() => setPage(Math.min(maxPage, page + 1)), [maxPage, page]);
+    const lastPage = React.useCallback(() => setPage(maxPage), [maxPage]);
+
     const pagination = (
         <div className="stats--pagination">
             <div className="page--number">
                 Page {page + 1} of {maxPage + 1}
             </div>
             <div className="page--change">
-                <button disabled={page === 0} onClick={() => { setPage(0) }}><img src={startIcon} /></button>
-                <button disabled={page === 0} onClick={() => { setPage(Math.max(0, page - 1)) }}><img src={prevIcon} /></button>
-                <button disabled={page === maxPage} onClick={() => { setPage(Math.min(maxPage, page + 1)) }}><img src={nextIcon} /></button>
-                <button disabled={page === maxPage} onClick={() => { setPage(maxPage) }}><img src={endIcon} /></button>
+                <button disabled={page === 0} onClick={firstPage}><img alt="First page" src={startIcon} /></button>
+                <button disabled={page === 0} onClick={previousPage}><img alt="Previous page" src={prevIcon} /></button>
+                <button disabled={page === maxPage} onClick={nextPage}><img alt="Next page" src={nextIcon} /></button>
+                <button disabled={page === maxPage} onClick={lastPage}><img alt="Last page" src={endIcon} /></button>
             </div>
         </div>
     );

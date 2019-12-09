@@ -18,6 +18,23 @@ export const initializeSentry = () => {
         // Used to track errors across versions
         release: SOURCE_VERSION,
 
+        ignoreErrors: [
+            "Network Error",
+            "NetworkError",
+            "Failed to fetch",
+            "Network request failed",
+            "Wrong response id",
+            "Request failed or timed out",
+            "Invalid JSON RPC response",
+            "timeout of 0ms exceeded",
+            "header not found",
+        ],
+        blacklistUrls: [
+            // Chrome extensions
+            /extensions\//i,
+            /^chrome:\/\//i,
+        ],
+
         // Only throw errors generated from scripts at these URLs
         whitelistUrls: [
             /.*republicprotocol.*/i,

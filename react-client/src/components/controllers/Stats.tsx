@@ -93,7 +93,8 @@ export const Stats = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer
                 let logs = List<Transfer>();
 
                 const logToEvent = (reserve: Token, token: Token, negative: boolean) => (log: Log): Transfer => {
-                    const decoded = web3.eth.abi.decodeLog(syncGetTransfer(), log.data, (log.topics).slice(1));
+                    // tslint:disable-next-line: no-unnecessary-type-assertion
+                    const decoded = web3.eth.abi.decodeLog(syncGetTransfer(), log.data, (log.topics as string[]).slice(1));
                     const tokenDecimals = getTokenDecimals(token);
                     let price = 0;
                     const tokenPriceMap = tokenPrices.get(token);

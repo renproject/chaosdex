@@ -17,9 +17,13 @@ const CoinGeckoIDs = Map<Token, string>()
  * @returns An array containing the price with respect to the currencies, and the 24 hour percent change.
  */
 const fetchDetails = async (geckoID: string) => {
-    const url = `https://api.coingecko.com/api/v3/coins/${geckoID}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`;
-    const response = await fetch(url);
-    return response.json();
+    try {
+        const url = `https://api.coingecko.com/api/v3/coins/${geckoID}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`;
+        const response = await fetch(url);
+        return response.json();
+    } catch (error) {
+        throw new Error(`Failed to fetch prices for ${geckoID}`);
+    }
 };
 
 export const getTokenPricesInCurrencies = async (): Promise<TokenPrices> =>
