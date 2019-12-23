@@ -36,6 +36,19 @@ contract SimplePuzzle is Puzzle {
     }
 }
 
+contract UnknownPuzzle is SimplePuzzle {
+    constructor(
+        ShifterRegistry _registry,
+        bytes memory _secretHash,
+        uint256 _maxGasPrice
+    ) public SimplePuzzle(
+        _registry,
+        "zBTC",
+        _secretHash,
+        _maxGasPrice
+    ) {}
+}
+
 contract BTCPuzzle is SimplePuzzle {
     constructor(
         ShifterRegistry _registry,
