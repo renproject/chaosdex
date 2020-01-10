@@ -1,9 +1,9 @@
 import * as React from "react";
 
-import { InfoLabel, LabelLevel, Loading, TokenIcon } from "@renproject/react-components";
+import { Loading, TokenIcon } from "@renproject/react-components";
 import { TxStatus } from "@renproject/ren";
 
-import { _catchInteractionErr_ } from "../../../lib/errors";
+import { _catchInteractionErr_, safeJSONStringify } from "../../../lib/errors";
 import { Token } from "../../../state/generalTypes";
 import { Popup } from "../Popup";
 
@@ -85,7 +85,7 @@ export const DepositReceived: React.StatelessComponent<{
                 {token ? <TokenIcon className="token-icon" token={token} /> : null}
                 <h2>{waiting ? <>Submitting to RenVM</> : <>Submit to RenVM</>}</h2>
                 {waiting ? <Loading className="loading--blue" /> : null}
-                {error ? <span className="red">Unable to submit to RenVM <InfoLabel level={LabelLevel.Warning}>{`${error.message || error}`}</InfoLabel></span> : null}
+                {error ? <span className="red">Unable to submit to RenVM: {error.message || safeJSONStringify(error)}</span> : null}
                 {waiting ? <div className="address-input--message">
                     <>
                         <p>Submitting order to RenVM...<br />This can take a few minutes.</p>

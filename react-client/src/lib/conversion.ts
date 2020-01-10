@@ -1,7 +1,8 @@
 import BigNumber from "bignumber.js";
-import { Token, TokenPrices, Tokens } from "../state/generalTypes";
-
 import { Currency } from "@renproject/react-components";
+
+import { Token, TokenPrices, Tokens } from "../state/generalTypes";
+import { InfoError } from "./errors";
 
 const toSmallestUnit = (amount: BigNumber, token: Token): BigNumber => {
     const details = Tokens.get(token);
@@ -24,7 +25,7 @@ export const toBitcoinValue = (amount: BigNumber, token: Token, tokenPrices: Tok
     const toCurrency = Currency.BTC;
     const price = tokenPriceMap.get(toCurrency);
     if (!price) {
-        throw new Error(`Could not get pricing information for ${toCurrency}`);
+        throw new InfoError(`Could not get pricing information for ${toCurrency}`);
     }
     amount = asNaturalUnit.multipliedBy(price);
 

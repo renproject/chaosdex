@@ -21,7 +21,7 @@ export class ErrorBoundary extends React.Component<Props, typeof defaultState> {
         });
         _catchInteractionErr_(error, {
             ...errorInfo,
-            description: "Error caught in ErrorBoundary",
+            description: `Error caught in ErrorBoundary (${typeof this.props.id === "number" ? "#" : ""}${this.props.id})`,
             shownToUser: "As Error Boundary",
         });
     }
@@ -36,7 +36,7 @@ export class ErrorBoundary extends React.Component<Props, typeof defaultState> {
             // Error path
             return (
                 <div className={this.props.popup ? "popup" : ""}>
-                    <h2>Something went wrong.</h2>
+                    <h2 className="unaudited">Something went wrong.</h2>
                     <details style={{ whiteSpace: "pre-wrap" }}>
                         {error && error.toString()}
                         <br />
@@ -60,6 +60,8 @@ export class ErrorBoundary extends React.Component<Props, typeof defaultState> {
 }
 
 interface Props {
+    id: number | string;
+
     /**
      * Popup specifies whether or not the Error Boundary is being rendered in
      * the popup controller.

@@ -118,12 +118,12 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
         const { loggedOut } = uiContainer.state;
 
         return <main>
-            <ErrorBoundary>
+            <ErrorBoundary id="App.tsx > HeaderController">
                 <React.Suspense fallback={null}>
                     <HeaderController showTutorial={showTutorial} handleLogin={login} handleLogout={logout} />
                 </React.Suspense>
             </ErrorBoundary>
-            <ErrorBoundary>
+            <ErrorBoundary id="App.tsx > Switch">
                 <Switch>
                     {/* tslint:disable: jsx-no-lambda react-this-binding-issue */}
                     <Route path="/stats" exact={true} render={() => <Stats />} />
@@ -131,14 +131,14 @@ export const App = withRouter(connect<RouteComponentProps & ConnectedProps<[UICo
                     <Route render={() => <Exchange handleLogin={login} />} />
                 </Switch>
             </ErrorBoundary>
-            <ErrorBoundary>
+            <ErrorBoundary id="App.tsx > LoggedOut">
                 {loggedOut ?
                     <LoggedOutPopup oldAccount={loggedOut} /> :
                     <></>
                 }
             </ErrorBoundary>
-            <ErrorBoundary>{showingTutorial ? <Tutorial cancel={hideTutorial} /> : null}</ErrorBoundary>
-            <ErrorBoundary><FeedbackButton url="https://renprotocol.typeform.com/to/YdmFyB" /></ErrorBoundary>
+            <ErrorBoundary id="App.tsx > Tutorial">{showingTutorial ? <Tutorial cancel={hideTutorial} /> : null}</ErrorBoundary>
+            <ErrorBoundary id="App.tsx > Feedback"><FeedbackButton url="https://renprotocol.typeform.com/to/YdmFyB" /></ErrorBoundary>
         </main>;
     }
 ));

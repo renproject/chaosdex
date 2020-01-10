@@ -8,6 +8,7 @@ import { _catchInteractionErr_ } from "../../../lib/errors";
 import { connect, ConnectedProps } from "../../../state/connect";
 import { UIContainer } from "../../../state/uiContainer";
 import arrow from "../../../styles/images/arrow.svg";
+import { ErrorBoundary } from "../../ErrorBoundary";
 import { SelectMarketWrapper } from "../SelectMarketWrapper";
 import { TokenBalance } from "../TokenBalance";
 
@@ -102,7 +103,7 @@ export const OrderFormInputs = connect<Props & ConnectedProps<[UIContainer]>>([U
             />
         </>;
 
-        const first = <TokenValueInput
+        const first = <ErrorBoundary id="OrderFormInputs.tsx > TokenValueInput first"><TokenValueInput
             title={"Spend"}
             value={srcAmountState}
             subtext={firstSubtext}
@@ -111,9 +112,9 @@ export const OrderFormInputs = connect<Props & ConnectedProps<[UIContainer]>>([U
             onValueChange={onVolumeChange}
         >
             <SelectMarketWrapper top={true} thisToken={orderInputs.srcToken} otherToken={orderInputs.dstToken} />
-        </TokenValueInput >;
+        </TokenValueInput ></ErrorBoundary>;
 
-        const second = <TokenValueInput
+        const second = <ErrorBoundary id="OrderFormInputs.tsx > TokenValueInput second"><TokenValueInput
             title={"Receive"}
             value={normalizeDecimals(orderInputs.dstAmount)}
             subtext={<></>}
@@ -123,7 +124,7 @@ export const OrderFormInputs = connect<Props & ConnectedProps<[UIContainer]>>([U
             className="order-inputs--second"
         >
             <SelectMarketWrapper top={false} thisToken={orderInputs.dstToken} otherToken={orderInputs.srcToken} />
-        </TokenValueInput>;
+        </TokenValueInput></ErrorBoundary>;
 
         return <div className="order--wrapper--wrapper">
             <div className="order--wrapper">

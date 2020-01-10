@@ -1,8 +1,8 @@
 import * as React from "react";
 
-import { InfoLabel, LabelLevel, Loading } from "@renproject/react-components";
+import { InfoLabel, Loading } from "@renproject/react-components";
 
-import { _catchInteractionErr_ } from "../../../lib/errors";
+import { _catchInteractionErr_, safeJSONStringify } from "../../../lib/errors";
 import { renderToken, Token } from "../../../state/generalTypes";
 import {
     CommitmentType, ShiftInEvent, ShiftOutEvent, Tx,
@@ -69,12 +69,17 @@ export const SubmitToEthereum: React.StatelessComponent<{
                     <br />
                 </div>
                 {error ? <span className="red">
-                    Error submitting to Ethereum <InfoLabel level={LabelLevel.Warning}>{`${error.message || error}`}</InfoLabel>
+                    Error submitting to Ethereum: {error.message || safeJSONStringify(error)}
                     {failedTransaction ? <>
                         <br />
-                        See the <a className="blue" href={`https://dashboard.tenderly.dev/tx/${network.contracts.chain}/${failedTransaction}/error`}>Transaction Stack Trace</a> for more details.
+                        See the <a className="blue" href={`${network.contracts.etherscan}/tx/${network.contracts.chain}/${failedTransaction}/error`}>Transaction Status</a> for more details.
                         <br />
-                        If you see <span className="monospace">"nonce hash already spent"</span> your trade may have already gone through.
+                        Some possible issues:
+                        <ul className="submit--errors">
+                            <li><span className="submit--error">nonce hash already spent</span>: your trade has already gone through in another transaction</li>
+                            <li><span className="submit--error">amount is less than the minimum shiftOut amount</span>: the amount being shifted out is less than the tx fees</li>
+                            <li><span className="submit--error">SafeERC20: low-level call failed</span>: you have insufficient balance</li>
+                        </ul>
                     </> : null}
                 </span> : null}
                 <div className="popup--buttons">

@@ -10,7 +10,7 @@ import {
 } from "../lib/contractAddresses";
 import { ERC20Detailed } from "../lib/contracts/ERC20Detailed";
 import { NETWORK } from "../lib/environmentVariables";
-import { _catchBackgroundErr_ } from "../lib/errors";
+import { _catchBackgroundErr_, InfoError } from "../lib/errors";
 import {
     getAdapter, getERC20, getExchange, getReserve, NULL_BYTES, NULL_BYTES32, Token, Tokens,
 } from "./generalTypes";
@@ -95,8 +95,10 @@ export class SDKContainer extends Container<typeof initialState> {
         }
 
         let amountBN: BigNumber;
+        let amountReadable: string;
         let tokenInstance: ERC20Detailed;
         let receivingAddress: string;
+        let tokenSymbol: string;
 
         const dex = getExchange(web3, networkID);
 
@@ -107,17 +109,29 @@ export class SDKContainer extends Container<typeof initialState> {
                 throw new Error(`Unable to retrieve details for ${srcToken}`);
             }
             amountBN = new BigNumber(srcAmount).multipliedBy(new BigNumber(10).exponentiatedBy(srcTokenDetails.decimals));
+            amountReadable = srcAmount;
 
             tokenInstance = getERC20(web3, networkDetails, syncGetTokenAddress(networkID, srcToken));
+            tokenSymbol = srcToken.toUpperCase();
 
             receivingAddress = syncGetDEXAdapterAddress(networkID);
         } else if (order.commitment.type === CommitmentType.AddLiquidity) {
             const { dstToken, srcToken } = order.orderInputs;
+
             amountBN = new BigNumber(order.commitment.maxDAIAmount);
+            amountReadable = amountBN.div(new BigNumber(10).exponentiatedBy(18)).decimalPlaces(2).toString();
+
             tokenInstance = getERC20(web3, networkDetails, syncGetTokenAddress(networkID, dstToken));
+            tokenSymbol = dstToken.toUpperCase();
+
             receivingAddress = (await dex.methods.reserves(syncGetTokenAddress(networkID, srcToken)).call()) || NULL_BYTES;
         } else {
             throw new Error("Token approval not required");
+        }
+
+        const balance = new BigNumber(((await tokenInstance.methods.balanceOf(address).call()) || 0).toString());
+        if (balance.lt(amountBN)) {
+            throw new InfoError(`Insufficient ${tokenSymbol} balance - required: ${amountReadable} ${tokenSymbol}`);
         }
 
         // Check the allowance of the token.

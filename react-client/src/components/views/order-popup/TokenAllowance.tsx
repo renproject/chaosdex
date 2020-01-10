@@ -1,8 +1,8 @@
 import * as React from "react";
 
-import { InfoLabel, LabelLevel, Loading } from "@renproject/react-components";
+import { Loading } from "@renproject/react-components";
 
-import { _catchInteractionErr_ } from "../../../lib/errors";
+import { _catchInteractionErr_, safeJSONStringify } from "../../../lib/errors";
 import { Token } from "../../../state/generalTypes";
 import { Commitment } from "../../../state/persistentContainer";
 import { network } from "../../../state/sdkContainer";
@@ -50,7 +50,7 @@ export const TokenAllowance: React.StatelessComponent<{
                     <br />
                 </div>
                 {error ? <span className="red">
-                    Error submitting to Ethereum <InfoLabel level={LabelLevel.Warning}>{`${error.message || error}`}</InfoLabel>
+                    Error submitting to Ethereum: {error.message || safeJSONStringify(error)}
                     {failedTransaction ? <>
                         <br />
                         See the <a className="blue" href={`https://dashboard.tenderly.dev/tx/${network.contracts.chain}/${failedTransaction}/error`}>Transaction Stack Trace</a> for more details.

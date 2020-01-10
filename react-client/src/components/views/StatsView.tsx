@@ -15,6 +15,7 @@ import { toBitcoinValue } from "../../lib/conversion";
 import { pageLoadedAt } from "../../lib/errors";
 import { Token, Tokens } from "../../state/generalTypes";
 import { CumulativeDataPoint, ReserveHistoryItem, Trade } from "../controllers/Stats";
+import { ErrorBoundary } from "../ErrorBoundary";
 import { TokenBalance } from "./TokenBalance";
 
 const startIcon = require("../../styles/images/icons/icon-start.svg");
@@ -300,70 +301,71 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
             <h2>ChaosDex Stats</h2>
             {!isLoading && <small>Updated {pageLoadedAt(loadedAt).toLowerCase()}</small>}
         </div>
-        <div className="stats--rows">
-            {trades === null || reserveHistory === null ? <Loading alt={true} /> : <>
-                <div className="stats--rows">
-                    <StatBlock
-                        title={
-                            <>
-                                <CurrencyIcon currency={preferredCurrency} />
-                                <TokenBalance
-                                    token={Token.DAI}
-                                    convertTo={preferredCurrency}
-                                    amount={totalTradeVolumeInDai}
-                                    tokenPrices={tokenPrices}
-                                    group={true}
-                                />
-                            </>
-                        }
-                        subtitle="Total Volume"
-                    >
-                        <CumulativeChart cumulativeVolume={cumulativeVolume} />
-                    </StatBlock>
-                    <StatBlock title={trades.size} subtitle="Total Trades">
-                        <PieChart width={300} height={220}>
-                            <Pie dataKey="value" isAnimationActive={false} data={data} fill="#8884d8" label>
-                                {
-                                    data.map((entry, index) => <Cell key={`cell-${index}`} stroke={"#282C35"} fill={colors[entry.name]} />)
-                                }
-                            </Pie>
-                            <Tooltip content={PieTooltip} />
-                        </PieChart>
-                        <TokenDistribution data={data} totalTrades={trades.size} />
-                    </StatBlock>
-                    <StatBlock
-                        title={
-                            <>
-                                <CurrencyIcon currency={preferredCurrency} />
-                                <TokenBalance
-                                    token={Token.BTC}
-                                    convertTo={preferredCurrency}
-                                    amount={totalLiquidityPoolInBtc}
-                                    tokenPrices={tokenPrices}
-                                    group={true}
-                                />
-                            </>
-                        }
-                        subtitle="Liquidity Pool Value"
-                    >
-                        <LineChart
-
-                            width={300}
-                            height={300}
-                            data={reserveHistory || []}
-                            margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+        <ErrorBoundary id="StatsView.tsx > charts">
+            <div className="stats--rows">
+                {trades === null || reserveHistory === null ? <Loading alt={true} /> : <>
+                    <div className="stats--rows">
+                        <StatBlock
+                            title={
+                                <>
+                                    <CurrencyIcon currency={preferredCurrency} />
+                                    <TokenBalance
+                                        token={Token.DAI}
+                                        convertTo={preferredCurrency}
+                                        amount={totalTradeVolumeInDai}
+                                        tokenPrices={tokenPrices}
+                                        group={true}
+                                    />
+                                </>
+                            }
+                            subtitle="Total Volume"
                         >
-                            <Tooltip content={ReserveHistoryTooltip} />
-                            <Line type="monotone" dot={<></>} dataKey={`BTC_btcBalance`} stroke={colors[Token.BTC]} yAxisId={0} />
-                            <Line type="monotone" dot={<></>} dataKey={`BTC_daiBalance`} stroke={colors[Token.BTC]} yAxisId={0} />
-                            <Line type="monotone" dot={<></>} dataKey={`ZEC_zecBalance`} stroke={colors[Token.ZEC]} yAxisId={0} />
-                            <Line type="monotone" dot={<></>} dataKey={`ZEC_daiBalance`} stroke={colors[Token.ZEC]} yAxisId={0} />
-                            <Line type="monotone" dot={<></>} dataKey={`BCH_bchBalance`} stroke={colors[Token.BCH]} yAxisId={0} />
-                            <Line type="monotone" dot={<></>} dataKey={`BCH_daiBalance`} stroke={colors[Token.BCH]} yAxisId={0} />
-                        </LineChart>
-                    </StatBlock>
-                </div>
-                {/*
+                            <CumulativeChart cumulativeVolume={cumulativeVolume} />
+                        </StatBlock>
+                        <StatBlock title={trades.size} subtitle="Total Trades">
+                            <PieChart width={300} height={220}>
+                                <Pie dataKey="value" isAnimationActive={false} data={data} fill="#8884d8" label>
+                                    {
+                                        data.map((entry, index) => <Cell key={`cell-${index}`} stroke={"#282C35"} fill={colors[entry.name]} />)
+                                    }
+                                </Pie>
+                                <Tooltip content={PieTooltip} />
+                            </PieChart>
+                            <TokenDistribution data={data} totalTrades={trades.size} />
+                        </StatBlock>
+                        <StatBlock
+                            title={
+                                <>
+                                    <CurrencyIcon currency={preferredCurrency} />
+                                    <TokenBalance
+                                        token={Token.BTC}
+                                        convertTo={preferredCurrency}
+                                        amount={totalLiquidityPoolInBtc}
+                                        tokenPrices={tokenPrices}
+                                        group={true}
+                                    />
+                                </>
+                            }
+                            subtitle="Liquidity Pool Value"
+                        >
+                            <LineChart
+
+                                width={300}
+                                height={300}
+                                data={reserveHistory || []}
+                                margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                            >
+                                <Tooltip content={ReserveHistoryTooltip} />
+                                <Line type="monotone" dot={<></>} dataKey={`BTC_btcBalance`} stroke={colors[Token.BTC]} yAxisId={0} />
+                                <Line type="monotone" dot={<></>} dataKey={`BTC_daiBalance`} stroke={colors[Token.BTC]} yAxisId={0} />
+                                <Line type="monotone" dot={<></>} dataKey={`ZEC_zecBalance`} stroke={colors[Token.ZEC]} yAxisId={0} />
+                                <Line type="monotone" dot={<></>} dataKey={`ZEC_daiBalance`} stroke={colors[Token.ZEC]} yAxisId={0} />
+                                <Line type="monotone" dot={<></>} dataKey={`BCH_bchBalance`} stroke={colors[Token.BCH]} yAxisId={0} />
+                                <Line type="monotone" dot={<></>} dataKey={`BCH_daiBalance`} stroke={colors[Token.BCH]} yAxisId={0} />
+                            </LineChart>
+                        </StatBlock>
+                    </div>
+                    {/*
                 <div className="stats--rows">
                     {
                         volumes.map((volume, token) => {
@@ -397,41 +399,44 @@ export const StatsView = ({ trades, cumulativeVolume, tokenCount, volumes, reser
                     }
                 </div>
                 */}
-            </>}
-        </div>
+                </>}
+            </div>
+        </ErrorBoundary>
         <br /><br />
-        <div className="trade--history">
-            <h2>Trade History</h2>
-            {trades === null ? <div className="stats--rows"><Loading alt={true} /></div> : <>
-                {pagination}
-                {todayTrades.size > 0 && <div className="trade--history--block">
-                    <h3>Today</h3>
-                    <ShowTrades
-                        trades={todayTrades}
-                        explorer={network.contracts.etherscan}
-                    />
-                </div>
-                }
-                {yesterdayTrades.size > 0 &&
-                    <div className="trade--history--block">
-                        <h3>Yesterday</h3>
+        <ErrorBoundary id="StatsView.tsx > history">
+            <div className="trade--history">
+                <h2>Trade History</h2>
+                {trades === null ? <div className="stats--rows"><Loading alt={true} /></div> : <>
+                    {pagination}
+                    {todayTrades.size > 0 && <div className="trade--history--block">
+                        <h3>Today</h3>
                         <ShowTrades
-                            trades={yesterdayTrades}
+                            trades={todayTrades}
                             explorer={network.contracts.etherscan}
                         />
                     </div>
-                }
-                {oldTrades.size > 0 &&
-                    <div className="trade--history--block">
-                        <h3>&gt; 48 hours ago</h3>
-                        <ShowTrades
-                            trades={oldTrades}
-                            explorer={network.contracts.etherscan}
-                        />
-                    </div>
-                }
-                {pagination}
-            </>}
-        </div>
+                    }
+                    {yesterdayTrades.size > 0 &&
+                        <div className="trade--history--block">
+                            <h3>Yesterday</h3>
+                            <ShowTrades
+                                trades={yesterdayTrades}
+                                explorer={network.contracts.etherscan}
+                            />
+                        </div>
+                    }
+                    {oldTrades.size > 0 &&
+                        <div className="trade--history--block">
+                            <h3>&gt; 48 hours ago</h3>
+                            <ShowTrades
+                                trades={oldTrades}
+                                explorer={network.contracts.etherscan}
+                            />
+                        </div>
+                    }
+                    {pagination}
+                </>}
+            </div>
+        </ErrorBoundary>
     </div>;
 };

@@ -183,7 +183,7 @@ export const Stats = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer
                     rValues.push({ ...item, blocknumber: bn, timestamp });
                 }
                 setReserveHistory(rValues);
-            })().catch(error => _catchInteractionErr_(error, "Error in Stats: load reserve chart"));
+            })().catch(error => _catchInteractionErr_(error, { description: "Error in Stats: load reserve chart", ignoreNetwork: true }));
         }, [web3, networkID, noPrices, refresh, preferredCurrency]);
 
         React.useEffect(() => {
@@ -288,7 +288,7 @@ export const Stats = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer
                 // }
                 setTrades(recentRegistrationEvents.reverse());
                 setLoadedAt(new Date());
-            })().catch(error => _catchInteractionErr_(error, "Error in Stats: load trades"));
+            })().catch(error => _catchInteractionErr_(error, { description: "Error in Stats: load trades", ignoreNetwork: true }));
         }, [web3, networkID, refresh]);
 
         return <StatsView

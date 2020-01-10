@@ -1,6 +1,8 @@
 import Web3 from "web3";
 import { HttpProvider } from "web3-providers";
 
+import { InfoError } from "./errors";
+
 interface InjectedEthereum extends HttpProvider {
     enable: () => Promise<void>;
     send: <T, X extends unknown[] = []>(name: string, args?: X) => Promise<T>;
@@ -49,6 +51,6 @@ export const getWeb3 = async () => new Promise<Web3>(async (resolve, reject) => 
         resolve(new Web3(window.web3.currentProvider));
     } else {
         // Non-dApp browsers...
-        reject(new Error(`No Web3 detected.`));
+        reject(new InfoError(`No Web3 detected.`));
     }
 });

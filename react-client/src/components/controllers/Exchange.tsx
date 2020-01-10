@@ -62,10 +62,10 @@ export const Exchange = connect<Props & ConnectedProps<[UIContainer]>>([UIContai
                             <button onClick={onLiquidityTab} className={className("exchange--tab", exchangeTab === ExchangeTabs.Liquidity ? "exchange--tab--selected" : "")}>Liquidity</button>
                         </div>
                         {exchangeTab === ExchangeTabs.Swap ?
-                            <ErrorBoundary><OrderForm handleLogin={handleLogin} /></ErrorBoundary> :
-                            <ErrorBoundary><LiquidityForm handleLogin={handleLogin} /></ErrorBoundary>
+                            <ErrorBoundary id="Exchange.tsx > OrderForm"><OrderForm handleLogin={handleLogin} /></ErrorBoundary> :
+                            <ErrorBoundary id="Exchange.tsx > LiquidityForm"><LiquidityForm handleLogin={handleLogin} /></ErrorBoundary>
                         }
-                        <ErrorBoundary><OrderHistory /></ErrorBoundary>
+                        <ErrorBoundary id="Exchange.tsx > OrderHistory"><OrderHistory /></ErrorBoundary>
                         {submitting ?
                             <PromptDetails cancel={cancel} /> :
                             <></>

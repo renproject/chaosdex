@@ -281,3 +281,14 @@
         }
     }
 }
+
+.submit--errors {
+    padding-left: 0;
+}
+
+.submit--error {
+    border: 1px solid transparentize($red, 1 - 0.3);
+    padding: 5px;
+    margin-right: 1px;
+    border-radius: 5px;
+}

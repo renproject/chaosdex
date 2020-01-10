@@ -4,6 +4,10 @@ import * as Sentry from "@sentry/browser";
 
 import { naturalTime } from "@renproject/react-components";
 
+export class InfoError extends Error {
+    public _noCapture_ = true;
+}
+
 interface Details {
     description?: string;
     category?: string;
@@ -54,7 +58,7 @@ const isNetworkError = (error: Error | any): boolean => {
     return false;
 };
 
-const rawError = (errorObject: Error) => {
+export const safeJSONStringify = (errorObject: Error) => {
     // https://stackoverflow.com/questions/11616630/json-stringify-avoid-typeerror-converting-circular-structure-to-json/11616993#11616993
 
     // Note: cache should not be re-used by repeated calls to JSON.stringify.
@@ -82,6 +86,11 @@ const rawError = (errorObject: Error) => {
     cache = null; // Enable garbage collection
 
     return rawErrorJSON;
+};
+
+export const noCapture = (error: Error): Error => {
+    (error as any)._noCapture_ = true;
+    return error;
 };
 
 const _catchErr_ = <X extends Details>(error: any, details: X) => {
@@ -115,7 +124,7 @@ const _catchErr_ = <X extends Details>(error: any, details: X) => {
         }
 
         scope.setExtra("caught", true);
-        scope.setExtra("zRawError", rawError(error));
+        scope.setExtra("zRawError", safeJSONStringify(error));
 
         // tslint:disable-next-line: no-console
         console.error(error);
@@ -136,6 +145,16 @@ const _catchErr_ = <X extends Details>(error: any, details: X) => {
         // Check if we should ignore the error
         if (details.ignoreNetwork && isNetworkError(error)) {
             return;
+        }
+
+        try {
+            if (!(error instanceof Error)) {
+                const newError = new Error(error.message || error);
+                Object.assign(newError, error);
+                error = newError;
+            }
+        } catch (error) {
+            // Ignore error
         }
 
         Sentry.captureException(error);

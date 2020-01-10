@@ -4,7 +4,7 @@ import { Loading, TokenIcon } from "@renproject/react-components";
 import RenJS from "@renproject/ren";
 
 import { IS_TESTNET } from "../../../lib/environmentVariables";
-import { _catchInteractionErr_ } from "../../../lib/errors";
+import { _catchInteractionErr_, safeJSONStringify } from "../../../lib/errors";
 import { renderToken, Token, Tokens } from "../../../state/generalTypes";
 import { ReactComponent as MetaMask } from "../../../styles/images/metamask.svg";
 import { Popup } from "../Popup";
@@ -35,7 +35,7 @@ export const AskForAddress: React.StatelessComponent<{
             updateSubmitting(true);
             await onAddress(address);
         } catch (error) {
-            updateError(String(error.message || error));
+            updateError(String(error.message || safeJSONStringify(error)));
             updateSubmitting(false);
         }
     };
