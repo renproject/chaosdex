@@ -7,6 +7,7 @@ import { _catchInteractionErr_ } from "../../lib/errors";
 import { connect, ConnectedProps } from "../../state/connect";
 import { renderToken, Token } from "../../state/generalTypes";
 import { CommitmentType } from "../../state/persistentContainer";
+import { SDKContainer } from "../../state/sdkContainer";
 import { UIContainer } from "../../state/uiContainer";
 import { AskForAddress } from "../views/order-popup/AskForAddress";
 import { ConfirmTradeDetails } from "../views/order-popup/ConfirmTradeDetails";
@@ -19,8 +20,8 @@ interface Props {
 /**
  * PromptDetails is a visual component for allowing users to open new orders
  */
-export const PromptDetails = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer])(
-    ({ containers: [uiContainer], cancel }) => {
+export const PromptDetails = connect<Props & ConnectedProps<[UIContainer, SDKContainer]>>([UIContainer, SDKContainer])(
+    ({ containers: [uiContainer, sdkContainer], cancel }) => {
 
         const {
             toAddress, confirmedOrderInputs, confirmedTrade,
@@ -29,8 +30,13 @@ export const PromptDetails = connect<Props & ConnectedProps<[UIContainer]>>([UIC
 
         const onRefundAddress = React.useCallback(async (refundAddress: string) => {
             await uiContainer.updateRefundAddress(refundAddress).catch(error => _catchInteractionErr_(error, "Error in PromptDetails: updateRefundAddress"));
-            await uiContainer.commitOrder();
-        }, [uiContainer]);
+            const eventHistory = await uiContainer.commitOrder();
+            if (eventHistory.shiftIn) {
+                await sdkContainer.shiftIn(eventHistory);
+            } else {
+                await sdkContainer.shiftOut(eventHistory);
+            }
+        }, [uiContainer, sdkContainer]);
 
         const onCancel = () => {
             uiContainer.resetTrade().catch(error => _catchInteractionErr_(error, "Error in PromptDetails: resetTrade"));
@@ -42,6 +48,7 @@ export const PromptDetails = connect<Props & ConnectedProps<[UIContainer]>>([UIC
             return <></>;
         }
 
+        // Ask the user to confirm the details before continuing
         // Ask the user to confirm the details before continuing
         if (!confirmedTrade) {
             return <ConfirmTradeDetails

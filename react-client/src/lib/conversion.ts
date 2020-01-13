@@ -1,5 +1,5 @@
-import BigNumber from "bignumber.js";
 import { Currency } from "@renproject/react-components";
+import BigNumber from "bignumber.js";
 
 import { Token, TokenPrices, Tokens } from "../state/generalTypes";
 import { InfoError } from "./errors";

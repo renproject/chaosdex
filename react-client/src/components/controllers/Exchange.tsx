@@ -12,7 +12,6 @@ import { ErrorBoundary } from "../ErrorBoundary";
 import { LiquidityForm } from "../views/exchange-forms/LiquidityForm";
 import { OrderForm } from "../views/exchange-forms/OrderForm";
 import { OrderHistory } from "../views/OrderHistory";
-import { OpeningOrder } from "./OpeningOrder";
 import { PromptDetails } from "./PromptDetails";
 
 interface Props {
@@ -68,10 +67,6 @@ export const Exchange = connect<Props & ConnectedProps<[UIContainer]>>([UIContai
                         <ErrorBoundary id="Exchange.tsx > OrderHistory"><OrderHistory /></ErrorBoundary>
                         {submitting ?
                             <PromptDetails cancel={cancel} /> :
-                            <></>
-                        }
-                        {currentOrderID ?
-                            <OpeningOrder orderID={currentOrderID} /> :
                             <></>
                         }
                     </React.Suspense>

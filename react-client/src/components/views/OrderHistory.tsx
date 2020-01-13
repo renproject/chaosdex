@@ -11,7 +11,7 @@ import { renderToken } from "../../state/generalTypes";
 import {
     CommitmentType, HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus, Tx,
 } from "../../state/persistentContainer";
-import { network } from "../../state/sdkContainer";
+import { network, SDKContainer } from "../../state/sdkContainer";
 import { UIContainer } from "../../state/uiContainer";
 import { ReactComponent as Arrow } from "../../styles/images/arrow-right.svg";
 import { ReactComponent as Next } from "../../styles/images/next.svg";
@@ -79,7 +79,7 @@ export const txUrl = (tx: Tx | null): string => {
 const OrderHistoryEntry = ({ order, continueOrder, address }: {
     order: HistoryEvent,
     address: string | null,
-    continueOrder: (orderID: string) => void,
+    continueOrder: (order: HistoryEvent) => void,
 }) => {
     const srcAmount = <span className="token--amount">
         <TokenBalance
@@ -98,7 +98,7 @@ const OrderHistoryEntry = ({ order, continueOrder, address }: {
         {renderToken(order.orderInputs.dstToken)}
     </span>;
     const onClick = () => {
-        continueOrder(order.id);
+        continueOrder(order);
     };
 
     const loggedIn = address !== null;
@@ -201,8 +201,8 @@ const OrderHistoryEntry = ({ order, continueOrder, address }: {
 /**
  * OrderHistory is a visual component for allowing users to open new orders
  */
-export const OrderHistory = connect<{} & ConnectedProps<[PersistentContainer, UIContainer]>>([PersistentContainer, UIContainer])(
-    ({ containers: [persistentContainer, uiContainer] }) => {
+export const OrderHistory = connect<{} & ConnectedProps<[PersistentContainer, UIContainer, SDKContainer]>>([PersistentContainer, UIContainer, SDKContainer])(
+    ({ containers: [persistentContainer, uiContainer, sdkContainer] }) => {
 
         const { historyItems } = persistentContainer.state;
         const { address } = uiContainer.state;
@@ -214,6 +214,14 @@ export const OrderHistory = connect<{} & ConnectedProps<[PersistentContainer, UI
         const previousPage = () => setStart(Math.max(start - 5, 0));
 
         const orders = Object.values(historyItems).sort((a, b) => b.time - a.time);
+
+        const continueOrder = React.useCallback(async (order: HistoryEvent) => {
+            if (order.shiftIn) {
+                await sdkContainer.shiftIn(order);
+            } else {
+                await sdkContainer.shiftOut(order);
+            }
+        }, [sdkContainer]);
 
         if (orders.length === 0) {
             return <></>;
@@ -232,7 +240,7 @@ export const OrderHistory = connect<{} & ConnectedProps<[PersistentContainer, UI
                             key={historyEvent.time}
                             order={historyEvent}
                             address={address}
-                            continueOrder={uiContainer.handleOrder}
+                            continueOrder={continueOrder}
                         />;
                     })}
                 </div>

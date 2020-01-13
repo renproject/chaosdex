@@ -205,7 +205,7 @@ export class UIContainer extends Container<typeof initialState> {
         await this.setState({ refundAddress });
     }
 
-    public commitOrder = async (): Promise<void> => {
+    public commitOrder = async (): Promise<HistoryEvent> => {
         const { orderInputs: order, networkID, web3, commitmentType, toAddress, refundAddress, orderInputs } = this.state;
         if (!web3) {
             throw new Error("Web3 not set yet.");
@@ -214,7 +214,7 @@ export class UIContainer extends Container<typeof initialState> {
         const srcTokenDetails = Tokens.get(order.srcToken);
         const dstTokenDetails = Tokens.get(order.dstToken);
         if (!refundAddress || !srcTokenDetails || !dstTokenDetails || !toAddress) {
-            throw new Error(`Required info is undefined (${toAddress}, ${refundAddress}, ${srcTokenDetails})`);
+            throw new Error(`Required info is undefined (${toAddress}, ${refundAddress}, ${srcTokenDetails}, ${dstTokenDetails})`);
         }
 
         const blockNumber = await web3.eth.getBlockNumber();
@@ -334,6 +334,8 @@ export class UIContainer extends Container<typeof initialState> {
         });
 
         await this.handleOrder(currentOrderID);
+
+        return historyEvent;
     }
 
     public resetTrade = async () => {
