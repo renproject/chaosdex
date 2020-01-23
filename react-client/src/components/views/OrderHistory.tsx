@@ -5,11 +5,13 @@ import * as React from "react";
 import { InfoLabel, naturalTime, TokenIcon } from "@renproject/react-components";
 import RenJS from "@renproject/ren";
 import { CircularProgressbar } from "react-circular-progressbar";
+import { ShiftInStatus } from "@renproject/gateway-js";
+import { ShiftOutStatus } from "@renproject/ren-js-common";
 
 import { connect, ConnectedProps } from "../../state/connect";
 import { renderToken } from "../../state/generalTypes";
 import {
-    CommitmentType, HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus, Tx,
+    CommitmentType, HistoryEvent, PersistentContainer, Tx,
 } from "../../state/persistentContainer";
 import { network, SDKContainer } from "../../state/sdkContainer";
 import { UIContainer } from "../../state/uiContainer";
@@ -109,8 +111,9 @@ const OrderHistoryEntry = ({ order, continueOrder, address }: {
         <div className="token--info">
             {
                 (
-                    (order.status === ShiftInStatus.RefundedOnEthereum ||
-                        order.status === ShiftOutStatus.RefundedOnEthereum ||
+                    (
+                        // order.status === ShiftInStatus.RefundedOnEthereum ||
+                        order.status === ShiftOutStatus.NoBurnFound ||
                         order.status === ShiftInStatus.ConfirmedOnEthereum ||
                         order.status === ShiftOutStatus.ReturnedFromRenVM
                     ) && order.commitment.type === CommitmentType.AddLiquidity
@@ -120,8 +123,9 @@ const OrderHistoryEntry = ({ order, continueOrder, address }: {
                     </> :
 
                     (
-                        (order.status === ShiftInStatus.RefundedOnEthereum ||
-                            order.status === ShiftOutStatus.RefundedOnEthereum ||
+                        (
+                            // order.status === ShiftInStatus.RefundedOnEthereum ||
+                            order.status === ShiftOutStatus.NoBurnFound ||
                             order.status === ShiftInStatus.ConfirmedOnEthereum ||
                             order.status === ShiftOutStatus.ReturnedFromRenVM
                         ) && order.commitment.type === CommitmentType.RemoveLiquidity
@@ -139,8 +143,8 @@ const OrderHistoryEntry = ({ order, continueOrder, address }: {
                                 <span className="received--text">Received</span>{amount}
                             </> :
                             (
-                                order.status === ShiftInStatus.RefundedOnEthereum ||
-                                order.status === ShiftOutStatus.RefundedOnEthereum
+                                // order.status === ShiftInStatus.RefundedOnEthereum ||
+                                order.status === ShiftOutStatus.NoBurnFound
                             ) ?
                                 <>
                                     <TokenIcon className="token-icon" token={order.orderInputs.dstToken} />
@@ -217,9 +221,9 @@ export const OrderHistory = connect<{} & ConnectedProps<[PersistentContainer, UI
 
         const continueOrder = React.useCallback(async (order: HistoryEvent) => {
             if (order.shiftIn) {
-                await sdkContainer.shiftIn(order);
+                await sdkContainer.shiftIn(order, true);
             } else {
-                await sdkContainer.shiftOut(order);
+                await sdkContainer.shiftOut(order, true);
             }
         }, [sdkContainer]);
 

@@ -4,6 +4,8 @@ import BigNumber from "bignumber.js";
 import { Map as ImmutableMap } from "immutable";
 import { Container } from "unstated";
 import Web3 from "web3";
+import { ShiftInStatus } from "@renproject/gateway-js";
+import { ShiftOutStatus } from "@renproject/ren-js-common";
 
 import {
     calculateReceiveAmount, fetchEthereumTokenBalance, getBalances, getLiquidityBalances,
@@ -16,7 +18,7 @@ import { history } from "../lib/history";
 import { getTokenPricesInCurrencies } from "../lib/market";
 import { isEthereumBased, Token, Tokens } from "./generalTypes";
 import {
-    Commitment, CommitmentType, HistoryEvent, PersistentContainer, ShiftInStatus, ShiftOutStatus,
+    Commitment, CommitmentType, HistoryEvent, PersistentContainer,
 } from "./persistentContainer";
 import { PopupContainer } from "./popupContainer";
 import { network } from "./sdkContainer";
@@ -317,7 +319,7 @@ export class UIContainer extends Container<typeof initialState> {
             outTx: null,
             receivedAmount: null,
             orderInputs,
-            commitment,
+            commitment: commitment,
             messageID: null,
             renVMStatus: null,
             nonce,

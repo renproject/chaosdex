@@ -1,9 +1,9 @@
+import { ShiftInStatus } from "@renproject/gateway-js";
 import RenJS, { TxStatus } from "@renproject/ren";
+import { ShiftOutStatus } from "@renproject/ren-js-common";
 import localForage from "localforage";
 import { PersistContainer } from "unstated-persist";
 
-// import { Chain } from "@renproject/ren";
-// import { Token } from "./generalTypes";
 import { OrderInputs } from "./uiContainer";
 
 export interface OrderCommitment {
@@ -47,25 +47,6 @@ export interface Tx {
     chain: RenJS["Chains"]["Ethereum"] | RenJS["Chains"]["Bitcoin"] | RenJS["Chains"]["Zcash"] | RenJS["Chains"]["BitcoinCash"];
 }
 
-export enum ShiftInStatus {
-    Committed = "shiftIn_committed",
-    Deposited = "shiftIn_deposited",
-    SubmittedToRenVM = "shiftIn_submittedToRenVM",
-    ReturnedFromRenVM = "shiftIn_returnedFromRenVM",
-    SubmittedToEthereum = "shiftIn_submittedToEthereum",
-    ConfirmedOnEthereum = "shiftIn_confirmedOnEthereum",
-    RefundedOnEthereum = "shiftIn_refundedOnEthereum",
-}
-
-export enum ShiftOutStatus {
-    Committed = "shiftOut_committed",
-    SubmittedToEthereum = "shiftOut_submittedToEthereum",
-    ConfirmedOnEthereum = "shiftOut_confirmedOnEthereum",
-    SubmittedToRenVM = "shiftOut_submittedToRenVM",
-    ReturnedFromRenVM = "shiftOut_returnedFromRenVM",
-    RefundedOnEthereum = "shiftOut_refundedOnEthereum",
-}
-
 export interface HistoryEventCommon {
     id: string;
     time: number; // Seconds since Unix epoch
@@ -93,6 +74,7 @@ export interface ShiftOutEvent extends HistoryEventCommon {
 export type HistoryEvent = ShiftInEvent | ShiftOutEvent;
 
 const initialState = {
+    updateVersion: 0,
     // tslint:disable-next-line: no-object-literal-type-assertion
     historyItems: {
         // [1]: {
@@ -125,8 +107,26 @@ export class PersistentContainer extends PersistContainer<typeof initialState> {
         storage: localForage,
     };
 
+    public migrate = async () => {
+        for (const item of Object.keys(this.state.historyItems)) {
+            const shift = this.state.historyItems[item];
+            // tslint:disable-next-line: no-any
+            if (shift && (shift as any).commitment && !shift.commitment) {
+                // tslint:disable-next-line: no-any
+                shift.commitment = (shift as any).commitment;
+                await this.updateHistoryItem(shift.id, shift).catch(console.error);
+            }
+        }
+    }
+
+    public getHistoryItems = async () => {
+        await this.migrate();
+        return this.state.historyItems;
+    }
+
     public updateHistoryItem = async (key: string, item: Partial<HistoryEvent>) => {
         await this.setState({
+            updateVersion: this.state.updateVersion + 1,
             historyItems: { ...this.state.historyItems, [key]: { ...this.state.historyItems[key], ...item } },
             // tslint:disable-next-line: no-any
             _persist_version: (this.state as any)._persist_version || 1,
