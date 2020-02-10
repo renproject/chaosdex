@@ -1,7 +1,7 @@
 # Shifter Smart Contracts
 
-[![Build Status](https://travis-ci.org/republicprotocol/shifter-sol.svg?branch=master)](https://travis-ci.org/republicprotocol/shifter-sol)
-[![Coverage Status](https://coveralls.io/repos/github/republicprotocol/shifter-sol/badge.svg?branch=master)](https://coveralls.io/github/republicprotocol/shifter-sol?branch=master)
+[![Build Status](https://circleci.com/gh/renproject/chaosdex.svg?style=svg)](https://circleci.com/gh/renproject/chaosdex)
+[![Coverage Status](https://coveralls.io/repos/github/renproject/chaosdex/badge.svg?branch=master)](https://coveralls.io/github/renproject/chaosdex?branch=master)
 
 ## Tests
 
