@@ -1,4 +1,4 @@
-# Shifter Smart Contracts
+# ChaosDEX Smart Contracts
 
 [![Build Status](https://circleci.com/gh/renproject/chaosdex.svg?style=svg)](https://circleci.com/gh/renproject/chaosdex)
 [![Coverage Status](https://coveralls.io/repos/github/renproject/chaosdex/badge.svg?branch=master)](https://coveralls.io/github/renproject/chaosdex?branch=master)
