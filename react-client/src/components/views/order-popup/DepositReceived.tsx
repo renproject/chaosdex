@@ -3,6 +3,7 @@ import * as React from "react";
 import { Loading, TokenIcon } from "@renproject/react-components";
 import { TxStatus } from "@renproject/ren";
 
+// tslint:disable-next-line: ordered-imports
 import { _catchInteractionErr_, safeJSONStringify } from "../../../lib/errors";
 import { Token } from "../../../state/generalTypes";
 import { Popup } from "../Popup";
@@ -28,12 +29,12 @@ const renderTxStatus = (status: TxStatus | null) => {
 
 export const DepositReceived: React.StatelessComponent<{
     token?: Token;
-    messageID: string | null;
+    renTxHash: string | null;
     renVMStatus: TxStatus | null;
     orderID: string;
     submitDeposit?: (orderID: string, resubmit?: boolean) => Promise<unknown>;
     hide?: () => void;
-}> = ({ token, renVMStatus, messageID, orderID, submitDeposit, hide }) => {
+}> = ({ token, renVMStatus, renTxHash, orderID, submitDeposit, hide }) => {
     const [submitted, setSubmitted] = React.useState(false);
     const [error, setError] = React.useState(null as Error | null);
 
@@ -57,11 +58,11 @@ export const DepositReceived: React.StatelessComponent<{
     React.useEffect(() => {
         if (!initialized) {
             setInitialized(true);
-            if (messageID) {
+            if (renTxHash) {
                 onClick().catch(console.error);
             }
         }
-    }, [initialized, messageID, onClick]);
+    }, [initialized, renTxHash, onClick]);
 
     // const onRetry = async () => {
     //     setError(null);

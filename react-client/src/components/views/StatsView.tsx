@@ -13,7 +13,7 @@ import {
 
 import { toBitcoinValue } from "../../lib/conversion";
 import { pageLoadedAt } from "../../lib/errors";
-import { Token, Tokens } from "../../state/generalTypes";
+import { renderToken, Token, Tokens } from "../../state/generalTypes";
 import { CumulativeDataPoint, ReserveHistoryItem, Trade } from "../controllers/Stats";
 import { ErrorBoundary } from "../ErrorBoundary";
 import { TokenBalance } from "./TokenBalance";
@@ -121,8 +121,8 @@ const ShowTrades = ({ trades, explorer }: { trades: List<Trade>, explorer: strin
                     trades.map((trade, idx) => {
                         return (<Tr key={trade.id} className={`${idx % 2 ? "even" : "odd"}`}>
                             <Td>Trade</Td>
-                            <Td><TokenIcon token={trade.src} /> {trade.sendAmount.decimalPlaces(trade.src === Token.DAI ? 2 : 6).toFixed()} {trade.src}</Td>
-                            <Td><TokenIcon token={trade.dst} /> {trade.recvAmount.decimalPlaces(trade.dst === Token.DAI ? 2 : 6).toFixed()} {trade.dst}</Td>
+                            <Td><TokenIcon token={trade.src} /> {trade.sendAmount.decimalPlaces(trade.src === Token.DAI ? 2 : 6).toFixed()} {renderToken(trade.src as Token)}</Td>
+                            <Td><TokenIcon token={trade.dst} /> {trade.recvAmount.decimalPlaces(trade.dst === Token.DAI ? 2 : 6).toFixed()} {renderToken(trade.dst as Token)}</Td>
                             <Td><a role="button" rel="noopener noreferrer" target="_blank" href={`${explorer}/tx/${trade.transactionHash}`}>View transaction &rarr;</a></Td>
                         </Tr>);
                     }).toArray()

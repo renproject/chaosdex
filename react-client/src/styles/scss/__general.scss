@@ -305,3 +305,11 @@ button {
 .capitalize {
     text-transform: capitalize;
 }
+
+._ren_gateway-minified>._ren_iframeShadow {
+    margin-top: 15px;
+
+    @media(max-width: 1840px) {
+        margin-top: 80px;
+    }
+}

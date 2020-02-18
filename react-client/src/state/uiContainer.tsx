@@ -1,11 +1,11 @@
+import { ShiftInStatus } from "@renproject/gateway-js";
 import { Currency } from "@renproject/react-components";
 import RenJS from "@renproject/ren";
+import { ShiftOutStatus } from "@renproject/ren-js-common";
 import BigNumber from "bignumber.js";
 import { Map as ImmutableMap } from "immutable";
 import { Container } from "unstated";
 import Web3 from "web3";
-import { ShiftInStatus } from "@renproject/gateway-js";
-import { ShiftOutStatus } from "@renproject/ren-js-common";
 
 import {
     calculateReceiveAmount, fetchEthereumTokenBalance, getBalances, getLiquidityBalances,
@@ -319,8 +319,8 @@ export class UIContainer extends Container<typeof initialState> {
             outTx: null,
             receivedAmount: null,
             orderInputs,
-            commitment: commitment,
-            messageID: null,
+            commitment,
+            renTxHash: null,
             renVMStatus: null,
             nonce,
         };

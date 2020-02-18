@@ -24,7 +24,7 @@ interface Props {
 export const Exchange = connect<Props & ConnectedProps<[UIContainer]>>([UIContainer])(
     ({ handleLogin, containers: [uiContainer] }) => {
 
-        const { currentOrderID, submitting } = uiContainer.state;
+        const { submitting } = uiContainer.state;
 
         const onSwapTab = React.useCallback(async () => {
             (async () => {

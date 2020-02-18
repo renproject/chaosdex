@@ -1,17 +1,17 @@
 import GatewayJS from "@renproject/gateway-js";
 import { sleep } from "@renproject/react-components";
-import RenJS, { NetworkDetails, ShiftInObject, Signature, TxStatus, UTXO } from "@renproject/ren";
+import RenJS, { NetworkDetails } from "@renproject/ren";
+import { EthArgs, ShiftInStatus, ShiftOutStatus } from "@renproject/ren-js-common";
 import BigNumber from "bignumber.js";
 import { Container } from "unstated";
 import Web3 from "web3";
-import { PromiEvent, TransactionReceipt } from "web3-core";
-import { Args, ShiftInEvent, ShiftInStatus, ShiftOutStatus } from "@renproject/ren-js-common";
 
 import {
-    syncGetDEXAdapterAddress, syncGetDEXAddress, syncGetDEXReserveAddress, syncGetTokenAddress,
+    syncGetDEXAdapterAddress, syncGetDEXReserveAddress, syncGetTokenAddress,
 } from "../lib/contractAddresses";
 import { ERC20Detailed } from "../lib/contracts/ERC20Detailed";
 import { NETWORK } from "../lib/environmentVariables";
+// tslint:disable-next-line: ordered-imports
 import { _catchBackgroundErr_, InfoError } from "../lib/errors";
 import {
     getAdapter, getERC20, getExchange, getReserve, NULL_BYTES, NULL_BYTES32, Token, Tokens,
@@ -20,12 +20,6 @@ import {
     AddLiquidityCommitment, CommitmentType, HistoryEvent, OrderCommitment, PersistentContainer,
     RemoveLiquidityCommitment,
 } from "./persistentContainer";
-import { OrderInputs } from "./uiContainer";
-
-const BitcoinTx = (hash: string) => ({ hash, chain: RenJS.Chains.Bitcoin });
-const ZCashTx = (hash: string) => ({ hash, chain: RenJS.Chains.Zcash });
-const BitcoinCashTx = (hash: string) => ({ hash, chain: RenJS.Chains.BitcoinCash });
-const EthereumTx = (hash: string) => ({ hash, chain: RenJS.Chains.Ethereum });
 
 export let network: NetworkDetails = RenJS.NetworkDetails.NetworkTestnet;
 switch (NETWORK) {
@@ -148,20 +142,31 @@ export class SDKContainer extends Container<typeof initialState> {
         // approve a new amount.
         const allowance = new BigNumber(((await tokenInstance.methods.allowance(address, receivingAddress).call()) || 0).toString());
         if (allowance.lt(amountBN)) {
-            // We don't have enough allowance so approve more
-            const promiEvent = tokenInstance.methods.approve(
-                receivingAddress,
-                amountBN.toString()
-            ).send({ from: address });
-            await new Promise((resolve, reject) => promiEvent.on("transactionHash", async (transactionHash: string) => {
-                resolve(transactionHash);
-            }).catch((error: Error) => {
-                if (error && error.message && String(error.message).match(/Invalid "from" address/)) {
-                    error.message += ` (from address: ${address})`;
-                }
-                reject(error);
-            }));
+
+            return {
+                sendTo: tokenInstance.address,
+                contractFn: "approve",
+                contractParams: [
+                    { type: "address", name: "spender", value: receivingAddress },
+                    { type: "uint256", name: "amount", value: amountBN.toFixed() },
+                ],
+            };
+            // // We don't have enough allowance so approve more
+            // const promiEvent = tokenInstance.methods.approve(
+            //     receivingAddress,
+            //     amountBN.toString()
+            // ).send({ from: address });
+            // await new Promise((resolve, reject) => promiEvent.on("transactionHash", async (transactionHash: string) => {
+            //     resolve(transactionHash);
+            // }).catch((error: Error) => {
+            //     if (error && error.message && String(error.message).match(/Invalid "from" address/)) {
+            //         error.message += ` (from address: ${address})`;
+            //     }
+            //     reject(error);
+            // }));
         }
+
+        return undefined;
     }
 
     public getReceipt = async (web3: Web3, transactionHash: string) => {
@@ -197,7 +202,7 @@ export class SDKContainer extends Container<typeof initialState> {
 
         let to: string;
 
-        const gw = new GatewayJS("testnet");
+        const gw = new GatewayJS(NETWORK);
 
         if (checkHistory) {
             const orders = await gw.getGateways();
@@ -211,18 +216,28 @@ export class SDKContainer extends Container<typeof initialState> {
             }
         }
 
+        let approveContractCall;
+
         if (order.commitment.type === CommitmentType.Trade) {
             to = getAdapter(web3, networkID).address;
-            await this.approveTokenTransfer(order);
+            approveContractCall = await this.approveTokenTransfer(order);
             amount = order.commitment.srcAmount.toString();
         } else if (order.commitment.type === CommitmentType.RemoveLiquidity) {
             const reserveAddress = syncGetDEXReserveAddress(networkID, order.orderInputs.srcToken);
             const reserve = getReserve(web3, networkID, reserveAddress);
-            const promiEvent2 = reserve.methods.approve(
-                syncGetDEXAdapterAddress(networkID),
-                order.commitment.liquidity,
-            ).send({ from: address });
-            await new Promise<string>((resolve, reject) => promiEvent2.on("transactionHash", resolve).catch(reject));
+            approveContractCall = {
+                sendTo: reserve.address,
+                contractFn: "approve",
+                contractParams: [
+                    { type: "address", name: "spender", value: syncGetDEXAdapterAddress(networkID) },
+                    { type: "uint256", name: "amount", value: order.commitment.liquidity.toFixed() },
+                ],
+            };
+            // const promiEvent2 = reserve.methods.approve(
+            //     syncGetDEXAdapterAddress(networkID),
+            //     order.commitment.liquidity,
+            // ).send({ from: address });
+            // await new Promise<string>((resolve, reject) => promiEvent2.on("transactionHash", resolve).catch(reject));
             to = getAdapter(web3, networkID).address;
         } else {
             return;
@@ -231,12 +246,29 @@ export class SDKContainer extends Container<typeof initialState> {
         const burnToken = order.orderInputs.dstToken === Token.DAI ? order.orderInputs.srcToken : order.orderInputs.dstToken;
         // @ts-ignore
         await gw.open({
-            sendToken: RenJS.Tokens[burnToken].Burn,
-            sendTo: getAdapter(web3, networkID).address,
-            contractFn: "trade",
-            contractParams: this.zipPayloadShiftOut(order.commitment),
-            txConfig: { from: address, gas: 550000 },
-            nonce: order.nonce,
+            shiftIn: false,
+            id: order.id,
+            time: order.time,
+            inTx: order.inTx,
+            outTx: order.outTx,
+            renTxHash: order.renTxHash,
+            renVMStatus: order.renVMStatus,
+            status: order.status as ShiftInStatus,
+            shiftParams: {
+                sendToken: RenJS.Tokens[burnToken].Burn,
+                contractCalls: approveContractCall ? [approveContractCall, {
+                    sendTo: getAdapter(web3, networkID).address,
+                    contractFn: order.commitment.type === CommitmentType.Trade ? "trade" : "removeLiquidity",
+                    contractParams: this.zipPayloadShiftOut(order.commitment),
+                    txConfig: { from: address, gas: 550000 },
+                }] : [{
+                    sendTo: getAdapter(web3, networkID).address,
+                    contractFn: order.commitment.type === CommitmentType.Trade ? "trade" : "removeLiquidity",
+                    contractParams: this.zipPayloadShiftOut(order.commitment),
+                    txConfig: { from: address, gas: 550000 },
+                }],
+                nonce: order.nonce,
+            }
         }).result();
 
         await this.persistentContainer.updateHistoryItem(order.id, {
@@ -244,7 +276,7 @@ export class SDKContainer extends Container<typeof initialState> {
         });
     }
 
-    public zipPayloadShiftOut = (commitment: OrderCommitment | RemoveLiquidityCommitment): Args => {
+    public zipPayloadShiftOut = (commitment: OrderCommitment | RemoveLiquidityCommitment): EthArgs => {
         if (commitment.type === CommitmentType.Trade) {
             return [
                 { name: "srcToken", type: "address", value: commitment.srcToken },
@@ -276,7 +308,7 @@ export class SDKContainer extends Container<typeof initialState> {
     // 3. Submit the deposit to RenVM and retrieve back a signature
     // 4. Submit the signature to Ethereum, creating zBTC & swapping it for DAI
 
-    public zipPayload = (commitment: AddLiquidityCommitment | OrderCommitment): Args => {
+    public zipPayload = (commitment: AddLiquidityCommitment | OrderCommitment): EthArgs => {
         if (commitment.type === CommitmentType.Trade) {
             return [
                 { name: "srcToken", type: "address", value: commitment.srcToken },
@@ -308,7 +340,7 @@ export class SDKContainer extends Container<typeof initialState> {
             throw new Error("Invalid parameters passed to `generateAddress`");
         }
 
-        const gw = new GatewayJS("testnet");
+        const gw = new GatewayJS(NETWORK);
 
         if (checkHistory) {
             const orders = await gw.getGateways();
@@ -329,40 +361,60 @@ export class SDKContainer extends Container<typeof initialState> {
                 time: order.time,
                 inTx: order.inTx,
                 outTx: order.outTx,
-                messageID: order.messageID,
+                renTxHash: order.renTxHash,
                 renVMStatus: order.renVMStatus,
                 status: order.status as ShiftInStatus,
                 shiftParams: {
                     sendToken: order.orderInputs.srcToken === Token.ZEC ? RenJS.Tokens.ZEC.Zec2Eth : order.orderInputs.srcToken === Token.BCH ? RenJS.Tokens.BCH.Bch2Eth : RenJS.Tokens.BTC.Btc2Eth,
-                    sendTo: syncGetDEXAdapterAddress(networkID),
-                    sendAmount: order.commitment.srcAmount,
-                    contractFn: "trade",
-                    contractParams: this.zipPayload(order.commitment),
-                    nonce: order.nonce,
+                    // @ts-ignore
+                    suggestedAmount: order.commitment.srcAmount,
+                    requiredAmount: undefined,
+                    renTxHash: undefined,
+                    contractCalls: [{
+                        sendTo: syncGetDEXAdapterAddress(networkID),
+                        contractFn: "trade",
+                        contractParams: this.zipPayload(order.commitment),
+                    }],
+                    sendTo: undefined,
+                    contractFn: undefined,
+                    contractParams: undefined,
+                    nonce: order.nonce || "",
                 },
             }).result();
             await this.persistentContainer.updateHistoryItem(order.id, {
                 status: ShiftInStatus.ConfirmedOnEthereum,
             });
         } else if (order.commitment.type === CommitmentType.AddLiquidity) {
+            const approveContractCall = await this.approveTokenTransfer(order);
             await gw.open({
                 shiftIn: true,
                 id: order.id,
                 time: order.time,
                 inTx: order.inTx,
                 outTx: order.outTx,
-                messageID: order.messageID,
+                renTxHash: order.renTxHash,
                 renVMStatus: order.renVMStatus,
                 status: order.status as ShiftInStatus,
                 shiftParams: {
                     sendToken: order.orderInputs.srcToken === Token.ZEC ? RenJS.Tokens.ZEC.Zec2Eth : order.orderInputs.srcToken === Token.BCH ? RenJS.Tokens.BCH.Bch2Eth : RenJS.Tokens.BTC.Btc2Eth,
-                    sendTo: syncGetDEXAdapterAddress(networkID),
-                    sendAmount: order.commitment.amount,
-                    contractFn: "addLiquidity",
-                    contractParams: this.zipPayload(order.commitment),
+                    suggestedAmount: order.commitment.amount,
+                    renTxHash: undefined,
+                    requiredAmount: undefined,
+                    contractCalls: approveContractCall ? [approveContractCall, {
+                        sendTo: syncGetDEXAdapterAddress(networkID),
+                        contractFn: "addLiquidity",
+                        contractParams: this.zipPayload(order.commitment),
+                        txConfig: { gas: 550000 },
+                    }] : [{
+                        sendTo: syncGetDEXAdapterAddress(networkID),
+                        contractFn: "addLiquidity",
+                        contractParams: this.zipPayload(order.commitment),
+                        txConfig: { gas: 550000 },
+                    }],
                     nonce: order.nonce,
                 },
-            }).result();
+                // tslint:disable-next-line: no-any
+            } as any).result();
             await this.persistentContainer.updateHistoryItem(order.id, {
                 status: ShiftInStatus.ConfirmedOnEthereum,
             });

@@ -4,6 +4,7 @@ import { Loading, TokenIcon } from "@renproject/react-components";
 import RenJS from "@renproject/ren";
 
 import { IS_TESTNET } from "../../../lib/environmentVariables";
+// tslint:disable-next-line: ordered-imports
 import { _catchInteractionErr_, safeJSONStringify } from "../../../lib/errors";
 import { renderToken, Token, Tokens } from "../../../state/generalTypes";
 import { ReactComponent as MetaMask } from "../../../styles/images/metamask.svg";

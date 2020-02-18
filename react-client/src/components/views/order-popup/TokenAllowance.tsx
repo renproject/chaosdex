@@ -2,6 +2,7 @@ import * as React from "react";
 
 import { Loading } from "@renproject/react-components";
 
+// tslint:disable-next-line: ordered-imports
 import { _catchInteractionErr_, safeJSONStringify } from "../../../lib/errors";
 import { Token } from "../../../state/generalTypes";
 import { Commitment } from "../../../state/persistentContainer";
@@ -53,7 +54,7 @@ export const TokenAllowance: React.StatelessComponent<{
                     Error submitting to Ethereum: {error.message || safeJSONStringify(error)}
                     {failedTransaction ? <>
                         <br />
-                        See the <a className="blue" href={`https://dashboard.tenderly.dev/tx/${network.contracts.chain}/${failedTransaction}/error`}>Transaction Stack Trace</a> for more details.
+                        See the <a className="blue" href={`https://dashboard.tenderly.dev/tx/${network.contracts.chain}/${failedTransaction}`}>Transaction Stack Trace</a> for more details.
                     </> : null}
                 </span> : null}
                 <div className="popup--buttons">

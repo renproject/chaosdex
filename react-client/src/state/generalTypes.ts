@@ -1,5 +1,5 @@
 import { Currency } from "@renproject/react-components";
-import RenJS, { NetworkDetails } from "@renproject/ren";
+import RenJS, { Chain, NetworkDetails } from "@renproject/ren";
 import { isMainnetAddress, isTestnetAddress } from "bchaddrjs";
 import { Map } from "immutable";
 import { validate } from "wallet-address-validator";
@@ -34,7 +34,7 @@ const bchValidator = (address: string, isTestnet: boolean) => {
 const ethValidator = (address: string, isTestnet: boolean) => validate(address, "eth", isTestnet ? "testnet" : "prod");
 
 export const Tokens = Map<Token, TokenDetails>()
-    .set(Token.DAI, { symbol: Token.DAI, name: "Sai", decimals: 18, priority: 100, chain: RenJS.Chains.Ethereum, validator: ethValidator })
+    .set(Token.DAI, { symbol: "SAI", name: "Sai", decimals: 18, priority: 100, chain: RenJS.Chains.Ethereum, validator: ethValidator })
     .set(Token.BTC, { symbol: Token.BTC, name: "Bitcoin", decimals: 8, priority: 200, chain: RenJS.Chains.Bitcoin, validator: btcValidator })
     // .set(Token.ETH, { symbol: Token.ETH, name: "Ethereum", decimals: 18, priority: 1024, chain: RenJS.Chains.Ethereum, validator: ethValidator })
     .set(Token.ZEC, { symbol: Token.ZEC, name: "Zcash", decimals: 8, priority: 201, chain: RenJS.Chains.Zcash, validator: zecValidator })
@@ -53,10 +53,10 @@ export const isERC20 = (token: Token) => isEthereumBased(token) && token !== Tok
 
 export interface TokenDetails {
     name: string;
-    symbol: Token;
+    symbol: string;
     decimals: number;
     priority: number;
-    chain: RenJS["Chains"]["Ethereum"] | RenJS["Chains"]["Bitcoin"] | RenJS["Chains"]["Zcash"] | RenJS["Chains"]["BitcoinCash"];
+    chain: Chain.Ethereum | Chain.Bitcoin | Chain.Zcash | Chain.BitcoinCash;
     validator: (address: string, isTestnet: boolean) => boolean;
 }
 

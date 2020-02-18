@@ -2,6 +2,7 @@ import * as React from "react";
 
 import { InfoLabel, Loading } from "@renproject/react-components";
 
+// tslint:disable-next-line: ordered-imports
 import { _catchInteractionErr_, safeJSONStringify } from "../../../lib/errors";
 import { renderToken, Token } from "../../../state/generalTypes";
 import {

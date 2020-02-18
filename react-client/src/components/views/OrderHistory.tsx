@@ -2,11 +2,11 @@ import "react-circular-progressbar/dist/styles.css";
 
 import * as React from "react";
 
+import { ShiftInStatus } from "@renproject/gateway-js";
 import { InfoLabel, naturalTime, TokenIcon } from "@renproject/react-components";
 import RenJS from "@renproject/ren";
-import { CircularProgressbar } from "react-circular-progressbar";
-import { ShiftInStatus } from "@renproject/gateway-js";
 import { ShiftOutStatus } from "@renproject/ren-js-common";
+import { CircularProgressbar } from "react-circular-progressbar";
 
 import { connect, ConnectedProps } from "../../state/connect";
 import { renderToken } from "../../state/generalTypes";

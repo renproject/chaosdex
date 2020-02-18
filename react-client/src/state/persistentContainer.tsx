@@ -1,5 +1,5 @@
 import { ShiftInStatus } from "@renproject/gateway-js";
-import RenJS, { TxStatus } from "@renproject/ren";
+import { Chain, TxStatus } from "@renproject/ren";
 import { ShiftOutStatus } from "@renproject/ren-js-common";
 import localForage from "localforage";
 import { PersistContainer } from "unstated-persist";
@@ -44,7 +44,7 @@ export enum CommitmentType {
 
 export interface Tx {
     hash: string;
-    chain: RenJS["Chains"]["Ethereum"] | RenJS["Chains"]["Bitcoin"] | RenJS["Chains"]["Zcash"] | RenJS["Chains"]["BitcoinCash"];
+    chain: Chain.Ethereum | Chain.Bitcoin | Chain.Zcash | Chain.BitcoinCash;
 }
 
 export interface HistoryEventCommon {
@@ -55,7 +55,7 @@ export interface HistoryEventCommon {
     receivedAmount: string | null;
     orderInputs: OrderInputs;
     commitment: Commitment;
-    messageID: string | null;
+    renTxHash: string | null;
     nonce: string;
     renVMStatus: TxStatus | null;
 }
