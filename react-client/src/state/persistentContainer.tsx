@@ -1,6 +1,5 @@
-import { ShiftInStatus } from "@renproject/gateway-js";
-import { Chain, TxStatus } from "@renproject/ren";
-import { ShiftOutStatus } from "@renproject/ren-js-common";
+import { ShiftInStatus } from "@renproject/gateway";
+import { Chain, ShiftOutStatus, TxStatus } from "@renproject/ren-js-common";
 import localForage from "localforage";
 import { PersistContainer } from "unstated-persist";
 

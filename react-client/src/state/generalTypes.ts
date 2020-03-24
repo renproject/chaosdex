@@ -1,5 +1,7 @@
 import { Currency } from "@renproject/react-components";
-import RenJS, { Chain, NetworkDetails } from "@renproject/ren";
+import RenJS from "@renproject/ren";
+import { Chain } from "@renproject/ren-js-common";
+import { NetworkDetails } from "@renproject/utils";
 import { isMainnetAddress, isTestnetAddress } from "bchaddrjs";
 import { Map } from "immutable";
 import { validate } from "wallet-address-validator";

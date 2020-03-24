@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { InfoLabel, Loading, TokenIcon } from "@renproject/react-components";
-import { UTXO } from "@renproject/ren";
+import { UTXO } from "@renproject/utils";
 import { OrderedMap } from "immutable";
 import QRCode from "qrcode.react";
 import CopyToClipboard from "react-copy-to-clipboard";

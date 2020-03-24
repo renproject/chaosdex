@@ -1,7 +1,9 @@
-import GatewayJS from "@renproject/gateway-js";
+import GatewayJS from "@renproject/gateway";
+import { EthType } from "@renproject/interfaces";
 import { sleep } from "@renproject/react-components";
-import RenJS, { NetworkDetails } from "@renproject/ren";
+import RenJS from "@renproject/ren";
 import { EthArgs, ShiftInStatus, ShiftOutStatus } from "@renproject/ren-js-common";
+import { NetworkDetails } from "@renproject/utils";
 import BigNumber from "bignumber.js";
 import { Container } from "unstated";
 import Web3 from "web3";
@@ -147,8 +149,8 @@ export class SDKContainer extends Container<typeof initialState> {
                 sendTo: tokenInstance.address,
                 contractFn: "approve",
                 contractParams: [
-                    { type: "address", name: "spender", value: receivingAddress },
-                    { type: "uint256", name: "amount", value: amountBN.toFixed() },
+                    { type: "address" as EthType, name: "spender", value: receivingAddress },
+                    { type: "uint256" as EthType, name: "amount", value: amountBN.toFixed() },
                 ],
             };
             // // We don't have enough allowance so approve more
@@ -208,7 +210,7 @@ export class SDKContainer extends Container<typeof initialState> {
             const orders = await gw.getGateways();
             const previousOrder = orders.get(order.nonce);
             if (previousOrder) {
-                await gw.open(previousOrder).result();
+                await gw.recoverShift(web3.currentProvider, previousOrder).result();
                 await this.persistentContainer.updateHistoryItem(order.id, {
                     status: ShiftOutStatus.ReturnedFromRenVM,
                 });
@@ -229,8 +231,8 @@ export class SDKContainer extends Container<typeof initialState> {
                 sendTo: reserve.address,
                 contractFn: "approve",
                 contractParams: [
-                    { type: "address", name: "spender", value: syncGetDEXAdapterAddress(networkID) },
-                    { type: "uint256", name: "amount", value: order.commitment.liquidity.toFixed() },
+                    { type: "address" as EthType, name: "spender", value: syncGetDEXAdapterAddress(networkID) },
+                    { type: "uint256" as EthType, name: "amount", value: order.commitment.liquidity.toFixed() },
                 ],
             };
             // const promiEvent2 = reserve.methods.approve(
@@ -245,7 +247,7 @@ export class SDKContainer extends Container<typeof initialState> {
 
         const burnToken = order.orderInputs.dstToken === Token.DAI ? order.orderInputs.srcToken : order.orderInputs.dstToken;
         // @ts-ignore
-        await gw.open({
+        await gw.recoverShift(web3.currentProvider, {
             shiftIn: false,
             id: order.id,
             time: order.time,
@@ -335,8 +337,8 @@ export class SDKContainer extends Container<typeof initialState> {
     // Submits the commitment and transaction to the darknodes, and then submits
     // the signature to the adapter address
     public shiftIn = async (order: HistoryEvent, checkHistory = false) => {
-        const { sdkRenVM: renVM, sdkNetworkID: networkID } = this.state;
-        if (!renVM) {
+        const { sdkWeb3: web3, sdkRenVM: renVM, sdkNetworkID: networkID } = this.state;
+        if (!web3 || !renVM) {
             throw new Error("Invalid parameters passed to `generateAddress`");
         }
 
@@ -346,7 +348,7 @@ export class SDKContainer extends Container<typeof initialState> {
             const orders = await gw.getGateways();
             const previousOrder = orders.get(order.nonce);
             if (previousOrder) {
-                await gw.open(previousOrder).result();
+                await gw.recoverShift(web3.currentProvider, previousOrder).result();
                 await this.persistentContainer.updateHistoryItem(order.id, {
                     status: ShiftInStatus.ConfirmedOnEthereum,
                 });
@@ -355,7 +357,7 @@ export class SDKContainer extends Container<typeof initialState> {
         }
 
         if (order.commitment.type === CommitmentType.Trade) {
-            await gw.open({
+            await gw.recoverShift(web3.currentProvider, {
                 shiftIn: true,
                 id: order.id,
                 time: order.time,
@@ -363,7 +365,9 @@ export class SDKContainer extends Container<typeof initialState> {
                 outTx: order.outTx,
                 renTxHash: order.renTxHash,
                 renVMStatus: order.renVMStatus,
+                renVMQuery: null,
                 status: order.status as ShiftInStatus,
+                returned: false,
                 shiftParams: {
                     sendToken: order.orderInputs.srcToken === Token.ZEC ? RenJS.Tokens.ZEC.Zec2Eth : order.orderInputs.srcToken === Token.BCH ? RenJS.Tokens.BCH.Bch2Eth : RenJS.Tokens.BTC.Btc2Eth,
                     // @ts-ignore
@@ -375,9 +379,6 @@ export class SDKContainer extends Container<typeof initialState> {
                         contractFn: "trade",
                         contractParams: this.zipPayload(order.commitment),
                     }],
-                    sendTo: undefined,
-                    contractFn: undefined,
-                    contractParams: undefined,
                     nonce: order.nonce || "",
                 },
             }).result();
@@ -395,6 +396,7 @@ export class SDKContainer extends Container<typeof initialState> {
                 renTxHash: order.renTxHash,
                 renVMStatus: order.renVMStatus,
                 status: order.status as ShiftInStatus,
+                returned: false,
                 shiftParams: {
                     sendToken: order.orderInputs.srcToken === Token.ZEC ? RenJS.Tokens.ZEC.Zec2Eth : order.orderInputs.srcToken === Token.BCH ? RenJS.Tokens.BCH.Bch2Eth : RenJS.Tokens.BTC.Btc2Eth,
                     suggestedAmount: order.commitment.amount,

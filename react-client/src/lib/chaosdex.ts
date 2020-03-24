@@ -1,5 +1,6 @@
 import { Currency } from "@renproject/react-components";
-import RenJS, { NetworkDetails } from "@renproject/ren";
+import RenJS from "@renproject/ren";
+import { NetworkDetails } from "@renproject/utils";
 import BigNumber from "bignumber.js";
 import { Map as ImmutableMap } from "immutable";
 import Web3 from "web3";

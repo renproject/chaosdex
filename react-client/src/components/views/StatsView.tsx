@@ -3,7 +3,7 @@ import "react-super-responsive-table/dist/SuperResponsiveTableStyle.css";
 import * as React from "react";
 
 import { Currency, CurrencyIcon, Loading, TokenIcon } from "@renproject/react-components";
-import { NetworkDetails } from "@renproject/ren";
+import { NetworkDetails } from "@renproject/utils";
 import BigNumber from "bignumber.js";
 import { List, OrderedMap } from "immutable";
 import { Table, Tbody, Td, Th, Thead, Tr } from "react-super-responsive-table";
