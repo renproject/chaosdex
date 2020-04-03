@@ -1,7 +1,7 @@
 import * as React from "react";
 
+import { TxStatus } from "@renproject/interfaces";
 import { Loading, TokenIcon } from "@renproject/react-components";
-import { TxStatus } from "@renproject/ren-js-common";
 
 // tslint:disable-next-line: ordered-imports
 import { _catchInteractionErr_, safeJSONStringify } from "../../../lib/errors";

@@ -1,7 +1,7 @@
 import { ShiftInStatus } from "@renproject/gateway";
+import { ShiftOutStatus } from "@renproject/interfaces";
 import { Currency } from "@renproject/react-components";
 import RenJS from "@renproject/ren";
-import { ShiftOutStatus } from "@renproject/ren-js-common";
 import BigNumber from "bignumber.js";
 import { Map as ImmutableMap } from "immutable";
 import { Container } from "unstated";

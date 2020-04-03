@@ -1,6 +1,6 @@
+import { Chain } from "@renproject/interfaces";
 import { Currency } from "@renproject/react-components";
 import RenJS from "@renproject/ren";
-import { Chain } from "@renproject/ren-js-common";
 import { NetworkDetails } from "@renproject/utils";
 import { isMainnetAddress, isTestnetAddress } from "bchaddrjs";
 import { Map } from "immutable";

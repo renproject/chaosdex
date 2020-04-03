@@ -1,8 +1,7 @@
 import GatewayJS from "@renproject/gateway";
-import { EthType } from "@renproject/interfaces";
+import { EthArgs, EthType, ShiftInStatus, ShiftOutStatus } from "@renproject/interfaces";
 import { sleep } from "@renproject/react-components";
 import RenJS from "@renproject/ren";
-import { EthArgs, ShiftInStatus, ShiftOutStatus } from "@renproject/ren-js-common";
 import { NetworkDetails } from "@renproject/utils";
 import BigNumber from "bignumber.js";
 import { Container } from "unstated";

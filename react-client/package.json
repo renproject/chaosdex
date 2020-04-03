@@ -20,10 +20,9 @@
     },
     "dependencies": {
         "@renproject/fonts": "^1.0.1",
-        "@renproject/gateway": "^0.9.0",
+        "@renproject/gateway": "^0.10.0",
         "@renproject/react-components": "1.0.37",
-        "@renproject/ren": "^0.9.0",
-        "@renproject/ren-js-common": "^0.1.14",
+        "@renproject/ren": "^0.10.0",
         "@sentry/browser": "^5.15.0",
         "@sentry/core": "^5.15.0",
         "@sentry/integrations": "^5.15.0",
