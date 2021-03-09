@@ -37,7 +37,7 @@
         "chai-bignumber": "github:ren-forks/chai-bignumber.git#afa6f46dcbef0b7e622dc27b9b3354fc67afafbc",
         "coveralls": "^3.0.8",
         "dotenv": "^8.2.0",
-        "elliptic": "^6.5.1",
+        "elliptic": "^6.5.4",
         "eth-gas-reporter": "^0.2.12",
         "ethereumjs-util": "^6.2.0",
         "ganache-cli": "^6.7.0",
